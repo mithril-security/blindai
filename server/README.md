@@ -43,7 +43,7 @@ Two files will be generated after the building process:
 - **policy.toml :** the enclave security policy that defines which enclave is trusted.
 - **host_server.pem :** TLS certificate for the connection to the untrusted (app) part of the server.
 
-Those two files will be needed when you will use the client. You can have a look to the documentation for more informations.
+Those two files will be needed when you will use the client. You can have a look to the documentation or the [client readme](https://github.com/mithril-security/blindai/tree/master/client#usage) for more informations.
 
 ## Documentation
 
