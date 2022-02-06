@@ -19,8 +19,9 @@ from blindai.client import BlindAiClient
 client = BlindAiClient()
 client.connect_server(
     "localhost",
+    policy="policy.toml",
     certificate="host_server.pem",
-    simulation=True
+    simulation=False
 )
 
 #Upload the model to the server
@@ -36,8 +37,9 @@ import numpy as np
 client = BlindAiClient()
 client.connect_server(
     "localhost",
+    policy="policy.toml",
     certificate="host_server.pem",
-    simulation=True
+    simulation=False
 )
 
 image = Image.open("grace_hopper.jpg").resize((224,224))
