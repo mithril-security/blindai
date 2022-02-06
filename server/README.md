@@ -34,8 +34,8 @@ cargo install xargo
 ```
 Once your development environment is set up, you can compile the project with those commands: 
 ```bash
-git clone https://github.com/mithril-security/mithril-inference-server.git
-cd mithril-inference-server
+git clone https://github.com/mithril-security/blindai.git
+cd blindai/server
 make init
 make
 ```
