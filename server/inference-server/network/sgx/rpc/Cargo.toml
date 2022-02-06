@@ -1,0 +1,14 @@
+[package]
+name = "rpc"
+version = "0.1.0"
+authors = ["Adam Bratschi-Kaye <ark.email@gmail.com>"]
+edition = "2018"
+license = "MIT"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+tokio = { version = "1.0", features = ["rt"]  }
+tokio-stream = { version = "0.1", features = [ "net" ] }
+tonic = "0.5"
+tonic-rpc = { git = "ssh://git@github.com/mithril-security/tonic-rpc.git", branch = "main", features = ["json"] }

@@ -1,0 +1,9 @@
+# requirements for development
+pybind11
+setuptools
+wheel
+patchelf
+check-wheel-contents
+auditwheel
+pillow
+numpy

@@ -1,0 +1,23 @@
+## Python 
+# Byte-compiled / optimized / DLL files 
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+env/
+share/
+pyvenv.cfg
+
+Build/
+build/
+blindai.egg-info/
+dist/
+wheelhouse/
+
+# User files
+*.so
+*.onnx
+
+# Visual Studio Code environment
+.vscode/

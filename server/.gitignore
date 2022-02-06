@@ -1,0 +1,37 @@
+# C files generated automatically from .edl
+inference-server/scheduler/untrusted/Enclave_u.c
+inference-server/scheduler/untrusted/Enclave_u.h
+inference-server/scheduler/trusted/Enclave_t.c
+inference-server/scheduler/trusted/Enclave_t.h
+
+obj/
+lib/
+bin/
+target/
+client/
+
+# Client policy is generated from the enclave signed executable by the Makefile
+policy.toml
+host_server.pem
+host_server.key
+
+# Compilation artifacts
+inference-server/scheduler/trusted/target
+inference-server/scheduler/trusted/vendor
+inference-server/scheduler/untrusted/target
+inference-server/scheduler/trusted/enclave.meta.txt
+
+inference-server/scheduler/trusted/Enclave_private.pem
+inference-server/scheduler/trusted/Enclave_public.pem
+inference-server/scheduler/trusted/enclave.metadata.txt
+
+## Python 
+# Byte-compiled / optimized / DLL files 
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+env/
+
+.vscode/

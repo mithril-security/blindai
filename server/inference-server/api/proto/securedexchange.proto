@@ -1,0 +1,29 @@
+syntax = "proto3";
+package securedexchange;
+
+service Exchange {
+    rpc SendModel (stream Model) returns (SimpleReply);
+    rpc SendData (stream Data) returns (ModelResult);
+}
+
+message Model {
+    bytes data = 1;
+    uint64 length = 2;
+    repeated int32 input_fact = 3;
+}
+
+message Data {
+    repeated float input = 1;
+}
+
+message ModelResult {
+    int32 classification = 1;
+    float prediction = 2;
+    bool ok = 3;
+    string msg = 4;
+}
+
+message SimpleReply {
+    bool ok = 1;
+    string msg = 2;
+}
