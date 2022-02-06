@@ -50,7 +50,7 @@ class BlindAiClient:
         self.SIMULATION_MODE = simulation
 
         self.policy = load_policy(policy)
-        if self.policy is None:
+        if self.policy is None and self.SIMULATION_MODE is False:
             logging.error("Policy not found or not valid")
             return False
 
