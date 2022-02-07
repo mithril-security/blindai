@@ -8,7 +8,7 @@ from setuptools import Extension
 from setuptools.command.build_ext import build_ext
 from setuptools.command.build_py import build_py
 
-proto_path = "../server/inference-server/api/proto"
+proto_path = "proto"
 proto_files = ["securedexchange.proto", "untrusted.proto"]
 
 
