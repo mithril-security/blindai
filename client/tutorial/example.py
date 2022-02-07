@@ -1,7 +1,6 @@
 from blindai.client import BlindAiClient
 from PIL import Image
 import numpy as np
-import torch
 
 # Create the connection
 client = BlindAiClient()
@@ -22,7 +21,6 @@ if response.ok:
 
     # Send data for inference
     result = client.send_data(a.flatten())
-    print(result.classification)
-    print(result.prediction)
+    print(result.output)
 
 client.close_connection()

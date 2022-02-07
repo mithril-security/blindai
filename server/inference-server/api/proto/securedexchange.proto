@@ -17,10 +17,9 @@ message Data {
 }
 
 message ModelResult {
-    int32 classification = 1;
-    float prediction = 2;
-    bool ok = 3;
-    string msg = 4;
+    repeated float output = 1;
+    bool ok = 2;
+    string msg = 3;
 }
 
 message SimpleReply {

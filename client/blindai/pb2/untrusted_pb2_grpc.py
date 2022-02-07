@@ -2,7 +2,7 @@
 """Client and server classes corresponding to protobuf-defined services."""
 import grpc
 
-import pb2.untrusted_pb2 as untrusted__pb2
+import untrusted_pb2 as untrusted__pb2
 
 
 class AttestationStub(object):

@@ -60,7 +60,7 @@ fn load_model(model: Vec<u8>, input_fact: Vec<i32>) -> TractResult<OnnxModel> {
     Ok(model_rec)
 }
 
-fn run_inference(model: &OnnxModel, input: Vec<f32>, input_fact: &Vec<usize>) -> TractResult<(f32, i32)>
+fn run_inference(model: &OnnxModel, input: Vec<f32>, input_fact: &Vec<usize>) -> TractResult<(Vec<f32>)>
 {
     let dim = IxDynImpl::from(input_fact.as_slice());
     let image: Tensor = tract_ndarray::ArrayD::from_shape_vec(dim, input)?.into();
@@ -68,20 +68,9 @@ fn run_inference(model: &OnnxModel, input: Vec<f32>, input_fact: &Vec<usize>) ->
     let arr = result[0].to_array_view::<f32>()?;
     let slice = arr.as_slice();
     match slice {
-        Some(result) => {
-            println!("ok");
-        }
-        None => {
-            println!("err");
-        }
-    }
-    let best = result[0]
-        .to_array_view::<f32>()?
-        .iter()
-        .cloned()
-        .zip(2..)
-        .max_by(|a, b| a.0.partial_cmp(&b.0).unwrap()).unwrap();
-    return Ok(best)
+        Some(result) => return Ok(result.to_vec()),
+        None => return Err(anyhow!("Failed to convert ArrayView to slice: {}")),
+    };
 }
 
 #[derive(Debug, Default)]
@@ -184,9 +173,8 @@ impl Exchange for Exchanger {
         if let Some(model) = &*self.model.lock().unwrap() 
         {
             match run_inference(&model, input, &input_fact) { 
-                Ok (tuple_res) => {
-                    reply.prediction = tuple_res.0;
-                    reply.classification = tuple_res.1;
+                Ok (output) => {
+                    reply.output = output;
                     reply.ok = true;
                     reply.msg = String::from("OK");
                     info!("Inference done successfully, sending encrypted result to the client");
