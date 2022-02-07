@@ -7,3 +7,4 @@ check-wheel-contents
 auditwheel
 pillow
 numpy
+torch
