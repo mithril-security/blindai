@@ -15,6 +15,10 @@ blindai.egg-info/
 dist/
 wheelhouse/
 
+#stub files
+*pb2.py
+*pb2_grpc.py
+
 # User files
 *.so
 *.onnx

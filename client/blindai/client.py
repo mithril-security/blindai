@@ -1,13 +1,13 @@
 import os
 import logging
 import cryptography
-import pb2.untrusted_pb2 as untrusted_pb2
+import untrusted_pb2
 
 from utils.utils import *
 from cryptography.hazmat.primitives.serialization import Encoding
-from pb2.securedexchange_pb2 import SimpleReply, Model, Data
-from pb2.securedexchange_pb2_grpc import ExchangeStub
-from pb2.untrusted_pb2_grpc import AttestationStub
+from securedexchange_pb2 import SimpleReply, Model, Data
+from securedexchange_pb2_grpc import ExchangeStub
+from untrusted_pb2_grpc import AttestationStub
 from grpc import ssl_channel_credentials, secure_channel, RpcError
 from dcap_attestation import (
     verify_claims,

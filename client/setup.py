@@ -5,14 +5,16 @@ import platform
 import re
 import sys
 from setuptools import Extension
-from setuptools.command.build_ext import build_ext 
+from setuptools.command.build_ext import build_ext
+from setuptools.command.build_py import build_py
 
+proto_path = "../server/inference-server/api/proto"
+proto_files = ["securedexchange.proto", "untrusted.proto"]
 
-#Build the third party library
-subprocess.check_call(["./scripts/build"])
 
 def read(filename):
     return open(os.path.join(os.path.dirname(__file__), filename)).read()
+
 
 def find_version():
     version_file = read("blindai/version.py")
@@ -20,10 +22,12 @@ def find_version():
     version = re.match(version_re, version_file).group("version")
     return version
 
+
 class CMakeExtension(Extension):
     def __init__(self, name, sourcedir=""):
         Extension.__init__(self, name, sources=[])
         self.sourcedir = os.path.abspath(sourcedir)
+
 
 class CMakeBuild(build_ext):
     def build_extension(self, ext):
@@ -44,7 +48,7 @@ class CMakeBuild(build_ext):
             f"-DPYTHON_EXECUTABLE={sys.executable}",
             f"-DCMAKE_BUILD_TYPE={cfg}",
         ]
-        
+
         build_args = []
 
         if "CMAKE_ARGS" in os.environ:
@@ -66,7 +70,21 @@ class CMakeBuild(build_ext):
         subprocess.check_call(
             ["cmake", "--build", "."] + build_args, cwd=self.build_temp
         )
-        subprocess.check_call(['./scripts/edit_runpath'])
+        subprocess.check_call(["./scripts/edit_runpath"])
+
+
+class BuildPy(build_py):
+    def run(self):
+        # Generate the stub
+        for file in proto_files:
+            args = "--proto_path={} --python_out=blindai --grpc_python_out=blindai {}".format(
+                proto_path, file
+            )
+            subprocess.call("python -m grpc_tools.protoc " + args, shell=True)
+        # Build the AttestationLib
+        subprocess.check_call(["./scripts/build"])
+        super(BuildPy, self).run()
+
 
 setuptools.setup(
     name="blindai",
@@ -83,15 +101,18 @@ setuptools.setup(
     include_package_data=True,
     package_data={"": ["lib/*.so", "tls/*.pem"]},
     ext_modules=[CMakeExtension("pybind11_module")],
-    cmdclass={"build_ext": CMakeBuild},
+    cmdclass={
+        "build_ext": CMakeBuild,
+        "build_py": BuildPy,
+    },
     zip_safe=False,
     python_requires=">=3.6.8",
     install_requires=[
-       "cryptography>=35.0.0",
-       "toml",
-       "grpcio",
-       "grpcio-tools",
-       "bitstring"
+        "cryptography>=35.0.0",
+        "toml",
+        "grpcio",
+        "grpcio-tools",
+        "bitstring",
     ],
     classifiers=[
         "Programming Language :: Python :: 3",
