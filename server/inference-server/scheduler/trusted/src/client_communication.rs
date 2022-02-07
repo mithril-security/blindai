@@ -69,7 +69,7 @@ fn run_inference(model: &OnnxModel, input: Vec<f32>, input_fact: &Vec<usize>) ->
     let slice = arr.as_slice();
     match slice {
         Some(result) => return Ok(result.to_vec()),
-        None => return Err(anyhow!("Failed to convert ArrayView to slice: {}")),
+        None => return Err(anyhow!("Failed to convert ArrayView to slice")),
     };
 }
 
