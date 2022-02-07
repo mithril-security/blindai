@@ -65,6 +65,16 @@ fn run_inference(model: &OnnxModel, input: Vec<f32>, input_fact: &Vec<usize>) ->
     let dim = IxDynImpl::from(input_fact.as_slice());
     let image: Tensor = tract_ndarray::ArrayD::from_shape_vec(dim, input)?.into();
     let result = model.run(tvec!(image))?;
+    let arr = result[0].to_array_view::<f32>()?;
+    let slice = arr.as_slice();
+    match slice {
+        Some(result) => {
+            println!("ok");
+        }
+        None => {
+            println!("err");
+        }
+    }
     let best = result[0]
         .to_array_view::<f32>()?
         .iter()
