@@ -16,13 +16,9 @@ dist/
 wheelhouse/
 
 #stub files
-<<<<<<< HEAD
+
 blindai/pb2/*pb2.py
 blindai/pb2/*grpc.py
-=======
-*pb2.py
-*pb2_grpc.py
->>>>>>> 210350d11f93c98a15e44d667d802914db9c82e4
 
 # User files
 *.so
