@@ -77,7 +77,7 @@ class BuildPy(build_py):
     def run(self):
         # Generate the stub
         for file in proto_files:
-            args = "--proto_path={} --python_out=blindai --grpc_python_out=blindai {}".format(
+            args = "--proto_path={} --python_out=blindai/stub --grpc_python_out=blindai/stub {}".format(
                 proto_path, file
             )
             subprocess.call("python -m grpc_tools.protoc " + args, shell=True)
