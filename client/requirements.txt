@@ -6,5 +6,6 @@ patchelf
 check-wheel-contents
 auditwheel
 pillow
+cibuildwheel
 numpy
 torch

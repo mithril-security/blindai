@@ -4,10 +4,10 @@ import subprocess
 import platform
 import re
 import sys
+import grpc_tools.protoc
 from setuptools import Extension
 from setuptools.command.build_ext import build_ext
 from setuptools.command.build_py import build_py
-import grpc_tools.protoc
 
 proto_path = "proto"
 proto_files = ["securedexchange.proto", "untrusted.proto"]
@@ -77,18 +77,12 @@ class CMakeBuild(build_ext):
 class BuildPy(build_py):
     def run(self):
         # Generate the stub
-        """for file in proto_files:
-            args = "--proto_path={} --python_out=blindai/pb2 --grpc_python_out=blindai/pb2 {}".format(
-                proto_path, file
-            )
-            subprocess.call("python3 -m grpc_tools.protoc " + args, shell=True)
-        """
         for file in proto_files:
             grpc_tools.protoc.main([
                 'grpc_tools.protoc',
                 '--proto_path={}'.format(proto_path),
-                '--python_out=blindai/pb2',
-                '--grpc_python_out=blindai/pb2',
+                '--python_out=blindai',
+                '--grpc_python_out=blindai',
                 '{}'.format(file)
             ])
         # Build the AttestationLib
@@ -116,7 +110,7 @@ setuptools.setup(
         "build_py": BuildPy,
     },
     zip_safe=False,
-    python_requires=">=3.6.8",
+    python_requires=">=3.6.9",
     install_requires=[
         "cryptography>=35.0.0",
         "toml",
@@ -132,9 +126,8 @@ setuptools.setup(
             'patchelf',
             'check-wheel-contents',
             'auditwheel',
-            'pillow',
-            'numpy',
-            'torch',
+            'grpcio-tools',
+            'grpcio'
         ]
     },
     classifiers=[
