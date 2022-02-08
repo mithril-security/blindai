@@ -9,6 +9,7 @@ from securedexchange_pb2 import SimpleReply, Model, Data
 from securedexchange_pb2_grpc import ExchangeStub
 from untrusted_pb2_grpc import AttestationStub
 from grpc import ssl_channel_credentials, secure_channel, RpcError
+
 from dcap_attestation import (
     verify_claims,
     verify_dcap_attestation,
@@ -20,6 +21,7 @@ PORTS = {"untrusted_enclave": "50052", "attested_enclave": "50051"}
 
 
 class BlindAiClient:
+    
     def __init__(self, debug_mode=False):
 
         self.channel = None
