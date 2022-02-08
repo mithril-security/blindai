@@ -5,7 +5,7 @@ blindai client is a python package that simplifies the connection to BlindAI inf
 ## BlindAiClient
 
 ### **connect_server (addr, certificate, policy, simulation)-> bool**
-Estabilish connection with BlindAI inference server and perform the process of requesting and verifying the attestation.
+Estabilish a connection with BlindAI inference server and perform the process of requesting and verifying the attestation.
 
 | Param | Type | description |
 | --- | --- | --- |
