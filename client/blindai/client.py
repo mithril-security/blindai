@@ -49,10 +49,11 @@ class BlindAiClient:
 
         self.SIMULATION_MODE = simulation
 
-        self.policy = load_policy(policy)
-        if self.policy is None and self.SIMULATION_MODE is False:
-            logging.error("Policy not found or not valid")
-            return False
+        if not self.SIMULATION_MODE:
+            self.policy = load_policy(policy)
+            if self.policy is None:
+                logging.error("Policy not found or not valid")
+                return False
 
         try:
             with open(certificate, "rb") as f:
@@ -102,7 +103,8 @@ class BlindAiClient:
                     )
                     logging.info(f"MREnclave\n" + claims["sgx-mrenclave"])
 
-            server_creds = ssl_channel_credentials(root_certificates=server_cert)
+            server_creds = ssl_channel_credentials(
+                root_certificates=server_cert)
 
             # Attested channel to the enclave
             channel = secure_channel(
