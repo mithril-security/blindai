@@ -17,6 +17,7 @@ Estabilish a connection with BlindAI inference server and perform the process of
 
 Returns a boolean describing whether the connection was successful or not.
 
+---
 ### **upload_model (model, shape) -> dict**
 Upload a pretrained model in ONNX format to BlindAI server.
 
@@ -32,6 +33,7 @@ Returns a **``dict``** with the following keys:
 | ok  | ``bool`` | True if the model is successfully upload |
 | msg | ``str`` | Error message | 
 
+---
 ### **send_data (data) -> dict**
 Send data to  BlindAI server to perform the inference.
 
@@ -46,6 +48,6 @@ Returns a **``dict``** with the following keys:
 | ok | ``bool`` | True if the model is successfully upload |
 | msg | ``str`` | Error message | 
 
-
+---
 ### **close_connection ( )**
 Close the connection between the client and the inference server. 
