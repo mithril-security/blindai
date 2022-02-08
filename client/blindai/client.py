@@ -4,6 +4,8 @@ import cryptography
 import untrusted_pb2
 
 from utils.utils import *
+from enum import IntEnum
+from cbor2 import dumps, loads
 from cryptography.hazmat.primitives.serialization import Encoding
 from securedexchange_pb2 import SimpleReply, Model, Data
 from securedexchange_pb2_grpc import ExchangeStub
@@ -19,8 +21,15 @@ from dcap_attestation import (
 
 PORTS = {"untrusted_enclave": "50052", "attested_enclave": "50051"}
 
-
 class BlindAiClient:
+
+    class ModelDatumType(IntEnum):
+        F32 = 0
+        F64 = 1
+        I32 = 2
+        I64 = 3
+        U32 = 4
+        U64 = 5
     
     def __init__(self, debug_mode=False):
 
@@ -121,9 +130,11 @@ class BlindAiClient:
 
         return True
 
-    def upload_model(self, model=None, shape=None):
+    def upload_model(self, model=None, shape=None, datum=ModelDatumType.F32):
         """Upload an inference model to the server"""
 
+        if datum is None:
+            datum = ModelDatumType.F32
         response = SimpleReply()
         response.ok = False
         if not self._is_connected():
@@ -136,7 +147,7 @@ class BlindAiClient:
             response = self.stub.SendModel(
                 iter(
                     [
-                        Model(length=len(data), input_fact=input_fact, data=chunk)
+                        Model(length=len(data), input_fact=input_fact, data=chunk, datum=int(datum))
                         for chunk in create_byte_chunk(data)
                     ]
                 )
@@ -157,11 +168,12 @@ class BlindAiClient:
             response.msg = "Not connected to server"
             return response
         try:
+            serialized_bytes = dumps(data_list)
             response = self.stub.SendData(
                 iter(
                     [
-                        Data(input=data_list_chunk)
-                        for data_list_chunk in create_float_chunk(data_list)
+                        Data(input=serialized_bytes_chunk)
+                        for serialized_bytes_chunk in create_byte_chunk(serialized_bytes)
                     ]
                 )
             )

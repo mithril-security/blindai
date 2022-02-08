@@ -117,6 +117,7 @@ setuptools.setup(
         "grpcio",
         "grpcio-tools",
         "bitstring",
+        "cbor2"
     ],
     extras_require={
         'dev': [

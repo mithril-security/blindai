@@ -9,3 +9,4 @@ pillow
 cibuildwheel
 numpy
 torch
+transformers
