@@ -9,11 +9,16 @@ env/
 share/
 pyvenv.cfg
 
+# Build folders
 Build/
 build/
 blindai.egg-info/
 dist/
 wheelhouse/
+
+#stub files
+blindai/*pb2.py
+blindai/*grpc.py
 
 # User files
 *.so

@@ -1,4 +1,3 @@
-from pb2.securedexchange_pb2 import Model, Data
 import re
 import grpc
 

@@ -1,6 +1,6 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
-#include "../third_party/attestationLib/AttestationApp/src/AppCore/Verification.h"
+#include "../../third_party/attestationLib/AttestationApp/src/AppCore/Verification.h"
 
 namespace py = pybind11;
 
