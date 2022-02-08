@@ -23,7 +23,7 @@ Upload a pretrained model in ONNX format to BlindAI server.
 
 | Param | Type | description |
 | --- | --- | --- |
-| model | ``str``| path to onnx trained model |
+| model | ``str``| path to model file|
 | shape | ``(int, int, int, int)`` | the shape of the model input |
 
 Returns a **``dict``** with the following keys:
