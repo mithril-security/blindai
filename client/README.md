@@ -46,7 +46,7 @@ image = Image.open("grace_hopper.jpg").resize((224,224))
 a = np.asarray(image, dtype=float)
 
 #Send data for inference
-result = client.send_data(a.flatten())
+result = client.run_model(a.flatten())
 ```
 
 In order to connect to the BlindAI server, the client needs to acquire the following files from the server: 
