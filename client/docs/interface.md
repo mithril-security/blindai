@@ -51,7 +51,7 @@ Send data to  BlindAI server to perform the inference.
 
 | Param | Type | description |
 | --- | --- | --- |
-| data | ``[number]``| array of numbers, the numbers must be of the same type specified in `upload_model`| 
+| data | ``[number]``| array of numbers, the numbers must be of the same type ``datum`` specified in `upload_model`| 
 
 Returns a **``dict``** with the following keys:
 | key | Type | description |
