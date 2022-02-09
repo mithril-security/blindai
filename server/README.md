@@ -6,13 +6,13 @@
 This ```Docker``` image provides a version of the server that allows you to test the service without having an ```Intel SGX``` ready device. 
 In order to run the server in ```software/simulation mode```, you can simply run this command: 
 ```bash
-curl -L ... | sh
+sudo docker run -p 50051:50051 -p 50052:50052 blindai-server-sim:0.1.0
 ```
 ### Hardware mode server (Docker) 🐳
 You will need to have an Intel SGX ready device (with ```SGX+FLC``` support) in order to run this ```Docker``` image.
 Please make sure to have the ```SGX+FLC``` drivers installed on your system before running the ```Docker``` image. [Please check this link to have more information about the drivers.](https://github.com/intel/linux-sgx-driver#build-and-install-the-intelr-sgx-driver)
 ```bash
-curl -L ... | sh
+sudo docker run -p 50051:50051 -p 50052:50052 --device /dev/sgx/enclave --device /dev/sgx/provision blindai-server:0.1.0 API_KEY
 ```
 ### TLS certificate and policy of servers from the Docker images
 If you intend to use those docker images, you will need this certificate and the policy to use the client.
