@@ -58,9 +58,9 @@ pub enum ModelDatumType {
     U64 = 5,
 }
 
-fn get_datum_type(datum: i32) -> TractResult<DatumType> {
+fn get_datum_type(datum: &Option<ModelDatumType>) -> TractResult<DatumType> {
 
-    match FromPrimitive::from_i32(datum) {
+    match *datum {
         Some(ModelDatumType::F32) => return Ok(f32::datum_type()),
         Some(ModelDatumType::F64) => return Ok(f64::datum_type()),
         Some(ModelDatumType::I32) => return Ok(i32::datum_type()),
@@ -71,7 +71,7 @@ fn get_datum_type(datum: i32) -> TractResult<DatumType> {
     }
 }
 
-fn load_model(model: Vec<u8>, input_fact: Vec<i32>, datum: i32) -> TractResult<OnnxModel> {
+fn load_model(model: Vec<u8>, input_fact: Vec<i32>, datum: &Option<ModelDatumType>) -> TractResult<OnnxModel> {
     let mut model_slice = &model[..];
     let datum_type = get_datum_type(datum)?;
     let model_rec = tract_onnx::onnx()
@@ -92,35 +92,34 @@ fn load_model(model: Vec<u8>, input_fact: Vec<i32>, datum: i32) -> TractResult<O
 fn create_tensor(datum_type: &ModelDatumType, input:Vec<u8>, input_fact: &Vec<usize>) -> TractResult<Tensor> {
     let slice = input.as_slice();
     let dim = IxDynImpl::from(input_fact.as_slice());
-    let mut tensor: Tensor = tract_ndarray::ArrayD::<f32>::zeros(&*dim).into();
     if *datum_type == ModelDatumType::F32 {
-        let vec: Vec<f32> = serde_cbor::from_slice(slice).unwrap();
-        tensor = tract_ndarray::ArrayD::from_shape_vec(dim, vec)?.into();
+        let vec: Vec<f32> = serde_cbor::from_slice(slice).unwrap_or(Vec::new());
+        let mut tensor = tract_ndarray::ArrayD::from_shape_vec(dim, vec)?.into();
         return Ok(tensor);
     }
     else if *datum_type == ModelDatumType::F64 {
-        let vec: Vec<f64> = serde_cbor::from_slice(slice).unwrap();
-        tensor = tract_ndarray::ArrayD::from_shape_vec(dim, vec)?.into();
+        let vec: Vec<f64> = serde_cbor::from_slice(slice).unwrap_or(Vec::new());
+        let mut tensor = tract_ndarray::ArrayD::from_shape_vec(dim, vec)?.into();
         return Ok(tensor);
     }
     else if *datum_type == ModelDatumType::I32 {
-        let vec: Vec<i32> = serde_cbor::from_slice(slice).unwrap();
-        tensor = tract_ndarray::ArrayD::from_shape_vec(dim, vec)?.into();
+        let vec: Vec<i32> = serde_cbor::from_slice(slice).unwrap_or(Vec::new());
+        let mut tensor = tract_ndarray::ArrayD::from_shape_vec(dim, vec)?.into();
         return Ok(tensor);
     }
     else if *datum_type == ModelDatumType::I64 {
-        let vec: Vec<i64> = serde_cbor::from_slice(slice).unwrap();
-        tensor = tract_ndarray::ArrayD::from_shape_vec(dim, vec)?.into();
+        let vec: Vec<i64> = serde_cbor::from_slice(slice).unwrap_or(Vec::new());
+        let mut tensor = tract_ndarray::ArrayD::from_shape_vec(dim, vec)?.into();
         return Ok(tensor);
     }
     else if *datum_type == ModelDatumType::U32 {
-        let vec: Vec<u32> = serde_cbor::from_slice(slice).unwrap();
-        tensor = tract_ndarray::ArrayD::from_shape_vec(dim, vec)?.into();
+        let vec: Vec<u32> = serde_cbor::from_slice(slice).unwrap_or(Vec::new());
+        let mut tensor = tract_ndarray::ArrayD::from_shape_vec(dim, vec)?.into();
         return Ok(tensor);
     }
     else if *datum_type == ModelDatumType::U64 {
-        let vec: Vec<u64> = serde_cbor::from_slice(slice).unwrap();
-        tensor = tract_ndarray::ArrayD::from_shape_vec(dim, vec)?.into();
+        let vec: Vec<u64> = serde_cbor::from_slice(slice).unwrap_or(Vec::new());
+        let mut tensor = tract_ndarray::ArrayD::from_shape_vec(dim, vec)?.into();
         return Ok(tensor);
     }
     else {
@@ -154,7 +153,7 @@ pub(crate) struct Exchanger
     pub input_fact: std::sync::Arc<Mutex<Vec<usize>>>,
     pub max_model_size: usize,
     pub max_input_size: usize,
-    pub datum_type: std::sync::Arc<Mutex<Option<ModelDatumType>>>,
+    pub datum_type: std::sync::Arc<Mutex<Option<ModelDatumType>>>, 
 }
 
 impl Exchanger {
@@ -202,15 +201,14 @@ impl Exchange for Exchanger {
             }
             model_bytes.append(&mut model_proto.data);
         }
-
-        match load_model(model_bytes, model_proto.input_fact.clone(), model_proto.datum) {
+        let datum = FromPrimitive::from_i32(model_proto.datum);
+        match load_model(model_bytes, model_proto.input_fact.clone(), &datum) {
             Ok(model_rec) => 
             {
                 *self.model.lock().unwrap() = Some(model_rec);
                 let input = &mut *self.input_fact.lock().unwrap();
                 input.clear();
                 input.append(&mut input_fact);
-                let datum = FromPrimitive::from_i32(model_proto.datum);
                 *self.datum_type.lock().unwrap() = datum;
                 reply.ok = true;
                 reply.msg = format!("OK");
@@ -265,8 +263,6 @@ impl Exchange for Exchanger {
                     error!("Error while running the inference");
                 }
             }
-            reply.ok = true;
-            reply.msg = String::from("Debugging");
         }
         else {
             reply.ok = false;
