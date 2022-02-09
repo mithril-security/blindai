@@ -3,7 +3,7 @@ package securedexchange;
 
 service Exchange {
     rpc SendModel (stream Model) returns (SimpleReply);
-    rpc SendData (stream Data) returns (ModelResult);
+    rpc RunModel (stream Data) returns (ModelResult);
 }
 
 message Model {

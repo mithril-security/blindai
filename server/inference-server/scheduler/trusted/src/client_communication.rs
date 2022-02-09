@@ -224,7 +224,7 @@ impl Exchange for Exchanger {
         Ok(Response::new(reply))
     }
 
-    async fn send_data(
+    async fn run_model(
         &self,
         request: Request<tonic::Streaming<Data>>,
     ) -> Result<Response<ModelResult>, Status> {

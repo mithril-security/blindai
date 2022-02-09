@@ -151,7 +151,7 @@ class BlindAiClient:
 
         return response
 
-    def send_data(self, data_list):
+    def run_model(self, data_list):
         """Send data to the server to make a secure inference"""
         response = ModelResult()
         response.ok = False
@@ -160,7 +160,7 @@ class BlindAiClient:
             return response
         try:
             serialized_bytes = dumps(data_list)
-            response = self.stub.SendData(
+            response = self.stub.RunModel(
                 iter(
                     [
                         Data(input=serialized_bytes_chunk)

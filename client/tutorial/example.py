@@ -18,7 +18,7 @@ response = client.upload_model(model="./final_confidential_transformers_classifi
 if response.ok:
     print("Model loaded")
     tokenized = tokenizer("I love potatoes", padding = "max_length", max_length = 20)["input_ids"]
-    res = client.send_data(tokenized)
+    res = client.run_model(tokenized)
     print(res.output)
 
 client.close_connection()
