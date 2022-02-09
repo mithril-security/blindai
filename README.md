@@ -14,44 +14,82 @@
 
 We reconcile AI and privacy by leveraging ```Intel SGX```, you can learn more about this technology here. and having technical guarantees that your model and its data will stay secured, thanks to **Confidential Computing** with ```Intel SGX```.
 
-## Features
-* Simple and fast API to use the service
-* Model and data protected by hardware security
-* Support of Remote Attestation with TLS (DCAP library)
-* Easy to install, deploy, and maintain
+We currently only support Intel SGX, but we plan to cover AMD SEV and Nitro Enclave in the future. More information about our **roadmap** can be found [here](https://github.com/mithril-security/blindai/projects/1). 
+
+Our solution comes in two parts:
+- A secure inference solution to serve AI models with privacy guarantees.
+- A client SDK to securely consume the remote AI models. 
 
 ## Getting started
 
-### Deploy a ResNet model
-To get started, please start this ```Docker``` image with the following command:
+To deploy a model on sensitive data, with end-to-end protection, we provide a Docker image to serve models with confidentiality, and a client SDK to consume this service securely.
+
+### Note
+
+Because the server requires specific hardware, for instance Intel SGX currently, we also provide a simulation mode. Using the simulation mode, any computer can serve models with our solution. However, the two key properties of secure enclaves, data in use confidentiality, and code attestation, will not be available. **Therefore this is just for testing on your local machine but is not relevant for real guarantees in production**.
+
+### A - Deploying the server
+
+Deploy the inference server, for instance using one of our Docker images. To get started quickly, you can use the image with simulation, which does not require any specific hardware. 
 ```bash
-curl -L ... | sh
+sudo docker run -p 50051:50051 -p 50052:50052 blindai-server-sim:0.1.0 
 ```
-Please download as well the ```certificate``` of the server built in the ```Docker``` image with this command: 
-```bash
-curl -L ... > host_server.pem
-```
-You can now connect to the server using the client, using this code: 
+### B - Sending data from the client to the server
+
+Our client SDK is rather simple, but behind the scenes, a lot happens. If we are talking to a real enclave (simulation=False), the client actually verifies we are indeed talking with an enclave with the right security properties, such as the code loaded inside the enclave or security patches applied. Once those checks pass, data or model can be uploaded safely, with end-to-end protection through a TLS tunnel ending inside the enclave. Thanks to the data in use, protection of the enclave and verification of the code, everything sent remotely will not be exposed to any third party.
+
+You can learn more about the attestation mechanism for code integrity here.
+
+#### i - Upload the model
+
+Then we need to load a model inside the secure inference server. First we will export our model from Pytorch to ONNX, then we can upload it securely to the inference server. Uploading the model through our API allows the model to be kept confidential, for instance when deploying it on foreign infrastructure, like Cloud or client on-premise. 
+
+#### ii - Send data
+
+Upload the data securely to the inference server. 
 ```python
-from blindai.client import BlindAiClient
-
-#Create the connection
+from PIL import Image
+from numpy import asarray
+import blindai
+ 
+# Load an image
+image = Image.open('kolala.jpeg')
+data = asarray(image)
+ 
+# Setup the client to send data to
 client = BlindAiClient()
-client.connect_server(
-    "localhost",
-    certificate="host_server.pem",
-    simulation=True
+client.connect_server(connect_server(
+    address=...,
+    policy="policy.toml",
+    certificate="host_certificate.pem",
+    simulation=False
 )
-
-#Upload the model to the server
-response = client.upload_model(model="./mobilenetv2-7.onnx", shape=(1, 3, 224, 224))
+pred = client.run_model(data.reshape(1,1,224,224))
+print(pred)
 ```
 
-## Documentation
+### What you can do with Mithril
 
-You can have a look to [the documentation](https://mithrilsecurity.gitbook.io/) to see what is under the hook.
+- Easily deploy state-of-the-art models with confidentiality. Run models from **Transformers** for text to ResNets for **medical images**.
+- Provide guarantees to third parties, for instance clients or regulators, that you are indeed providing data protection, through **code attestation**.
+- Explore different scenarios from confidential Speech-to-text, to biometrics identification, through secure document analysis with our pool of **examples**.
 
-## Contributing
-Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
+### What you cannot do with Mithril
 
-Please make sure to update tests as appropriate.
+- Our solution aims to be modular but we have yet to incorporate tools for generic pre/post processing. Specific pipelines can be covered but will require additional handwork for now.
+- We do not cover training and federated learning yet, but if this feature interests you do not hesitate to show your interest through the [roadmap](https://github.com/mithril-security/blindai/projects/1) or [Discord](https://discord.gg/rWHcHeCBWk) channel. 
+- The examples we provide are simple, and do not take into account complex mechanisms such as secure storage of confidential data with sealing keys, advanced scheduler for inference requests, or complex key management scenarios. If your use case involves more than what we show, do not hesitate to **contact us** for more information.
+
+### Install
+
+#### A - Server
+
+Our inference server can easily be deployed through our Docker images. You can pull it from our Docker repository or build it yourself. 
+
+#### B - Client
+
+We advise you to install our client SDK using a virtual environment. You can simply install the client using pip with:
+```bash
+pip install blindai
+```
+You can find more details regarding the installation in our **documentation here**.
