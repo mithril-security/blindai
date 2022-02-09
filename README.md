@@ -32,7 +32,7 @@ Because the server requires specific hardware, for instance Intel SGX currently,
 
 Deploy the inference server, for instance using one of our Docker images. To get started quickly, you can use the image with simulation, which does not require any specific hardware. 
 ```bash
-sudo docker run -p 50051:50051 -p 50052:50052 blindai-server-sim:0.1.0 
+docker run -p 50051:50051 -p 50052:50052 blindai-server-sim:0.1.0 
 ```
 ### B - Sending data from the client to the server
 
