@@ -1,13 +1,10 @@
 import struct
-import cryptography
-import cryptography.x509
 import hashlib
 import ctypes
 import toml
-
+from utils.utils import encode_certificate
 from typing import Any, Dict
 from bitstring import Bits
-from cryptography.hazmat.primitives.serialization import Encoding
 
 from pybind11_module import status
 import pybind11_module
@@ -20,14 +17,11 @@ def verify_dcap_attestation(
 ) -> Dict[str, str]:
     """
     verify_dcap_attestation verifies if the enclave evidence is valid
-
     * validates if the quote is trustworthy (issued by an approved Intel CPU) with the attestation collateral using SGX Quote Verification Library
     * validates if the SHA256 hash of Enclave Held Data (EHD) matches the first 32 bytes of reportData field in the enclave quote. After this check
     we can be sure that the EHD bytes are endorsed by the enclave
-
     TODO: Handle the case where the retuned quote status is STATUS_TCB_SW_HARDENING_NEEDED
     We must do more cautious checks in this case in order to determine whether or not to accept the quote
-
     It returns a dictionnary of claims about the enclave like :
     {
         "sgx-ehd" : <enclave held data>
@@ -39,11 +33,9 @@ def verify_dcap_attestation(
             "quote": <raw binary quote>
         }
     }
-
     :param quote: SGX quote
     :param attestation_collateral: SGX collateral needed to assess the validity of the quote (collateral is signed by Intel)
     :param enclave_held_data: enclave held data
-
     :return: a dictionary of claims
     """
 
@@ -160,6 +152,4 @@ def get_server_cert(claims):
     :param claims:
     :return: The PEM-encoded server certificate as a byte string
     """
-    return cryptography.x509.load_der_x509_certificate(claims["sgx-ehd"]).public_bytes(
-        Encoding.PEM
-    )
+    return encode_certificate(claims["sgx-ehd"])
