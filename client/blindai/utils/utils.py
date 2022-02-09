@@ -1,5 +1,9 @@
 import re
 import grpc
+import cryptography.x509
+from cryptography.hazmat.primitives.serialization import Encoding
+
+
 
 CHUNK_SIZE = 32 * 1024  # 32kb
 FLOAT_NB_ELEM = 16
@@ -8,6 +12,8 @@ FLOAT_NB_ELEM = 16
 def strip_https(url: str):
     return re.sub(r"^https:\/\/", "", url)
 
+def encode_certificate(cert):
+    return cryptography.x509.load_der_x509_certificate(cert).public_bytes(Encoding.PEM)
 
 def create_byte_chunk(data):
     sent_bytes = 0

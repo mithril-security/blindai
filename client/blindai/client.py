@@ -1,17 +1,16 @@
 import os
 import logging
-import cryptography
-import untrusted_pb2
-
-from utils.utils import *
 from enum import IntEnum
 from cbor2 import dumps, loads
-from cryptography.hazmat.primitives.serialization import Encoding
-from securedexchange_pb2 import SimpleReply, Model, Data
+from grpc import ssl_channel_credentials, secure_channel, RpcError
+from utils.utils import *
+from securedexchange_pb2 import SimpleReply, ModelResult, Model, Data
 from securedexchange_pb2_grpc import ExchangeStub
 from untrusted_pb2_grpc import AttestationStub
-from grpc import ssl_channel_credentials, secure_channel, RpcError
-
+from untrusted_pb2 import (
+    GetCertificateRequest as certificate_request,
+    GetSgxQuoteWithCollateralRequest as quote_request
+)
 from dcap_attestation import (
     verify_claims,
     verify_dcap_attestation,
@@ -59,13 +58,6 @@ class BlindAiClient:
     ):
 
         self.SIMULATION_MODE = simulation
-
-        if not self.SIMULATION_MODE:
-            self.policy = load_policy(policy)
-            if self.policy is None:
-                logging.error("Policy not found or not valid")
-                return False
-
         try:
             with open(certificate, "rb") as f:
                 untrusted_server_creds = ssl_channel_credentials(
@@ -82,45 +74,44 @@ class BlindAiClient:
         connection_options = (("grpc.ssl_target_name_override", server_name),)
 
         try:
-            with secure_channel(
+            channel = secure_channel(
                 untrusted_client_to_enclave,
                 untrusted_server_creds,
                 options=connection_options,
-            ) as channel:
-                stub = AttestationStub(channel)
-                if self.SIMULATION_MODE:
-                    logging.warning(
-                        "Attestation process is bypassed : running without requesting and checking attestation"
-                    )
-                    response = stub.GetCertificate(
-                        untrusted_pb2.GetCertificateRequest()
-                    )
-                    server_cert = cryptography.x509.load_der_x509_certificate(
-                        response.enclave_tls_certificate
-                    ).public_bytes(Encoding.PEM)
-                else:
-                    response = stub.GetSgxQuoteWithCollateral(
-                        untrusted_pb2.GetSgxQuoteWithCollateralRequest()
-                    )
-                    claims = verify_dcap_attestation(
-                        response.quote, response.collateral, response.enclave_held_data
-                    )
-                    verify_claims(claims, self.policy)
-                    server_cert = get_server_cert(claims)
+            )
+            stub = AttestationStub(channel)
+            if self.SIMULATION_MODE:
+                logging.warning("Attestation process is bypassed : running without requesting and checking attestation")
+                response = stub.GetCertificate(certificate_request())
+                server_cert = encode_certificate(response.enclave_tls_certificate)
+            
+            else:
+                self.policy = load_policy(policy)
+                if self.policy is None:
+                    logging.error("Policy not found or not valid")
+                    return False
+                    
+                response = stub.GetSgxQuoteWithCollateral(quote_request())                    
+                claims = verify_dcap_attestation(
+                    response.quote, 
+                    response.collateral, 
+                    response.enclave_held_data
+                )
 
-                    logging.info(f"Quote verification passed")
-                    logging.info(
-                        f"Certificate from attestation process\n {server_cert.decode('ascii')}"
-                    )
-                    logging.info(f"MREnclave\n" + claims["sgx-mrenclave"])
+                verify_claims(claims, self.policy)
+                server_cert = get_server_cert(claims)
 
-            server_creds = ssl_channel_credentials(
-                root_certificates=server_cert)
+                logging.info(f"Quote verification passed")
+                logging.info(f"Certificate from attestation process\n {server_cert.decode('ascii')}")
+                logging.info(f"MREnclave\n" + claims["sgx-mrenclave"])
 
-            # Attested channel to the enclave
+            channel.close()
+
+            server_creds = ssl_channel_credentials(root_certificates=server_cert)
             channel = secure_channel(
                 attested_client_to_enclave, server_creds, options=connection_options
             )
+
             self.stub = ExchangeStub(channel)
             self.channel = channel
             logging.info("Successfuly connected to the server")
@@ -134,7 +125,7 @@ class BlindAiClient:
         """Upload an inference model to the server"""
 
         if datum is None:
-            datum = ModelDatumType.F32
+            datum = self.ModelDatumType.F32
         response = SimpleReply()
         response.ok = False
         if not self._is_connected():
@@ -162,7 +153,7 @@ class BlindAiClient:
 
     def send_data(self, data_list):
         """Send data to the server to make a secure inference"""
-        response = SimpleReply()
+        response = ModelResult()
         response.ok = False
         if not self._is_connected():
             response.msg = "Not connected to server"
@@ -180,9 +171,8 @@ class BlindAiClient:
             return response
         except RpcError as rpc_error:
             check_rpc_exception(rpc_error)
-            response = SimpleReply()
-            response.ok = False
             response.msg = "GRPC error"
+            
         return response
 
     def close_connection(self):
