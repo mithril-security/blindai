@@ -80,13 +80,13 @@ print(pred)
 - We do not cover training and federated learning yet, but if this feature interests you do not hesitate to show your interest through the [roadmap](https://github.com/mithril-security/blindai/projects/1) or [Discord](https://discord.gg/rWHcHeCBWk) channel. 
 - The examples we provide are simple, and do not take into account complex mechanisms such as secure storage of confidential data with sealing keys, advanced scheduler for inference requests, or complex key management scenarios. If your use case involves more than what we show, do not hesitate to **contact us** for more information.
 
-### Install
+## Install
 
-#### A - Server
+### A - Server
 
 Our inference server can easily be deployed through our Docker images. You can pull it from our Docker repository or build it yourself. 
 
-#### B - Client
+### B - Client
 
 We advise you to install our client SDK using a virtual environment. You can simply install the client using pip with:
 ```bash
