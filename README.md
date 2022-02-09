@@ -17,13 +17,13 @@
 **BlindAI** is a **fast, easy to use and confidential inference server**, allowing you to deploy your 
 model on sensitive data. Thanks to the **end-to-end protection guarantees**, data owners can send private data to be analyzed by AI models, **without fearing exposing their data to anyone else**.
 
-We reconcile AI and privacy by leveraging ```Intel SGX```, you can learn more about this technology here. and having technical guarantees that your model and its data will stay secured, thanks to **Confidential Computing** with ```Intel SGX```.
+We reconcile ```AI``` and **privacy** by leveraging ```Intel SGX```, you can learn more about this technology here. and having technical guarantees that your model and its data will stay secured, thanks to **Confidential Computing** with ```Intel SGX```.
 
 We currently only support ```Intel SGX```, but we plan to cover ```AMD SEV``` and ```Nitro Enclave``` in the future. More information about our **roadmap** can be found [here](https://github.com/mithril-security/blindai/projects/1). 
 
 Our solution comes in two parts:
-- A secure inference solution to serve AI models with privacy guarantees.
-- A client SDK to securely consume the remote AI models. 
+- A secure inference solution to serve ```AI``` models with privacy guarantees.
+- A ```client SDK``` to securely consume the remote ```AI``` models. 
 
 ## Getting started
 

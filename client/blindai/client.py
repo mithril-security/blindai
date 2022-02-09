@@ -1,5 +1,6 @@
 import os
 import logging
+import ssl
 from enum import IntEnum
 from cbor2 import dumps, loads
 from grpc import ssl_channel_credentials, secure_channel, RpcError
@@ -55,22 +56,34 @@ class BlindAiClient:
         policy=None,
         certificate=None,
         simulation=False,
+        no_untrusted_cert_check=False,
     ):
 
+        self.DISABLE_UNTRUSTED_SERVER_CERT_CHECK = no_untrusted_cert_check
         self.SIMULATION_MODE = simulation
-        try:
-            with open(certificate, "rb") as f:
-                untrusted_server_creds = ssl_channel_credentials(
-                    root_certificates=f.read()
-                )
-        except:
-            logging.error("Certificate not found or not valid")
-            return False
+        if self.SIMULATION_MODE is True: 
+            self.DISABLE_UNTRUSTED_SERVER_CERT_CHECK = True
 
         addr = strip_https(addr)
 
         untrusted_client_to_enclave = addr + ":" + PORTS["untrusted_enclave"]
         attested_client_to_enclave = addr + ":" + PORTS["attested_enclave"]
+
+        if self.DISABLE_UNTRUSTED_SERVER_CERT_CHECK:
+            logging.warning("Untrusted server certificate check bypassed")
+            untrusted_server_cert = ssl.get_server_certificate([addr, PORTS["untrusted_enclave"]])
+            untrusted_server_creds = grpc.ssl_channel_credentials(root_certificates=bytes(untrusted_server_cert, encoding="utf8"))
+        else:
+            try:
+                with open(certificate, "rb") as f:
+                    untrusted_server_creds = ssl_channel_credentials(
+                        root_certificates=f.read()
+                    )
+            except:
+                logging.error("Certificate not found or not valid")
+                return False
+
+
         connection_options = (("grpc.ssl_target_name_override", server_name),)
 
         try:
