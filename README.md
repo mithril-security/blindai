@@ -98,3 +98,8 @@ We advise you to install our ```client SDK``` using a ```virtual environment```.
 pip install blindai
 ```
 You can find more details regarding the installation in our **documentation here**.
+
+## Contributing
+Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
+
+Please make sure to update tests as appropriate.
