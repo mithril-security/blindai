@@ -9,13 +9,10 @@ from setuptools import Extension
 from setuptools.command.build_ext import build_ext
 from setuptools.command.build_py import build_py
 
-proto_path = "proto"
 proto_files = ["securedexchange.proto", "untrusted.proto"]
-
 
 def read(filename):
     return open(os.path.join(os.path.dirname(__file__), filename)).read()
-
 
 def find_version():
     version_file = read("blindai/version.py")
@@ -23,12 +20,10 @@ def find_version():
     version = re.match(version_re, version_file).group("version")
     return version
 
-
 class CMakeExtension(Extension):
     def __init__(self, name, sourcedir=""):
         Extension.__init__(self, name, sources=[])
         self.sourcedir = os.path.abspath(sourcedir)
-
 
 class CMakeBuild(build_ext):
     def build_extension(self, ext):
@@ -71,12 +66,15 @@ class CMakeBuild(build_ext):
         subprocess.check_call(
             ["cmake", "--build", "."] + build_args, cwd=self.build_temp
         )
-        subprocess.check_call(["./scripts/edit_runpath"])
-
+        edit_path = os.path.join(os.path.dirname(__file__), 'scripts/edit_runpath.sh')
+        subprocess.check_call([edit_path])
 
 class BuildPy(build_py):
     def run(self):
         # Generate the stub
+        dir_path = os.path.join(os.path.dirname(__file__))
+        proto_path = os.path.join(dir_path, "proto")
+
         for file in proto_files:
             grpc_tools.protoc.main([
                 'grpc_tools.protoc',
@@ -86,9 +84,9 @@ class BuildPy(build_py):
                 '{}'.format(file)
             ])
         # Build the AttestationLib
-        subprocess.check_call(["./scripts/build"])
+        build_script = os.path.join(os.path.dirname(__file__), 'scripts/build.sh')
+        subprocess.check_call([build_script])
         super(BuildPy, self).run()
-
 
 setuptools.setup(
     name="blindai",
@@ -97,18 +95,18 @@ setuptools.setup(
     author_email="contact@mithrilsecurity.io",
     description="A python library for creating gRPC clients for blindai inference server",
     license="",
-    keywords="confidential computing inference client enclave",
     long_description=read("README.md"),
     long_description_content_type="text/markdown",
-    url="",
-    packages=setuptools.find_packages(),
-    include_package_data=True,
+    keywords="confidential computing inference client enclave",
+    url="www.github.com/mithril-security/blindai/client",
+    packages=setuptools.find_packages(exclude=["blindai/cpp/wrapper.cc"]),
     package_data={"": ["lib/*.so", "tls/*.pem"]},
     ext_modules=[CMakeExtension("pybind11_module")],
     cmdclass={
         "build_ext": CMakeBuild,
         "build_py": BuildPy,
     },
+
     zip_safe=False,
     python_requires=">=3.6.9",
     install_requires=[

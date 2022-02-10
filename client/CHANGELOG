@@ -7,6 +7,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 
-## [0.0.1] - 2022-02-15
+## [0.1.0] - 2022-02-15
 ### Added
-- Created the blindai client library that enables creating python gRPC clients for [blindai inference server](https://www.github.com/mithril-security/mithril-inference-server) 
+- Created the blindai client library that enables creating python gRPC clients for blindai inference server
