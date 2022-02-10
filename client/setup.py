@@ -1,10 +1,8 @@
 import os
 import setuptools
 import subprocess
-import platform
 import re
 import sys
-import grpc_tools.protoc
 from setuptools import Extension
 from setuptools.command.build_ext import build_ext
 from setuptools.command.build_py import build_py
@@ -71,7 +69,7 @@ class BuildPy(build_py):
         # Generate the stub
         dir_path = os.path.join(os.path.dirname(__file__))
         proto_path = os.path.join(dir_path, "proto")
-
+        import grpc_tools.protoc
         for file in proto_files:
             grpc_tools.protoc.main([
                 'grpc_tools.protoc',
@@ -119,7 +117,6 @@ setuptools.setup(
             'pybind11',
             'setuptools',
             'wheel',
-            'patchelf',
             'check-wheel-contents',
             'auditwheel',
             'grpcio-tools',
