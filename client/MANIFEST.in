@@ -1,0 +1,10 @@
+include scripts/build.sh
+include scripts/edit_runpath.sh
+include proto/untrusted.proto
+include blindai/cpp/wrapper.cc
+include proto/securedexchange.proto
+include CMakeLists.txt
+recursive-include third_party/ *
+recursive-exclude third_party/Build *
+recursive-exclude third_party/build *
+
