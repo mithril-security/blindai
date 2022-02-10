@@ -37,14 +37,6 @@ serde_derive = { git = 'ssh://git@github.com/mithril-security/serde-xargo-sgx.gi
 anyhow = { git = 'ssh://git@github.com/mithril-security/anyhow-xargo-sgx.git', tag = "1.0.45-sgx" }
 env_logger = { git = "ssh://git@github.com/mithril-security/env_logger-sgx.git" , tag = "v0.9.0-sgx" }
 b64-ct = { git = "ssh://git@github.com/mithril-security/b64-ct.git", tag = "v0.1.1-sgx" }
-image = { git = 'ssh://git@github.com/mithril-security/image-sgx', branch = "target-sgx" }
-scoped_threadpool = { git = 'ssh://git@github.com/mithril-security/scoped-threadpool-rs-sgx', branch = "target-sgx" }
-crossbeam-utils = { git = 'ssh://git@github.com/mithril-security/crossbeam-sgx' }
-crossbeam-channel = { git = 'ssh://git@github.com/mithril-security/crossbeam-sgx' }
-rayon = { git = 'ssh://git@github.com/mithril-security/rayon-sgx', branch = "target-sgx" }
-flume = { git = 'ssh://git@github.com/mithril-security/flume-sgx', branch = "target-sgx" }
-threadpool = { git = 'ssh://git@github.com/mithril-security/threadpool-sgx', branch = "target-sgx" }
-exr = { git = 'ssh://git@github.com/mithril-security/exrs-sgx', branch = "target-sgx" }
 num-bigint-dig = { git = "ssh://git@github.com/dignifiedquire/num-bigint.git", rev="56576b592fea6341b7e1711a1629e4cc1bfc419c"}
 tar = { git = "ssh://git@github.com/mithril-security/tar-rs-sgx.git", tag = "0.4.33x"}
 oid-registry = { git = "ssh://git@github.com/mithril-security/oid-registry-sgx.git", tag = "oid-registry-0.2.0-sgx" }

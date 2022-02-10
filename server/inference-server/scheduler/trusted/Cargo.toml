@@ -40,7 +40,6 @@ tokio-stream = "*"
 tokio-util = "=0.6.8"
 tract-onnx = { git = "ssh://git@github.com/mithril-security/tract-sgx-xargo.git", tag = "0.15.9-pre-range-no-fs" }
 tract-core = { git = "ssh://git@github.com/mithril-security/tract-sgx-xargo.git", tag = "0.15.9-pre-range-no-fs"}
-image = "=0.23.14"
 common = {path = "common"}
 toml = "*"
 rand = "*"
