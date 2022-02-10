@@ -95,6 +95,8 @@ setuptools.setup(
     author_email="contact@mithrilsecurity.io",
     description="A python library for creating gRPC clients for blindai inference server",
     license="",
+    long_description=read("README.md"),
+    long_description_content_type="text/markdown",
     keywords="confidential computing inference client enclave",
     url="www.github.com/mithril-security/blindai/client",
     packages=setuptools.find_packages(exclude=["blindai/cpp/wrapper.cc"]),
