@@ -141,7 +141,7 @@ setuptools.setup(
     },
     classifiers=[
         "Programming Language :: Python :: 3",
-        "Programming Language :: C++"
+        "Programming Language :: C++",
         "Operating System :: Linux",
     ],
 )
