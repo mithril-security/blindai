@@ -71,8 +71,12 @@ class BlindAiClient:
 
         if self.DISABLE_UNTRUSTED_SERVER_CERT_CHECK:
             logging.warning("Untrusted server certificate check bypassed")
-            untrusted_server_cert = ssl.get_server_certificate([addr, PORTS["untrusted_enclave"]])
-            untrusted_server_creds = grpc.ssl_channel_credentials(root_certificates=bytes(untrusted_server_cert, encoding="utf8"))
+            try:
+                untrusted_server_cert = ssl.get_server_certificate([addr, PORTS["untrusted_enclave"]])
+                untrusted_server_creds = grpc.ssl_channel_credentials(root_certificates=bytes(untrusted_server_cert, encoding="utf8"))
+            except:
+                logging.error("Enable to connect to server")
+                return False
         else:
             try:
                 with open(certificate, "rb") as f:
