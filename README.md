@@ -48,29 +48,51 @@ You can learn more about the attestation mechanism for code integrity here.
 #### i - Upload the model
 
 Then we need to load a model inside the secure inference server. First we will export our model from ```Pytorch``` to ```ONNX```, then we can upload it securely to the inference server. Uploading the model through our API allows the model to be kept confidential, for instance when deploying it on foreign infrastructure, like Cloud or client on-premise. 
+```python
+from transformers import DistilBertTokenizer, DistilBertForSequenceClassification
+import torch
+from blindai.client import BlindAiClient
 
-#### ii - Send data
+tokenizer = DistilBertTokenizer.from_pretrained("distilbert-base-uncased")
+model = DistilBertForSequenceClassification.from_pretrained("distilbert-base-uncased")
 
+sentence = "Hello, my dog is cute"
+inputs = tokenizer(sentence, return_tensors="pt")["input_ids"]
+
+torch.onnx.export(model,
+                  inputs,
+                  "./distilbert-base-uncased.onnx",
+                  export_params=True,
+                  opset_version=11,
+                  do_constant_folding=True,
+                  input_names = ['input'],
+                  output_names = ['output'],
+                  dynamic_axes={'input' : {0 : 'batch_size'},'output' : {0 : 'batch_size'}})
+
+client = BlindAiClient()
+client.connect_server("localhost", simulation=True)
+
+#Upload the model to the server
+response = client.upload_model(model="./distilbert-base-uncased.onnx", shape=(1, 8), datum=client.ModelDatumType.I64)
+```
+
+#### ii - Send data and run model
 Upload the data securely to the inference server. 
 ```python
-from PIL import Image
-from numpy import asarray
-import blindai
- 
-# Load an image
-image = Image.open('kolala.jpeg')
-data = asarray(image)
- 
-# Setup the client to send data to
+from transformers import DistilBertTokenizer, DistilBertForSequenceClassification
+import torch
+from blindai.client import BlindAiClient
+
+tokenizer = DistilBertTokenizer.from_pretrained("distilbert-base-uncased")
+
+sentence = "Hello, my dog is cute"
+inputs = tokenizer(sentence, return_tensors="pt")["input_ids"]
+
 client = BlindAiClient()
-client.connect_server(connect_server(
-    addr=...,
-    policy="policy.toml",
-    certificate="host_certificate.pem",
-    simulation=False
-)
-pred = client.run_model(data.reshape(1,1,224,224))
-print(pred)
+client.client.connect_server("localhost", simulation=True)
+
+#Upload the model to the server
+response = client.run_model(inputs)
 ```
 
 ### What you can do with BlindAI
@@ -98,6 +120,9 @@ We advise you to install our ```client SDK``` using a ```virtual environment```.
 pip install blindai
 ```
 You can find more details regarding the installation in our **documentation here**.
+
+## License
+We are using some source codes from ```Intel``` in this project. You can find more informations [here](https://github.com/intel/SGXDataCenterAttestationPrimitives/tree/master/QuoteVerification). 
 
 ## Contributing
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
