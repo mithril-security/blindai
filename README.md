@@ -122,7 +122,7 @@ pip install blindai
 You can find more details regarding the installation in our **documentation here**.
 
 ## License
-We are using some source codes from ```Intel``` in this project. You can find more informations [here](https://github.com/intel/SGXDataCenterAttestationPrimitives/tree/master/QuoteVerification). 
+The project uses "Intel SGX Quote Validation" for attestation verification, See [Intel SGX DCAP License](https://github.com/intel/SGXDataCenterAttestationPrimitives/blob/master/License.txt)
 
 ## Contributing
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
