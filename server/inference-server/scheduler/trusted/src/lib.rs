@@ -16,7 +16,6 @@
 #![crate_type = "staticlib"]
 
 extern crate env_logger;
-extern crate image;
 extern crate sgx_libc;
 extern crate sgx_tseal;
 extern crate sgx_types;

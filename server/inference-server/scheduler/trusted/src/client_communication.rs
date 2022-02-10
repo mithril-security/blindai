@@ -13,7 +13,6 @@
 // limitations under the License.
 
 extern crate env_logger;
-extern crate image;
 extern crate sgx_libc;
 extern crate sgx_tseal;
 extern crate sgx_types;
@@ -36,7 +35,6 @@ use std::any::Any;
 use log::*;
 
 use futures::{Stream, StreamExt};
-use image::{ImageBuffer, Rgb};
 use rpc::untrusted_local_app_client::*;
 use secured_exchange::exchange_server::{Exchange, ExchangeServer};
 use secured_exchange::{Model, Data, ModelResult, SimpleReply};

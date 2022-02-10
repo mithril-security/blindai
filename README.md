@@ -7,7 +7,7 @@
 <h4 align="center">
   <a href="https://www.mithrilsecurity.io">Website</a> |
   <a href="https://www.linkedin.com/company/mithril-security-company">LinkedIn</a> | 
-  <a href="https://www.mithrilsecurity.io">Blog</a> |
+  <a href="https://blog-mithril-security.ghost.io/">Blog</a> |
   <a href="https://www.twitter.com/mithrilsecurity">Twitter</a> | 
   <a href="https://mithrilsecurity.gitbook.io">Documentation</a>
 </h4>
@@ -37,7 +37,7 @@ Because the server requires specific hardware, for instance ```Intel SGX``` curr
 
 Deploy the inference server, for instance using one of our ```Docker``` images. To get started quickly, you can use the image with simulation, which does not require any specific hardware. 
 ```bash
-docker run -p 50051:50051 -p 50052:50052 blindai-server-sim:0.1.0 
+docker run -p 50051:50051 -p 50052:50052 mithrilsecuritysas/blindai-server-sim:0.1.0 
 ```
 ### B - Sending data from the client to the server
 
@@ -64,7 +64,7 @@ data = asarray(image)
 # Setup the client to send data to
 client = BlindAiClient()
 client.connect_server(connect_server(
-    address=...,
+    addr=...,
     policy="policy.toml",
     certificate="host_certificate.pem",
     simulation=False
