@@ -1,9 +1,9 @@
 cargo-features = ["resolver"]
 [package]
 name = "inference_server"
-version = "1.0.0"
+version = "0.1.0"
 edition = "2018"
-authors = ["The Teaclave Authors"]
+authors = ["Mithril Security"]
 resolver = "2"
 members = [
     "common"

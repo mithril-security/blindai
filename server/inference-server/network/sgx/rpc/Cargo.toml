@@ -1,7 +1,7 @@
 [package]
 name = "rpc"
 version = "0.1.0"
-authors = ["Adam Bratschi-Kaye <ark.email@gmail.com>"]
+authors = ["Mithril Security"]
 edition = "2018"
 license = "MIT"
 
