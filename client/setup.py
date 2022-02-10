@@ -28,9 +28,6 @@ class CMakeExtension(Extension):
 class CMakeBuild(build_ext):
     def build_extension(self, ext):
 
-        if platform.system() == "Windows":
-            raise RuntimeError("Currently, the library can only be built on linux")
-
         extdir = os.path.abspath(os.path.dirname(self.get_ext_fullpath(ext.name)))
 
         if not extdir.endswith(os.path.sep):
