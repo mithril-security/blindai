@@ -1,10 +1,8 @@
 import os
 import setuptools
 import subprocess
-import platform
 import re
 import sys
-import grpc_tools.protoc
 from setuptools import Extension
 from setuptools.command.build_ext import build_ext
 from setuptools.command.build_py import build_py
@@ -27,9 +25,6 @@ class CMakeExtension(Extension):
 
 class CMakeBuild(build_ext):
     def build_extension(self, ext):
-
-        if platform.system() == "Windows":
-            raise RuntimeError("Currently, the library can only be built on linux")
 
         extdir = os.path.abspath(os.path.dirname(self.get_ext_fullpath(ext.name)))
 
@@ -74,7 +69,7 @@ class BuildPy(build_py):
         # Generate the stub
         dir_path = os.path.join(os.path.dirname(__file__))
         proto_path = os.path.join(dir_path, "proto")
-
+        import grpc_tools.protoc
         for file in proto_files:
             grpc_tools.protoc.main([
                 'grpc_tools.protoc',
@@ -94,7 +89,7 @@ setuptools.setup(
     version=find_version(),
     author_email="contact@mithrilsecurity.io",
     description="A python library for creating gRPC clients for blindai inference server",
-    license="",
+    license="Apache-2.0",
     long_description=read("README.md"),
     long_description_content_type="text/markdown",
     keywords="confidential computing inference client enclave",
@@ -122,7 +117,6 @@ setuptools.setup(
             'pybind11',
             'setuptools',
             'wheel',
-            'patchelf',
             'check-wheel-contents',
             'auditwheel',
             'grpcio-tools',
@@ -131,7 +125,7 @@ setuptools.setup(
     },
     classifiers=[
         "Programming Language :: Python :: 3",
-        "License :: ",
+        "Programming Language :: C++"
         "Operating System :: Linux",
     ],
 )
