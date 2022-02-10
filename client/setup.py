@@ -94,7 +94,7 @@ setuptools.setup(
     version=find_version(),
     author_email="contact@mithrilsecurity.io",
     description="A python library for creating gRPC clients for blindai inference server",
-    license="",
+    license="Apache-2.0",
     long_description=read("README.md"),
     long_description_content_type="text/markdown",
     keywords="confidential computing inference client enclave",
@@ -131,7 +131,7 @@ setuptools.setup(
     },
     classifiers=[
         "Programming Language :: Python :: 3",
-        "License :: ",
+        "Programming Language :: C++"
         "Operating System :: Linux",
     ],
 )
