@@ -1,6 +1,7 @@
 import os
 import setuptools
 import subprocess
+import platform
 import re
 import sys
 from setuptools import Extension
@@ -8,6 +9,10 @@ from setuptools.command.build_ext import build_ext
 from setuptools.command.build_py import build_py
 
 proto_files = ["securedexchange.proto", "untrusted.proto"]
+
+if platform.system() is not 'Linux':
+    print("Currently, the library can only be built and used on linux systems.")
+    exit(1)
 
 def read(filename):
     return open(os.path.join(os.path.dirname(__file__), filename)).read()
@@ -25,7 +30,6 @@ class CMakeExtension(Extension):
 
 class CMakeBuild(build_ext):
     def build_extension(self, ext):
-
         extdir = os.path.abspath(os.path.dirname(self.get_ext_fullpath(ext.name)))
 
         if not extdir.endswith(os.path.sep):
@@ -80,7 +84,19 @@ class BuildPy(build_py):
             ])
         # Build the AttestationLib
         build_script = os.path.join(os.path.dirname(__file__), 'scripts/build.sh')
-        subprocess.check_call([build_script])
+        try:
+            subprocess.check_call([build_script])
+        except:
+            print("Failed to build attestationLib")
+            print("Make sure to have the following requirements are installed")
+            print("cmake>=3.20")
+            print("python>=3.6.9")
+            print("g++>=7.1")
+            print("libpython3")
+            print("Or install the library from a wheel that is compatible with your platform")            
+            print("More wheels for other platforms will be available soon")            
+            exit(1)
+        
         super(BuildPy, self).run()
 
 setuptools.setup(
