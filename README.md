@@ -73,13 +73,13 @@ pred = client.run_model(data.reshape(1,1,224,224))
 print(pred)
 ```
 
-### What you can do with Mithril
+### What you can do with BlindAI
 
 - Easily deploy state-of-the-art models with confidentiality. Run models from **Transformers** for text to ```ResNets``` for **medical images**.
 - Provide guarantees to third parties, for instance clients or regulators, that you are indeed providing ```data protection```, through **code attestation**.
 - Explore different scenarios from confidential ```Speech-to-text```, to ```biometrics identification```, through secure document analysis with our pool of **examples**.
 
-### What you cannot do with Mithril
+### What you cannot do with BlindAI
 
 - Our solution aims to be modular but we have yet to incorporate tools for generic pre/post processing. Specific pipelines can be covered but will require additional handwork for now.
 - We do not cover training and federated learning yet, but if this feature interests you do not hesitate to show your interest through the [roadmap](https://github.com/mithril-security/blindai/projects/1) or [Discord](https://discord.gg/rWHcHeCBWk) channel. 
