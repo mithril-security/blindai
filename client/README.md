@@ -65,3 +65,5 @@ Before you run an example, make sure to get `policy.toml`(if you are not using t
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
 
 ## License
+This project is licensed under [Apache 2.0 License.](../LICENSE)
+The project uses "INTEL SGX DCAP" for attestation verification, See [Intel SGX DCAP License](https://github.com/intel/SGXDataCenterAttestationPrimitives/blob/master/License.txt)
