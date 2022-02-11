@@ -83,6 +83,21 @@ fn get_datum_type(datum: &Option<ModelDatumType>) -> TractResult<DatumType> {
     }
 }
 
+macro_rules! dispatch_numbers {
+    ($($path:ident)::* ($dt:expr) ($($args:expr),*)) => { {
+        use tract_onnx::prelude::DatumType;
+        match $dt {
+            DatumType::U32  => $($path)::*::<u32>($($args),*),
+            DatumType::U64  => $($path)::*::<u64>($($args),*),
+            DatumType::I32  => $($path)::*::<i32>($($args),*),
+            DatumType::I64  => $($path)::*::<i64>($($args),*),
+            DatumType::F32  => $($path)::*::<f32>($($args),*),
+            DatumType::F64  => $($path)::*::<f64>($($args),*),
+            _ => anyhow::bail!("{:?} is not a number", $dt)
+        }
+    } }
+}
+
 fn load_model(model: Vec<u8>, input_fact: Vec<i32>, datum: &Option<ModelDatumType>) -> TractResult<OnnxModel> {
     let mut model_slice = &model[..];
     let datum_type = get_datum_type(datum)?;
@@ -101,63 +116,20 @@ fn load_model(model: Vec<u8>, input_fact: Vec<i32>, datum: &Option<ModelDatumTyp
     Ok(model_rec)
 }
 
-fn create_tensor(datum_type: &ModelDatumType, input:Vec<u8>, input_fact: &Vec<usize>) -> TractResult<Tensor> {
-    let slice = input.as_slice();
+
+fn create_tensor<'a, A: serde::de::DeserializeOwned  + tract_core::prelude::Datum>(input:Vec<u8>, input_fact: &Vec<usize>) -> TractResult<Tensor> {
     let dim = IxDynImpl::from(input_fact.as_slice());
-    match *datum_type {
-        ModelDatumType::F32 => {
-            let vec: Vec<f32> = serde_cbor::from_slice(slice).unwrap_or(Vec::new());
-            let tensor = tract_ndarray::ArrayD::from_shape_vec(dim, vec)?.into();
-            return Ok(tensor);
-        }
-        ModelDatumType::F64 => {
-            let vec: Vec<f64> = serde_cbor::from_slice(slice).unwrap_or(Vec::new());
-            let tensor = tract_ndarray::ArrayD::from_shape_vec(dim, vec)?.into();
-            return Ok(tensor);
-        }
-        ModelDatumType::I32 => {
-            let vec: Vec<i32> = serde_cbor::from_slice(slice).unwrap_or(Vec::new());
-            let tensor = tract_ndarray::ArrayD::from_shape_vec(dim, vec)?.into();
-            return Ok(tensor);
-        }
-        ModelDatumType::I64 => {
-            let vec: Vec<i64> = serde_cbor::from_slice(slice).unwrap_or(Vec::new());
-            let tensor = tract_ndarray::ArrayD::from_shape_vec(dim, vec)?.into();
-            return Ok(tensor);
-        }
-        ModelDatumType::U32 => {
-            let vec: Vec<u32> = serde_cbor::from_slice(slice).unwrap_or(Vec::new());
-            let tensor = tract_ndarray::ArrayD::from_shape_vec(dim, vec)?.into();
-            return Ok(tensor);
-        }
-        ModelDatumType::U64 => {
-            let vec: Vec<u64> = serde_cbor::from_slice(slice).unwrap_or(Vec::new());
-            let tensor = tract_ndarray::ArrayD::from_shape_vec(dim, vec)?.into();
-            return Ok(tensor);
-        }
-        _ => {
-            return Err(anyhow!("Failed to create Tensor"));
-        }
-    };
+    let vec: Vec<A> = serde_cbor::from_slice(&input).unwrap_or(Vec::new());
+    let tensor = tract_ndarray::ArrayD::from_shape_vec(dim, vec)?.into();
+    Ok(tensor)
 }
 
 fn run_inference(model: &OnnxModel, input: Vec<u8>, input_fact: &Vec<usize>, datum: &Option<ModelDatumType>) -> TractResult<Vec<f32>>
 {
-    if let Some(datum_type) = &*datum
-    {
-        let tensor = create_tensor(datum_type, input, &input_fact)?;
-        let result = model.run(tvec!(tensor))?;
-        let arr = result[0].to_array_view::<f32>()?;
-        let slice = arr.as_slice();
-        match slice {
-            Some(result) => return Ok(result.to_vec()),
-            None => return Err(anyhow!("Failed to convert ArrayView to slice")),
-        };
-    }
-    else
-    {
-        return Err(anyhow!("No datum data"));
-    }
+    let tensor = dispatch_numbers!(create_tensor(get_datum_type(datum)?)(input, &input_fact))?;
+    let result = model.run(tvec!(tensor))?;
+    let arr = result[0].to_array_view::<f32>()?;
+    Ok(arr.as_slice().ok_or(anyhow!("Failed to convert ArrayView to slice"))?.to_vec())
 }
 
 #[derive(Debug, Default)]
