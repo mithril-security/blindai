@@ -9,7 +9,8 @@
   <a href="https://www.linkedin.com/company/mithril-security-company">LinkedIn</a> | 
   <a href="https://blog-mithril-security.ghost.io/">Blog</a> |
   <a href="https://www.twitter.com/mithrilsecurity">Twitter</a> | 
-  <a href="https://mithrilsecurity.gitbook.io">Documentation</a>
+  <a href="https://mithrilsecurity.gitbook.io">Documentation</a> |
+  <a href="https://discord.gg/rWHcHeCBWk">Discord</a>
 </h4>
 
 <h3 align="center">Fast, accessible and privacy friendly AI deployment 🚀🔒</h3>
