@@ -10,7 +10,8 @@ from setuptools.command.build_py import build_py
 
 proto_files = ["securedexchange.proto", "untrusted.proto"]
 
-if platform.system().lower() is not 'linux':
+if platform.system().lower() != 'linux':
+    print("The platform : {}".format(platform.system().lower()))
     print("Currently, the library can only be built and used on linux systems.")
     exit(1)
 
