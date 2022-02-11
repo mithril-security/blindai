@@ -66,4 +66,4 @@ Pull requests are welcome. For major changes, please open an issue first to disc
 
 ## License
 This project is licensed under [Apache 2.0 License.](../LICENSE)
-The project uses "INTEL SGX DCAP" for attestation verification, See [Intel SGX DCAP License](https://github.com/intel/SGXDataCenterAttestationPrimitives/blob/master/License.txt)
+The project uses the "Intel SGX DCAP Quote Validation Library" for attestation verification, See [Intel SGX DCAP Quote Validation Library License](https://github.com/intel/SGXDataCenterAttestationPrimitives/blob/master/License.txt)
