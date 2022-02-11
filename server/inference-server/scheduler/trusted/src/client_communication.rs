@@ -104,39 +104,41 @@ fn load_model(model: Vec<u8>, input_fact: Vec<i32>, datum: &Option<ModelDatumTyp
 fn create_tensor(datum_type: &ModelDatumType, input:Vec<u8>, input_fact: &Vec<usize>) -> TractResult<Tensor> {
     let slice = input.as_slice();
     let dim = IxDynImpl::from(input_fact.as_slice());
-    if *datum_type == ModelDatumType::F32 {
-        let vec: Vec<f32> = serde_cbor::from_slice(slice).unwrap_or(Vec::new());
-        let mut tensor = tract_ndarray::ArrayD::from_shape_vec(dim, vec)?.into();
-        return Ok(tensor);
-    }
-    else if *datum_type == ModelDatumType::F64 {
-        let vec: Vec<f64> = serde_cbor::from_slice(slice).unwrap_or(Vec::new());
-        let mut tensor = tract_ndarray::ArrayD::from_shape_vec(dim, vec)?.into();
-        return Ok(tensor);
-    }
-    else if *datum_type == ModelDatumType::I32 {
-        let vec: Vec<i32> = serde_cbor::from_slice(slice).unwrap_or(Vec::new());
-        let mut tensor = tract_ndarray::ArrayD::from_shape_vec(dim, vec)?.into();
-        return Ok(tensor);
-    }
-    else if *datum_type == ModelDatumType::I64 {
-        let vec: Vec<i64> = serde_cbor::from_slice(slice).unwrap_or(Vec::new());
-        let mut tensor = tract_ndarray::ArrayD::from_shape_vec(dim, vec)?.into();
-        return Ok(tensor);
-    }
-    else if *datum_type == ModelDatumType::U32 {
-        let vec: Vec<u32> = serde_cbor::from_slice(slice).unwrap_or(Vec::new());
-        let mut tensor = tract_ndarray::ArrayD::from_shape_vec(dim, vec)?.into();
-        return Ok(tensor);
-    }
-    else if *datum_type == ModelDatumType::U64 {
-        let vec: Vec<u64> = serde_cbor::from_slice(slice).unwrap_or(Vec::new());
-        let mut tensor = tract_ndarray::ArrayD::from_shape_vec(dim, vec)?.into();
-        return Ok(tensor);
-    }
-    else {
-        return Err(anyhow!("Failed to create Tensor"));
-    }
+    match *datum_type {
+        ModelDatumType::F32 => {
+            let vec: Vec<f32> = serde_cbor::from_slice(slice).unwrap_or(Vec::new());
+            let tensor = tract_ndarray::ArrayD::from_shape_vec(dim, vec)?.into();
+            return Ok(tensor);
+        }
+        ModelDatumType::F64 => {
+            let vec: Vec<f64> = serde_cbor::from_slice(slice).unwrap_or(Vec::new());
+            let tensor = tract_ndarray::ArrayD::from_shape_vec(dim, vec)?.into();
+            return Ok(tensor);
+        }
+        ModelDatumType::I32 => {
+            let vec: Vec<i32> = serde_cbor::from_slice(slice).unwrap_or(Vec::new());
+            let tensor = tract_ndarray::ArrayD::from_shape_vec(dim, vec)?.into();
+            return Ok(tensor);
+        }
+        ModelDatumType::I64 => {
+            let vec: Vec<i64> = serde_cbor::from_slice(slice).unwrap_or(Vec::new());
+            let tensor = tract_ndarray::ArrayD::from_shape_vec(dim, vec)?.into();
+            return Ok(tensor);
+        }
+        ModelDatumType::U32 => {
+            let vec: Vec<u32> = serde_cbor::from_slice(slice).unwrap_or(Vec::new());
+            let tensor = tract_ndarray::ArrayD::from_shape_vec(dim, vec)?.into();
+            return Ok(tensor);
+        }
+        ModelDatumType::U64 => {
+            let vec: Vec<u64> = serde_cbor::from_slice(slice).unwrap_or(Vec::new());
+            let tensor = tract_ndarray::ArrayD::from_shape_vec(dim, vec)?.into();
+            return Ok(tensor);
+        }
+        _ => {
+            return Err(anyhow!("Failed to create Tensor"));
+        }
+    };
 }
 
 fn run_inference(model: &OnnxModel, input: Vec<u8>, input_fact: &Vec<usize>, datum: &Option<ModelDatumType>) -> TractResult<Vec<f32>>
