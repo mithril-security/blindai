@@ -1,3 +1,6 @@
 [build-system]
 requires = ["patchelf", "grpcio-tools", "wheel"]
 build-backend = "setuptools.build_meta:__legacy__"
+
+[tool.cibuildwheel]
+skip = "pp*"

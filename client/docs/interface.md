@@ -24,8 +24,8 @@ Estabilish a connection with BlindAI inference server and perform the process of
 | addr| ```str``` | the address of BlindAI server |
 | certificate | ``str``| path to the public key of the untrusted inference server. Generated in the server side. |
 | policy | ``str`` | path to the toml file describing the policy of the server. Generated in the server side. |
-| simulation | ``bool`` | connect to the server in the simulation mode or not (default `False`). |
-
+| simulation | ``bool`` | connect to the server in the simulation mode (default `False`). |
+| no_untrusted_cert_check |``bool`` | bypass the verification of the untrusted server certificate (default `False`) |
 
 Returns a boolean describing whether the connection was successful or not.
 

@@ -10,7 +10,8 @@ from setuptools.command.build_py import build_py
 
 proto_files = ["securedexchange.proto", "untrusted.proto"]
 
-if platform.system() is not 'Linux':
+if platform.system().lower() != 'linux':
+    print("The platform : {}".format(platform.system().lower()))
     print("Currently, the library can only be built and used on linux systems.")
     exit(1)
 
@@ -87,14 +88,7 @@ class BuildPy(build_py):
         try:
             subprocess.check_call([build_script])
         except:
-            print("Failed to build attestationLib")
-            print("Make sure to have the following requirements are installed")
-            print("cmake>=3.20")
-            print("python>=3.6.9")
-            print("g++>=7.1")
-            print("libpython3")
-            print("Or install the library from a wheel that is compatible with your platform")            
-            print("More wheels for other platforms will be available soon")            
+            print("Failed to build attestationLib\n")         
             exit(1)
         
         super(BuildPy, self).run()
@@ -109,7 +103,7 @@ setuptools.setup(
     long_description=read("README.md"),
     long_description_content_type="text/markdown",
     keywords="confidential computing inference client enclave",
-    url="www.github.com/mithril-security/blindai/client",
+    url="https://www.mithrilsecurity.io/",
     packages=setuptools.find_packages(exclude=["blindai/cpp/wrapper.cc"]),
     package_data={"": ["lib/*.so", "tls/*.pem"]},
     ext_modules=[CMakeExtension("pybind11_module")],
