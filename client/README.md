@@ -25,7 +25,7 @@ client.connect_server(
 )
 
 #Upload the model to the server
-response = client.upload_model(model="./mobilenetv2-7.onnx", shape=(1, 3, 224, 224))
+response = client.upload_model(model="./mobilenetv2-7.onnx", shape=(1, 3, 224, 224), datum=client.ModelDatumType.F32)
 ```
 ### Uploading data
 ```python
