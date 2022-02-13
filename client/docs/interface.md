@@ -30,7 +30,7 @@ Estabilish a connection with BlindAI inference server and perform the process of
 Returns a boolean describing whether the connection was successful or not.
 
 ---
-### **upload_model (model, shape) -> dict**
+### **upload_model (model, shape) -> SimpleReply**
 Upload a pretrained model in ONNX format to BlindAI server.
 
 | Param | Type | description |
@@ -39,26 +39,26 @@ Upload a pretrained model in ONNX format to BlindAI server.
 | shape | ``(int,)`` | the shape of the model input |
 | datum | ``ModelDatumType`` | the type of the model input data |
 
-Returns a **``dict``** with the following keys:
+Returns a **``SimpleReply``** object with the following fields:
 
-| key | Type | description |
-| --- | --- | --- |
-| ok  | ``bool`` | True if the model is successfully uploaded |
-| msg | ``str`` | message from the server | 
+| field | Type | description |
+| ----- | --- | --- |
+|  ok   | ``bool`` | True if the model is successfully uploaded |
+|  msg  | ``str`` | message from the server | 
 ---
-### **run_model (data) -> dict**
+### **run_model (data) -> ModelResult**
 Send data to  BlindAI server to perform the inference.
 
 | Param | Type | description |
 | --- | --- | --- |
 | data | ``[number]``| array of numbers, the numbers must be of the same type ``datum`` specified in `upload_model`| 
 
-Returns a **``dict``** with the following keys:
-| key | Type | description |
-| --- | --- | --- |
+Returns a **``ModelResult``** object with the following fields:
+| field | Type | description |
+| ----- | --- | --- |
 | output | ``[float]`` | output returned by the model | 
-| ok | ``bool`` | True if the model is successfully upload |
-| msg | ``str`` | message from the server | 
+|  ok   | ``bool`` | True if the model is successfully upload |
+|  msg  | ``str`` | message from the server | 
 
 ---
 ### **close_connection ( )**
