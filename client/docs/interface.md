@@ -56,7 +56,7 @@ Send data to  BlindAI server to perform the inference.
 Returns a **``dict``** with the following keys:
 | key | Type | description |
 | --- | --- | --- |
-| output | ``[float]`` | Output returned by the model | 
+| output | ``[float]`` | output returned by the model | 
 | ok | ``bool`` | True if the model is successfully upload |
 | msg | ``str`` | message from the server | 
 
