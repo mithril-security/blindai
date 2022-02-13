@@ -94,7 +94,7 @@ all: $(NAME)
 
 # We print the compilation mode we're in (hardware/software mode), just as a reminder.
 
-$(NAME): $(BIN_T)
+$(NAME): $(BIN_T) Enclave_private.pem
 ifeq ($(SGX_MODE), SW)
 	@echo "\033[32mSoftware / Simulation mode\033[0m"
 else
@@ -102,10 +102,12 @@ else
 endif
 	@echo "\033[32mGenerating keys and signing the enclave...\033[0m"
 	@mkdir -p $(BIN)
-	@openssl genrsa -out Enclave_private.pem -3 3072
 	@openssl rsa -in Enclave_private.pem -pubout -out Enclave_public.pem
 	@$(SGX_ENCLAVE_SIGNER) sign -key $(SRC_T)Enclave_private.pem -enclave $(BIN_T) -out $@ -config $(SRC_T)Enclave.config.xml -dumpfile enclave.meta.txt
 	@cp  $(CONFIG_TOML) ../../../bin
+
+Enclave_private.pem:
+	@openssl genrsa -out Enclave_private.pem -3 3072
 
 $(BIN_T): $(NAME_T_D)
 	@echo "\033[32mBuilding the enclave...\033[0m"

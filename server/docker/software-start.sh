@@ -1,3 +1,3 @@
 #!/bin/sh
-cd /root/bin
+cd /root
 ./app
