@@ -90,7 +90,7 @@ sentence = "Hello, my dog is cute"
 inputs = tokenizer(sentence, padding = "max_length", max_length = 8)["input_ids"]
 
 client = BlindAiClient()
-client.client.connect_server("localhost", simulation=True)
+client.connect_server("localhost", simulation=True)
 
 #Upload the model to the server
 response = client.run_model(inputs)
