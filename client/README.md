@@ -2,6 +2,8 @@
 
 BlindAI Client is a python library to create client applications for BlindAI Server (Mithril-security's confidential inference server). 
 
+**If you wish to know more about BlindAI, please have a look to the project [Github repository](https://github.com/mithril-security/blindai/).**
+
 ## Installation
 
 ### Using pip
@@ -75,9 +77,7 @@ In order to connect to the BlindAI server, the client needs to acquire the follo
 
 **Simulation mode** enables to bypass the process of requesting and checking the attestation and will ignore the TLS certificate.
 
-Usage examples can be found in [tutorial](./tutorial) folder.
-
-Before you run an example, make sure to get `policy.toml` and `host_server.pem` (if you are not using the simulation mode) that are generated in the server side. 
+Before you run an example, make sure to get `policy.toml` and `host_server.pem` (if you are not using the simulation mode) that are generated in the server side.
 
 ## Contributing
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.

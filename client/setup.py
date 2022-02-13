@@ -98,11 +98,11 @@ setuptools.setup(
     author="Mithril-Security",
     version=find_version(),
     author_email="contact@mithrilsecurity.io",
-    description="A python library for creating gRPC clients for blindai inference server",
+    description="Client SDK for BlindAI Confidential Inference Server",
     license="Apache-2.0",
     long_description=read("README.md"),
     long_description_content_type="text/markdown",
-    keywords="confidential computing inference client enclave",
+    keywords="confidential computing inference client enclave sgx machine learning",
     url="https://www.mithrilsecurity.io/",
     packages=setuptools.find_packages(exclude=["blindai/cpp/wrapper.cc"]),
     package_data={"": ["lib/*.so", "tls/*.pem"]},
@@ -136,6 +136,6 @@ setuptools.setup(
     classifiers=[
         "Programming Language :: Python :: 3",
         "Programming Language :: C++",
-        "Operating System :: Linux",
+        "Operating System :: Unix",
     ],
 )
