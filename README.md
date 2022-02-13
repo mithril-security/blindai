@@ -52,7 +52,7 @@ Then we need to load a model inside the secure inference server. First we will e
 ```python
 from transformers import DistilBertTokenizer, DistilBertForSequenceClassification
 import torch
-from blindai.client import BlindAiClient
+from blindai.client import BlindAiClient, ModelDatumType
 
 tokenizer = DistilBertTokenizer.from_pretrained("distilbert-base-uncased")
 model = DistilBertForSequenceClassification.from_pretrained("distilbert-base-uncased")
@@ -74,7 +74,7 @@ client = BlindAiClient()
 client.connect_server("localhost", simulation=True)
 
 #Upload the model to the server
-response = client.upload_model(model="./distilbert-base-uncased.onnx", shape=(1, 8), datum=client.ModelDatumType.I64)
+response = client.upload_model(model="./distilbert-base-uncased.onnx", shape=(1, 8), datum_type=ModelDatumType.I64)
 ```
 
 #### ii - Send data and run model

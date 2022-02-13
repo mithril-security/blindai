@@ -37,15 +37,15 @@ from untrusted_pb2 import (
 
 PORTS = {"untrusted_enclave": "50052", "attested_enclave": "50051"}
 
-class BlindAiClient:
-
-    class ModelDatumType(IntEnum):
+class ModelDatumType(IntEnum):
         F32 = 0
         F64 = 1
         I32 = 2
         I64 = 3
         U32 = 4
         U64 = 5
+
+class BlindAiClient:
     
     def __init__(self, debug_mode=False):
 
@@ -57,7 +57,6 @@ class BlindAiClient:
             os.environ["GRPC_TRACE"] = "transport_security,tsi"
             os.environ["GRPC_VERBOSITY"] = "DEBUG"
         self.SIMULATION_MODE = False
-        self.DISABLE_UNTRUSTED_SERVER_CERT_CHECK = False
 
     def _is_connected(self):
         return self.channel is not None
@@ -73,10 +72,27 @@ class BlindAiClient:
         policy=None,
         certificate=None,
         simulation=False,
-        no_untrusted_cert_check=False,
     ):
+        """Connect to the server with the specified parameters.
+        You will have to specify here the expected policy (server identity, configuration...) and the server TLS certificate, if you are using the hardware mode.
+        
+        If you're using the simulation mode, you don't need to provide a policy and certificate, but please keep in mind that 
+        this mode should NEVER be used in production as it doesn't have most of the security provided by the hardware mode.
 
-        self.DISABLE_UNTRUSTED_SERVER_CERT_CHECK = no_untrusted_cert_check
+        Args:
+            addr: The address of BlindAI server you want to reach.
+            server_name: Contains the CN expected by the server TLS certificate.
+            policy: Path to the toml file describing the policy of the server. Generated in the server side.
+            certificate: Path to the public key of the untrusted inference server. Generated in the server side.
+            simulation:  Connect to the server in simulation mode (default False). If set to yes, the args policy and certificate will be ignored.
+
+        Returns:
+            True if the connection was successful. False otherwise
+
+        Raises:
+            ValueError: Will be raised in case the policy doesn't match the server identity and configuration.
+        """
+        self.DISABLE_UNTRUSTED_SERVER_CERT_CHECK = False
         self.SIMULATION_MODE = simulation
         
         if self.SIMULATION_MODE is True: 
@@ -156,13 +172,25 @@ class BlindAiClient:
 
         return True
 
-    def upload_model(self, model=None, shape=None, datum=ModelDatumType.F32):
-        """Upload an inference model to the server"""
+    def upload_model(self, model=None, shape=None, datum_type=ModelDatumType.F32):
+        """Upload an inference model to the server.
+        The provided model needs to be in the Onnx format.
+
+        Args:
+            model: Path to Onnx model file
+            shape: The shape of the model input.
+            datum_type: The type of the model input data (f32 by default)
+
+        Returns:
+            SimpleReply object, containing two fields:
+                ok:  Set to True if model was loaded successfully, False otherwise
+                msg: Error message if any.
+        """
 
         response = SimpleReply()
         response.ok = False
-        if datum is None:
-            datum = self.ModelDatumType.F32
+        if datum_type is None:
+            datum_type = self.ModelDatumType.F32
         if not self._is_connected():
             response.msg = "Not connected to server"
             return response
@@ -174,7 +202,7 @@ class BlindAiClient:
             response = self.stub.SendModel(
                 iter(
                     [
-                        Model(length=len(data), input_fact=input_fact, data=chunk, datum=int(datum))
+                        Model(length=len(data), input_fact=input_fact, data=chunk, datum=int(datum_type))
                         for chunk in create_byte_chunk(data)
                     ]
                 )
@@ -190,7 +218,20 @@ class BlindAiClient:
         return response
 
     def run_model(self, data_list):
-        """Send data to the server to make a secure inference"""
+        """Send data to the server to make a secure inference
+
+        The data provided must be in a list, as the tensor will be rebuilt inside the server.
+
+        Args:
+            data_list: array of numbers, the numbers must be of the same type datum specified in upload_model
+
+        Returns:
+            ModelResult object, containing three fields:
+                output: output returned by the model
+                ok:  Set to True if model was loaded successfully, False otherwise
+                msg: Error message if any.
+        """
+
         response = ModelResult()
         response.ok = False
         if not self._is_connected():
@@ -216,6 +257,7 @@ class BlindAiClient:
         return response
 
     def close_connection(self):
+        """Close the connection between the client and the inference server."""
         if self._is_connected():
             self._close_channel()
             self.channel = None

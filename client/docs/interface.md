@@ -1,6 +1,6 @@
 # BlindAI Client
 ## Introduction
-blindai client is a python package that simplifies the connection to BlindAI inference server from python client applications, by providing a simple interface for it. 
+BlindAI client is a python package that simplifies the connection to BlindAI inference server from python client applications, by providing a simple interface for it. 
 
 ## BlindAiClient
 
