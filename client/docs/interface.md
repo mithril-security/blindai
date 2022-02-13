@@ -37,7 +37,7 @@ Upload a pretrained model in ONNX format to BlindAI server.
 | --- | --- | --- |
 | model | ``str``| path to model file|
 | shape | ``(int,)`` | the shape of the model input |
-| datum | ``ModelDatumType`` | the type of the model input data |
+| dtype | ``ModelDatumType`` | the type of the model input data |
 
 Returns a **``SimpleReply``** object with the following fields:
 

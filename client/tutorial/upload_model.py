@@ -22,4 +22,4 @@ client = BlindAiClient()
 client.connect_server("localhost", simulation=True)
 
 #Upload the model to the server
-response = client.upload_model(model="./distilbert-base-uncased.onnx", shape=(1, 8), datum_type=ModelDatumType.I64)
+response = client.upload_model(model="./distilbert-base-uncased.onnx", shape=(1, 8), dtype=ModelDatumType.I64)

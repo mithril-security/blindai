@@ -172,14 +172,14 @@ class BlindAiClient:
 
         return True
 
-    def upload_model(self, model=None, shape=None, datum_type=ModelDatumType.F32):
+    def upload_model(self, model=None, shape=None, dtype=ModelDatumType.F32):
         """Upload an inference model to the server.
         The provided model needs to be in the Onnx format.
 
         Args:
             model: Path to Onnx model file
             shape: The shape of the model input.
-            datum_type: The type of the model input data (f32 by default)
+            dtype: The type of the model input data (f32 by default)
 
         Returns:
             SimpleReply object, containing two fields:
@@ -189,8 +189,8 @@ class BlindAiClient:
 
         response = SimpleReply()
         response.ok = False
-        if datum_type is None:
-            datum_type = self.ModelDatumType.F32
+        if dtype is None:
+            dtype = self.ModelDatumType.F32
         if not self._is_connected():
             response.msg = "Not connected to server"
             return response
@@ -202,7 +202,7 @@ class BlindAiClient:
             response = self.stub.SendModel(
                 iter(
                     [
-                        Model(length=len(data), input_fact=input_fact, data=chunk, datum=int(datum_type))
+                        Model(length=len(data), input_fact=input_fact, data=chunk, datum=int(dtype))
                         for chunk in create_byte_chunk(data)
                     ]
                 )
