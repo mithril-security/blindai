@@ -56,7 +56,7 @@ sentence = "Hello, my dog is cute"
 inputs = tokenizer(sentence, padding = "max_length", max_length = 8)["input_ids"]
 
 client = BlindAiClient()
-client.client.connect_server(
+client.connect_server(
     "localhost",
     policy="policy.toml",
     certificate="host_server.pem",
