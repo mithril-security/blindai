@@ -98,7 +98,7 @@ response = client.run_model(inputs)
 
 ### What you can do with BlindAI
 
-- Easily deploy state-of-the-art models with confidentiality. Run models from **Transformers** for text to **ResNets** for **medical images**.
+- Easily deploy state-of-the-art models with confidentiality. Run models from **BERT** for text to **ResNets** for **images**, through **WaveNet** for audio.
 - Provide guarantees to third parties, for instance clients or regulators, that you are indeed providing **data protection**, through **code attestation**.
 - Explore different scenarios from confidential *Speech-to-text*, to *biometric identification*, through secure document analysis with our pool of **examples**.
 
