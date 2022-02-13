@@ -13,9 +13,26 @@ $ pip install blindai
 ### Uploading a model
 
 ```python
+from transformers import DistilBertTokenizer, DistilBertForSequenceClassification
+import torch
 from blindai.client import BlindAiClient
 
-#Create the connection
+tokenizer = DistilBertTokenizer.from_pretrained("distilbert-base-uncased")
+model = DistilBertForSequenceClassification.from_pretrained("distilbert-base-uncased")
+
+sentence = "Hello, my dog is cute"
+inputs = tokenizer(sentence, return_tensors="pt")["input_ids"]
+
+torch.onnx.export(model,
+                  inputs,
+                  "./distilbert-base-uncased.onnx",
+                  export_params=True,
+                  opset_version=11,
+                  do_constant_folding=True,
+                  input_names = ['input'],
+                  output_names = ['output'],
+                  dynamic_axes={'input' : {0 : 'batch_size'},'output' : {0 : 'batch_size'}})
+
 client = BlindAiClient()
 client.connect_server(
     "localhost",
@@ -25,28 +42,29 @@ client.connect_server(
 )
 
 #Upload the model to the server
-response = client.upload_model(model="./mobilenetv2-7.onnx", shape=(1, 3, 224, 224), datum=client.ModelDatumType.F32)
+response = client.upload_model(model="./distilbert-base-uncased.onnx", shape=(1, 8), datum=client.ModelDatumType.I64)
 ```
 ### Uploading data
 ```python
+from transformers import DistilBertTokenizer, DistilBertForSequenceClassification
+import torch
 from blindai.client import BlindAiClient
-from PIL import Image
-import numpy as np
 
-#Create the connection
+tokenizer = DistilBertTokenizer.from_pretrained("distilbert-base-uncased")
+
+sentence = "Hello, my dog is cute"
+inputs = tokenizer(sentence, padding = "max_length", max_length = 8)["input_ids"]
+
 client = BlindAiClient()
-client.connect_server(
+client.client.connect_server(
     "localhost",
     policy="policy.toml",
     certificate="host_server.pem",
     simulation=False
 )
 
-image = Image.open("grace_hopper.jpg").resize((224,224))
-a = np.asarray(image, dtype=float)
-
-#Send data for inference
-result = client.run_model(a.flatten())
+#Upload the model to the server
+response = client.run_model(inputs)
 ```
 
 In order to connect to the BlindAI server, the client needs to acquire the following files from the server: 
@@ -55,7 +73,7 @@ In order to connect to the BlindAI server, the client needs to acquire the follo
 
 - **host_server.pem :** TLS certificate for the connection to the untrusted (app) part of the server.
 
-**Simulation mode** enables to pypass the process of requesting and checking the attestation and will ignore the TLS certificate.
+**Simulation mode** enables to bypass the process of requesting and checking the attestation and will ignore the TLS certificate.
 
 Usage examples can be found in [tutorial](./tutorial) folder.
 
