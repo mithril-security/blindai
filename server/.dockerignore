@@ -1,5 +1,2 @@
-inference-server/
-sdk/
-target/
-tmp/
-tools/
+target
+docker/*.dockerfile
