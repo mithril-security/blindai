@@ -30,7 +30,7 @@ serde = "1.0.130"
 serde_json = "1.0.68"
 serde_cbor = "=0.11.1"
 serde_derive = "1.0.68"
-tonic-rpc = { git = "ssh://git@github.com/mithril-security/tonic-rpc.git", branch = "main" }
+tonic-rpc = { git = "https://github.com/mithril-security/tonic-rpc.git", branch = "main" }
 rpc = {path = "../../network/sgx/rpc"}
 ring = "0.16.20"
 reqwest = {version = "=0.11.4", default-features = false, features = ["json", "rustls-tls-webpki-roots"]}
@@ -38,8 +38,8 @@ base64 = "0.13.0"
 futures = "0.3.17"
 tokio-stream = "*"
 tokio-util = "=0.6.8"
-tract-onnx = { git = "ssh://git@github.com/mithril-security/tract-sgx-xargo.git", tag = "0.15.9-pre-range-no-fs" }
-tract-core = { git = "ssh://git@github.com/mithril-security/tract-sgx-xargo.git", tag = "0.15.9-pre-range-no-fs"}
+tract-onnx = { git = "https://github.com/mithril-security/tract-sgx-xargo.git", tag = "0.15.9-pre-range-no-fs" }
+tract-core = { git = "https://github.com/mithril-security/tract-sgx-xargo.git", tag = "0.15.9-pre-range-no-fs" }
 common = {path = "common"}
 toml = "*"
 rand = "*"
