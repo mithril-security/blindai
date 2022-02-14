@@ -11,4 +11,4 @@ license = "MIT"
 tokio = { version = "1.0", features = ["rt"]  }
 tokio-stream = { version = "0.1", features = [ "net" ] }
 tonic = "0.5"
-tonic-rpc = { git = "https://github.com/mithril-security/blindai/tree/master/examplesgithub.com/mithril-security/tonic-rpc.git", branch = "main", features = ["json"] }
+tonic-rpc = { git = "https://github.com/mithril-security/tonic-rpc.git", branch = "main", features = ["json"] }

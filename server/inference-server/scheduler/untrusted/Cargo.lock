@@ -1374,7 +1374,7 @@ dependencies = [
 [[package]]
 name = "tonic-rpc"
 version = "0.1.1"
-source = "git+ssh://git@github.com/mithril-security/tonic-rpc.git?branch=main#72fa78635720843d09f3876fa6f6ac33c1dfefdf"
+source = "git+https://github.com/mithril-security/tonic-rpc.git?branch=main#72fa78635720843d09f3876fa6f6ac33c1dfefdf"
 dependencies = [
  "bytes",
  "serde",
@@ -1387,7 +1387,7 @@ dependencies = [
 [[package]]
 name = "tonic-rpc-macro"
 version = "0.1.0"
-source = "git+ssh://git@github.com/mithril-security/tonic-rpc.git?branch=main#72fa78635720843d09f3876fa6f6ac33c1dfefdf"
+source = "git+https://github.com/mithril-security/tonic-rpc.git?branch=main#72fa78635720843d09f3876fa6f6ac33c1dfefdf"
 dependencies = [
  "heck",
  "itertools",

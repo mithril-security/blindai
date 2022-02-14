@@ -23,7 +23,7 @@ tokio = { version = "1.0", features = [ "full" ] }
 tokio-stream = { version = "0.1", features = [ "net" ] }
 prost = { version = "0.8", default-features = false, features = ["prost-derive"] }
 tonic = { version = "0.5", features = ["tls"] }
-tonic-rpc = { git = "https://github.com/mithril-security/blindai/tree/master/examplesgithub.com/mithril-security/tonic-rpc.git", branch = "main", features = ["json"] }
+tonic-rpc = { git = "https://github.com/mithril-security/tonic-rpc.git", branch = "main", features = ["json"] }
 common = {path = "common"}
 x509-parser      = "0.12.0"
 rpc = {path = "../../network/sgx/rpc"}
