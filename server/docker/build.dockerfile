@@ -157,7 +157,7 @@ COPY known_hosts /root/.ssh/known_hosts
 COPY . ./server
 
 RUN CARGO_NET_GIT_FETCH_WITH_CLI=true make -C server SGX_MODE=HW && \
-    cp -r ./server/bin ./bin && \
+    cp -r ./server/bin/* /root && \
     cp ./server/policy.toml /root/policy.toml && \
     rm -rf ./server
 
