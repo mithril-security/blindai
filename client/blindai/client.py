@@ -177,7 +177,7 @@ class BlindAiClient:
         The provided model needs to be in the Onnx format.
 
         Args:
-            model: Path to Onnx model file
+            model: Path to Onnx model file.
             shape: The shape of the model input.
             dtype: The type of the model input data (f32 by default)
 
@@ -223,12 +223,12 @@ class BlindAiClient:
         The data provided must be in a list, as the tensor will be rebuilt inside the server.
 
         Args:
-            data_list: array of numbers, the numbers must be of the same type datum specified in upload_model
+            data_list: array of numbers, the numbers must be of the same type dtype specified in upload_model
 
         Returns:
             ModelResult object, containing three fields:
-                output: output returned by the model
-                ok:  Set to True if model was loaded successfully, False otherwise
+                output: array of floats. The inference results returned by the model.
+                ok:  Set to True if the inference was run successfully, False otherwise
                 msg: Error message if any.
         """
 

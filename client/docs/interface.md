@@ -21,13 +21,13 @@ Estabilish a connection with BlindAI inference server and perform the process of
 
 | Param | Type | description |
 | --- | --- | --- |
-| addr| ```str``` | the address of BlindAI server |
+| addr| ```str``` | The address of BlindAI server you want to reach. |
+| server_name | ``str`` | Contains the CN expected by the server TLS certificate. |
 | certificate | ``str``| path to the public key of the untrusted inference server. Generated in the server side. |
 | policy | ``str`` | path to the toml file describing the policy of the server. Generated in the server side. |
-| simulation | ``bool`` | connect to the server in the simulation mode (default `False`). |
-| no_untrusted_cert_check |``bool`` | bypass the verification of the untrusted server certificate (default `False`) |
+| simulation | ``bool`` | Connect to the server in simulation mode (default False). If set to yes, the args policy and certificate will be ignored.|
 
-Returns a boolean describing whether the connection was successful or not.
+Returns True if the connection was successful. False otherwise.
 
 ---
 ### **upload_model (model, shape) -> SimpleReply**
@@ -35,7 +35,7 @@ Upload a pretrained model in ONNX format to BlindAI server.
 
 | Param | Type | description |
 | --- | --- | --- |
-| model | ``str``| path to model file|
+| model | ``str``| path to Onnx model file|
 | shape | ``(int,)`` | the shape of the model input |
 | dtype | ``ModelDatumType`` | the type of the model input data |
 
@@ -43,22 +43,22 @@ Returns a **``SimpleReply``** object with the following fields:
 
 | field | Type | description |
 | ----- | --- | --- |
-|  ok   | ``bool`` | True if the model is successfully uploaded |
-|  msg  | ``str`` | message from the server | 
+|  ok   | ``bool`` | Set to True if model was loaded successfully, False otherwise |
+|  msg  | ``str`` | Error message if any. | 
 ---
 ### **run_model (data) -> ModelResult**
-Send data to  BlindAI server to perform the inference.
+Send data to the server to make a secure inference.
 
 | Param | Type | description |
 | --- | --- | --- |
-| data | ``[number]``| array of numbers, the numbers must be of the same type ``datum`` specified in `upload_model`| 
+| data_list | ``[number]``| array of numbers, the numbers must be of the same type ``dtype`` specified in `upload_model`| 
 
 Returns a **``ModelResult``** object with the following fields:
 | field | Type | description |
 | ----- | --- | --- |
-| output | ``[float]`` | output returned by the model | 
-|  ok   | ``bool`` | True if inference run correctly |
-|  msg  | ``str`` | message from the server | 
+| output | ``[float]`` | array of floats. The inference results returned by the model. | 
+|  ok   | ``bool`` | Set to True if the inference was run successfully, False otherwise |
+|  msg  | ``str`` | Error message if any. | 
 
 ---
 ### **close_connection ( )**
