@@ -119,7 +119,7 @@ We advise you to install our *client SDK* using a *virtual environment*. You can
 ```bash
 pip install blindai
 ```
-You can find more details regarding the installation in our [**documentation here**](https://docs.mithrilsecurity.io/started/installation/client_side).
+You can find more details regarding the installation in our [**documentation here**](https://docs.mithrilsecurity.io/started/installation/).
 
 ## Contributing
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
