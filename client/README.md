@@ -65,7 +65,7 @@ client.connect_server(
     simulation=False
 )
 
-#Upload the model to the server
+#Send the data and run the inference
 response = client.run_model(inputs)
 ```
 
