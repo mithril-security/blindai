@@ -80,8 +80,7 @@ response = client.upload_model(model="./distilbert-base-uncased.onnx", shape=(1,
 #### ii - Send data and run model
 Upload the data securely to the inference server. 
 ```python
-from transformers import DistilBertTokenizer, DistilBertForSequenceClassification
-import torch
+from transformers import DistilBertTokenizer
 from blindai.client import BlindAiClient
 
 tokenizer = DistilBertTokenizer.from_pretrained("distilbert-base-uncased")
