@@ -83,6 +83,6 @@ Before you run an example, make sure to get `policy.toml` and `host_server.pem` 
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
 
 ## License
-This project is licensed under [Apache 2.0 License.](../LICENSE)
+This project is licensed under [Apache 2.0 License.](https://github.com/mithril-security/blindai/blob/master/LICENSE)
 
 The project uses the "Intel SGX DCAP Quote Validation Library" for attestation verification, See [Intel SGX DCAP Quote Validation Library License](https://github.com/intel/SGXDataCenterAttestationPrimitives/blob/master/License.txt)
