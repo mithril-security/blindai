@@ -48,8 +48,7 @@ response = client.upload_model(model="./distilbert-base-uncased.onnx", shape=(1,
 ```
 ### Uploading data
 ```python
-from transformers import DistilBertTokenizer, DistilBertForSequenceClassification
-import torch
+from transformers import DistilBertTokenizer
 from blindai.client import BlindAiClient
 
 tokenizer = DistilBertTokenizer.from_pretrained("distilbert-base-uncased")
