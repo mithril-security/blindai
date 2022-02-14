@@ -18,13 +18,13 @@
 **BlindAI** is a **fast, easy to use and confidential inference server**, allowing you to deploy your 
 model on sensitive data. Thanks to the **end-to-end protection guarantees**, data owners can send private data to be analyzed by AI models, **without fearing exposing their data to anyone else**.
 
-We reconcile *AI* and privacy by leveraging Confidential Computing for secure inference. You can learn more about this technology here.
+We reconcile AI and privacy by leveraging Confidential Computing for secure inference. You can learn more about this technology here.
 
-We currently only support *Intel SGX*, but we plan to cover *AMD SEV* and *Nitro Enclave* in the future. More information about our **roadmap** can be found [here](https://github.com/mithril-security/blindai/projects/1). 
+We currently only support *Intel SGX*, but we plan to cover *AMD SEV* and *Nitro Enclave* in the future. More information about our **roadmap** will be provided soon.
 
 Our solution comes in two parts:
-- A secure inference solution to serve **AI* models with privacy guarantees.
-- A *client SDK* to securely consume the remote *AI* models. 
+- A secure inference solution to serve AI models with privacy guarantees.
+- A *client SDK* to securely consume the remote AI models. 
 
 ## Getting started
 
@@ -34,11 +34,13 @@ To deploy a model on sensitive data, with end-to-end protection, we provide a *D
 
 Because the server requires specific hardware, for instance *Intel SGX* currently, we also provide a *simulation mode*. Using the *simulation mode*, any computer can serve models with our solution. However, the two key properties of secure enclaves, data in use confidentiality, and code attestation, will not be available. **Therefore this is just for testing on your local machine but is not relevant for real guarantees in production**.
 
+Our first article [Deploy Transformers with confidentiality](blog.mithrilsecurity.io/transformers-with-confidentiality) covers the deployment of both simulation and hardware mode. 
+
 ### A - Deploying the server
 
 Deploy the inference server, for instance using one of our *Docker* images. To get started quickly, you can use the image with simulation, which does not require any specific hardware. 
 ```bash
-docker run -p 50051:50051 -p 50052:50052 mithrilsecuritysas/blindai-server-sim:0.1.0 
+docker run -p 50051:50051 -p 50052:50052 mithrilsecuritysas/blindai-server-sim
 ```
 ### B - Sending data from the client to the server
 
