@@ -57,7 +57,7 @@ Returns a **``ModelResult``** object with the following fields:
 | field | Type | description |
 | ----- | --- | --- |
 | output | ``[float]`` | output returned by the model | 
-|  ok   | ``bool`` | True if the model is successfully upload |
+|  ok   | ``bool`` | True if inference run correctly |
 |  msg  | ``str`` | message from the server | 
 
 ---
