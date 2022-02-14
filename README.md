@@ -9,7 +9,7 @@
   <a href="https://www.linkedin.com/company/mithril-security-company">LinkedIn</a> | 
   <a href="https://blog-mithril-security.ghost.io/">Blog</a> |
   <a href="https://www.twitter.com/mithrilsecurity">Twitter</a> | 
-  <a href="https://mithrilsecurity.gitbook.io">Documentation</a> |
+  <a href="https://docs.mithrilsecurity.io/">Documentation</a> |
   <a href="https://discord.gg/rWHcHeCBWk">Discord</a>
 </h4>
 
@@ -119,7 +119,7 @@ We advise you to install our *client SDK* using a *virtual environment*. You can
 ```bash
 pip install blindai
 ```
-You can find more details regarding the installation in our **documentation here**.
+You can find more details regarding the installation in our [**documentation here**](https://docs.mithrilsecurity.io/started/installation/client_side).
 
 ## Contributing
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
