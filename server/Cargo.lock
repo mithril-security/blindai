@@ -20,7 +20,7 @@ dependencies = [
 [[package]]
 name = "anyhow"
 version = "1.0.45"
-source = "git+ssh://git@github.com/mithril-security/anyhow-xargo-sgx.git?tag=1.0.45-sgx#3ca74d33fa11a485c527d31233f2334474cae6c2"
+source = "git+https://github.com/mithril-security/anyhow-xargo-sgx.git?tag=1.0.45-sgx#3ca74d33fa11a485c527d31233f2334474cae6c2"
 
 [[package]]
 name = "anymap2"
@@ -69,7 +69,7 @@ checksum = "cdb031dd78e28731d87d56cc8ffef4a8f36ca26c38fe2de700543e627f8a464a"
 [[package]]
 name = "b64-ct"
 version = "0.1.1"
-source = "git+ssh://git@github.com/mithril-security/b64-ct.git?tag=v0.1.1-sgx#c81a44ebbf82ceb09715df21154babb1558aa5b8"
+source = "git+https://github.com/mithril-security/b64-ct.git?tag=v0.1.1-sgx#c81a44ebbf82ceb09715df21154babb1558aa5b8"
 
 [[package]]
 name = "base64"
@@ -86,12 +86,12 @@ checksum = "149ea5dc24cb11513350770afebba32b68e3d2e356f9221351a2a1ee89112a82"
 [[package]]
 name = "base64ct"
 version = "1.1.0"
-source = "git+ssh://git@github.com/mithril-security/formats-sgx.git?tag=pkcs1/v0.2.4-sgx#71fda6309a605ef3c595cb06efc8937d427530e7"
+source = "git+https://github.com/mithril-security/formats-sgx.git?tag=pkcs1/v0.2.4-sgx#71fda6309a605ef3c595cb06efc8937d427530e7"
 
 [[package]]
 name = "base64ct"
 version = "1.1.0"
-source = "git+ssh://git@github.com/mithril-security/formats-sgx.git?tag=pkcs8/v0.7.6-sgx#d4cc3fe176a982448f00fab3a7748ca81ece4d7d"
+source = "git+https://github.com/mithril-security/formats-sgx.git?tag=pkcs8/v0.7.6-sgx#d4cc3fe176a982448f00fab3a7748ca81ece4d7d"
 
 [[package]]
 name = "bit-set"
@@ -200,12 +200,12 @@ dependencies = [
 [[package]]
 name = "const-oid"
 version = "0.6.1"
-source = "git+ssh://git@github.com/mithril-security/formats-sgx.git?tag=pkcs1/v0.2.4-sgx#71fda6309a605ef3c595cb06efc8937d427530e7"
+source = "git+https://github.com/mithril-security/formats-sgx.git?tag=pkcs1/v0.2.4-sgx#71fda6309a605ef3c595cb06efc8937d427530e7"
 
 [[package]]
 name = "const-oid"
 version = "0.6.1"
-source = "git+ssh://git@github.com/mithril-security/formats-sgx.git?tag=pkcs8/v0.7.6-sgx#d4cc3fe176a982448f00fab3a7748ca81ece4d7d"
+source = "git+https://github.com/mithril-security/formats-sgx.git?tag=pkcs8/v0.7.6-sgx#d4cc3fe176a982448f00fab3a7748ca81ece4d7d"
 
 [[package]]
 name = "crc32fast"
@@ -236,18 +236,18 @@ checksum = "3ee2393c4a91429dffb4bedf19f4d6abf27d8a732c8ce4980305d782e5426d57"
 [[package]]
 name = "der"
 version = "0.4.2"
-source = "git+ssh://git@github.com/mithril-security/formats-sgx.git?tag=pkcs1/v0.2.4-sgx#71fda6309a605ef3c595cb06efc8937d427530e7"
+source = "git+https://github.com/mithril-security/formats-sgx.git?tag=pkcs1/v0.2.4-sgx#71fda6309a605ef3c595cb06efc8937d427530e7"
 dependencies = [
- "const-oid 0.6.1 (git+ssh://git@github.com/mithril-security/formats-sgx.git?tag=pkcs1/v0.2.4-sgx)",
+ "const-oid 0.6.1 (git+https://github.com/mithril-security/formats-sgx.git?tag=pkcs1/v0.2.4-sgx)",
  "crypto-bigint",
 ]
 
 [[package]]
 name = "der"
 version = "0.4.2"
-source = "git+ssh://git@github.com/mithril-security/formats-sgx.git?tag=pkcs8/v0.7.6-sgx#d4cc3fe176a982448f00fab3a7748ca81ece4d7d"
+source = "git+https://github.com/mithril-security/formats-sgx.git?tag=pkcs8/v0.7.6-sgx#d4cc3fe176a982448f00fab3a7748ca81ece4d7d"
 dependencies = [
- "const-oid 0.6.1 (git+ssh://git@github.com/mithril-security/formats-sgx.git?tag=pkcs8/v0.7.6-sgx)",
+ "const-oid 0.6.1 (git+https://github.com/mithril-security/formats-sgx.git?tag=pkcs8/v0.7.6-sgx)",
  "crypto-bigint",
 ]
 
@@ -365,7 +365,7 @@ dependencies = [
 [[package]]
 name = "env_logger"
 version = "0.9.0"
-source = "git+ssh://git@github.com/mithril-security/env_logger-sgx.git?tag=v0.9.0-sgx#870463a64d50967856ede3b6d7aad1b41d80a03e"
+source = "git+https://github.com/mithril-security/env_logger-sgx.git?tag=v0.9.0-sgx#870463a64d50967856ede3b6d7aad1b41d80a03e"
 dependencies = [
  "log",
 ]
@@ -419,7 +419,7 @@ dependencies = [
 [[package]]
 name = "futures"
 version = "0.3.17"
-source = "git+ssh://git@github.com/mithril-security/futures-sgx?branch=futures-sgx#b526ad377d688c3bc8d733f25da655f38be0dbdb"
+source = "git+https://github.com/mithril-security/futures-sgx?branch=futures-sgx#b526ad377d688c3bc8d733f25da655f38be0dbdb"
 dependencies = [
  "futures-channel",
  "futures-core",
@@ -433,7 +433,7 @@ dependencies = [
 [[package]]
 name = "futures-channel"
 version = "0.3.17"
-source = "git+ssh://git@github.com/mithril-security/futures-sgx?branch=futures-sgx#b526ad377d688c3bc8d733f25da655f38be0dbdb"
+source = "git+https://github.com/mithril-security/futures-sgx?branch=futures-sgx#b526ad377d688c3bc8d733f25da655f38be0dbdb"
 dependencies = [
  "futures-core",
  "futures-sink",
@@ -442,12 +442,12 @@ dependencies = [
 [[package]]
 name = "futures-core"
 version = "0.3.17"
-source = "git+ssh://git@github.com/mithril-security/futures-sgx?branch=futures-sgx#b526ad377d688c3bc8d733f25da655f38be0dbdb"
+source = "git+https://github.com/mithril-security/futures-sgx?branch=futures-sgx#b526ad377d688c3bc8d733f25da655f38be0dbdb"
 
 [[package]]
 name = "futures-executor"
 version = "0.3.17"
-source = "git+ssh://git@github.com/mithril-security/futures-sgx?branch=futures-sgx#b526ad377d688c3bc8d733f25da655f38be0dbdb"
+source = "git+https://github.com/mithril-security/futures-sgx?branch=futures-sgx#b526ad377d688c3bc8d733f25da655f38be0dbdb"
 dependencies = [
  "futures-core",
  "futures-task",
@@ -457,12 +457,12 @@ dependencies = [
 [[package]]
 name = "futures-io"
 version = "0.3.17"
-source = "git+ssh://git@github.com/mithril-security/futures-sgx?branch=futures-sgx#b526ad377d688c3bc8d733f25da655f38be0dbdb"
+source = "git+https://github.com/mithril-security/futures-sgx?branch=futures-sgx#b526ad377d688c3bc8d733f25da655f38be0dbdb"
 
 [[package]]
 name = "futures-macro"
 version = "0.3.17"
-source = "git+ssh://git@github.com/mithril-security/futures-sgx?branch=futures-sgx#b526ad377d688c3bc8d733f25da655f38be0dbdb"
+source = "git+https://github.com/mithril-security/futures-sgx?branch=futures-sgx#b526ad377d688c3bc8d733f25da655f38be0dbdb"
 dependencies = [
  "autocfg",
  "proc-macro-hack",
@@ -474,17 +474,17 @@ dependencies = [
 [[package]]
 name = "futures-sink"
 version = "0.3.17"
-source = "git+ssh://git@github.com/mithril-security/futures-sgx?branch=futures-sgx#b526ad377d688c3bc8d733f25da655f38be0dbdb"
+source = "git+https://github.com/mithril-security/futures-sgx?branch=futures-sgx#b526ad377d688c3bc8d733f25da655f38be0dbdb"
 
 [[package]]
 name = "futures-task"
 version = "0.3.17"
-source = "git+ssh://git@github.com/mithril-security/futures-sgx?branch=futures-sgx#b526ad377d688c3bc8d733f25da655f38be0dbdb"
+source = "git+https://github.com/mithril-security/futures-sgx?branch=futures-sgx#b526ad377d688c3bc8d733f25da655f38be0dbdb"
 
 [[package]]
 name = "futures-util"
 version = "0.3.17"
-source = "git+ssh://git@github.com/mithril-security/futures-sgx?branch=futures-sgx#b526ad377d688c3bc8d733f25da655f38be0dbdb"
+source = "git+https://github.com/mithril-security/futures-sgx?branch=futures-sgx#b526ad377d688c3bc8d733f25da655f38be0dbdb"
 dependencies = [
  "autocfg",
  "futures-channel",
@@ -534,7 +534,7 @@ dependencies = [
 [[package]]
 name = "h2"
 version = "0.3.4"
-source = "git+ssh://git@github.com/mithril-security/h2-sgx?branch=h2-sgx#08d3ee063ee0ebd1b4a6fcc27ef9dcb7780a4a53"
+source = "git+https://github.com/mithril-security/h2-sgx?branch=h2-sgx#08d3ee063ee0ebd1b4a6fcc27ef9dcb7780a4a53"
 dependencies = [
  "bytes",
  "fnv",
@@ -601,7 +601,7 @@ dependencies = [
 [[package]]
 name = "httparse"
 version = "1.5.1"
-source = "git+ssh://git@github.com/mithril-security/httparse-sgx.git#eca0ec0b5c68ab1ca0799c682cf8bb801d44c736"
+source = "git+https://github.com/mithril-security/httparse-sgx.git#eca0ec0b5c68ab1ca0799c682cf8bb801d44c736"
 
 [[package]]
 name = "httpdate"
@@ -612,7 +612,7 @@ checksum = "c4a1e36c821dbe04574f602848a19f742f4fb3c98d40449f11bcad18d6b17421"
 [[package]]
 name = "hyper"
 version = "0.14.13"
-source = "git+ssh://git@github.com/mithril-security/hyper-sgx?tag=v0.14.13-sgx#08a8bcdcb6a9842155d972c18a1f7a0d409e38f1"
+source = "git+https://github.com/mithril-security/hyper-sgx?tag=v0.14.13-sgx#08a8bcdcb6a9842155d972c18a1f7a0d409e38f1"
 dependencies = [
  "bytes",
  "futures-channel",
@@ -914,7 +914,7 @@ dependencies = [
 [[package]]
 name = "mio"
 version = "0.7.13"
-source = "git+ssh://git@github.com/mithril-security/mio-sgx.git?branch=sgx-mio#045031d6f93b6cf91e4bdc1e52fbd428820cc9cc"
+source = "git+https://github.com/mithril-security/mio-sgx.git?branch=sgx-mio#045031d6f93b6cf91e4bdc1e52fbd428820cc9cc"
 dependencies = [
  "libc",
  "log",
@@ -996,7 +996,7 @@ dependencies = [
 [[package]]
 name = "num-bigint-dig"
 version = "0.7.0"
-source = "git+ssh://git@github.com/dignifiedquire/num-bigint.git?rev=56576b592fea6341b7e1711a1629e4cc1bfc419c#56576b592fea6341b7e1711a1629e4cc1bfc419c"
+source = "git+https://github.com/dignifiedquire/num-bigint.git?rev=56576b592fea6341b7e1711a1629e4cc1bfc419c#56576b592fea6341b7e1711a1629e4cc1bfc419c"
 dependencies = [
  "autocfg",
  "byteorder",
@@ -1064,7 +1064,7 @@ dependencies = [
 [[package]]
 name = "oid-registry"
 version = "0.2.0"
-source = "git+ssh://git@github.com/mithril-security/oid-registry-sgx.git?tag=oid-registry-0.2.0-sgx#bda2c37a653ab0769e3a0e514f7783bf5ad6f904"
+source = "git+https://github.com/mithril-security/oid-registry-sgx.git?tag=oid-registry-0.2.0-sgx#bda2c37a653ab0769e3a0e514f7783bf5ad6f904"
 dependencies = [
  "der-parser",
 ]
@@ -1090,17 +1090,17 @@ checksum = "0744126afe1a6dd7f394cb50a716dbe086cb06e255e53d8d0185d82828358fb5"
 [[package]]
 name = "pem-rfc7468"
 version = "0.2.0"
-source = "git+ssh://git@github.com/mithril-security/formats-sgx.git?tag=pkcs1/v0.2.4-sgx#71fda6309a605ef3c595cb06efc8937d427530e7"
+source = "git+https://github.com/mithril-security/formats-sgx.git?tag=pkcs1/v0.2.4-sgx#71fda6309a605ef3c595cb06efc8937d427530e7"
 dependencies = [
- "base64ct 1.1.0 (git+ssh://git@github.com/mithril-security/formats-sgx.git?tag=pkcs1/v0.2.4-sgx)",
+ "base64ct 1.1.0 (git+https://github.com/mithril-security/formats-sgx.git?tag=pkcs1/v0.2.4-sgx)",
 ]
 
 [[package]]
 name = "pem-rfc7468"
 version = "0.2.0"
-source = "git+ssh://git@github.com/mithril-security/formats-sgx.git?tag=pkcs8/v0.7.6-sgx#d4cc3fe176a982448f00fab3a7748ca81ece4d7d"
+source = "git+https://github.com/mithril-security/formats-sgx.git?tag=pkcs8/v0.7.6-sgx#d4cc3fe176a982448f00fab3a7748ca81ece4d7d"
 dependencies = [
- "base64ct 1.1.0 (git+ssh://git@github.com/mithril-security/formats-sgx.git?tag=pkcs8/v0.7.6-sgx)",
+ "base64ct 1.1.0 (git+https://github.com/mithril-security/formats-sgx.git?tag=pkcs8/v0.7.6-sgx)",
 ]
 
 [[package]]
@@ -1207,30 +1207,30 @@ checksum = "8b870d8c151b6f2fb93e84a13146138f05d02ed11c7e7c54f8826aaaf7c9f184"
 [[package]]
 name = "pkcs1"
 version = "0.2.4"
-source = "git+ssh://git@github.com/mithril-security/formats-sgx.git?tag=pkcs1/v0.2.4-sgx#71fda6309a605ef3c595cb06efc8937d427530e7"
+source = "git+https://github.com/mithril-security/formats-sgx.git?tag=pkcs1/v0.2.4-sgx#71fda6309a605ef3c595cb06efc8937d427530e7"
 dependencies = [
- "der 0.4.2 (git+ssh://git@github.com/mithril-security/formats-sgx.git?tag=pkcs1/v0.2.4-sgx)",
- "pem-rfc7468 0.2.0 (git+ssh://git@github.com/mithril-security/formats-sgx.git?tag=pkcs1/v0.2.4-sgx)",
+ "der 0.4.2 (git+https://github.com/mithril-security/formats-sgx.git?tag=pkcs1/v0.2.4-sgx)",
+ "pem-rfc7468 0.2.0 (git+https://github.com/mithril-security/formats-sgx.git?tag=pkcs1/v0.2.4-sgx)",
  "zeroize",
 ]
 
 [[package]]
 name = "pkcs1"
 version = "0.2.4"
-source = "git+ssh://git@github.com/mithril-security/formats-sgx.git?tag=pkcs8/v0.7.6-sgx#d4cc3fe176a982448f00fab3a7748ca81ece4d7d"
+source = "git+https://github.com/mithril-security/formats-sgx.git?tag=pkcs8/v0.7.6-sgx#d4cc3fe176a982448f00fab3a7748ca81ece4d7d"
 dependencies = [
- "der 0.4.2 (git+ssh://git@github.com/mithril-security/formats-sgx.git?tag=pkcs8/v0.7.6-sgx)",
+ "der 0.4.2 (git+https://github.com/mithril-security/formats-sgx.git?tag=pkcs8/v0.7.6-sgx)",
  "zeroize",
 ]
 
 [[package]]
 name = "pkcs8"
 version = "0.7.6"
-source = "git+ssh://git@github.com/mithril-security/formats-sgx.git?tag=pkcs8/v0.7.6-sgx#d4cc3fe176a982448f00fab3a7748ca81ece4d7d"
+source = "git+https://github.com/mithril-security/formats-sgx.git?tag=pkcs8/v0.7.6-sgx#d4cc3fe176a982448f00fab3a7748ca81ece4d7d"
 dependencies = [
- "der 0.4.2 (git+ssh://git@github.com/mithril-security/formats-sgx.git?tag=pkcs8/v0.7.6-sgx)",
- "pem-rfc7468 0.2.0 (git+ssh://git@github.com/mithril-security/formats-sgx.git?tag=pkcs8/v0.7.6-sgx)",
- "pkcs1 0.2.4 (git+ssh://git@github.com/mithril-security/formats-sgx.git?tag=pkcs8/v0.7.6-sgx)",
+ "der 0.4.2 (git+https://github.com/mithril-security/formats-sgx.git?tag=pkcs8/v0.7.6-sgx)",
+ "pem-rfc7468 0.2.0 (git+https://github.com/mithril-security/formats-sgx.git?tag=pkcs8/v0.7.6-sgx)",
+ "pkcs1 0.2.4 (git+https://github.com/mithril-security/formats-sgx.git?tag=pkcs8/v0.7.6-sgx)",
  "spki",
  "zeroize",
 ]
@@ -1545,7 +1545,7 @@ dependencies = [
 [[package]]
 name = "ring"
 version = "0.16.20"
-source = "git+ssh://git@github.com/mithril-security/ring.git?branch=sgx-target#d5f98b6746f5ebc533f60c83c5e9a5df6a3cb224"
+source = "git+https://github.com/mithril-security/ring.git?branch=sgx-target#d5f98b6746f5ebc533f60c83c5e9a5df6a3cb224"
 dependencies = [
  "cc",
  "libc",
@@ -1569,7 +1569,7 @@ dependencies = [
 [[package]]
 name = "rsa"
 version = "0.5.0"
-source = "git+ssh://git@github.com/mithril-security/rsa-sgx.git?branch=target-sgx#f91ade4f32422d6004246f928f4b018afd97fd9c"
+source = "git+https://github.com/mithril-security/rsa-sgx.git?branch=target-sgx#f91ade4f32422d6004246f928f4b018afd97fd9c"
 dependencies = [
  "byteorder",
  "digest 0.9.0",
@@ -1578,7 +1578,7 @@ dependencies = [
  "num-integer",
  "num-iter",
  "num-traits",
- "pkcs1 0.2.4 (git+ssh://git@github.com/mithril-security/formats-sgx.git?tag=pkcs1/v0.2.4-sgx)",
+ "pkcs1 0.2.4 (git+https://github.com/mithril-security/formats-sgx.git?tag=pkcs1/v0.2.4-sgx)",
  "pkcs8",
  "rand",
  "subtle",
@@ -1597,7 +1597,7 @@ dependencies = [
 [[package]]
 name = "rustls"
 version = "0.19.1"
-source = "git+ssh://git@github.com/mithril-security/rustls-sgx?branch=rustls-sgx#f80b7c30b9339a03099bd7455665e36524913cec"
+source = "git+https://github.com/mithril-security/rustls-sgx?branch=rustls-sgx#f80b7c30b9339a03099bd7455665e36524913cec"
 dependencies = [
  "base64 0.13.0",
  "log",
@@ -1634,7 +1634,7 @@ dependencies = [
 [[package]]
 name = "serde"
 version = "1.0.130"
-source = "git+ssh://git@github.com/mithril-security/serde-xargo-sgx.git?tag=v1.0.130-sgx#ec10a63933c0be5b4461a4eff811e4ce99685fdc"
+source = "git+https://github.com/mithril-security/serde-xargo-sgx.git?tag=v1.0.130-sgx#ec10a63933c0be5b4461a4eff811e4ce99685fdc"
 dependencies = [
  "serde_derive",
 ]
@@ -1652,7 +1652,7 @@ dependencies = [
 [[package]]
 name = "serde_derive"
 version = "1.0.130"
-source = "git+ssh://git@github.com/mithril-security/serde-xargo-sgx.git?tag=v1.0.130-sgx#ec10a63933c0be5b4461a4eff811e4ce99685fdc"
+source = "git+https://github.com/mithril-security/serde-xargo-sgx.git?tag=v1.0.130-sgx#ec10a63933c0be5b4461a4eff811e4ce99685fdc"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -1721,7 +1721,7 @@ checksum = "1ecab6c735a6bb4139c0caafd0cc3635748bbb3acf4550e8138122099251f309"
 [[package]]
 name = "socket2"
 version = "0.4.2"
-source = "git+ssh://git@github.com/mithril-security/socket2-sgx.git?tag=v0.4.2-sgx#10be6a2d68832c334a149e7306221ad68ed8e955"
+source = "git+https://github.com/mithril-security/socket2-sgx.git?tag=v0.4.2-sgx#10be6a2d68832c334a149e7306221ad68ed8e955"
 dependencies = [
  "libc",
  "winapi",
@@ -1736,9 +1736,9 @@ checksum = "6e63cff320ae2c57904679ba7cb63280a3dc4613885beafb148ee7bf9aa9042d"
 [[package]]
 name = "spki"
 version = "0.4.0"
-source = "git+ssh://git@github.com/mithril-security/formats-sgx.git?tag=pkcs8/v0.7.6-sgx#d4cc3fe176a982448f00fab3a7748ca81ece4d7d"
+source = "git+https://github.com/mithril-security/formats-sgx.git?tag=pkcs8/v0.7.6-sgx#d4cc3fe176a982448f00fab3a7748ca81ece4d7d"
 dependencies = [
- "der 0.4.2 (git+ssh://git@github.com/mithril-security/formats-sgx.git?tag=pkcs8/v0.7.6-sgx)",
+ "der 0.4.2 (git+https://github.com/mithril-security/formats-sgx.git?tag=pkcs8/v0.7.6-sgx)",
 ]
 
 [[package]]
@@ -1773,7 +1773,7 @@ dependencies = [
 [[package]]
 name = "tar"
 version = "0.4.33"
-source = "git+ssh://git@github.com/mithril-security/tar-rs-sgx.git?tag=0.4.33x#3bd9040754183e2616f1b872a17fdbe2f18d3931"
+source = "git+https://github.com/mithril-security/tar-rs-sgx.git?tag=0.4.33x#3bd9040754183e2616f1b872a17fdbe2f18d3931"
 
 [[package]]
 name = "teaclave_attestation"
@@ -1865,7 +1865,7 @@ checksum = "cda74da7e1a664f795bb1f8a87ec406fb89a02522cf6e50620d016add6dbbf5c"
 [[package]]
 name = "tokio"
 version = "1.12.0"
-source = "git+ssh://git@github.com/mithril-security/tokio-sgx?tag=tokio-1.12.0-sgx#dd1934024be2025226038898ca18434715f56f1d"
+source = "git+https://github.com/mithril-security/tokio-sgx?tag=tokio-1.12.0-sgx#dd1934024be2025226038898ca18434715f56f1d"
 dependencies = [
  "autocfg",
  "bytes",
@@ -1890,7 +1890,7 @@ dependencies = [
 [[package]]
 name = "tokio-macros"
 version = "1.3.0"
-source = "git+ssh://git@github.com/mithril-security/tokio-sgx?tag=tokio-1.12.0-sgx#dd1934024be2025226038898ca18434715f56f1d"
+source = "git+https://github.com/mithril-security/tokio-sgx?tag=tokio-1.12.0-sgx#dd1934024be2025226038898ca18434715f56f1d"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -1922,7 +1922,7 @@ dependencies = [
 [[package]]
 name = "tokio-util"
 version = "0.6.8"
-source = "git+ssh://git@github.com/mithril-security/tokio-sgx?tag=tokio-1.12.0-sgx#dd1934024be2025226038898ca18434715f56f1d"
+source = "git+https://github.com/mithril-security/tokio-sgx?tag=tokio-1.12.0-sgx#dd1934024be2025226038898ca18434715f56f1d"
 dependencies = [
  "bytes",
  "futures-core",
@@ -1988,7 +1988,7 @@ dependencies = [
 [[package]]
 name = "tonic-rpc"
 version = "0.1.1"
-source = "git+ssh://git@github.com/mithril-security/tonic-rpc.git?branch=main#72fa78635720843d09f3876fa6f6ac33c1dfefdf"
+source = "git+https://github.com/mithril-security/tonic-rpc.git?branch=main#72fa78635720843d09f3876fa6f6ac33c1dfefdf"
 dependencies = [
  "bytes",
  "serde",
@@ -2001,7 +2001,7 @@ dependencies = [
 [[package]]
 name = "tonic-rpc-macro"
 version = "0.1.0"
-source = "git+ssh://git@github.com/mithril-security/tonic-rpc.git?branch=main#72fa78635720843d09f3876fa6f6ac33c1dfefdf"
+source = "git+https://github.com/mithril-security/tonic-rpc.git?branch=main#72fa78635720843d09f3876fa6f6ac33c1dfefdf"
 dependencies = [
  "heck",
  "itertools",
@@ -2014,7 +2014,7 @@ dependencies = [
 [[package]]
 name = "tower"
 version = "0.4.8"
-source = "git+ssh://git@github.com/mithril-security/tower-sgx?branch=tower-sgx#80a40bc0d9fee64902afac397a4f608d23d95e80"
+source = "git+https://github.com/mithril-security/tower-sgx?branch=tower-sgx#80a40bc0d9fee64902afac397a4f608d23d95e80"
 dependencies = [
  "futures-core",
  "futures-util",
@@ -2025,7 +2025,7 @@ dependencies = [
  "tokio",
  "tokio-stream",
  "tokio-util",
- "tower-layer 0.3.1 (git+ssh://git@github.com/mithril-security/tower-sgx?branch=tower-sgx)",
+ "tower-layer 0.3.1 (git+https://github.com/mithril-security/tower-sgx?branch=tower-sgx)",
  "tower-service",
  "tracing",
 ]
@@ -2039,7 +2039,7 @@ checksum = "343bc9466d3fe6b0f960ef45960509f84480bf4fd96f92901afe7ff3df9d3a62"
 [[package]]
 name = "tower-layer"
 version = "0.3.1"
-source = "git+ssh://git@github.com/mithril-security/tower-sgx?branch=tower-sgx#80a40bc0d9fee64902afac397a4f608d23d95e80"
+source = "git+https://github.com/mithril-security/tower-sgx?branch=tower-sgx#80a40bc0d9fee64902afac397a4f608d23d95e80"
 
 [[package]]
 name = "tower-service"
@@ -2074,7 +2074,7 @@ dependencies = [
 [[package]]
 name = "tracing-core"
 version = "0.1.20"
-source = "git+ssh://git@github.com/mithril-security/tracing-sgx?branch=tracing-core-sgx#4853471f5ac23b3d95de1e6468056f83d7ccf060"
+source = "git+https://github.com/mithril-security/tracing-sgx?branch=tracing-core-sgx#4853471f5ac23b3d95de1e6468056f83d7ccf060"
 dependencies = [
  "lazy_static",
 ]
@@ -2092,7 +2092,7 @@ dependencies = [
 [[package]]
 name = "tract-core"
 version = "0.15.9-pre"
-source = "git+ssh://git@github.com/mithril-security/tract-sgx-xargo.git?tag=0.15.9-pre-range-no-fs#2035a4cf894a5016cb4a85a537d4d893dc881928"
+source = "git+https://github.com/mithril-security/tract-sgx-xargo.git?tag=0.15.9-pre-range-no-fs#2035a4cf894a5016cb4a85a537d4d893dc881928"
 dependencies = [
  "anyhow",
  "bit-set",
@@ -2114,7 +2114,7 @@ dependencies = [
 [[package]]
 name = "tract-data"
 version = "0.15.9-pre"
-source = "git+ssh://git@github.com/mithril-security/tract-sgx-xargo.git?tag=0.15.9-pre-range-no-fs#2035a4cf894a5016cb4a85a537d4d893dc881928"
+source = "git+https://github.com/mithril-security/tract-sgx-xargo.git?tag=0.15.9-pre-range-no-fs#2035a4cf894a5016cb4a85a537d4d893dc881928"
 dependencies = [
  "anyhow",
  "educe",
@@ -2132,7 +2132,7 @@ dependencies = [
 [[package]]
 name = "tract-hir"
 version = "0.15.9-pre"
-source = "git+ssh://git@github.com/mithril-security/tract-sgx-xargo.git?tag=0.15.9-pre-range-no-fs#2035a4cf894a5016cb4a85a537d4d893dc881928"
+source = "git+https://github.com/mithril-security/tract-sgx-xargo.git?tag=0.15.9-pre-range-no-fs#2035a4cf894a5016cb4a85a537d4d893dc881928"
 dependencies = [
  "derive-new",
  "educe",
@@ -2143,7 +2143,7 @@ dependencies = [
 [[package]]
 name = "tract-linalg"
 version = "0.15.9-pre"
-source = "git+ssh://git@github.com/mithril-security/tract-sgx-xargo.git?tag=0.15.9-pre-range-no-fs#2035a4cf894a5016cb4a85a537d4d893dc881928"
+source = "git+https://github.com/mithril-security/tract-sgx-xargo.git?tag=0.15.9-pre-range-no-fs#2035a4cf894a5016cb4a85a537d4d893dc881928"
 dependencies = [
  "cc",
  "derive-new",
@@ -2165,7 +2165,7 @@ dependencies = [
 [[package]]
 name = "tract-nnef"
 version = "0.15.9-pre"
-source = "git+ssh://git@github.com/mithril-security/tract-sgx-xargo.git?tag=0.15.9-pre-range-no-fs#2035a4cf894a5016cb4a85a537d4d893dc881928"
+source = "git+https://github.com/mithril-security/tract-sgx-xargo.git?tag=0.15.9-pre-range-no-fs#2035a4cf894a5016cb4a85a537d4d893dc881928"
 dependencies = [
  "byteorder",
  "flate2",
@@ -2179,7 +2179,7 @@ dependencies = [
 [[package]]
 name = "tract-onnx"
 version = "0.15.9-pre"
-source = "git+ssh://git@github.com/mithril-security/tract-sgx-xargo.git?tag=0.15.9-pre-range-no-fs#2035a4cf894a5016cb4a85a537d4d893dc881928"
+source = "git+https://github.com/mithril-security/tract-sgx-xargo.git?tag=0.15.9-pre-range-no-fs#2035a4cf894a5016cb4a85a537d4d893dc881928"
 dependencies = [
  "bytes",
  "derive-new",
@@ -2198,7 +2198,7 @@ dependencies = [
 [[package]]
 name = "tract-onnx-opl"
 version = "0.15.9-pre"
-source = "git+ssh://git@github.com/mithril-security/tract-sgx-xargo.git?tag=0.15.9-pre-range-no-fs#2035a4cf894a5016cb4a85a537d4d893dc881928"
+source = "git+https://github.com/mithril-security/tract-sgx-xargo.git?tag=0.15.9-pre-range-no-fs#2035a4cf894a5016cb4a85a537d4d893dc881928"
 dependencies = [
  "educe",
  "tract-nnef",
@@ -2516,4 +2516,4 @@ dependencies = [
 [[patch.unused]]
 name = "futures-test"
 version = "0.3.17"
-source = "git+ssh://git@github.com/mithril-security/futures-sgx?branch=futures-sgx#b526ad377d688c3bc8d733f25da655f38be0dbdb"
+source = "git+https://github.com/mithril-security/futures-sgx?branch=futures-sgx#b526ad377d688c3bc8d733f25da655f38be0dbdb"
