@@ -18,7 +18,7 @@
 **BlindAI** is a **fast, easy to use and confidential inference server**, allowing you to deploy your 
 model on sensitive data. Thanks to the **end-to-end protection guarantees**, data owners can send private data to be analyzed by AI models, **without fearing exposing their data to anyone else**.
 
-We reconcile AI and privacy by leveraging Confidential Computing for secure inference. You can learn more about this technology here.
+We reconcile AI and privacy by leveraging Confidential Computing for secure inference. You can learn more about this technology [here](https://blog.mithrilsecurity.io/confidential-computing-explained-part-1-introduction/).
 
 We currently only support *Intel SGX*, but we plan to cover *AMD SEV* and *Nitro Enclave* in the future. More information about our **roadmap** will be provided soon.
 
