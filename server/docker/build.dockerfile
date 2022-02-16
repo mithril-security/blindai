@@ -11,6 +11,7 @@ ENV SGX_LINUX_X64_SDK_URL="https://download.01.org/intel-sgx/sgx-linux/2.15.1/di
 ENV SGX_DCAP_PCCS_VERSION=1.3.101.3-bionic1
 ENV GCC_VERSION=8.4.0-1ubuntu1~18.04
 ENV RUST_TOOLCHAIN=nightly-2021-11-01
+ENV RUST_UNTRUSTED_TOOLCHAIN=nightly-2021-03-25
 ENV DCAP_PRIMITIVES_VERSION=DCAP_1.12.1
 ENV DCAP_PRIMITIVES_COMMIT=4b2b8fcef71caa4da294e2171b3816e2baa3ceaf
 
@@ -117,9 +118,11 @@ RUN cd /root && \
     chmod +x /root/rustup-init && \
     echo '1' | /root/rustup-init --default-toolchain $RUST_TOOLCHAIN && \
     echo 'source /root/.cargo/env' >> /root/.bashrc && \
-    /root/.cargo/bin/rustup component add rust-src && \
+    /root/.cargo/bin/rustup toolchain install $RUST_UNTRUSTED_TOOLCHAIN && \
+    /root/.cargo/bin/rustup component add cargo clippy rust-docs rust-src rust-std rustc rustfmt && \
+    /root/.cargo/bin/rustup component add --toolchain $RUST_UNTRUSTED_TOOLCHAIN cargo clippy rust-docs rust-src rust-std rustc rustfmt && \
     /root/.cargo/bin/cargo install xargo && \
-    rm /root/rustup-init && rm -rf /root/.cargo/registry && rm -rf /root/.cargo/git
+    rm /root/rustup-init
 ENV PATH="/root/.cargo/bin:$PATH"
 
 ##################################
@@ -149,17 +152,16 @@ RUN /root/setup-pccs.sh && \
     sed -i 's/#USE_SECURE_CERT=FALSE/USE_SECURE_CERT=FALSE/g' /etc/sgx_default_qcnl.conf
 
 # -- build
-# #### TEMP
-COPY id_rsa /root/.ssh/id_rsa
-COPY id_rsa.pub /root/.ssh/id_rsa.pub
-COPY known_hosts /root/.ssh/known_hosts
-
 COPY . ./server
 
-RUN CARGO_NET_GIT_FETCH_WITH_CLI=true make -C server SGX_MODE=HW && \
+RUN --mount=type=cache,target=/root/server/target \
+    --mount=type=cache,target=/root/server/inference-server/scheduler/untrusted/target \
+    --mount=type=cache,target=/root/.cargo/git \
+    --mount=type=cache,target=/root/.cargo/registry \
+    make -C server SGX_MODE=HW all bin/tls/untrusted_server.pem bin/tls/untrusted_server.key && \
     cp -r ./server/bin/* /root && \
     cp ./server/policy.toml /root/policy.toml && \
-    rm -rf ./server
+    (rm -rf ./server || true)
 
 # -- cleanup
 RUN rustup self uninstall -y && \
@@ -182,17 +184,16 @@ CMD ["/root/start.sh"]
 FROM base AS software
 
 # -- build
-# #### TEMP
-COPY id_rsa /root/.ssh/id_rsa
-COPY id_rsa.pub /root/.ssh/id_rsa.pub
-COPY known_hosts /root/.ssh/known_hosts
-
 COPY . ./server
 
-RUN CARGO_NET_GIT_FETCH_WITH_CLI=true make -C server SGX_MODE=SW && \
+RUN --mount=type=cache,target=/root/server/target \
+    --mount=type=cache,target=/root/server/inference-server/scheduler/untrusted/target \
+    --mount=type=cache,target=/root/.cargo/git \
+    --mount=type=cache,target=/root/.cargo/registry \
+    make -C server SGX_MODE=SW all bin/tls/untrusted_server.pem bin/tls/untrusted_server.key && \
     cp -r ./server/bin/* /root && \
     cp ./server/policy.toml /root/policy.toml && \
-    rm -rf ./server
+    (rm -rf ./server || true)
 
 # -- cleanup
 RUN rustup self uninstall -y && \
