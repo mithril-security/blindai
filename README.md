@@ -129,4 +129,4 @@ Pull requests are welcome. For major changes, please open an issue first to disc
 Please make sure to update tests as appropriate.
 
 ## Disclaimer
-BlindAI is still being developed and is provided as is, use at your own risk.
+BlindAI is still being developed and is provided as is, use it at your own risk.
