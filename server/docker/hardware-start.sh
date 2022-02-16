@@ -3,5 +3,5 @@
 cd /opt/intel/sgx-dcap-pccs
 sed -i '/ApiKey/c\   \"ApiKey\" : \"'$1'\",' config/default.json 
 npm start pm2 & 
-cd /root/
+cd /root
 ./app

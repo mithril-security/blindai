@@ -1,0 +1,2 @@
+[build]
+rustflags = ["-C", "target-feature=+rdrnd,+rdseed,+lvi-cfi,+lvi-load-hardening"]
