@@ -14,6 +14,7 @@
 
 #![crate_name = "inference_server"]
 #![crate_type = "staticlib"]
+#![feature(once_cell)]
 
 extern crate env_logger;
 extern crate sgx_libc;
@@ -86,6 +87,7 @@ use crate::client_communication::{
 };
 
 use crate::dcap_quote_provider::DcapQuoteProvider;
+use crate::telemetry::TelemetryEventProps;
 
 use untrusted::MyAttestation;
 
@@ -95,6 +97,7 @@ mod client_communication;
 mod dcap_quote_provider;
 mod identity;
 mod untrusted;
+mod telemetry;
 
 #[no_mangle]
 pub extern "C" fn start_server() -> sgx_status_t {
@@ -171,6 +174,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             "Server running in simulation mode, attestation not available."
         );
     }
+
+    telemetry::setup()?;
+    telemetry::add_event(TelemetryEventProps::Started {});
 
     server_future.await?;
 
