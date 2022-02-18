@@ -64,7 +64,7 @@ stage = 4
 [dependencies.std]
 path = "../../../sdk/xargo/sgx_tstd"
 stage = 5
-features = ["backtrace", "net", "thread", "untrusted_time", "untrusted_fs"]
+features = ["backtrace", "net", "thread", "untrusted_time"]
 
 [dependencies.sgx_no_tstd]
 path = "../../../sdk/sgx_no_tstd"
