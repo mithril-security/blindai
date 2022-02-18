@@ -182,7 +182,11 @@ async fn main(telemetry_platform: String, telemetry_uid: String) -> Result<(), B
         );
     }
 
-    telemetry::setup(telemetry_platform, telemetry_uid)?;
+    if !std::env::var("BLINDAI_DISABLE_TELEMETRY").is_ok() {
+        telemetry::setup(telemetry_platform, telemetry_uid)?;
+    } else {
+        debug!("Telemetry is disabled.")
+    }
     telemetry::add_event(TelemetryEventProps::Started {});
 
     server_future.await?;

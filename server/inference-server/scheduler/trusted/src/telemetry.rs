@@ -36,12 +36,13 @@ impl TelemetryEventProps {
 }
 
 pub fn add_event(event: TelemetryEventProps) {
-    let sender = TELEMETRY_CHANNEL.get().expect("telemetry not initialized");
-
-    let _ = sender.send(TelemetryEvent {
-        props: event,
-        time: SystemTime::now(),
-    });
+    if let Some(sender) = TELEMETRY_CHANNEL.get() {
+        let _ = sender.send(TelemetryEvent {
+            props: event,
+            time: SystemTime::now(),
+        });
+    }
+    // else, telemetry is disabled
 }
 
 #[derive(Debug, Serialize)]
@@ -122,7 +123,7 @@ pub fn setup(platform: String, uid: String) -> anyhow::Result<()> {
                 }
             }
 
-            tokio::time::sleep(Duration::from_secs(30 * 60)).await;
+            tokio::time::sleep(Duration::from_secs(10 * 60)).await;
         }
     });
 
