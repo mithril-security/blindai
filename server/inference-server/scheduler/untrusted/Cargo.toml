@@ -36,6 +36,7 @@ pem = "1.0.1"
 base16 = "0.2.1"
 webpki = "0.21.4"
 toml = "*"
+whoami = "1.2.1"
 
 [build-dependencies]
 tonic-build = "0.5"

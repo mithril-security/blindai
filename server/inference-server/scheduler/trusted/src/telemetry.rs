@@ -67,21 +67,13 @@ struct AmplitudeRequest<'a> {
     events: &'a Vec<RequestEvent<'a>>,
 }
 
-pub fn setup() -> anyhow::Result<()> {
+pub fn setup(platform: String, uid: String) -> anyhow::Result<()> {
     let (sender, mut receiver) = mpsc::unbounded_channel::<TelemetryEvent>();
 
     TELEMETRY_CHANNEL.set(sender).unwrap();
-
     let sgx_mode = if cfg!(SGX_MODE = "SW") { "SW" } else { "HW" };
-    let platform = format!("Linux SGX-{}", sgx_mode);
 
-    let mut hasher = DefaultHasher::new();
-    platform.hash(&mut hasher);
-    let hash = hasher.finish();
-
-    let uid = format!("{:X}", hash);
     let first_start = SystemTime::now();
-
     tokio::task::spawn(async move {
         loop {
             let mut events = Vec::new();
@@ -130,7 +122,7 @@ pub fn setup() -> anyhow::Result<()> {
                 }
             }
 
-            tokio::time::sleep(Duration::from_secs(60 * 60)).await;
+            tokio::time::sleep(Duration::from_secs(30 * 60)).await;
         }
     });
 

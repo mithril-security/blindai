@@ -39,6 +39,7 @@ use tonic::server;
 use std::env;
 
 use std::backtrace::{self, PrintFormat};
+use std::ffi::CStr;
 
 use log::*;
 use serde::{Deserialize, Serialize};
@@ -100,22 +101,28 @@ mod untrusted;
 mod telemetry;
 
 #[no_mangle]
-pub extern "C" fn start_server() -> sgx_status_t {
+pub extern "C" fn start_server(telemetry_platform: *const c_char, telemetry_uid: *const c_char) -> sgx_status_t {
     env_logger::Builder::from_env(Env::default().default_filter_or("info")).init();
     let _ = backtrace::enable_backtrace("enclave.signed.so", PrintFormat::Full);
     info!("Switched to enclave context");
+
+    let telemetry_platform = unsafe { CStr::from_ptr(telemetry_platform) };
+    let telemetry_uid = unsafe { CStr::from_ptr(telemetry_uid) };
+
+    let telemetry_platform = telemetry_platform.to_owned().into_string().unwrap();
+    let telemetry_uid = telemetry_uid.to_owned().into_string().unwrap();
 
     tokio::runtime::Builder::new_current_thread()
         .enable_all()
         .build()
         .unwrap()
-        .block_on(main())
+        .block_on(main(telemetry_platform, telemetry_uid))
         .unwrap();
 
     sgx_status_t::SGX_SUCCESS
 }
 
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
+async fn main(telemetry_platform: String, telemetry_uid: String) -> Result<(), Box<dyn std::error::Error>> {
     teaclave_attestation::logger_info("azaz");
     let _ = backtrace::enable_backtrace("enclave.signed.so", PrintFormat::Full);
     let (certificate, storage_identity) = identity::create_certificate()?;
@@ -175,7 +182,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         );
     }
 
-    telemetry::setup()?;
+    telemetry::setup(telemetry_platform, telemetry_uid)?;
     telemetry::add_event(TelemetryEventProps::Started {});
 
     server_future.await?;
