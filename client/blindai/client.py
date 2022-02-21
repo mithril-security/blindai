@@ -234,7 +234,6 @@ class BlindAiClient:
             )
 
         except RpcError as rpc_error:
-            check_rpc_exception(rpc_error)
             response.msg = "GRPC error"
 
         except FileNotFoundError:
@@ -276,7 +275,6 @@ class BlindAiClient:
             return response
 
         except RpcError as rpc_error:
-            check_rpc_exception(rpc_error)
             response.msg = "GRPC error"
             
         return response
