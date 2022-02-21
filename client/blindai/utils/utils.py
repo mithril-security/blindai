@@ -24,18 +24,13 @@ def strip_https(url: str):
 
 
 def encode_certificate(cert):
-    return cryptography.x509.load_der_x509_certificate(cert).public_bytes(
-        Encoding.PEM
-    )
+    return cryptography.x509.load_der_x509_certificate(cert).public_bytes(Encoding.PEM)
 
 
 def create_byte_chunk(data):
     sent_bytes = 0
     while sent_bytes < len(data):
         yield bytes(
-            data[
-                sent_bytes : sent_bytes
-                + min(CHUNK_SIZE, len(data) - sent_bytes)
-            ]
+            data[sent_bytes : sent_bytes + min(CHUNK_SIZE, len(data) - sent_bytes)]
         )
         sent_bytes += min(CHUNK_SIZE, len(data) - sent_bytes)

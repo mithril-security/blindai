@@ -80,20 +80,26 @@ class BlindAiClient:
         simulation=False,
     ):
         """Connect to the server with the specified parameters.
-        You will have to specify here the expected policy (server identity, configuration...) and the server TLS certificate, if you are using the hardware mode.
+        You will have to specify here the expected policy (server identity, configuration...)
+        and the server TLS certificate, if you are using the hardware mode.
 
-        If you're using the simulation mode, you don't need to provide a policy and certificate, but please keep in mind that
-        this mode should NEVER be used in production as it doesn't have most of the security provided by the hardware mode.
+        If you're using the simulation mode, you don't need to provide a policy and certificate,
+        but please keep in mind that this mode should NEVER be used in production as it doesn't
+        have most of the security provided by the hardware mode.
 
         Args:
             addr: The address of BlindAI server you want to reach.
             server_name: Contains the CN expected by the server TLS certificate.
-            policy: Path to the toml file describing the policy of the server. Generated in the server side.
-            certificate: Path to the public key of the untrusted inference server. Generated in the server side.
-            simulation:  Connect to the server in simulation mode (default False). If set to yes, the args policy and certificate will be ignored.
+            policy: Path to the toml file describing the policy of the server.
+                Generated in the server side.
+            certificate: Path to the public key of the untrusted inference server.
+                Generated in the server side.
+            simulation:  Connect to the server in simulation mode (default False).
+                If set to yes, the args policy and certificate will be ignored.
 
         Raises:
-            ValueError: Will be raised in case the policy doesn't match the server identity and configuration.
+            ValueError: Will be raised in case the policy doesn't match the server
+                identity and configuration.
             ConnectionError: Will be raised in case the connection with the server fails.
             IOError: Will be raised in case reading certificate, policy or model files fails.
         """
@@ -115,9 +121,7 @@ class BlindAiClient:
                     (addr, int(PORTS["untrusted_enclave"]))
                 )
                 untrusted_server_creds = ssl_channel_credentials(
-                    root_certificates=bytes(
-                        untrusted_server_cert, encoding="utf8"
-                    )
+                    root_certificates=bytes(untrusted_server_cert, encoding="utf8")
                 )
             else:
                 action = Actions.READ_CERT_FILE
@@ -127,9 +131,7 @@ class BlindAiClient:
                         root_certificates=f.read()
                     )
 
-            connection_options = (
-                ("grpc.ssl_target_name_override", server_name),
-            )
+            connection_options = (("grpc.ssl_target_name_override", server_name),)
 
             action = Actions.CONNECT_SERVER
             channel = secure_channel(
@@ -143,9 +145,7 @@ class BlindAiClient:
                     "Attestation process is bypassed : running without requesting and checking attestation"
                 )
                 response = stub.GetCertificate(certificate_request())
-                server_cert = encode_certificate(
-                    response.enclave_tls_certificate
-                )
+                server_cert = encode_certificate(response.enclave_tls_certificate)
 
             else:
                 action = Actions.LOAD_POLICY
@@ -172,9 +172,7 @@ class BlindAiClient:
             channel.close()
 
             action = Actions.CONNECT_SERVER
-            server_creds = ssl_channel_credentials(
-                root_certificates=server_cert
-            )
+            server_creds = ssl_channel_credentials(root_certificates=server_cert)
             channel = secure_channel(
                 attested_client_to_enclave,
                 server_creds,
@@ -261,7 +259,8 @@ class BlindAiClient:
         The data provided must be in a list, as the tensor will be rebuilt inside the server.
 
         Args:
-            data_list: array of numbers, the numbers must be of the same type dtype specified in upload_model
+            data_list: array of numbers, the numbers must be of the same type dtype
+                 specified in upload_model
 
         Returns:
             ModelResult object, containing three fields:

@@ -52,8 +52,7 @@ def check_exception(error, action, simulation, debug):
         err = IOError(message)
 
     elif (
-        action == Actions.GET_UNTRUSTED_SERVER_CERT
-        or action == Actions.CONNECT_SERVER
+        action == Actions.GET_UNTRUSTED_SERVER_CERT or action == Actions.CONNECT_SERVER
     ):
         err = ConnectionError(message)
 
@@ -72,7 +71,9 @@ def check_rpc_exception(error, action, simulation, debug):
     else:
         mode = "hardware"
 
-    message = f"Failed to {ACTION_MESSAGE[int(action)]} in {mode} mode.\nError details : "
+    message = (
+        f"Failed to {ACTION_MESSAGE[int(action)]} in {mode} mode.\nError details : "
+    )
     if error.code() == grpc.StatusCode.CANCELLED:
         message += f"Cancelled GRPC call: code={error.code()} message={error.details()}"
 
