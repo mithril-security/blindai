@@ -33,19 +33,3 @@ def create_byte_chunk(data):
         )
         sent_bytes += min(CHUNK_SIZE, len(data) - sent_bytes)
 
-def check_rpc_exception(rpc_error):
-    if rpc_error.code() == grpc.StatusCode.CANCELLED:
-        print(
-            f"Cancelled GRPC call: code={rpc_error.code()} message={rpc_error.details()}"
-        )
-        pass
-    elif rpc_error.code() == grpc.StatusCode.UNAVAILABLE:
-        print(
-            f"Failed to connect to GRPC server: code={rpc_error.code()} message={rpc_error.details()}"
-        )
-        pass
-    else:
-        print(
-            f"Received RPC error: code={rpc_error.code()} message={rpc_error.details()}"
-        )
-        pass

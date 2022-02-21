@@ -16,9 +16,11 @@ import os
 import logging
 import ssl
 from enum import IntEnum
-from cbor2 import dumps, loads
+from cbor2 import dumps
+from socket import setdefaulttimeout, timeout
 from grpc import ssl_channel_credentials, secure_channel, RpcError
 from utils.utils import *
+from utils.errors import *
 
 from dcap_attestation import (
     verify_claims,
@@ -36,14 +38,15 @@ from untrusted_pb2 import (
 )
 
 PORTS = {"untrusted_enclave": "50052", "attested_enclave": "50051"}
+TIMEOUT = 10
 
 class ModelDatumType(IntEnum):
-        F32 = 0
-        F64 = 1
-        I32 = 2
-        I64 = 3
-        U32 = 4
-        U64 = 5
+    F32 = 0
+    F64 = 1
+    I32 = 2
+    I64 = 3
+    U32 = 4
+    U64 = 5
 
 class BlindAiClient:
     
@@ -52,6 +55,7 @@ class BlindAiClient:
         self.channel = None
         self.policy = None
         self.stub = None
+        self.DEBUG_MODE = debug_mode
 
         if debug_mode == True:
             os.environ["GRPC_TRACE"] = "transport_security,tsi"
@@ -92,39 +96,52 @@ class BlindAiClient:
         Raises:
             ValueError: Will be raised in case the policy doesn't match the server identity and configuration.
         """
-        self.DISABLE_UNTRUSTED_SERVER_CERT_CHECK = False
         self.SIMULATION_MODE = simulation
-        
-        if self.SIMULATION_MODE is True: 
-            self.DISABLE_UNTRUSTED_SERVER_CERT_CHECK = True
+        self.DISABLE_UNTRUSTED_SERVER_CERT_CHECK = simulation
+
+        error = None
+        action = None
 
         addr = strip_https(addr)
-
         untrusted_client_to_enclave = addr + ":" + PORTS["untrusted_enclave"]
         attested_client_to_enclave = addr + ":" + PORTS["attested_enclave"]
 
         if self.DISABLE_UNTRUSTED_SERVER_CERT_CHECK:
             logging.warning("Untrusted server certificate check bypassed")
             try:
+                action = Actions.GET_UNTRUSTER_SERVER_CERT
+                setdefaulttimeout(TIMEOUT)
                 untrusted_server_cert = ssl.get_server_certificate([addr, PORTS["untrusted_enclave"]])
                 untrusted_server_creds = grpc.ssl_channel_credentials(root_certificates=bytes(untrusted_server_cert, encoding="utf8"))
-            except:
-                logging.error("Enable to connect to server")
-                return False
+
+            except RpcError as rpc_err:
+                error = check_rpc_exception(rpc_err,action,self.SIMULATION_MODE,self.DEBUG_MODE)
+            
+            except (timeout,Exception) as err:
+                error = check_exception(err,action, self.SIMULATION_MODE,self.DEBUG_MODE)
+            
+            finally:
+                if error:
+                    raise error
         else:
             try:
+                action = Actions.READ_CERT_FILE
                 with open(certificate, "rb") as f:
+                    action = Actions.CONNECT_SERVER
                     untrusted_server_creds = ssl_channel_credentials(
                         root_certificates=f.read()
                     )
-            except:
-                logging.error("Certificate not found or not valid")
-                return False
 
-
+            except Exception as err:
+                error = check_exception(err,action,self.SIMULATION_MODE,self.DEBUG_MODE)
+            
+            if error:
+                raise error
+                
         connection_options = (("grpc.ssl_target_name_override", server_name),)
 
         try:
+            action = Actions.CONNECT_SERVER
             channel = secure_channel(
                 untrusted_client_to_enclave,
                 untrusted_server_creds,
@@ -137,10 +154,8 @@ class BlindAiClient:
                 server_cert = encode_certificate(response.enclave_tls_certificate)
             
             else:
+                action = Actions.LOAD_POLICY
                 self.policy = load_policy(policy)
-                if self.policy is None:
-                    logging.error("Policy not found or not valid")
-                    return False
                     
                 response = stub.GetSgxQuoteWithCollateral(quote_request())                    
                 claims = verify_dcap_attestation(
@@ -149,6 +164,7 @@ class BlindAiClient:
                     response.enclave_held_data
                 )
 
+                action = Actions.VERIFY_CLAIMS
                 verify_claims(claims, self.policy)
                 server_cert = get_server_cert(claims)
 
@@ -158,6 +174,7 @@ class BlindAiClient:
 
             channel.close()
 
+            action = Actions.CONNECT_SERVER
             server_creds = ssl_channel_credentials(root_certificates=server_cert)
             channel = secure_channel(
                 attested_client_to_enclave, server_creds, options=connection_options
@@ -166,11 +183,19 @@ class BlindAiClient:
             self.stub = ExchangeStub(channel)
             self.channel = channel
             logging.info("Successfuly connected to the server")
+        
+        except RpcError as rpc_err:
+            error = check_rpc_exception(rpc_err,action,self.SIMULATION_MODE,self.DEBUG_MODE)
 
-        except RpcError as rpc_error:
-            check_rpc_exception(rpc_error)
+        except IOError as io_err:
+            error = check_exception(io_err,Actions.READ_POLICY_FILE,self.SIMULATION_MODE,self.DEBUG_MODE)
 
-        return True
+        except Exception as err:
+            error = error = check_exception(err,action,self.SIMULATION_MODE,self.DEBUG_MODE)
+            
+        finally:
+            if error:
+                raise error
 
     def upload_model(self, model=None, shape=None, dtype=ModelDatumType.F32):
         """Upload an inference model to the server.

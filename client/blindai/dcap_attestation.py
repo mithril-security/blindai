@@ -70,17 +70,17 @@ def verify_dcap_attestation(
 
     if ret.pckCertificateStatus != status.STATUS_OK:
         raise ValueError(
-            "Error : Wrong PCK Certificate Status {}", ret.pckCertificateStatus
+            "Wrong PCK Certificate Status {}", ret.pckCertificateStatus
         )
 
     if ret.tcbInfoStatus != status.STATUS_OK:
-        raise ValueError("Error : Wrong TCB Info Status {}", ret.tcbInfoStatus)
+        raise ValueError("Wrong TCB Info Status {}", ret.tcbInfoStatus)
 
     if ret.qeIdentityStatus != status.STATUS_OK:
-        raise ValueError("Error : Wrong QE Identity Status {}", ret.qeIdentityStatus)
+        raise ValueError("Wrong QE Identity Status {}", ret.qeIdentityStatus)
 
     if ret.quoteStatus not in [status.STATUS_OK, status.STATUS_TCB_SW_HARDENING_NEEDED]:
-        raise ValueError("Error : Wrong Quote Status {}", ret.quoteStatus)
+        raise ValueError("Wrong Quote Status {}", ret.quoteStatus)
 
     if hashlib.sha256(enclave_held_data).digest() != bytes(ret.reportData)[:32]:
         raise ValueError(
@@ -107,29 +107,26 @@ def verify_dcap_attestation(
 
 
 def load_policy(path: str):
-    try:
-        with open(path) as f:
-            policy = toml.load(f)
-            policy["misc_mask"] = int(policy["misc_mask_hex"], 16).to_bytes(
-                4, byteorder="little"
-            )
-            policy["misc_select"] = int(policy["misc_select_hex"], 16).to_bytes(
-                4, byteorder="little"
-            )
-            policy["attributes_flags"] = int(
-                policy["attributes_flags_hex"], 16
-            ).to_bytes(8, byteorder="little")
-            policy["attributes_xfrm"] = int(policy["attributes_xfrm_hex"], 16).to_bytes(
-                8, byteorder="little"
-            )
-            policy["attributes_mask_flags"] = int(
-                policy["attributes_mask_flags_hex"], 16
-            ).to_bytes(8, byteorder="little")
-            policy["attributes_mask_xfrm"] = int(
-                policy["attributes_mask_xfrm_hex"], 16
-            ).to_bytes(8, byteorder="little")
-    except:
-        policy = None
+    with open(path) as f:
+        policy = toml.load(f)
+        policy["misc_mask"] = int(policy["misc_mask_hex"], 16).to_bytes(
+            4, byteorder="little"
+        )
+        policy["misc_select"] = int(policy["misc_select_hex"], 16).to_bytes(
+            4, byteorder="little"
+        )
+        policy["attributes_flags"] = int(
+            policy["attributes_flags_hex"], 16
+        ).to_bytes(8, byteorder="little")
+        policy["attributes_xfrm"] = int(policy["attributes_xfrm_hex"], 16).to_bytes(
+            8, byteorder="little"
+        )
+        policy["attributes_mask_flags"] = int(
+            policy["attributes_mask_flags_hex"], 16
+        ).to_bytes(8, byteorder="little")
+        policy["attributes_mask_xfrm"] = int(
+            policy["attributes_mask_xfrm_hex"], 16
+        ).to_bytes(8, byteorder="little")
     return policy
 
 
