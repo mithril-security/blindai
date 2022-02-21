@@ -17,7 +17,7 @@ import logging
 import ssl
 from enum import IntEnum
 from cbor2 import dumps
-from socket import setdefaulttimeout, timeout
+from socket import setdefaulttimeout
 from grpc import ssl_channel_credentials, secure_channel, RpcError
 from utils.utils import create_byte_chunk, encode_certificate, strip_https
 from utils.errors import Actions, check_exception, check_rpc_exception
@@ -112,7 +112,7 @@ class BlindAiClient:
                 action = Actions.GET_UNTRUSTED_SERVER_CERT
                 setdefaulttimeout(TIMEOUT)
                 untrusted_server_cert = ssl.get_server_certificate(
-                    [addr, PORTS["untrusted_enclave"]]
+                    (addr, PORTS["untrusted_enclave"])
                 )
                 untrusted_server_creds = ssl_channel_credentials(
                     root_certificates=bytes(untrusted_server_cert, encoding="utf8")
@@ -212,7 +212,7 @@ class BlindAiClient:
         response = SimpleReply()
         response.ok = False
         if dtype is None:
-            dtype = self.ModelDatumType.F32
+            dtype = ModelDatumType.F32
         if not self._is_connected():
             response.msg = "Not connected to server"
             return response
