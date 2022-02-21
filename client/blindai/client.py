@@ -59,7 +59,7 @@ class BlindAiClient:
         self.stub = None
         self.DEBUG_MODE = debug_mode
 
-        if debug_mode == True:
+        if debug_mode:
             os.environ["GRPC_TRACE"] = "transport_security,tsi"
             os.environ["GRPC_VERBOSITY"] = "DEBUG"
         self.SIMULATION_MODE = False
@@ -115,7 +115,9 @@ class BlindAiClient:
                     (addr, int(PORTS["untrusted_enclave"]))
                 )
                 untrusted_server_creds = ssl_channel_credentials(
-                    root_certificates=bytes(untrusted_server_cert, encoding="utf8")
+                    root_certificates=bytes(
+                        untrusted_server_cert, encoding="utf8"
+                    )
                 )
             else:
                 action = Actions.READ_CERT_FILE
@@ -125,7 +127,9 @@ class BlindAiClient:
                         root_certificates=f.read()
                     )
 
-            connection_options = (("grpc.ssl_target_name_override", server_name),)
+            connection_options = (
+                ("grpc.ssl_target_name_override", server_name),
+            )
 
             action = Actions.CONNECT_SERVER
             channel = secure_channel(
@@ -139,7 +143,9 @@ class BlindAiClient:
                     "Attestation process is bypassed : running without requesting and checking attestation"
                 )
                 response = stub.GetCertificate(certificate_request())
-                server_cert = encode_certificate(response.enclave_tls_certificate)
+                server_cert = encode_certificate(
+                    response.enclave_tls_certificate
+                )
 
             else:
                 action = Actions.LOAD_POLICY
@@ -148,25 +154,31 @@ class BlindAiClient:
                 action = Actions.CONNECT_SERVER
                 response = stub.GetSgxQuoteWithCollateral(quote_request())
                 claims = verify_dcap_attestation(
-                    response.quote, response.collateral, response.enclave_held_data
+                    response.quote,
+                    response.collateral,
+                    response.enclave_held_data,
                 )
 
                 action = Actions.VERIFY_CLAIMS
                 verify_claims(claims, self.policy)
                 server_cert = get_server_cert(claims)
 
-                logging.info(f"Quote verification passed")
+                logging.info("Quote verification passed")
                 logging.info(
                     f"Certificate from attestation process\n {server_cert.decode('ascii')}"
                 )
-                logging.info(f"MREnclave\n" + claims["sgx-mrenclave"])
+                logging.info("MREnclave\n" + claims["sgx-mrenclave"])
 
             channel.close()
 
             action = Actions.CONNECT_SERVER
-            server_creds = ssl_channel_credentials(root_certificates=server_cert)
+            server_creds = ssl_channel_credentials(
+                root_certificates=server_cert
+            )
             channel = secure_channel(
-                attested_client_to_enclave, server_creds, options=connection_options
+                attested_client_to_enclave,
+                server_creds,
+                options=connection_options,
             )
 
             self.stub = ExchangeStub(channel)
@@ -235,7 +247,7 @@ class BlindAiClient:
                 )
             )
 
-        except RpcError as rpc_error:
+        except RpcError:
             response.msg = "GRPC error"
 
         except FileNotFoundError:
@@ -278,7 +290,7 @@ class BlindAiClient:
             )
             return response
 
-        except RpcError as rpc_error:
+        except RpcError:
             response.msg = "GRPC error"
 
         return response

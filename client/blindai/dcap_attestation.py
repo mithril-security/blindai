@@ -54,7 +54,9 @@ def verify_dcap_attestation(
     """
 
     t = pybind11_module.Verification()
-    t.trustedRootCACertificate = pkgutil.get_data(__name__, "tls/trustedRootCaCert.pem")
+    t.trustedRootCACertificate = pkgutil.get_data(
+        __name__, "tls/trustedRootCaCert.pem"
+    )
     t.pckCertificate = attestation_collateral.pck_certificate
     t.pckSigningChain = attestation_collateral.pck_signing_chain
     t.rootCaCrl = attestation_collateral.root_ca_crl
@@ -69,7 +71,9 @@ def verify_dcap_attestation(
     ret = t.verify()
 
     if ret.pckCertificateStatus != status.STATUS_OK:
-        raise ValueError("Wrong PCK Certificate Status {}", ret.pckCertificateStatus)
+        raise ValueError(
+            "Wrong PCK Certificate Status {}", ret.pckCertificateStatus
+        )
 
     if ret.tcbInfoStatus != status.STATUS_OK:
         raise ValueError("Wrong TCB Info Status {}", ret.tcbInfoStatus)
@@ -77,17 +81,25 @@ def verify_dcap_attestation(
     if ret.qeIdentityStatus != status.STATUS_OK:
         raise ValueError("Wrong QE Identity Status {}", ret.qeIdentityStatus)
 
-    if ret.quoteStatus not in [status.STATUS_OK, status.STATUS_TCB_SW_HARDENING_NEEDED]:
+    if ret.quoteStatus not in [
+        status.STATUS_OK,
+        status.STATUS_TCB_SW_HARDENING_NEEDED,
+    ]:
         raise ValueError("Wrong Quote Status {}", ret.quoteStatus)
 
-    if hashlib.sha256(enclave_held_data).digest() != bytes(ret.reportData)[:32]:
+    if (
+        hashlib.sha256(enclave_held_data).digest()
+        != bytes(ret.reportData)[:32]
+    ):
         raise ValueError(
             "Enclave Held Data hash doesn't match with the report data from the quote"
         )
 
     claims = {
         "raw": {"quote": quote},
-        "sgx-attributes": b"".join(struct.pack("B", x) for x in ret.attributes),
+        "sgx-attributes": b"".join(
+            struct.pack("B", x) for x in ret.attributes
+        ),
         "sgx-misc-select": bytes(ctypes.c_uint32(ret.miscSelect)),
         "sgx-mrenclave": bytes(ret.mrEnclave).hex(),
         "sgx-ehd": enclave_held_data,
@@ -113,12 +125,12 @@ def load_policy(path: str):
         policy["misc_select"] = int(policy["misc_select_hex"], 16).to_bytes(
             4, byteorder="little"
         )
-        policy["attributes_flags"] = int(policy["attributes_flags_hex"], 16).to_bytes(
-            8, byteorder="little"
-        )
-        policy["attributes_xfrm"] = int(policy["attributes_xfrm_hex"], 16).to_bytes(
-            8, byteorder="little"
-        )
+        policy["attributes_flags"] = int(
+            policy["attributes_flags_hex"], 16
+        ).to_bytes(8, byteorder="little")
+        policy["attributes_xfrm"] = int(
+            policy["attributes_xfrm_hex"], 16
+        ).to_bytes(8, byteorder="little")
         policy["attributes_mask_flags"] = int(
             policy["attributes_mask_flags_hex"], 16
         ).to_bytes(8, byteorder="little")
@@ -133,16 +145,21 @@ def verify_claims(claims, policy):
         raise ValueError("MRENCLAVE doesn't match with the policy")
 
     if claims["sgx-is-debuggable"] and not policy["allow_debug"]:
-        raise ValueError("Enclave is in debug mode but the policy doesn't allow debug")
+        raise ValueError(
+            "Enclave is in debug mode but the policy doesn't allow debug"
+        )
 
     # If this flag is set, then the enclave is initialized
     SGX_FLAGS_INITTED = Bits("0x0100000000000000")
 
     if (
-        Bits(claims["sgx-attributes"][:8]) & Bits(policy["attributes_mask_flags"])
+        Bits(claims["sgx-attributes"][:8])
+        & Bits(policy["attributes_mask_flags"])
         != Bits(policy["attributes_flags"]) | SGX_FLAGS_INITTED
     ):
-        raise ValueError("SGX attributes flags bytes do not conform to the policy")
+        raise ValueError(
+            "SGX attributes flags bytes do not conform to the policy"
+        )
 
     if Bits(claims["sgx-attributes"][8:]) & Bits(
         policy["attributes_mask_xfrm"]
