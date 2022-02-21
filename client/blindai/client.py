@@ -105,26 +105,14 @@ class BlindAiClient:
         addr = strip_https(addr)
         untrusted_client_to_enclave = addr + ":" + PORTS["untrusted_enclave"]
         attested_client_to_enclave = addr + ":" + PORTS["attested_enclave"]
-
-        if self.DISABLE_UNTRUSTED_SERVER_CERT_CHECK:
-            logging.warning("Untrusted server certificate check bypassed")
-            try:
+        try:
+            if self.DISABLE_UNTRUSTED_SERVER_CERT_CHECK:
+                logging.warning("Untrusted server certificate check bypassed")
                 action = Actions.GET_UNTRUSTED_SERVER_CERT
                 setdefaulttimeout(TIMEOUT)
                 untrusted_server_cert = ssl.get_server_certificate([addr, PORTS["untrusted_enclave"]])
                 untrusted_server_creds = grpc.ssl_channel_credentials(root_certificates=bytes(untrusted_server_cert, encoding="utf8"))
-
-            except RpcError as rpc_err:
-                error = check_rpc_exception(rpc_err,action,self.SIMULATION_MODE,self.DEBUG_MODE)
-            
-            except (timeout,Exception) as err:
-                error = check_exception(err,action, self.SIMULATION_MODE,self.DEBUG_MODE)
-            
-            finally:
-                if error:
-                    raise error
-        else:
-            try:
+            else:
                 action = Actions.READ_CERT_FILE
                 with open(certificate, "rb") as f:
                     action = Actions.CONNECT_SERVER
@@ -132,15 +120,8 @@ class BlindAiClient:
                         root_certificates=f.read()
                     )
 
-            except Exception as err:
-                error = check_exception(err,action,self.SIMULATION_MODE,self.DEBUG_MODE)
-            
-            if error:
-                raise error
-                
-        connection_options = (("grpc.ssl_target_name_override", server_name),)
+            connection_options = (("grpc.ssl_target_name_override", server_name),)
 
-        try:
             action = Actions.CONNECT_SERVER
             channel = secure_channel(
                 untrusted_client_to_enclave,
@@ -152,11 +133,12 @@ class BlindAiClient:
                 logging.warning("Attestation process is bypassed : running without requesting and checking attestation")
                 response = stub.GetCertificate(certificate_request())
                 server_cert = encode_certificate(response.enclave_tls_certificate)
-            
+                
             else:
                 action = Actions.LOAD_POLICY
                 self.policy = load_policy(policy)
-                    
+                        
+                action = Actions.CONNECT_SERVER
                 response = stub.GetSgxQuoteWithCollateral(quote_request())                    
                 claims = verify_dcap_attestation(
                     response.quote, 
@@ -188,7 +170,9 @@ class BlindAiClient:
             error = check_rpc_exception(rpc_err,action,self.SIMULATION_MODE,self.DEBUG_MODE)
 
         except IOError as io_err:
-            error = check_exception(io_err,Actions.READ_POLICY_FILE,self.SIMULATION_MODE,self.DEBUG_MODE)
+            if action == Actions.LOAD_POLICY:
+                action = Actions.READ_POLICY_FILE
+            error = check_exception(io_err,action,self.SIMULATION_MODE,self.DEBUG_MODE)
 
         except Exception as err:
             error = error = check_exception(err,action,self.SIMULATION_MODE,self.DEBUG_MODE)
