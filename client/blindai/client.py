@@ -92,11 +92,10 @@ class BlindAiClient:
             certificate: Path to the public key of the untrusted inference server. Generated in the server side.
             simulation:  Connect to the server in simulation mode (default False). If set to yes, the args policy and certificate will be ignored.
 
-        Returns:
-            True if the connection was successful. False otherwise
-
         Raises:
             ValueError: Will be raised in case the policy doesn't match the server identity and configuration.
+            ConnectionError: Will be raised in case the connection with the server fails.
+            IOError: Will be raised in case reading certificate, policy or model files fails.
         """
         self.SIMULATION_MODE = simulation
         self.DISABLE_UNTRUSTED_SERVER_CERT_CHECK = simulation
