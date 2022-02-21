@@ -112,7 +112,7 @@ class BlindAiClient:
                 action = Actions.GET_UNTRUSTED_SERVER_CERT
                 setdefaulttimeout(TIMEOUT)
                 untrusted_server_cert = ssl.get_server_certificate(
-                    (addr, PORTS["untrusted_enclave"])
+                    (addr, int(PORTS["untrusted_enclave"]))
                 )
                 untrusted_server_creds = ssl_channel_credentials(
                     root_certificates=bytes(untrusted_server_cert, encoding="utf8")
@@ -191,7 +191,7 @@ class BlindAiClient:
             )
 
         finally:
-            if error:
+            if error is not None:
                 raise error
 
     def upload_model(self, model=None, shape=None, dtype=ModelDatumType.F32):
