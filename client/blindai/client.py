@@ -109,7 +109,7 @@ class BlindAiClient:
                 untrusted_server_cert = ssl.get_server_certificate([addr, PORTS["untrusted_enclave"]])
                 untrusted_server_creds = grpc.ssl_channel_credentials(root_certificates=bytes(untrusted_server_cert, encoding="utf8"))
             except:
-                logging.error("Enable to connect to server")
+                logging.error("Unable to connect to server")
                 return False
         else:
             try:
