@@ -15,6 +15,7 @@
 from enum import IntEnum
 import grpc
 
+
 class Actions(IntEnum):
     READ_CERT_FILE = 0
     GET_UNTRUSTED_SERVER_CERT = 1
@@ -24,15 +25,17 @@ class Actions(IntEnum):
     CONNECT_SERVER = 5
     READ_MODEL_FILE = 6
 
+
 ACTION_MESSAGE = {
-    0 : "read certificate file",
-    1 : "get untrusted server certificate",
-    2 : "read policy file",
-    3 : "load policy",
-    4 : "verify claims",
-    5 : "connect to the server",
-    6 : "read model file"
+    0: "read certificate file",
+    1: "get untrusted server certificate",
+    2: "read policy file",
+    3: "load policy",
+    4: "verify claims",
+    5: "connect to the server",
+    6: "read model file",
 }
+
 
 def check_exception(error, action, simulation, debug):
     if simulation:
@@ -41,13 +44,19 @@ def check_exception(error, action, simulation, debug):
         mode = "hardware"
 
     message = f"Failed to {ACTION_MESSAGE[int(action)]} in {mode} mode.\nError details : {error}"
-    if action == Actions.READ_CERT_FILE or action == Actions.READ_POLICY_FILE or action == Actions.READ_MODEL_FILE:
+    if (
+        action == Actions.READ_CERT_FILE
+        or action == Actions.READ_POLICY_FILE
+        or action == Actions.READ_MODEL_FILE
+    ):
         err = IOError(message)
 
-    elif action == Actions.GET_UNTRUSTED_SERVER_CERT or action == Actions.CONNECT_SERVER:
+    elif (
+        action == Actions.GET_UNTRUSTED_SERVER_CERT or action == Actions.CONNECT_SERVER
+    ):
         err = ConnectionError(message)
 
-    elif action == Actions.LOAD_POLICY or action==Actions.VERIFY_CLAIMS:
+    elif action == Actions.LOAD_POLICY or action == Actions.VERIFY_CLAIMS:
         err = ValueError(message)
 
     if debug:
@@ -55,13 +64,16 @@ def check_exception(error, action, simulation, debug):
         raise err
     return err
 
+
 def check_rpc_exception(error, action, simulation, debug):
     if simulation:
         mode = "simulation"
     else:
         mode = "hardware"
 
-    message = f"Failed to {ACTION_MESSAGE[int(action)]} in {mode} mode.\nError details : "
+    message = (
+        f"Failed to {ACTION_MESSAGE[int(action)]} in {mode} mode.\nError details : "
+    )
     if error.code() == grpc.StatusCode.CANCELLED:
         message += f"Cancelled GRPC call: code={error.code()} message={error.details()}"
 
@@ -69,7 +81,7 @@ def check_rpc_exception(error, action, simulation, debug):
         message += f"Failed to connect to GRPC server: code={error.code()} message={error.details()}"
     else:
         message += f"Received RPC error: code={error.code()} message={error.details()}"
-    
+
     err = ConnectionError(message)
     if debug:
         # This will raise both err and the original exception

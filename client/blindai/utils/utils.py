@@ -19,11 +19,14 @@ from cryptography.hazmat.primitives.serialization import Encoding
 
 CHUNK_SIZE = 32 * 1024  # 32kb
 
+
 def strip_https(url: str):
     return re.sub(r"^https:\/\/", "", url)
 
+
 def encode_certificate(cert):
     return cryptography.x509.load_der_x509_certificate(cert).public_bytes(Encoding.PEM)
+
 
 def create_byte_chunk(data):
     sent_bytes = 0
@@ -32,4 +35,3 @@ def create_byte_chunk(data):
             data[sent_bytes : sent_bytes + min(CHUNK_SIZE, len(data) - sent_bytes)]
         )
         sent_bytes += min(CHUNK_SIZE, len(data) - sent_bytes)
-

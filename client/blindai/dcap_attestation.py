@@ -69,9 +69,7 @@ def verify_dcap_attestation(
     ret = t.verify()
 
     if ret.pckCertificateStatus != status.STATUS_OK:
-        raise ValueError(
-            "Wrong PCK Certificate Status {}", ret.pckCertificateStatus
-        )
+        raise ValueError("Wrong PCK Certificate Status {}", ret.pckCertificateStatus)
 
     if ret.tcbInfoStatus != status.STATUS_OK:
         raise ValueError("Wrong TCB Info Status {}", ret.tcbInfoStatus)
@@ -115,9 +113,9 @@ def load_policy(path: str):
         policy["misc_select"] = int(policy["misc_select_hex"], 16).to_bytes(
             4, byteorder="little"
         )
-        policy["attributes_flags"] = int(
-            policy["attributes_flags_hex"], 16
-        ).to_bytes(8, byteorder="little")
+        policy["attributes_flags"] = int(policy["attributes_flags_hex"], 16).to_bytes(
+            8, byteorder="little"
+        )
         policy["attributes_xfrm"] = int(policy["attributes_xfrm_hex"], 16).to_bytes(
             8, byteorder="little"
         )
