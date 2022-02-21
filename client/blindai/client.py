@@ -19,8 +19,8 @@ from enum import IntEnum
 from cbor2 import dumps
 from socket import setdefaulttimeout, timeout
 from grpc import ssl_channel_credentials, secure_channel, RpcError
-from utils.utils import *
-from utils.errors import *
+from utils.utils import create_byte_chunk, encode_certificate, strip_https
+from utils.errors import Actions, check_exception, check_rpc_exception
 
 from dcap_attestation import (
     verify_claims,
@@ -115,7 +115,7 @@ class BlindAiClient:
                 untrusted_server_cert = ssl.get_server_certificate(
                     [addr, PORTS["untrusted_enclave"]]
                 )
-                untrusted_server_creds = grpc.ssl_channel_credentials(
+                untrusted_server_creds = ssl_channel_credentials(
                     root_certificates=bytes(untrusted_server_cert, encoding="utf8")
                 )
             else:
