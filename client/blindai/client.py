@@ -109,7 +109,7 @@ class BlindAiClient:
         if self.DISABLE_UNTRUSTED_SERVER_CERT_CHECK:
             logging.warning("Untrusted server certificate check bypassed")
             try:
-                action = Actions.GET_UNTRUSTER_SERVER_CERT
+                action = Actions.GET_UNTRUSTED_SERVER_CERT
                 setdefaulttimeout(TIMEOUT)
                 untrusted_server_cert = ssl.get_server_certificate([addr, PORTS["untrusted_enclave"]])
                 untrusted_server_creds = grpc.ssl_channel_credentials(root_certificates=bytes(untrusted_server_cert, encoding="utf8"))

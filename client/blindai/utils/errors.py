@@ -17,7 +17,7 @@ import grpc
 
 class Actions(IntEnum):
     READ_CERT_FILE = 0
-    GET_UNTRUSTER_SERVER_CERT = 1
+    GET_UNTRUSTED_SERVER_CERT = 1
     READ_POLICY_FILE = 2
     LOAD_POLICY = 3
     VERIFY_CLAIMS = 4
@@ -44,7 +44,7 @@ def check_exception(error, action, simulation, debug):
     if action == Actions.READ_CERT_FILE or action == Actions.READ_POLICY_FILE or action == Actions.READ_MODEL_FILE:
         err = IOError(message)
 
-    elif action == Actions.GET_UNTRUSTER_SERVER_CERT or action == Actions.CONNECT_SERVER:
+    elif action == Actions.GET_UNTRUSTED_SERVER_CERT or action == Actions.CONNECT_SERVER:
         err = ConnectionError(message)
 
     elif action == Actions.LOAD_POLICY or action==Actions.VERIFY_CLAIMS:
