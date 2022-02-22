@@ -34,7 +34,7 @@ To deploy a model on sensitive data, with end-to-end protection, we provide a *D
 
 Because the server requires specific hardware, for instance *Intel SGX* currently, we also provide a *simulation mode*. Using the *simulation mode*, any computer can serve models with our solution. However, the two key properties of secure enclaves, data in use confidentiality, and code attestation, will not be available. **Therefore this is just for testing on your local machine but is not relevant for real guarantees in production**.
 
-Our first article [Deploy Transformers with confidentiality](blog.mithrilsecurity.io/transformers-with-confidentiality) covers the deployment of both simulation and hardware mode. 
+Our first article [Deploy Transformers with confidentiality](https://blog.mithrilsecurity.io/transformers-with-confidentiality) covers the deployment of both simulation and hardware mode. 
 
 ### A - Deploying the server
 
@@ -127,6 +127,14 @@ You can find more details regarding the installation in our [**documentation her
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
 
 Please make sure to update tests as appropriate.
+
+## Telemetry
+
+BlindAI collects anonymous data regarding general usage, this allows us to understand how you are using the project. We only collect data regarding the execution mode (Hardware/Software) and the usage metrics. 
+
+This feature can be easily disabled, by settin up the environment variable ```BLINDAI_DISABLE_TELEMETRY``` to 1.
+
+You can find more information about the telemetry in our [**documentation**](https://docs.mithrilsecurity.io/telemetry/).
 
 ## Disclaimer
 BlindAI is still being developed and is provided as is, use it at your own risk.

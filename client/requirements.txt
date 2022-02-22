@@ -1,4 +1,10 @@
 # requirements for development
+cryptography>=35.0.0
+toml
+grpcio
+grpcio-tools
+bitstring
+cbor2
 pybind11
 setuptools
 wheel
@@ -10,3 +16,4 @@ cibuildwheel
 numpy
 torch
 transformers
+
