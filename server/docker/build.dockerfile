@@ -158,7 +158,7 @@ RUN --mount=type=cache,target=/root/server/target \
     --mount=type=cache,target=/root/server/inference-server/scheduler/untrusted/target \
     --mount=type=cache,target=/root/.cargo/git \
     --mount=type=cache,target=/root/.cargo/registry \
-    make -C server SGX_MODE=HW all bin/tls/untrusted_server.pem bin/tls/untrusted_server.key && \
+    make -C server SGX_MODE=HW all bin/tls/host_server.pem bin/tls/host_server.key && \
     cp -r ./server/bin/* /root && \
     cp ./server/policy.toml /root/policy.toml && \
     (rm -rf ./server || true)
@@ -186,11 +186,14 @@ FROM base AS software
 # -- build
 COPY . ./server
 
+# -- flag software mode
+ENV SGX_MODE=SW
+
 RUN --mount=type=cache,target=/root/server/target \
     --mount=type=cache,target=/root/server/inference-server/scheduler/untrusted/target \
     --mount=type=cache,target=/root/.cargo/git \
     --mount=type=cache,target=/root/.cargo/registry \
-    make -C server SGX_MODE=SW all bin/tls/untrusted_server.pem bin/tls/untrusted_server.key && \
+    make -C server SGX_MODE=SW all bin/tls/host_server.pem bin/tls/host_server.key && \
     cp -r ./server/bin/* /root && \
     cp ./server/policy.toml /root/policy.toml && \
     (rm -rf ./server || true)

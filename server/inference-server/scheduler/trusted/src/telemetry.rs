@@ -123,7 +123,7 @@ pub fn setup(platform: String, uid: String) -> anyhow::Result<()> {
                 }
             }
 
-            tokio::time::sleep(Duration::from_secs(3)).await;
+            tokio::time::sleep(Duration::from_secs(2)).await;
         }
     });
 

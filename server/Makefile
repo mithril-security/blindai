@@ -10,7 +10,7 @@ ENCLAVE_METADATA = inference-server/scheduler/trusted/enclave.meta.txt
 
 export CUSTOM_EDL_PATH CUSTOM_COMMON_PATH XARGO_PATH
 
-SSL_CERT_KEY = bin/tls/untrusted_server.pem bin/tls/untrusted_server.key
+SSL_CERT_KEY = bin/tls/host_server.pem bin/tls/host_server.key
 
 # Compilation process, will call the appropriate makefiles.
 
