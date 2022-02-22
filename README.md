@@ -109,14 +109,6 @@ response = client.run_model(inputs)
 - We do not cover training and federated learning yet, but if this feature interests you do not hesitate to show your interest through the [roadmap](https://github.com/mithril-security/blindai/projects/1) or [Discord](https://discord.gg/rWHcHeCBWk) channel. 
 - The examples we provide are simple, and do not take into account complex mechanisms such as secure storage of confidential data with sealing keys, advanced scheduler for inference requests, or complex key management scenarios. If your use case involves more than what we show, do not hesitate to **contact us** for more information.
 
-## Telemetry
-
-BlindAI collects anonymous data regarding general usage, this allows us to understand how you are using the project. We only collect data regarding the execution mode (Hardware/Software) and the usage metrics. 
-
-This feature can be easily disabled, by settin up the environment variable ```BLINDAI_DISABLE_TELEMETRY``` to 1.
-
-You can find more information about the telemetry in our [**documentation**](https://docs.mithrilsecurity.io/telemetry/).
-
 ## Install
 
 ### A - Server
@@ -135,6 +127,14 @@ You can find more details regarding the installation in our [**documentation her
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
 
 Please make sure to update tests as appropriate.
+
+## Telemetry
+
+BlindAI collects anonymous data regarding general usage, this allows us to understand how you are using the project. We only collect data regarding the execution mode (Hardware/Software) and the usage metrics. 
+
+This feature can be easily disabled, by settin up the environment variable ```BLINDAI_DISABLE_TELEMETRY``` to 1.
+
+You can find more information about the telemetry in our [**documentation**](https://docs.mithrilsecurity.io/telemetry/).
 
 ## Disclaimer
 BlindAI is still being developed and is provided as is, use it at your own risk.
