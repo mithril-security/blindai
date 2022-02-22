@@ -34,7 +34,7 @@ To deploy a model on sensitive data, with end-to-end protection, we provide a *D
 
 Because the server requires specific hardware, for instance *Intel SGX* currently, we also provide a *simulation mode*. Using the *simulation mode*, any computer can serve models with our solution. However, the two key properties of secure enclaves, data in use confidentiality, and code attestation, will not be available. **Therefore this is just for testing on your local machine but is not relevant for real guarantees in production**.
 
-Our first article [Deploy Transformers with confidentiality](blog.mithrilsecurity.io/transformers-with-confidentiality) covers the deployment of both simulation and hardware mode. 
+Our first article [Deploy Transformers with confidentiality](https://blog.mithrilsecurity.io/transformers-with-confidentiality) covers the deployment of both simulation and hardware mode. 
 
 ### A - Deploying the server
 
