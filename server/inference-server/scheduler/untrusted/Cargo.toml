@@ -8,7 +8,7 @@ members = [
 name = "app"
 version = "1.0.0"
 edition = "2018"
-authors = ["Teaclave"]
+authors = ["Mithril Security"]
 build = "build.rs"
 
 [dependencies] # You can specify the features you need for urts, such as global_exit and global_init
