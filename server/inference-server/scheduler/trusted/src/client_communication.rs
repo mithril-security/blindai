@@ -54,6 +54,8 @@ use tract_onnx::prelude::tract_ndarray::IxDynImpl;
 use num_traits::FromPrimitive;
 use num_derive::FromPrimitive;
 
+use crate::telemetry::{self, TelemetryEventProps};
+
 pub mod secured_exchange {
     tonic::include_proto!("securedexchange");
 }
@@ -187,6 +189,9 @@ impl Exchange for Exchanger {
             }
             model_bytes.append(&mut model_proto.data);
         }
+
+        telemetry::add_event(TelemetryEventProps::SendModel { model_size: model_bytes.len() });
+
         let datum = FromPrimitive::from_i32(model_proto.datum);
         match load_model(model_bytes, model_proto.input_fact.clone(), &datum) {
             Ok(model_rec) => 
@@ -220,6 +225,8 @@ impl Exchange for Exchanger {
 
         let mut input: Vec<u8> = Vec::new();
         let max_input_size = self.max_input_size;
+
+        telemetry::add_event(TelemetryEventProps::RunModel {});
 
         while let Some(data_stream) = stream.next().await 
         {
@@ -256,6 +263,7 @@ impl Exchange for Exchanger {
             error!("Model not loaded, cannot run inference");
             return Ok(Response::new(reply));
         }
+
         Ok(Response::new(reply))
     }
 }

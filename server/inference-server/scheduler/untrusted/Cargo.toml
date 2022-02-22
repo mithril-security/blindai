@@ -8,7 +8,7 @@ members = [
 name = "app"
 version = "1.0.0"
 edition = "2018"
-authors = ["Teaclave"]
+authors = ["Mithril Security"]
 build = "build.rs"
 
 [dependencies] # You can specify the features you need for urts, such as global_exit and global_init
@@ -36,6 +36,7 @@ pem = "1.0.1"
 base16 = "0.2.1"
 webpki = "0.21.4"
 toml = "*"
+whoami = "1.2.1"
 
 [build-dependencies]
 tonic-build = "0.5"

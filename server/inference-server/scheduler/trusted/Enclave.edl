@@ -33,7 +33,9 @@ enclave {
     trusted
     {
         /* ECALLs */
-        public sgx_status_t start_server();
+        public sgx_status_t start_server(
+            [in, string] char *telemetry_platform,
+            [in, string] char *telemetry_uid);
     };
     untrusted
     {

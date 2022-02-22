@@ -20,6 +20,10 @@ extern crate sgx_urts;
 extern crate teaclave_attestation;
 
 use std::sync::{Arc, Mutex};
+use std::collections::hash_map::DefaultHasher;
+use std::hash::{Hash, Hasher};
+use std::ffi::{CString};
+use std::os::raw::c_char;
 
 use tokio::net::TcpListener;
 use tokio_stream::wrappers::TcpListenerStream;
@@ -52,7 +56,7 @@ mod self_signed_tls;
 static ENCLAVE_FILE: &'static str = "enclave.signed.so";
 
 extern {
-    fn start_server(eid: sgx_enclave_id_t, retval: *mut sgx_status_t) -> sgx_status_t;
+    fn start_server(eid: sgx_enclave_id_t, retval: *mut sgx_status_t, telemetry_platform: *const c_char, telemetry_uid: *const c_char) -> sgx_status_t;
 }
 
 #[derive(Default)]
@@ -129,10 +133,19 @@ async fn main() -> Result<(), Box<dyn std::error::Error>>
             .serve(network_config.internal_enclave_to_host_socket()?),
     );
 
+    let platform: CString = CString::new(format!("{} - SGX {}", whoami::platform(), sgx_mode)).unwrap();
+    let uid: CString = {
+        let mut hasher = DefaultHasher::new();
+        whoami::username().hash(&mut hasher);
+        whoami::hostname().hash(&mut hasher);
+        platform.hash(&mut hasher);
+        CString::new(format!("{:X}", hasher.finish())).unwrap()
+    };
+
     let mut retval = sgx_status_t::SGX_SUCCESS;
     let result = unsafe {
         start_server(enclave.geteid(),
-                    &mut retval)
+                    &mut retval, platform.into_raw(), uid.into_raw())
     };
     match result {
         sgx_status_t::SGX_SUCCESS => {},
