@@ -16,7 +16,7 @@ import logging
 import os
 import ssl
 from enum import IntEnum
-from socket import setdefaulttimeout, timeout
+from socket import setdefaulttimeout
 
 from cbor2 import dumps
 from dcap_attestation import (
