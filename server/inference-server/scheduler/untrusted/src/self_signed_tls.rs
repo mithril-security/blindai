@@ -1,6 +1,8 @@
 // Adapted from https://github.com/Kixunil/tonic_lnd/blob/master/src/lib.rs#L165-L175
 // License MITNFA
 
+#![allow(unused)]
+
 use anyhow::Result;
 use rustls::{Certificate, RootCertStore, ServerCertVerified, ServerCertVerifier, TLSError};
 
@@ -38,7 +40,7 @@ impl ServerCertVerifier for SingleCertVerifier {
         &self,
         _roots: &RootCertStore,
         presented_certs: &[Certificate],
-        dns_name: webpki::DNSNameRef,
+        _dns_name: webpki::DNSNameRef,
         _ocsp_response: &[u8],
     ) -> Result<ServerCertVerified, TLSError> {
         match presented_certs {

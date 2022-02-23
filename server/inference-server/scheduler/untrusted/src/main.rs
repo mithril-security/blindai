@@ -19,14 +19,10 @@ extern crate sgx_types;
 extern crate sgx_urts;
 extern crate teaclave_attestation;
 
-use std::sync::{Arc, Mutex};
 use std::collections::hash_map::DefaultHasher;
 use std::hash::{Hash, Hasher};
 use std::ffi::{CString};
 use std::os::raw::c_char;
-
-use tokio::net::TcpListener;
-use tokio_stream::wrappers::TcpListenerStream;
 
 use env_logger::Env;
 use log::{error, info};
@@ -34,20 +30,16 @@ use log::{error, info};
 use sgx_types::*;
 use sgx_urts::SgxEnclave;
 
-use rpc::*;
-
-use std::{fs, fs::File};
+use std::{fs::File};
 use std::env;
-use std::io::{Error, ErrorKind, Read};
+use std::io::{Read};
 use common::{untrusted_local_app_server, *};
 
-use tonic::transport::Certificate;
 use tonic::{
-    transport::{Channel, Identity, Server, ServerTlsConfig}, Response, Status,
+    transport::{Server},
 };
 
 use anyhow::Result;
-use self_signed_tls::client_tls_config_for_self_signed_server;
 
 mod dcap;
 mod self_signed_tls;
@@ -57,11 +49,6 @@ static ENCLAVE_FILE: &'static str = "enclave.signed.so";
 
 extern {
     fn start_server(eid: sgx_enclave_id_t, retval: *mut sgx_status_t, telemetry_platform: *const c_char, telemetry_uid: *const c_char) -> sgx_status_t;
-}
-
-#[derive(Default)]
-pub struct MyAttestation {
-    token: Arc<Mutex<String>>
 }
 
 #[derive(Default)]
