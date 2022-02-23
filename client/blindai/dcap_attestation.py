@@ -12,18 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import struct
-import hashlib
 import ctypes
-import toml
-from utils.utils import encode_certificate
-from typing import Any, Dict
-from bitstring import Bits
-
-from pybind11_module import status
-import pybind11_module
-
+import hashlib
 import pkgutil
+import struct
+from typing import Any, Dict
+
+import pybind11_module
+import toml
+from bitstring import Bits
+from pybind11_module import status
+from utils.utils import encode_certificate
 
 
 def verify_dcap_attestation(
