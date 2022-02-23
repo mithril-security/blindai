@@ -155,7 +155,7 @@ pub fn get_sgx_quote(ak_id: &sgx_att_key_id_t, report: sgx_report_t) -> Result<V
     debug!("sgx_self_target");
     // Provide the target information of ourselves so that we can verify the QE report
     // returned with the quote
-    let res = unsafe { sgx_self_target(&mut qe_report_info.app_enclave_target_info as _) };
+    let res = unsafe { sgx_self_target(std::ptr::addr_of_mut!(qe_report_info.app_enclave_target_info)) };
 
     if res != SGX_SUCCESS {
         return Err(PlatformError::GetSelfTargetInfoError(res));
