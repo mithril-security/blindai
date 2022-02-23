@@ -24,19 +24,13 @@ use std::{
     ffi::CString,
     hash::{Hash, Hasher},
     os::raw::c_char,
-    sync::{Arc, Mutex},
 };
-
-use tokio::net::TcpListener;
-use tokio_stream::wrappers::TcpListenerStream;
 
 use env_logger::Env;
 use log::{error, info};
 
 use sgx_types::*;
 use sgx_urts::SgxEnclave;
-
-use rpc::*;
 
 use common::{untrusted_local_app_server, *};
 use std::{
@@ -45,13 +39,9 @@ use std::{
     io::{Error, ErrorKind, Read},
 };
 
-use tonic::{
-    transport::{Certificate, Channel, Identity, Server, ServerTlsConfig},
-    Response, Status,
-};
+use tonic::transport::Server;
 
 use anyhow::Result;
-use self_signed_tls::client_tls_config_for_self_signed_server;
 
 mod dcap;
 mod self_signed_tls;
@@ -65,11 +55,6 @@ extern "C" {
         telemetry_platform: *const c_char,
         telemetry_uid: *const c_char,
     ) -> sgx_status_t;
-}
-
-#[derive(Default)]
-pub struct MyAttestation {
-    token: Arc<Mutex<String>>,
 }
 
 #[derive(Default)]
