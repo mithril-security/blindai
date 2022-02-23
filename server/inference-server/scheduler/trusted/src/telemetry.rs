@@ -1,6 +1,4 @@
 use std::{
-    collections::hash_map::DefaultHasher,
-    hash::{Hash, Hasher},
     lazy::SyncOnceCell,
     time::{Duration, SystemTime, UNIX_EPOCH},
 };

@@ -13,46 +13,29 @@
 // limitations under the License.
 
 extern crate env_logger;
+extern crate num_derive;
+extern crate num_traits;
 extern crate sgx_libc;
 extern crate sgx_tseal;
 extern crate sgx_types;
 extern crate tract_core;
 extern crate tract_onnx;
-extern crate num_traits;
-extern crate num_derive;
 
-use std::convert::TryInto;
-use std::ops::DerefMut;
-use std::mem::size_of;
-use std::path::Path;
-use std::ptr;
-use std::slice;
-use std::sync::{Arc, SgxMutex as Mutex};
-use std::untrusted::fs::read;
-use std::untrusted::fs::{metadata, read_dir, File};
-use std::vec::Vec;
-use std::any::Any;
 use log::*;
+use std::convert::TryInto;
+use std::mem::size_of;
+use std::sync::{Arc, SgxMutex as Mutex};
+use std::vec::Vec;
 
-use futures::{Stream, StreamExt};
-use rpc::untrusted_local_app_client::*;
-use secured_exchange::exchange_server::{Exchange, ExchangeServer};
-use secured_exchange::{Model, Data, ModelResult, SimpleReply};
-use tokio::runtime;
-use tokio::sync::mpsc;
-use tokio_stream::wrappers::ReceiverStream;
-use tonic::codegen::http::request;
-use tonic::{
-    transport::{Identity, Server},
-    Request, Response, Status,
-};
-use tract_core::internal::*;
-use tract_core::ops::matmul::lir_unary::*;
-use tract_core::ops::{cnn, nn};
-use tract_onnx::prelude::*;
-use tract_onnx::prelude::tract_ndarray::IxDynImpl;
-use num_traits::FromPrimitive;
+use futures::StreamExt;
 use num_derive::FromPrimitive;
+use num_traits::FromPrimitive;
+use secured_exchange::exchange_server::Exchange;
+use secured_exchange::{Data, Model, ModelResult, SimpleReply};
+use tonic::{Request, Response, Status};
+use tract_core::internal::*;
+use tract_onnx::prelude::tract_ndarray::IxDynImpl;
+use tract_onnx::prelude::*;
 
 use crate::telemetry::{self, TelemetryEventProps};
 
@@ -73,7 +56,6 @@ pub enum ModelDatumType {
 }
 
 fn get_datum_type(datum: &Option<ModelDatumType>) -> TractResult<DatumType> {
-
     match *datum {
         Some(ModelDatumType::F32) => return Ok(f32::datum_type()),
         Some(ModelDatumType::F64) => return Ok(f64::datum_type()),
@@ -81,7 +63,7 @@ fn get_datum_type(datum: &Option<ModelDatumType>) -> TractResult<DatumType> {
         Some(ModelDatumType::I64) => return Ok(i64::datum_type()),
         Some(ModelDatumType::U32) => return Ok(u32::datum_type()),
         Some(ModelDatumType::U64) => return Ok(u64::datum_type()),
-        None => return Err(anyhow!("Unknown type"))
+        None => return Err(anyhow!("Unknown type")),
     }
 }
 
@@ -100,17 +82,18 @@ macro_rules! dispatch_numbers {
     } }
 }
 
-fn load_model(model: Vec<u8>, input_fact: Vec<i32>, datum: &Option<ModelDatumType>) -> TractResult<OnnxModel> {
+fn load_model(
+    model: Vec<u8>,
+    input_fact: Vec<i32>,
+    datum: &Option<ModelDatumType>,
+) -> TractResult<OnnxModel> {
     let mut model_slice = &model[..];
     let datum_type = get_datum_type(datum)?;
     let model_rec = tract_onnx::onnx()
         // load the model
         .model_for_read(&mut model_slice)?
         // specify input type and shape
-        .with_input_fact(
-            0,
-            InferenceFact::dt_shape(datum_type, input_fact),
-        )?
+        .with_input_fact(0, InferenceFact::dt_shape(datum_type, input_fact))?
         // optimize the model
         .into_optimized()?
         // make the model runnable and fix its inputs and outputs
@@ -118,30 +101,38 @@ fn load_model(model: Vec<u8>, input_fact: Vec<i32>, datum: &Option<ModelDatumTyp
     Ok(model_rec)
 }
 
-
-fn create_tensor<'a, A: serde::de::DeserializeOwned  + tract_core::prelude::Datum>(input:Vec<u8>, input_fact: &Vec<usize>) -> TractResult<Tensor> {
+fn create_tensor<'a, A: serde::de::DeserializeOwned + tract_core::prelude::Datum>(
+    input: Vec<u8>,
+    input_fact: &Vec<usize>,
+) -> TractResult<Tensor> {
     let dim = IxDynImpl::from(input_fact.as_slice());
     let vec: Vec<A> = serde_cbor::from_slice(&input).unwrap_or(Vec::new());
     let tensor = tract_ndarray::ArrayD::from_shape_vec(dim, vec)?.into();
     Ok(tensor)
 }
 
-fn run_inference(model: &OnnxModel, input: Vec<u8>, input_fact: &Vec<usize>, datum: &Option<ModelDatumType>) -> TractResult<Vec<f32>>
-{
+fn run_inference(
+    model: &OnnxModel,
+    input: Vec<u8>,
+    input_fact: &Vec<usize>,
+    datum: &Option<ModelDatumType>,
+) -> TractResult<Vec<f32>> {
     let tensor = dispatch_numbers!(create_tensor(get_datum_type(datum)?)(input, &input_fact))?;
     let result = model.run(tvec!(tensor))?;
     let arr = result[0].to_array_view::<f32>()?;
-    Ok(arr.as_slice().ok_or(anyhow!("Failed to convert ArrayView to slice"))?.to_vec())
+    Ok(arr
+        .as_slice()
+        .ok_or(anyhow!("Failed to convert ArrayView to slice"))?
+        .to_vec())
 }
 
 #[derive(Debug, Default)]
-pub(crate) struct Exchanger 
-{
+pub(crate) struct Exchanger {
     pub model: std::sync::Arc<Mutex<Option<OnnxModel>>>,
     pub input_fact: std::sync::Arc<Mutex<Vec<usize>>>,
     pub max_model_size: usize,
     pub max_input_size: usize,
-    pub datum_type: std::sync::Arc<Mutex<Option<ModelDatumType>>>, 
+    pub datum_type: std::sync::Arc<Mutex<Option<ModelDatumType>>>,
 }
 
 impl Exchanger {
@@ -171,31 +162,30 @@ impl Exchange for Exchanger {
         let max_model_size = self.max_model_size;
         let mut model_size: usize = 0;
 
-        while let Some(model_stream) = stream.next().await 
-        {
+        while let Some(model_stream) = stream.next().await {
             model_proto = model_stream?;
             if model_size == 0 {
                 model_size = model_proto.length.try_into().unwrap();
             }
             if input_fact.len() == 0 {
-                for x in &model_proto.input_fact 
-                {
+                for x in &model_proto.input_fact {
                     input_fact.push(*x as usize);
                 }
             }
             if model_size > max_model_size || model_bytes.len() > max_model_size {
                 error!("Incoming model is too big");
-                return Err(Status::invalid_argument(format!("Model too big")))
+                return Err(Status::invalid_argument(format!("Model too big")));
             }
             model_bytes.append(&mut model_proto.data);
         }
 
-        telemetry::add_event(TelemetryEventProps::SendModel { model_size: model_bytes.len() });
+        telemetry::add_event(TelemetryEventProps::SendModel {
+            model_size: model_bytes.len(),
+        });
 
         let datum = FromPrimitive::from_i32(model_proto.datum);
         match load_model(model_bytes, model_proto.input_fact.clone(), &datum) {
-            Ok(model_rec) => 
-            {
+            Ok(model_rec) => {
                 *self.model.lock().unwrap() = Some(model_rec);
                 let input = &mut *self.input_fact.lock().unwrap();
                 input.clear();
@@ -205,10 +195,11 @@ impl Exchange for Exchanger {
                 reply.msg = format!("OK");
                 info!("Model loaded successfully");
             }
-            Err(_x) => 
-            {
+            Err(_x) => {
                 reply.ok = false;
-                reply.msg = format!("Failed to load model, the model or the input format are perhaps invalid");
+                reply.msg = format!(
+                    "Failed to load model, the model or the input format are perhaps invalid"
+                );
                 error!("Failed to load model, the model or the input format are perhaps invalid");
             }
         }
@@ -221,43 +212,41 @@ impl Exchange for Exchanger {
     ) -> Result<Response<ModelResult>, Status> {
         let mut reply = ModelResult::default();
         let mut stream = request.into_inner();
-        let mut data_proto = Data::default();
+        let mut data_proto;
 
         let mut input: Vec<u8> = Vec::new();
         let max_input_size = self.max_input_size;
 
         telemetry::add_event(TelemetryEventProps::RunModel {});
 
-        while let Some(data_stream) = stream.next().await 
-        {
+        while let Some(data_stream) = stream.next().await {
             data_proto = data_stream?;
-            if data_proto.input.len() * size_of::<u8>() > max_input_size.try_into().unwrap() || input.len() * size_of::<u8>() > max_input_size {
+            if data_proto.input.len() * size_of::<u8>() > max_input_size.try_into().unwrap()
+                || input.len() * size_of::<u8>() > max_input_size
+            {
                 error!("Incoming input is too big");
-                return Err(Status::invalid_argument(format!("Input too big")))
+                return Err(Status::invalid_argument(format!("Input too big")));
             }
             input.append(&mut data_proto.input);
         }
 
         let input_fact = &*self.input_fact.lock().unwrap();
         let datum = &*self.datum_type.lock().unwrap();
-        if let Some(model) = &*self.model.lock().unwrap()
-        {
-            match run_inference(&model, input, &input_fact, &datum) { 
-                Ok (output) => {
+        if let Some(model) = &*self.model.lock().unwrap() {
+            match run_inference(&model, input, &input_fact, &datum) {
+                Ok(output) => {
                     reply.output = output;
                     reply.ok = true;
                     reply.msg = String::from("OK");
                     info!("Inference done successfully, sending encrypted result to the client");
                 }
-                Err (_) => 
-                {
+                Err(_) => {
                     reply.ok = false;
                     reply.msg = String::from("Error while running the model");
                     error!("Error while running the inference");
                 }
             }
-        }
-        else {
+        } else {
             reply.ok = false;
             reply.msg = String::from("Model not loaded, cannot continue");
             error!("Model not loaded, cannot run inference");

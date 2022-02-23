@@ -17,7 +17,6 @@ use common::untrusted_local_app_client::UntrustedLocalAppClient;
 use tonic::{Request, Response, Status};
 pub use untrusted::attestation_server::*;
 use untrusted::*;
-use log::*;
 
 pub mod untrusted {
     tonic::include_proto!("untrusted");
@@ -55,13 +54,12 @@ impl Attestation for MyAttestation {
         &self,
         _request: Request<GetSgxQuoteWithCollateralRequest>,
     ) -> Result<Response<GetSgxQuoteWithCollateralReply>, Status> {
-        if cfg!(SGX_MODE = "SW") 
-        {
+        if cfg!(SGX_MODE = "SW") {
             return Err(Status::unimplemented(
                 "Attestation is not available. Running in Simulation Mode",
             ));
         }
-        
+
         let quote = self.quote_provider.get_quote().unwrap();
 
         let mut untrusted = UntrustedLocalAppClient::connect("http://127.0.0.1:50053")
