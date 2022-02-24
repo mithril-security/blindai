@@ -33,11 +33,7 @@ use sgx_types::*;
 use sgx_urts::SgxEnclave;
 
 use common::{untrusted_local_app_server, *};
-use std::{
-    env, fs,
-    fs::File,
-    io::{Error, ErrorKind, Read},
-};
+use std::{env, fs::File, io::Read};
 
 use tonic::transport::Server;
 
