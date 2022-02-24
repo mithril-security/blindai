@@ -39,13 +39,12 @@ pub struct NetworkConfig {
 }
 
 fn uri_to_socket(uri: &Uri) -> Result<SocketAddr> {
-    Ok(uri
-        .authority()
+    uri.authority()
         .context("No authority")?
         .as_str()
         .to_socket_addrs()?
         .next()
-        .context("Uri could not be converted to socket")?)
+        .context("Uri could not be converted to socket")
 }
 
 impl NetworkConfig {
