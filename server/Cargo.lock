@@ -78,12 +78,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "904dfeac50f3cdaba28fc6f57fdcddb75f49ed61346676a78c4ffe55877802fd"
 
 [[package]]
-name = "base64"
-version = "0.20.0-alpha.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "149ea5dc24cb11513350770afebba32b68e3d2e356f9221351a2a1ee89112a82"
-
-[[package]]
 name = "base64ct"
 version = "1.1.0"
 source = "git+https://github.com/mithril-security/formats-sgx.git?tag=pkcs1/v0.2.4-sgx#71fda6309a605ef3c595cb06efc8937d427530e7"
@@ -682,10 +676,10 @@ dependencies = [
 
 [[package]]
 name = "inference_server"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "anyhow",
- "base64 0.13.0",
+ "base64",
  "common",
  "der-parser",
  "env_logger",
@@ -1512,7 +1506,7 @@ version = "0.11.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "246e9f61b9bb77df069a947682be06e31ac43ea37862e244a69f177694ea6d22"
 dependencies = [
- "base64 0.13.0",
+ "base64",
  "bytes",
  "encoding_rs",
  "futures-core",
@@ -1599,7 +1593,7 @@ name = "rustls"
 version = "0.19.1"
 source = "git+https://github.com/mithril-security/rustls-sgx?branch=rustls-sgx#f80b7c30b9339a03099bd7455665e36524913cec"
 dependencies = [
- "base64 0.13.0",
+ "base64",
  "log",
  "ring",
  "sct",
@@ -1780,7 +1774,7 @@ name = "teaclave_attestation"
 version = "0.2.0"
 dependencies = [
  "anyhow",
- "base64 0.20.0-alpha.1",
+ "base64",
  "bit-vec",
  "cfg-if",
  "chrono",
@@ -1949,7 +1943,7 @@ checksum = "796c5e1cd49905e65dd8e700d4cb1dffcbfdb4fc9d017de08c1a537afd83627c"
 dependencies = [
  "async-stream",
  "async-trait",
- "base64 0.13.0",
+ "base64",
  "bytes",
  "futures-core",
  "futures-util",
@@ -2269,9 +2263,9 @@ dependencies = [
 
 [[package]]
 name = "uuid"
-version = "1.0.0-alpha.1"
+version = "0.8.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bb3ab47baa004111b323696c6eaa2752e7356f7f77cf6b6dc7a2087368ce1ca4"
+checksum = "bc5cf98d8186244414c848017f0e2676b3fcb46807f6668a97dfe67359a3c4b7"
 
 [[package]]
 name = "version_check"
@@ -2460,7 +2454,7 @@ version = "0.12.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ffc90836a84cb72e6934137b1504d0cae304ef5d83904beb0c8d773bbfe256ed"
 dependencies = [
- "base64 0.13.0",
+ "base64",
  "chrono",
  "data-encoding",
  "der-parser",

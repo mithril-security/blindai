@@ -14,6 +14,7 @@
 
 use crate::dcap_quote_provider::DcapQuoteProvider;
 use common::untrusted_local_app_client::UntrustedLocalAppClient;
+use log::*;
 use tonic::{Request, Response, Status};
 pub use untrusted::attestation_server::*;
 use untrusted::*;
