@@ -22,35 +22,18 @@ extern crate tract_core;
 extern crate tract_onnx;
 
 use log::*;
-use std::any::Any;
 use std::convert::TryInto;
 use std::mem::size_of;
-use std::ops::DerefMut;
-use std::path::Path;
-use std::ptr;
-use std::slice;
 use std::sync::{Arc, SgxMutex as Mutex};
-use std::untrusted::fs::read;
-use std::untrusted::fs::{metadata, read_dir, File};
 use std::vec::Vec;
 
-use futures::{Stream, StreamExt};
+use futures::StreamExt;
 use num_derive::FromPrimitive;
 use num_traits::FromPrimitive;
-use rpc::untrusted_local_app_client::*;
-use secured_exchange::exchange_server::{Exchange, ExchangeServer};
+use secured_exchange::exchange_server::Exchange;
 use secured_exchange::{Data, Model, ModelResult, SimpleReply};
-use tokio::runtime;
-use tokio::sync::mpsc;
-use tokio_stream::wrappers::ReceiverStream;
-use tonic::codegen::http::request;
-use tonic::{
-    transport::{Identity, Server},
-    Request, Response, Status,
-};
+use tonic::{Request, Response, Status};
 use tract_core::internal::*;
-use tract_core::ops::matmul::lir_unary::*;
-use tract_core::ops::{cnn, nn};
 use tract_onnx::prelude::tract_ndarray::IxDynImpl;
 use tract_onnx::prelude::*;
 
@@ -229,7 +212,7 @@ impl Exchange for Exchanger {
     ) -> Result<Response<ModelResult>, Status> {
         let mut reply = ModelResult::default();
         let mut stream = request.into_inner();
-        let mut data_proto = Data::default();
+        let mut data_proto;
 
         let mut input: Vec<u8> = Vec::new();
         let max_input_size = self.max_input_size;

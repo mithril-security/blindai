@@ -22,6 +22,8 @@
 #![allow(clippy::nonstandard_macro_braces)]
 #![allow(clippy::unknown_clippy_lints)]
 
+#![allow(unused)]
+
 #[cfg(target_env = "sgx")]
 extern crate sgx_types;
 #[cfg(target_env = "sgx")]

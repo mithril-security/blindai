@@ -22,7 +22,7 @@ use rsa::{
     RsaPrivateKey, RsaPublicKey,
 };
 use serde::{Deserialize, Serialize};
-use std::{borrow::Borrow, path::Path};
+use std::borrow::Borrow;
 use tonic::transport::Identity;
 use x509_parser::{prelude::X509Certificate, traits::FromDer};
 
@@ -82,6 +82,7 @@ impl MyIdentity {
         }
     }
 
+    #[allow(dead_code)]
     pub fn uid(&self) -> Result<String> {
         /* extract the public key from the certificate */
         let (_, cert) = X509Certificate::from_der(&self.tls_identity.cert_der)?;

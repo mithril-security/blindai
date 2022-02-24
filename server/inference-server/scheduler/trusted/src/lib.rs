@@ -17,59 +17,30 @@
 #![feature(once_cell)]
 
 extern crate env_logger;
+#[cfg(target_env = "sgx")]
 extern crate sgx_libc;
+#[cfg(target_env = "sgx")]
 extern crate sgx_tseal;
+#[cfg(target_env = "sgx")]
 extern crate sgx_types;
 extern crate tract_core;
 extern crate tract_onnx;
 
-#[macro_use]
-extern crate serde_derive;
 extern crate serde_cbor;
+extern crate serde_derive;
 
-use anyhow::Error;
 use env_logger::Env;
-use pkix::pem::{PEM_CERTIFICATE, PEM_PRIVATE_KEY};
-use rcgen::generate_simple_self_signed;
-use rcgen::Certificate;
-use rcgen::CertificateParams;
-use rcgen::SanType;
-use rpc::untrusted_local_app_client;
-use std::env;
-use tonic::server;
-
 use std::backtrace::{self, PrintFormat};
 use std::ffi::CStr;
 
 use log::*;
-use serde::{Deserialize, Serialize};
-use serde_json::json;
-use sgx_tseal::SgxSealedData;
 use sgx_types::*;
-use std::io::{self, Read, Write};
-use std::slice;
+use std::io::Read;
 use tonic::transport::ServerTlsConfig;
 
-use tonic::{
-    transport::{Identity, Server},
-    Request, Response, Status,
-};
+use tonic::transport::{Identity, Server};
 
-use futures::{Stream, StreamExt};
-use ring::{digest, test};
-use tokio::runtime;
-use tokio::sync::mpsc;
-use tokio_stream::wrappers::ReceiverStream;
-
-use rpc::untrusted_local_app_client::*;
-use sgx_libc::c_void;
-use sgx_types::marker::ContiguousMemory;
-use sgx_types::{sgx_attributes_t, sgx_sealed_data_t, sgx_status_t};
-use std::convert::TryInto;
-use std::path::Path;
-use std::ptr;
-use std::vec::Vec;
-use teaclave_attestation::platform;
+use sgx_types::sgx_status_t;
 
 #[cfg(target_env = "sgx")]
 use std::untrusted::fs::File;
@@ -83,9 +54,7 @@ use std::untrusted::fs;
 #[cfg(not(target_env = "sgx"))]
 use std::fs;
 
-use crate::client_communication::{
-    secured_exchange::exchange_server::ExchangeServer, Exchanger, OnnxModel,
-};
+use crate::client_communication::{secured_exchange::exchange_server::ExchangeServer, Exchanger};
 
 use crate::dcap_quote_provider::DcapQuoteProvider;
 use crate::telemetry::TelemetryEventProps;
