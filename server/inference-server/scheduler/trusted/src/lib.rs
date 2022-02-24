@@ -35,8 +35,8 @@ use rcgen::Certificate;
 use rcgen::CertificateParams;
 use rcgen::SanType;
 use rpc::untrusted_local_app_client;
-use tonic::server;
 use std::env;
+use tonic::server;
 
 use std::backtrace::{self, PrintFormat};
 use std::ffi::CStr;
@@ -97,11 +97,14 @@ use identity::MyIdentity;
 mod client_communication;
 mod dcap_quote_provider;
 mod identity;
-mod untrusted;
 mod telemetry;
+mod untrusted;
 
 #[no_mangle]
-pub extern "C" fn start_server(telemetry_platform: *const c_char, telemetry_uid: *const c_char) -> sgx_status_t {
+pub extern "C" fn start_server(
+    telemetry_platform: *const c_char,
+    telemetry_uid: *const c_char,
+) -> sgx_status_t {
     env_logger::Builder::from_env(Env::default().default_filter_or("info")).init();
     let _ = backtrace::enable_backtrace("enclave.signed.so", PrintFormat::Full);
     info!("Switched to enclave context");
@@ -122,7 +125,10 @@ pub extern "C" fn start_server(telemetry_platform: *const c_char, telemetry_uid:
     sgx_status_t::SGX_SUCCESS
 }
 
-async fn main(telemetry_platform: String, telemetry_uid: String) -> Result<(), Box<dyn std::error::Error>> {
+async fn main(
+    telemetry_platform: String,
+    telemetry_uid: String,
+) -> Result<(), Box<dyn std::error::Error>> {
     teaclave_attestation::logger_info("azaz");
     let _ = backtrace::enable_backtrace("enclave.signed.so", PrintFormat::Full);
     let (certificate, storage_identity) = identity::create_certificate()?;
@@ -175,11 +181,8 @@ async fn main(telemetry_platform: String, telemetry_uid: String) -> Result<(), B
     );
     println!("Server started, waiting for commands");
 
-    if cfg!(SGX_MODE = "SW") 
-    {
-        info!(
-            "Server running in simulation mode, attestation not available."
-        );
+    if cfg!(SGX_MODE = "SW") {
+        info!("Server running in simulation mode, attestation not available.");
     }
 
     if !std::env::var("BLINDAI_DISABLE_TELEMETRY").is_ok() {
