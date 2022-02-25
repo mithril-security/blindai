@@ -42,7 +42,7 @@ use anyhow::Result;
 mod dcap;
 mod self_signed_tls;
 
-static ENCLAVE_FILE: &'static str = "enclave.signed.so";
+static ENCLAVE_FILE: &str = "enclave.signed.so";
 
 extern "C" {
     fn start_server(

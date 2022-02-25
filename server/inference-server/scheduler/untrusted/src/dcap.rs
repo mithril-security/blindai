@@ -1,4 +1,4 @@
-use anyhow::{anyhow, bail, ensure, Error, Result};
+use anyhow::{anyhow, bail, ensure, Context, Error, Result};
 use common::SgxCollateral;
 use der_parser::{
     der::*,
@@ -79,9 +79,13 @@ fn parse_sgx_extension(i: &[u8]) -> BerResult<Option<SgxExtension>> {
             let (_, fmspc) = parse_der_octetstring(i)?;
             let fmspc = fmspc.content.as_slice()?;
 
-            if fmspc.len() != FMSPC_SIZE {
-                panic!("FMSPC size should be {}, got {}", FMSPC_SIZE, fmspc.len());
-            }
+            assert!(
+                fmspc.len() == FMSPC_SIZE,
+                "FMSPC size should be {}, got {}",
+                FMSPC_SIZE,
+                fmspc.len()
+            );
+
             Some(SgxExtension::Fmspc(
                 fmspc
                     .try_into()
@@ -122,21 +126,19 @@ fn get_fmspc_ca_from_quote(quote: &[u8]) -> Result<([u8; 6], CString, String, St
 
     let pck_cert_der = &pems[0].contents;
 
-    let (_, pck_cert) = X509Certificate::from_der(&pck_cert_der)?;
+    let (_, pck_cert) = X509Certificate::from_der(pck_cert_der)?;
 
     // If the Certificate has no SGX extension, it is the wrong certificate probably Root CA or Intermediate CA
     let sgx_extension_oid: Oid = Oid::from(sgx_pkix::oid::SGX_EXTENSION.components())
         .map_err(|e| Error::msg(format!("{:?})", e)))?;
     let sgx_ext = pck_cert
         .extensions()
-        .into_iter()
+        .iter()
         .find(|ext| ext.oid == sgx_extension_oid)
-        .ok_or(anyhow!(
-            "SGX extension not found in the X509 Certificate, hint: is it the"
-        ))?
+        .context("SGX extension not found in the X509 Certificate, hint: is it the")?
         .value;
 
-    let (_, extension) = parse_sgx_extensions(&sgx_ext)?;
+    let (_, extension) = parse_sgx_extensions(sgx_ext)?;
     let fmspc = extension
         .iter()
         .find_map(|v| {
@@ -146,13 +148,13 @@ fn get_fmspc_ca_from_quote(quote: &[u8]) -> Result<([u8; 6], CString, String, St
                 _ => None,
             }
         })
-        .ok_or(anyhow!("SGX FMSPC not found in the SGX extensions"))?;
+        .context("SGX FMSPC not found in the SGX extensions")?;
 
     let issuer_cn = pck_cert
         .issuer()
         .iter_common_name()
         .next()
-        .ok_or(anyhow!("No Issuer common name in pck_cert"))?
+        .context("No Issuer common name in pck_cert")?
         .as_str()?;
 
     let ca_from_quote = if issuer_cn.contains("Processor") {
@@ -279,14 +281,14 @@ fn sgx_get_quote_verification_collateral(
     let pck_crl = crl_base16_to_pem(&pck_crl);
 
     Ok(SgxQlQveCollateral {
-        version: version,
-        pck_crl_issuer_chain: pck_crl_issuer_chain,
-        root_ca_crl: root_ca_crl,
-        pck_crl: pck_crl,
-        tcb_info_issuer_chain: tcb_info_issuer_chain,
-        tcb_info: tcb_info,
-        qe_identity_issuer_chain: qe_identity_issuer_chain,
-        qe_identity: qe_identity,
+        version,
+        pck_crl_issuer_chain,
+        root_ca_crl,
+        pck_crl,
+        tcb_info_issuer_chain,
+        tcb_info,
+        qe_identity_issuer_chain,
+        qe_identity,
     })
 }
 pub(crate) fn get_collateral_from_quote(quote: &[u8]) -> Result<SgxCollateral> {
@@ -307,16 +309,16 @@ pub(crate) fn get_collateral_from_quote(quote: &[u8]) -> Result<SgxCollateral> {
     } = sgx_get_quote_verification_collateral(&fmspc, &ca_from_quote)?;
 
     Ok(SgxCollateral {
-        version: version,
-        pck_crl_issuer_chain: pck_crl_issuer_chain,
-        root_ca_crl: root_ca_crl,
-        pck_crl: pck_crl,
-        tcb_info_issuer_chain: tcb_info_issuer_chain,
-        tcb_info: tcb_info,
-        qe_identity_issuer_chain: qe_identity_issuer_chain,
-        qe_identity: qe_identity,
+        version,
+        pck_crl_issuer_chain,
+        root_ca_crl,
+        pck_crl,
+        tcb_info_issuer_chain,
+        tcb_info,
+        qe_identity_issuer_chain,
+        qe_identity,
         // added
-        pck_certificate: pck_certificate,
-        pck_signing_chain: pck_signing_chain,
+        pck_certificate,
+        pck_signing_chain,
     })
 }
