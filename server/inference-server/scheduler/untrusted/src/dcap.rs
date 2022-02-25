@@ -34,7 +34,7 @@ fn parse_sgx_extensions(
     })(i)
 }
 
-/// Convert a PCS V3.{0,1} CRL to the V1 and V2 PEM format
+/// Convert any PCS CRL version to the V1/V2 PEM format
 ///
 /// Motivation :
 /// Intel CRLs from sgx_ql_qve_collateral_t are encoded differently depending on the version
@@ -42,9 +42,14 @@ fn parse_sgx_extensions(
 /// For PCS V1 and V2 APIs, the major_version = 1 and minor_version = 0 and the CRLs will be formatted in PEM.
 /// For PCS V3 APIs, the major_version = 3 and the minor_version can be either 0 or 1.
 /// A minor_verion of 0 indicates the CRL’s are formatted in Base16 encoded DER.
-/// A minorversion of 1 indicates the CRL’s are formatted in raw binary DER.
+/// A minor version of 1 indicates the CRL’s are formatted in raw binary DER.
 ///
-fn crl_base16_to_pem(crl: &[u8]) -> String {
+fn pcs_crl_to_pem(crl: &[u8]) -> String {
+    // if it is already in PEM format (format V1/V2)
+    if pem::parse(crl).is_ok() {
+        return str::from_utf8(crl).unwrap().to_string();
+    }
+
     // try to decode as base16, if it fails we assume we've got the raw binary DER
     let raw_bytes_crl = match base16::decode(crl) {
         Err(
@@ -276,9 +281,9 @@ fn sgx_get_quote_verification_collateral(
     }
 
     let version = quote_collateral.version;
-    let pck_crl_issuer_chain = crl_base16_to_pem(&pck_crl_issuer_chain);
-    let root_ca_crl = crl_base16_to_pem(&root_ca_crl);
-    let pck_crl = crl_base16_to_pem(&pck_crl);
+    let pck_crl_issuer_chain = pcs_crl_to_pem(&pck_crl_issuer_chain);
+    let root_ca_crl = pcs_crl_to_pem(&root_ca_crl);
+    let pck_crl = pcs_crl_to_pem(&pck_crl);
 
     Ok(SgxQlQveCollateral {
         version,
@@ -291,7 +296,7 @@ fn sgx_get_quote_verification_collateral(
         qe_identity,
     })
 }
-pub(crate) fn get_collateral_from_quote(quote: &[u8]) -> Result<SgxCollateral> {
+pub(crate) async fn get_collateral_from_quote(quote: &[u8]) -> Result<SgxCollateral> {
     // First we need to parse the quote to extract the fmspc and the right CA
     // This will be neeeded to get the collateral from the SGX Quote provider library
     let (fmspc, ca_from_quote, pck_certificate, pck_signing_chain) =
@@ -302,11 +307,57 @@ pub(crate) fn get_collateral_from_quote(quote: &[u8]) -> Result<SgxCollateral> {
         pck_crl_issuer_chain,
         root_ca_crl,
         pck_crl,
-        tcb_info_issuer_chain,
-        tcb_info,
-        qe_identity_issuer_chain,
-        qe_identity,
+        mut tcb_info_issuer_chain,
+        mut tcb_info,
+        mut qe_identity_issuer_chain,
+        mut qe_identity,
     } = sgx_get_quote_verification_collateral(&fmspc, &ca_from_quote)?;
+
+    // Azure VMs from DCsv3 and DCdsv3-series have a PCS that returns expired collateral.
+    // To avoid errors on the client, we directly get the TCB Info and Quoting Enclave
+    // from Intel API
+    // Beware this is a dirty fix awaiting Azure response reponse.
+    // If Intel updates the TCB or the Quoting Enclave
+    // this will no longer work. This only works because even though the Azure collateral
+    // are expired, their current TCB and QE are still valid.
+    if std::env::var("BLINDAI_AZURE_DCSV3_PATCH").is_ok() {
+        log::info!("The patch for Azure DCsv3 and DCdsv3-series VMs is enabled. Requesting collateral directly from Intel, bypassing the PCS.");
+        // Get some collateral directly from Intel Trusted Service API
+        // Get TCB Info and Quoting Enclave Identity
+        // API documentation at
+        // https://api.portal.trustedservices.intel.com/provisioning-certification
+
+        let api_tcb_info_response = reqwest::get(reqwest::Url::parse_with_params(
+            "https://api.trustedservices.intel.com/sgx/certification/v3/tcb",
+            &[("fmspc", hex::encode(fmspc))],
+        )?)
+        .await?;
+
+        tcb_info_issuer_chain = urlencoding::decode(
+            api_tcb_info_response
+                .headers()
+                .get("SGX-TCB-Info-Issuer-Chain")
+                .context("SGX-TCB-Info-Issuer-Chain not found in API reponse")?
+                .to_str()?,
+        )?
+        .to_string();
+        tcb_info = api_tcb_info_response.text().await?;
+
+        let api_qe_identity_response =
+            reqwest::get("https://api.trustedservices.intel.com/sgx/certification/v3/qe/identity")
+                .await?;
+
+        qe_identity_issuer_chain = urlencoding::decode(
+            api_qe_identity_response
+                .headers()
+                .get("SGX-Enclave-Identity-Issuer-Chain")
+                .context("SGX-Enclave-Identity-Issuer-Chain header not found in API reponse")?
+                .to_str()?,
+        )?
+        .to_string();
+
+        qe_identity = api_qe_identity_response.text().await?;
+    }
 
     Ok(SgxCollateral {
         version,

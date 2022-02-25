@@ -65,6 +65,7 @@ impl untrusted_local_app_server::UntrustedLocalApp for State {
         request: tonic::Request<Vec<u8>>,
     ) -> Result<tonic::Response<SgxCollateral>, tonic::Status> {
         dcap::get_collateral_from_quote(&request.into_inner())
+            .await
             .map(tonic::Response::new)
             .map_err(|e| tonic::Status::internal(e.to_string()))
     }

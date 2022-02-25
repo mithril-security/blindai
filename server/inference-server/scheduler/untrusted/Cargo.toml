@@ -19,6 +19,11 @@ pkix = "*"
 sgx_pkix = "*"
 teaclave_attestation = { path = '../../attestation/sgx/'}
 env_logger = "*"
+
+reqwest =  {version = "0.11.9"}
+urlencoding = "2.1.0"
+hex = "0.4.3"
+
 tokio = { version = "1.0", features = [ "full" ] }
 tokio-stream = { version = "0.1", features = [ "net" ] }
 prost = { version = "0.8", default-features = false, features = ["prost-derive"] }
@@ -30,7 +35,21 @@ rpc = {path = "../../network/sgx/rpc"}
 anyhow = "1.0.45"
 der-parser = "6.0.0"
 log = "0.4.14"
+
+# Need to pin serde_json to 1.0.69 because we can't use 1.0.70 with current compiler, see below :
+# error[E0658]: use of unstable library feature 'btree_retain'
+#    --> /root/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_json-1.0.70/src/map.rs:263:18
+#     |
+# 263 |         self.map.retain(f);
+#     |                  ^^^^^^
+#     |
+#     = note: see issue #79025 <https://github.com/rust-lang/rust/issues/79025> for more information
+#     = help: add `#![feature(btree_retain)]` to the crate attributes to enable
 serde_json = "=1.0.69"
+
+
+# dangerous_configuration flag is needed to implement custom certificate validation
+# see the self_signed_tls module
 rustls = {version = "0.19.1", features = ["dangerous_configuration"]}   
 pem = "1.0.1"
 base16 = "0.2.1"
