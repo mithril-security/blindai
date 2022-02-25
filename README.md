@@ -10,7 +10,7 @@
   <a href="https://blog.mithrilsecurity.io/">Blog</a> |
   <a href="https://www.twitter.com/mithrilsecurity">Twitter</a> | 
   <a href="https://docs.mithrilsecurity.io/">Documentation</a> |
-  <a href="https://discord.gg/rWHcHeCBWk">Discord</a>
+  <a href="https://discord.gg/TxEHagpWd4">Discord</a>
 </h4>
 
 <h3 align="center">Fast, accessible and privacy friendly AI deployment 🚀🔒</h3>
