@@ -117,9 +117,9 @@ def load_policy(path: str):
         policy["misc_select"] = int(policy["misc_select_hex"], 16).to_bytes(
             4, byteorder="little"
         )
-        policy["attributes_flags"] = int(
-            policy["attributes_flags_hex"], 16
-        ).to_bytes(8, byteorder="little")
+        policy["attributes_flags"] = int(policy["attributes_flags_hex"], 16).to_bytes(
+            8, byteorder="little"
+        )
         policy["attributes_xfrm"] = int(policy["attributes_xfrm_hex"], 16).to_bytes(
             8, byteorder="little"
         )

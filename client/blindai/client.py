@@ -115,7 +115,7 @@ class BlindAiClient:
 
         if self.DISABLE_UNTRUSTED_SERVER_CERT_CHECK:
             logging.warning("Untrusted server certificate check bypassed")
-            
+
             setdefaulttimeout(TIMEOUT)
             untrusted_server_cert = ssl.get_server_certificate(
                 (addr, int(PORTS["untrusted_enclave"]))
@@ -124,10 +124,10 @@ class BlindAiClient:
                 untrusted_server_creds = ssl_channel_credentials(
                     root_certificates=bytes(untrusted_server_cert, encoding="utf8")
                 )
-            
+
             except RpcError as rpc_error:
                 error = ConnectionError(check_rpc_exception(rpc_error))
-            
+
             finally:
                 if error is not None:
                     raise error
