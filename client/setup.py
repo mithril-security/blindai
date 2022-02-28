@@ -93,12 +93,7 @@ class BuildPy(build_py):
             )
         # Build the AttestationLib
         build_script = os.path.join(os.path.dirname(__file__), "scripts/build.sh")
-        try:
-            subprocess.check_call([build_script])
-        except:
-            print("Failed to build attestationLib\n")
-            exit(1)
-
+        subprocess.check_call([build_script])
         super(BuildPy, self).run()
 
 

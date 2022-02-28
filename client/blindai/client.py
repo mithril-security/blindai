@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from ftplib import error_proto
 import logging
 import os
 import ssl
@@ -98,9 +99,6 @@ class BlindAiClient:
             simulation:  Connect to the server in simulation mode (default False).
                 If set to True, the args policy and certificate will be ignored.
 
-        Returns:
-            True if the connection was successful. False otherwise
-
         Raises:
             ValueError: Will be raised in case the policy doesn't match the
                 server identity and configuration.
@@ -117,13 +115,22 @@ class BlindAiClient:
 
         if self.DISABLE_UNTRUSTED_SERVER_CERT_CHECK:
             logging.warning("Untrusted server certificate check bypassed")
+            
             setdefaulttimeout(TIMEOUT)
             untrusted_server_cert = ssl.get_server_certificate(
                 (addr, int(PORTS["untrusted_enclave"]))
             )
-            untrusted_server_creds = ssl_channel_credentials(
-                root_certificates=bytes(untrusted_server_cert, encoding="utf8")
-            )
+            try:
+                untrusted_server_creds = ssl_channel_credentials(
+                    root_certificates=bytes(untrusted_server_cert, encoding="utf8")
+                )
+            
+            except RpcError as rpc_error:
+                error = ConnectionError(check_rpc_exception(rpc_error))
+            
+            finally:
+                if error is not None:
+                    raise error
         else:
             with open(certificate, "rb") as f:
                 untrusted_server_creds = ssl_channel_credentials(
