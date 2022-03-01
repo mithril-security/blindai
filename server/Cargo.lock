@@ -61,6 +61,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "attestation"
+version = "0.2.0"
+dependencies = [
+ "log",
+ "sgx_types",
+ "sgx_urts",
+ "thiserror",
+]
+
+[[package]]
 name = "autocfg"
 version = "1.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -679,6 +689,7 @@ name = "inference_server"
 version = "0.2.0"
 dependencies = [
  "anyhow",
+ "attestation",
  "base64",
  "common",
  "der-parser",
@@ -700,7 +711,6 @@ dependencies = [
  "serde_cbor",
  "serde_derive",
  "serde_json",
- "teaclave_attestation",
  "tokio",
  "tokio-stream",
  "tokio-util",
@@ -1768,16 +1778,6 @@ dependencies = [
 name = "tar"
 version = "0.4.33"
 source = "git+https://github.com/mithril-security/tar-rs-sgx.git?tag=0.4.33x#3bd9040754183e2616f1b872a17fdbe2f18d3931"
-
-[[package]]
-name = "teaclave_attestation"
-version = "0.2.0"
-dependencies = [
- "log",
- "sgx_types",
- "sgx_urts",
- "thiserror",
-]
 
 [[package]]
 name = "tempfile"

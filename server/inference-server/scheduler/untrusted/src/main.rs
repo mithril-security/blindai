@@ -17,7 +17,7 @@
 
 extern crate sgx_types;
 extern crate sgx_urts;
-extern crate teaclave_attestation;
+extern crate attestation;
 
 use std::{
     collections::hash_map::DefaultHasher,

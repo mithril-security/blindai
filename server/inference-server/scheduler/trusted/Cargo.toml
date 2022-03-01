@@ -20,7 +20,7 @@ default = []
 tonic = { version = "0.5", features = ["tls"] }
 prost = { version = "0.8", default-features = false, features = ["prost-derive"] }
 tokio = {version = "1.12.*", features = ["rt"]}
-teaclave_attestation = { path = '../../attestation/sgx/'}
+attestation = { path = '../../attestation/sgx/'}
 pkix = "0.1.1"
 anyhow = {}
 env_logger ={version= "*", default-features = false}

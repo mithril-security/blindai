@@ -16,10 +16,10 @@
 # under the License.
 
 [package]
-name = "teaclave_attestation"
+name = "attestation"
 version = "0.2.0"
-authors = ["Teaclave Contributors <dev@teaclave.apache.org>"]
-description = "Provides TLS-based remote attestation mechanism in Teaclave."
+authors = ["Mithril Security"]
+description = "Rust bindings for SGX DCAP quote generation (forked from Apache Teaclave project)"
 license = "Apache-2.0"
 edition = "2018"
 

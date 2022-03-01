@@ -17,7 +17,7 @@ sgx_urts = { path = "../../../sdk/sgx_urts" }
 sgx-quote = "*"
 pkix = "*"
 sgx_pkix = "*"
-teaclave_attestation = { path = '../../attestation/sgx/'}
+attestation = { path = '../../attestation/sgx/'}
 env_logger = "*"
 
 reqwest =  {version = "0.11.9"}

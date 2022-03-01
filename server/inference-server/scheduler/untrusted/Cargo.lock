@@ -22,6 +22,7 @@ name = "app"
 version = "1.0.0"
 dependencies = [
  "anyhow",
+ "attestation",
  "base16",
  "common",
  "der-parser",
@@ -39,7 +40,6 @@ dependencies = [
  "sgx_pkix",
  "sgx_types",
  "sgx_urts",
- "teaclave_attestation",
  "tokio",
  "tokio-stream",
  "toml",
@@ -88,6 +88,16 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn",
+]
+
+[[package]]
+name = "attestation"
+version = "0.2.0"
+dependencies = [
+ "log",
+ "sgx_types",
+ "sgx_urts",
+ "thiserror",
 ]
 
 [[package]]
@@ -1345,16 +1355,6 @@ dependencies = [
  "proc-macro2",
  "quote",
  "unicode-xid",
-]
-
-[[package]]
-name = "teaclave_attestation"
-version = "0.2.0"
-dependencies = [
- "log",
- "sgx_types",
- "sgx_urts",
- "thiserror",
 ]
 
 [[package]]
