@@ -134,15 +134,16 @@ fn get_fmspc_ca_from_quote(quote: &[u8]) -> Result<([u8; 6], CString, String, St
 
     let (_, pck_cert) = X509Certificate::from_der(pck_cert_der)?;
 
-    // If the Certificate has no SGX extension, it is the wrong certificate probably
-    // Root CA or Intermediate CA
     let sgx_extension_oid: Oid = Oid::from(sgx_pkix::oid::SGX_EXTENSION.components())
         .map_err(|e| Error::msg(format!("{:?})", e)))?;
     let sgx_ext = pck_cert
         .extensions()
         .iter()
         .find(|ext| ext.oid == sgx_extension_oid)
-        .context("SGX extension not found in the X509 Certificate, hint: is it the")?
+        .context(
+            "SGX extension not found in the X509 Certificate, hint: is it the wrong certificate \
+            (expecting the PCK cert but maybe got the Root CA, or the Intermediate CA cert instead) ?",
+        )?
         .value;
 
     let (_, extension) = parse_sgx_extensions(sgx_ext)?;
@@ -195,6 +196,7 @@ pub struct SgxQlQveCollateral {
     pub qe_identity: String,           // QE Identity Structure
 }
 
+/// Safe wrapper around FFI C QV library to get quote collateral
 fn sgx_get_quote_verification_collateral(
     fmspc: &[u8; 6],
     ca_from_quote: &CString,
@@ -300,9 +302,21 @@ fn sgx_get_quote_verification_collateral(
         qe_identity,
     })
 }
+
+/// Get SGX ECDSA attestation collateral from an SGX quote
+///
+/// The verification collateral is the data required needed by the client to
+/// complete the quote verification. It includes:
+/// * The root CA CRL
+/// * The PCK Cert CRL
+/// * The PCK Cert CRL signing chain.
+/// * The signing cert chain for the TCBInfo structure
+/// * The signing cert chain for the QEIdentity structure
+/// * The TCBInfo structure
+/// * The QEIdentity structure
 pub(crate) async fn get_collateral_from_quote(quote: &[u8]) -> Result<SgxCollateral> {
     // First we need to parse the quote to extract the fmspc and the right CA
-    // This will be neeeded to get the collateral from the SGX Quote provider
+    // This will be needed to get the collateral from the SGX Quote provider
     // library
     let (fmspc, ca_from_quote, pck_certificate, pck_signing_chain) =
         get_fmspc_ca_from_quote(quote)?;
@@ -321,7 +335,7 @@ pub(crate) async fn get_collateral_from_quote(quote: &[u8]) -> Result<SgxCollate
     // Azure VMs from DCsv3 and DCdsv3-series have a PCS that returns expired
     // collateral. To avoid errors on the client, we directly get the TCB Info
     // and Quoting Enclave from Intel API
-    // Beware this is a dirty fix awaiting Azure response reponse.
+    // Beware this is a dirty fix awaiting proper response from Azure.
     // If Intel updates the TCB or the Quoting Enclave this will no longer work.
     // This only works because even though the Azure collateral are expired,
     // their current TCB and QE are still valid.
