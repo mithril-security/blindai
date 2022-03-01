@@ -23,31 +23,9 @@ description = "Provides TLS-based remote attestation mechanism in Teaclave."
 license = "Apache-2.0"
 edition = "2018"
 
-[features]
-default = []
-
 [dependencies]
-anyhow           = { version = "1.0.45", default-features = false, features = ["std"] }
-base64 = "0.13.0"
-bit-vec = "0.6.3"
-cfg-if = "1.0.0"
-chrono = "0.4.19"
-hex = "0.4.3"
-httparse         = { version = "1.5.1", default-features = false }
 log              = { version = "0.4.14", features = ["release_max_level_trace"]}
-num-bigint = "0.4.3"
-percent-encoding = "2.1.0"
-rustls           = { version = "0.19.1", features = ["dangerous_configuration"] }
-# sgx specific : disable the std feature of serde, instead use the alloc feature
-serde            = { version = "1.0.130", default-features = false, features = ["derive"] }
-serde_json       = { version = "1.0.69", default-features = false, features = ["alloc", "std"] }
 thiserror = "1.0.30"
-url = "2.2.2"
-uuid = "0.8.2"
-ring = "0.16.20"
-webpki           = { version = "0.21", features = ["std"] }
-webpki-roots     = { version = "0.21" }
-yasna            = { version = "0.4.0", features = ["chrono", "num-bigint", "bit-vec", "std"] }
 
 [target.'cfg(not(target_env = "sgx"))'.dependencies]
 sgx_types = { path = "../../../sdk/sgx_types" }

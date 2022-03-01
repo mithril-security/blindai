@@ -49,7 +49,7 @@ extern "C" {
 }
 
 #[no_mangle]
-pub extern "C" fn ocall_sgx_init_quote(
+extern "C" fn ocall_sgx_init_quote(
     p_att_key_id: *mut sgx_att_key_id_t,
     p_qe_target_info: *mut sgx_target_info_t,
 ) -> sgx_status_t {
@@ -88,7 +88,7 @@ pub extern "C" fn ocall_sgx_init_quote(
 }
 
 #[no_mangle]
-pub extern "C" fn ocall_sgx_get_quote_size(
+extern "C" fn ocall_sgx_get_quote_size(
     p_att_key_id: *const sgx_att_key_id_t,
     p_quote_size: *mut u32,
 ) -> sgx_status_t {
@@ -96,7 +96,7 @@ pub extern "C" fn ocall_sgx_get_quote_size(
 }
 
 #[no_mangle]
-pub extern "C" fn ocall_sgx_get_quote(
+extern "C" fn ocall_sgx_get_quote(
     p_report: *const sgx_report_t,
     p_att_key_id: *const sgx_att_key_id_t,
     p_qe_report_info: *mut sgx_qe_report_info_t,

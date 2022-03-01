@@ -1773,28 +1773,10 @@ source = "git+https://github.com/mithril-security/tar-rs-sgx.git?tag=0.4.33x#3bd
 name = "teaclave_attestation"
 version = "0.2.0"
 dependencies = [
- "anyhow",
- "base64",
- "bit-vec",
- "cfg-if",
- "chrono",
- "hex",
- "httparse",
  "log",
- "num-bigint 0.4.3",
- "percent-encoding",
- "ring",
- "rustls",
- "serde",
- "serde_json",
  "sgx_types",
  "sgx_urts",
  "thiserror",
- "url",
- "uuid",
- "webpki",
- "webpki-roots",
- "yasna 0.4.0",
 ]
 
 [[package]]
@@ -2262,12 +2244,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "uuid"
-version = "0.8.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bc5cf98d8186244414c848017f0e2676b3fcb46807f6668a97dfe67359a3c4b7"
-
-[[package]]
 name = "version_check"
 version = "0.9.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2481,9 +2457,7 @@ version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e262a29d0e61ccf2b6190d7050d4b237535fc76ce4c1210d9caa316f71dffa75"
 dependencies = [
- "bit-vec",
  "chrono",
- "num-bigint 0.4.3",
 ]
 
 [[package]]

@@ -98,7 +98,6 @@ async fn main(
     telemetry_platform: String,
     telemetry_uid: String,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    teaclave_attestation::logger_info("azaz");
     let _ = backtrace::enable_backtrace("enclave.signed.so", PrintFormat::Full);
     let (certificate, storage_identity) = identity::create_certificate()?;
     let my_identity = MyIdentity::from_cert(certificate, storage_identity);

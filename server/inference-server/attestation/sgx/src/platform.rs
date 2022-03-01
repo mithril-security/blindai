@@ -18,7 +18,10 @@
 //! This module provides SGX platform related functions like getting local
 //! report and transform into a remotely verifiable quote.
 
-use std::prelude::v1::*;
+extern crate sgx_types;
+extern crate sgx_tcrypto;
+extern crate sgx_rand;
+extern crate sgx_tse;
 
 use log::debug;
 use sgx_rand::{os::SgxRng, Rng};
@@ -152,7 +155,6 @@ pub fn get_sgx_quote(ak_id: &sgx_att_key_id_t, report: sgx_report_t) -> Result<V
     rng.fill_bytes(&mut quote_nonce.rand);
     qe_report_info.nonce = quote_nonce;
 
-    debug!("sgx_self_target");
     // Provide the target information of ourselves so that we can verify the QE report
     // returned with the quote
     let res = unsafe { sgx_self_target(std::ptr::addr_of_mut!(qe_report_info.app_enclave_target_info)) };

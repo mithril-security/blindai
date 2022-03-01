@@ -910,7 +910,7 @@ dependencies = [
  "lazy_static",
  "num-bigint 0.2.6",
  "num-integer",
- "yasna 0.3.2",
+ "yasna",
 ]
 
 [[package]]
@@ -1351,28 +1351,10 @@ dependencies = [
 name = "teaclave_attestation"
 version = "0.2.0"
 dependencies = [
- "anyhow",
- "base64",
- "bit-vec",
- "cfg-if",
- "chrono",
- "hex",
- "httparse",
  "log",
- "num-bigint 0.4.3",
- "percent-encoding",
- "ring",
- "rustls",
- "serde",
- "serde_json",
  "sgx_types",
  "sgx_urts",
  "thiserror",
- "url",
- "uuid",
- "webpki",
- "webpki-roots",
- "yasna 0.4.0",
 ]
 
 [[package]]
@@ -1742,12 +1724,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "68b90931029ab9b034b300b797048cf23723400aa757e8a2bfb9d748102f9821"
 
 [[package]]
-name = "uuid"
-version = "0.8.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bc5cf98d8186244414c848017f0e2676b3fcb46807f6668a97dfe67359a3c4b7"
-
-[[package]]
 name = "vcpkg"
 version = "0.2.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1862,15 +1838,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "webpki-roots"
-version = "0.21.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "aabe153544e473b775453675851ecc86863d2a81d786d741f6b76778f2a48940"
-dependencies = [
- "webpki",
-]
-
-[[package]]
 name = "which"
 version = "4.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1956,15 +1923,4 @@ checksum = "0de7bff972b4f2a06c85f6d8454b09df153af7e3a4ec2aac81db1b105b684ddb"
 dependencies = [
  "bit-vec",
  "num-bigint 0.2.6",
-]
-
-[[package]]
-name = "yasna"
-version = "0.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e262a29d0e61ccf2b6190d7050d4b237535fc76ce4c1210d9caa316f71dffa75"
-dependencies = [
- "bit-vec",
- "chrono",
- "num-bigint 0.4.3",
 ]
