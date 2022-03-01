@@ -28,13 +28,15 @@ impl SingleCertVerifier {
     }
 }
 
-/// Verify the certificate is exactly the one that was provided to SingleCertVerifier
-/// Will verify :
-///  - the presented certificate match the our certificate
-///  -Valid for DNS entry
+/// Verify the certificate matches the one provided
+///
+/// SingleCertVerifier will verify :
+/// - the presented certificate match the our certificate
+///
 /// However, it WILL NOT verify :
 /// - **Not Expired**
 /// - OCSP data is present
+/// - is valid for the DNS name provided
 impl ServerCertVerifier for SingleCertVerifier {
     fn verify_server_cert(
         &self,

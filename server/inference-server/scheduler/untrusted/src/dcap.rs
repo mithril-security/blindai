@@ -20,9 +20,8 @@ const FMSPC_SIZE: usize = 6; // FMSPC is 6 bytes long
 /// Parse the SGX extension from X509 certificate extension for SGX
 ///
 /// # Arguments
-/// * `i` - DER encoded SGXExtentions as defined in
-///    Chapter 1.5.1 Appendix A of https://api.trustedservices.intel.com/documents/Intel_SGX_PCK_Certificate_CRL_Spec-1.4.pdf
-///
+/// * `i` - DER encoded SGXExtentions as defined in Chapter 1.5.1 Appendix A of
+///  <https://api.trustedservices.intel.com/documents/Intel_SGX_PCK_Certificate_CRL_Spec-1.4.pdf>
 fn parse_sgx_extensions(
     i: &[u8],
 ) -> Result<(&[u8], Vec<SgxExtension>), der_parser::nom::Err<BerError>> {
@@ -37,13 +36,14 @@ fn parse_sgx_extensions(
 /// Convert any PCS CRL version to the V1/V2 PEM format
 ///
 /// Motivation :
-/// Intel CRLs from sgx_ql_qve_collateral_t are encoded differently depending on the version
-/// of the PCS.
-/// For PCS V1 and V2 APIs, the major_version = 1 and minor_version = 0 and the CRLs will be formatted in PEM.
-/// For PCS V3 APIs, the major_version = 3 and the minor_version can be either 0 or 1.
-/// A minor_verion of 0 indicates the CRL’s are formatted in Base16 encoded DER.
-/// A minor version of 1 indicates the CRL’s are formatted in raw binary DER.
-///
+/// Intel CRLs from sgx_ql_qve_collateral_t are encoded differently depending on
+/// the version of the PCS.
+/// * For PCS V1 and V2 APIs, the major_version = 1 and minor_version = 0 and
+///   the CRLs will be formatted in PEM.
+/// * For PCS V3 APIs, the major_version = 3 and the minor_version can be either
+///   0 or 1. A minor_verion of 0 indicates the CRL’s are formatted in Base16
+///   encoded DER. A minor version of 1 indicates the CRL’s are formatted in raw
+///   binary DER.
 fn pcs_crl_to_pem(crl: &[u8]) -> String {
     // if it is already in PEM format (format V1/V2)
     if pem::parse(crl).is_ok() {
@@ -70,9 +70,8 @@ const FMSPC_PARSING_ERROR: u32 = 1;
 /// Only the FMSPC value is extracted, the other extensions are ignored.
 ///
 /// # Arguments
-/// * `i` - DER encoded sGXExtensionValue as defined in
-///    Chapter 1.5.1 Appendix A of https://api.trustedservices.intel.com/documents/Intel_SGX_PCK_Certificate_CRL_Spec-1.4.pdf
-///
+/// * `i` - DER encoded sGXExtensionValue as defined in Chapter 1.5.1 Appendix A
+///   of <https://api.trustedservices.intel.com/documents/Intel_SGX_PCK_Certificate_CRL_Spec-1.4.pdf>
 fn parse_sgx_extension(i: &[u8]) -> BerResult<Option<SgxExtension>> {
     parse_der_sequence_defined_g(|i: &[u8], _| {
         let (i, a) = parse_der_oid(i)?;
@@ -104,13 +103,15 @@ fn parse_sgx_extension(i: &[u8]) -> BerResult<Option<SgxExtension>> {
 }
 
 fn get_fmspc_ca_from_quote(quote: &[u8]) -> Result<([u8; 6], CString, String, String)> {
-    // The following is basically what the internal QVL function get_fmspc_ca_from_quote does :
-    // https://github.com/intel/SGXDataCenterAttestationPrimitives/blob/master/QuoteVerification/QvE/Enclave/qve.cpp#L478
+    // The following is basically what the internal QVL function
+    // get_fmspc_ca_from_quote does :
+    // <https://github.com/intel/SGXDataCenterAttestationPrimitives/blob/master/QuoteVerification/QvE/Enclave/qve.cpp#L478>
     let quote = Quote::parse(quote).map_err(|_| anyhow!("Quote parsing failed!"))?;
 
-    // qe_certification_data is the Certification Data Variable Byte Array Data required
-    // to verify the QE Report Signature depending on the value of the Certification Data Type:
-    // . * 5: Concatenated PCK Cert Chain (PEM formatted). PCK Leaf Cert||Intermediate CA Cert|| Root CA Cert
+    // qe_certification_data is the Certification Data Variable Byte Array Data
+    // required to verify the QE Report Signature depending on the value of the
+    // Certification Data Type: . * 5: Concatenated PCK Cert Chain (PEM
+    // formatted). PCK Leaf Cert||Intermediate CA Cert|| Root CA Cert
     let cert_chain = match quote.signature {
         sgx_quote::Signature::EcdsaP256 {
             qe_certification_data: CertChain(x),
@@ -133,7 +134,8 @@ fn get_fmspc_ca_from_quote(quote: &[u8]) -> Result<([u8; 6], CString, String, St
 
     let (_, pck_cert) = X509Certificate::from_der(pck_cert_der)?;
 
-    // If the Certificate has no SGX extension, it is the wrong certificate probably Root CA or Intermediate CA
+    // If the Certificate has no SGX extension, it is the wrong certificate probably
+    // Root CA or Intermediate CA
     let sgx_extension_oid: Oid = Oid::from(sgx_pkix::oid::SGX_EXTENSION.components())
         .map_err(|e| Error::msg(format!("{:?})", e)))?;
     let sgx_ext = pck_cert
@@ -218,8 +220,9 @@ fn sgx_get_quote_verification_collateral(
     );
 
     // The strings inside quote_collateral struct are described by
-    // a *char and the size in bytes of the string including the terminating NULL character
-    // We don't want the ending NULL character in our Rust slices so we construct the slice with the ..._size - 1
+    // a *char and the size in bytes of the string including the terminating NULL
+    // character We don't want the ending NULL character in our Rust slices so
+    // we construct the slice with the ..._size - 1
     let (
         pck_crl_issuer_chain,
         root_ca_crl,
@@ -272,7 +275,8 @@ fn sgx_get_quote_verification_collateral(
         );
         qe_identity = str::from_utf8(qe_identity_slice)?.to_owned();
 
-        // We have copied every pointers to Rust owned String, so we can free the C allocated collateral struct
+        // We have copied every pointers to Rust owned String, so we can free the C
+        // allocated collateral struct
         let ret = sgx_ql_free_quote_verification_collateral(pp_quote_collateral);
         ensure!(
             ret == sgx_quote3_error_t::SGX_QL_SUCCESS,
@@ -298,7 +302,8 @@ fn sgx_get_quote_verification_collateral(
 }
 pub(crate) async fn get_collateral_from_quote(quote: &[u8]) -> Result<SgxCollateral> {
     // First we need to parse the quote to extract the fmspc and the right CA
-    // This will be neeeded to get the collateral from the SGX Quote provider library
+    // This will be neeeded to get the collateral from the SGX Quote provider
+    // library
     let (fmspc, ca_from_quote, pck_certificate, pck_signing_chain) =
         get_fmspc_ca_from_quote(quote)?;
 
@@ -313,13 +318,13 @@ pub(crate) async fn get_collateral_from_quote(quote: &[u8]) -> Result<SgxCollate
         mut qe_identity,
     } = sgx_get_quote_verification_collateral(&fmspc, &ca_from_quote)?;
 
-    // Azure VMs from DCsv3 and DCdsv3-series have a PCS that returns expired collateral.
-    // To avoid errors on the client, we directly get the TCB Info and Quoting Enclave
-    // from Intel API
+    // Azure VMs from DCsv3 and DCdsv3-series have a PCS that returns expired
+    // collateral. To avoid errors on the client, we directly get the TCB Info
+    // and Quoting Enclave from Intel API
     // Beware this is a dirty fix awaiting Azure response reponse.
-    // If Intel updates the TCB or the Quoting Enclave
-    // this will no longer work. This only works because even though the Azure collateral
-    // are expired, their current TCB and QE are still valid.
+    // If Intel updates the TCB or the Quoting Enclave this will no longer work.
+    // This only works because even though the Azure collateral are expired,
+    // their current TCB and QE are still valid.
     if std::env::var("BLINDAI_AZURE_DCSV3_PATCH").is_ok() {
         log::info!("The patch for Azure DCsv3 and DCdsv3-series VMs is enabled. Requesting collateral directly from Intel, bypassing the PCS.");
         // Get some collateral directly from Intel Trusted Service API

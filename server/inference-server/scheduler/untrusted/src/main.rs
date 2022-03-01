@@ -15,9 +15,9 @@
 // specific language governing permissions and limitations
 // under the License..
 
+extern crate attestation;
 extern crate sgx_types;
 extern crate sgx_urts;
-extern crate attestation;
 
 use std::{
     collections::hash_map::DefaultHasher,
@@ -59,7 +59,8 @@ pub struct State {}
 #[tonic::async_trait]
 impl untrusted_local_app_server::UntrustedLocalApp for State {
     // The request type gets wrapped in a `tonic::Request`.
-    // The response type gets wrapped in a `Result<tonic::Response<_>, tonic::Status>`.
+    // The response type gets wrapped in a `Result<tonic::Response<_>,
+    // tonic::Status>`.
     async fn get_collateral_from_quote(
         &self,
         request: tonic::Request<Vec<u8>>,
