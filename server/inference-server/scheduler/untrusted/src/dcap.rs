@@ -202,18 +202,15 @@ fn sgx_get_quote_verification_collateral(
     ca_from_quote: &CString,
 ) -> Result<SgxQlQveCollateral> {
     // Retrieve verification collateral using QPL
+    let mut p_quote_collateral: *mut sgx_ql_qve_collateral_t = ptr::null_mut();
 
-    let mut pp_quote_collateral: *mut sgx_ql_qve_collateral_t = ptr::null_mut();
-
-    let (quote_collateral, qv_ret) = unsafe {
-        let qv_ret = sgx_ql_get_quote_verification_collateral(
+    let qv_ret = unsafe {
+        sgx_ql_get_quote_verification_collateral(
             fmspc.as_ptr(),
             fmspc.len() as u16,
             ca_from_quote.as_ptr(),
-            &mut pp_quote_collateral as *mut *mut sgx_ql_qve_collateral_t,
-        );
-        let quote_collateral = &*pp_quote_collateral;
-        (quote_collateral, qv_ret)
+            &mut p_quote_collateral as *mut *mut sgx_ql_qve_collateral_t,
+        )
     };
 
     ensure!(
@@ -221,75 +218,95 @@ fn sgx_get_quote_verification_collateral(
         "sgx_ql_get_quote_verification_collateral failed!"
     );
 
-    // The strings inside quote_collateral struct are described by
-    // a *char and the size in bytes of the string including the terminating NULL
-    // character We don't want the ending NULL character in our Rust slices so
-    // we construct the slice with the ..._size - 1
-    let (
-        pck_crl_issuer_chain,
-        root_ca_crl,
-        pck_crl,
-        tcb_info_issuer_chain,
-        tcb_info,
-        qe_identity_issuer_chain,
-        qe_identity,
-    );
-    unsafe {
-        pck_crl_issuer_chain = slice::from_raw_parts(
-            quote_collateral.pck_crl_issuer_chain as *const u8,
-            quote_collateral.pck_crl_issuer_chain_size as usize - 1,
+    // SAFETY : p_quote_collateral points to a sgx_ql_qve_collateral_t variable
+    // allocated by the C library via sgx_ql_get_quote_verification_collateral
+    // It lives until we call sgx_ql_free_quote_verification_collateral, therefore
+    // we can dereference it
+
+    // The strings inside the sgx_ql_qve_collateral_t struct are described by a
+    // *char and the size in bytes of the string including the terminating NULL
+    // character. We don't want the ending NULL character in our Rust slices so we
+    // construct the slice with the ..._size - 1
+    // The slice content is then copied to Rust strings / Vec<u8>, so that the C QV
+    // library can latter free the "C" allocated strings
+
+    let pck_crl_issuer_chain = unsafe {
+        slice::from_raw_parts(
+            (&*p_quote_collateral).pck_crl_issuer_chain as *const u8,
+            (&*p_quote_collateral).pck_crl_issuer_chain_size as usize - 1,
         )
-        .to_owned();
+        .to_owned()
+    };
 
-        root_ca_crl = slice::from_raw_parts(
-            quote_collateral.root_ca_crl as *const u8,
-            quote_collateral.root_ca_crl_size as usize - 1,
+    let root_ca_crl = unsafe {
+        slice::from_raw_parts(
+            (&*p_quote_collateral).root_ca_crl as *const u8,
+            (&*p_quote_collateral).root_ca_crl_size as usize - 1,
         )
-        .to_owned();
+        .to_owned()
+    };
 
-        pck_crl = slice::from_raw_parts(
-            quote_collateral.pck_crl as *const u8,
-            quote_collateral.pck_crl_size as usize - 1,
+    let pck_crl = unsafe {
+        slice::from_raw_parts(
+            (&*p_quote_collateral).pck_crl as *const u8,
+            (&*p_quote_collateral).pck_crl_size as usize - 1,
         )
-        .to_owned();
+        .to_owned()
+    };
 
-        let tcb_info_issuer_chain_slice = slice::from_raw_parts(
-            quote_collateral.tcb_info_issuer_chain as *const u8,
-            quote_collateral.tcb_info_issuer_chain_size as usize - 1,
-        );
-        tcb_info_issuer_chain = str::from_utf8(tcb_info_issuer_chain_slice)?.to_owned();
+    let tcb_info_issuer_chain = {
+        let slice = unsafe {
+            slice::from_raw_parts(
+                (&*p_quote_collateral).tcb_info_issuer_chain as *const u8,
+                (&*p_quote_collateral).tcb_info_issuer_chain_size as usize - 1,
+            )
+        };
+        str::from_utf8(slice)?.to_owned()
+    };
 
-        let tcb_info_slice = slice::from_raw_parts(
-            quote_collateral.tcb_info as *const u8,
-            quote_collateral.tcb_info_size as usize - 1,
-        );
-        tcb_info = str::from_utf8(tcb_info_slice)?.to_owned();
+    let tcb_info = {
+        let slice = unsafe {
+            slice::from_raw_parts(
+                (&*p_quote_collateral).tcb_info as *const u8,
+                (&*p_quote_collateral).tcb_info_size as usize - 1,
+            )
+        };
+        str::from_utf8(slice)?.to_owned()
+    };
 
-        let qe_identity_issuer_chain_slice = slice::from_raw_parts(
-            quote_collateral.qe_identity_issuer_chain as *const u8,
-            quote_collateral.qe_identity_issuer_chain_size as usize - 1,
-        );
-        qe_identity_issuer_chain = str::from_utf8(qe_identity_issuer_chain_slice)?.to_owned();
+    let qe_identity_issuer_chain = {
+        let slice = unsafe {
+            slice::from_raw_parts(
+                (&*p_quote_collateral).qe_identity_issuer_chain as *const u8,
+                (&*p_quote_collateral).qe_identity_issuer_chain_size as usize - 1,
+            )
+        };
+        str::from_utf8(slice)?.to_owned()
+    };
 
-        let qe_identity_slice = slice::from_raw_parts(
-            quote_collateral.qe_identity as *const u8,
-            quote_collateral.qe_identity_size as usize - 1,
-        );
-        qe_identity = str::from_utf8(qe_identity_slice)?.to_owned();
+    let qe_identity = {
+        let slice = unsafe {
+            slice::from_raw_parts(
+                (&*p_quote_collateral).qe_identity as *const u8,
+                (&*p_quote_collateral).qe_identity_size as usize - 1,
+            )
+        };
+        str::from_utf8(slice)?.to_owned()
+    };
 
-        // We have copied every pointers to Rust owned String, so we can free the C
-        // allocated collateral struct
-        let ret = sgx_ql_free_quote_verification_collateral(pp_quote_collateral);
-        ensure!(
-            ret == sgx_quote3_error_t::SGX_QL_SUCCESS,
-            "sgx_ql_free_quote_verification_collateral failed!"
-        );
-    }
+    let version = unsafe { (&*p_quote_collateral).version };
 
-    let version = quote_collateral.version;
     let pck_crl_issuer_chain = pcs_crl_to_pem(&pck_crl_issuer_chain);
     let root_ca_crl = pcs_crl_to_pem(&root_ca_crl);
     let pck_crl = pcs_crl_to_pem(&pck_crl);
+
+    // SAFETY: C-FFI call to free the allocated sgx_ql_qve_collateral_t
+    let ret = unsafe { sgx_ql_free_quote_verification_collateral(p_quote_collateral) };
+
+    ensure!(
+        ret == sgx_quote3_error_t::SGX_QL_SUCCESS,
+        "sgx_ql_free_quote_verification_collateral failed!"
+    );
 
     Ok(SgxQlQveCollateral {
         version,
