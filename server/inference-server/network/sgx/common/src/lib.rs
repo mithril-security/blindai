@@ -89,11 +89,5 @@ pub struct SgxCollateral {
 // The `json` option says that we should use the `tokio-serde` Json codec for serialization.
 #[tonic_rpc(json)]
 pub trait UntrustedLocalApp {
-    // fn set_token(token:  String);
     fn get_collateral_from_quote(quote: Vec<u8>) -> SgxCollateral;
-}
-
-#[tonic_rpc(json)]
-pub trait LocalEnclave {
-    // fn get_quote() -> Vec<u8>;
 }
