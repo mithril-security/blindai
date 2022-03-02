@@ -108,7 +108,7 @@ class BlindAiClient:
                 found (in Hardware mode).
         """
         self.SIMULATION_MODE = simulation
-        self.DISABLE_UNTRUSTED_SERVER_CERT_CHECK = True
+        self.DISABLE_UNTRUSTED_SERVER_CERT_CHECK = simulation
         error = None
 
         addr = strip_https(addr)
