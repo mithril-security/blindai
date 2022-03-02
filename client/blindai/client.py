@@ -78,8 +78,8 @@ class BlindAiClient:
         self,
         addr: str,
         server_name="blindai-srv",
-        policy=None,
-        certificate=None,
+        policy="",
+        certificate="",
         simulation=False,
     ):
         """Connect to the server with the specified parameters.
@@ -104,6 +104,8 @@ class BlindAiClient:
             ValueError: Will be raised in case the policy doesn't match the
                 server identity and configuration.
             ConnectionError: will be raised if the connection with the server fails.
+            FileNotFoundError: will be raised if the policy file, or the certificate file is not
+                found (in Hardware mode).
         """
         self.SIMULATION_MODE = simulation
         self.DISABLE_UNTRUSTED_SERVER_CERT_CHECK = True
@@ -131,7 +133,7 @@ class BlindAiClient:
 
             except socket.error as socket_error:
                 error = ConnectionError(check_socket_exception(socket_error))
-            
+
             finally:
                 if error is not None:
                     raise error
@@ -190,7 +192,7 @@ class BlindAiClient:
             if error is not None:
                 raise error
 
-    def upload_model(self, model=None, shape=None, dtype=ModelDatumType.F32):
+    def upload_model(self, model="", shape=None, dtype=ModelDatumType.F32):
         """Upload an inference model to the server.
         The provided model needs to be in the Onnx format.
 
@@ -205,6 +207,7 @@ class BlindAiClient:
                 msg: Error message if any.
         Raises:
             ConnectionError: will be raised if the connection with the server fails.
+            FileNotFoundError: will be raised if the model file is not found.
         """
         response = SimpleReply()
         response.ok = False

@@ -49,7 +49,7 @@ def verify_dcap_attestation(
         }
     }
     :param quote: SGX quote
-    :param attestation_collateral: SGX collateral needed to assess the validity of the quote 
+    :param attestation_collateral: SGX collateral needed to assess the validity of the quote
         (collateral is signed by Intel)
     :param enclave_held_data: enclave held data
     :return: a dictionary of claims
