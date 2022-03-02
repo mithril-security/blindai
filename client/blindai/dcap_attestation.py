@@ -12,18 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import struct
-import hashlib
 import ctypes
-import toml
-from utils.utils import encode_certificate
-from typing import Any, Dict
-from bitstring import Bits
-
-from pybind11_module import status
-import pybind11_module
-
+import hashlib
 import pkgutil
+import struct
+from typing import Any, Dict
+
+import pybind11_module
+import toml
+from bitstring import Bits
+from pybind11_module import status
+from utils.utils import encode_certificate
 
 
 def verify_dcap_attestation(
@@ -31,8 +30,10 @@ def verify_dcap_attestation(
 ) -> Dict[str, str]:
     """
     verify_dcap_attestation verifies if the enclave evidence is valid
-    * validates if the quote is trustworthy (issued by an approved Intel CPU) with the attestation collateral using SGX Quote Verification Library
-    * validates if the SHA256 hash of Enclave Held Data (EHD) matches the first 32 bytes of reportData field in the enclave quote. After this check
+    * validates if the quote is trustworthy (issued by an approved Intel CPU) with the
+        attestation collateral using SGX Quote Verification Library
+    * validates if the SHA256 hash of Enclave Held Data (EHD) matches the first 32 bytes
+        of reportData field in the enclave quote. After this check
     we can be sure that the EHD bytes are endorsed by the enclave
     TODO: Handle the case where the retuned quote status is STATUS_TCB_SW_HARDENING_NEEDED
     We must do more cautious checks in this case in order to determine whether or not to accept the quote
@@ -48,7 +49,8 @@ def verify_dcap_attestation(
         }
     }
     :param quote: SGX quote
-    :param attestation_collateral: SGX collateral needed to assess the validity of the quote (collateral is signed by Intel)
+    :param attestation_collateral: SGX collateral needed to assess the validity of the quote
+        (collateral is signed by Intel)
     :param enclave_held_data: enclave held data
     :return: a dictionary of claims
     """
@@ -107,29 +109,27 @@ def verify_dcap_attestation(
 
 
 def load_policy(path: str):
-    try:
-        with open(path) as f:
-            policy = toml.load(f)
-            policy["misc_mask"] = int(policy["misc_mask_hex"], 16).to_bytes(
-                4, byteorder="little"
-            )
-            policy["misc_select"] = int(policy["misc_select_hex"], 16).to_bytes(
-                4, byteorder="little"
-            )
-            policy["attributes_flags"] = int(
-                policy["attributes_flags_hex"], 16
-            ).to_bytes(8, byteorder="little")
-            policy["attributes_xfrm"] = int(policy["attributes_xfrm_hex"], 16).to_bytes(
-                8, byteorder="little"
-            )
-            policy["attributes_mask_flags"] = int(
-                policy["attributes_mask_flags_hex"], 16
-            ).to_bytes(8, byteorder="little")
-            policy["attributes_mask_xfrm"] = int(
-                policy["attributes_mask_xfrm_hex"], 16
-            ).to_bytes(8, byteorder="little")
-    except:
-        policy = None
+    with open(path) as f:
+        policy = toml.load(f)
+        policy["misc_mask"] = int(policy["misc_mask_hex"], 16).to_bytes(
+            4, byteorder="little"
+        )
+        policy["misc_select"] = int(policy["misc_select_hex"], 16).to_bytes(
+            4, byteorder="little"
+        )
+        policy["attributes_flags"] = int(policy["attributes_flags_hex"], 16).to_bytes(
+            8, byteorder="little"
+        )
+        policy["attributes_xfrm"] = int(policy["attributes_xfrm_hex"], 16).to_bytes(
+            8, byteorder="little"
+        )
+        policy["attributes_mask_flags"] = int(
+            policy["attributes_mask_flags_hex"], 16
+        ).to_bytes(8, byteorder="little")
+        policy["attributes_mask_xfrm"] = int(
+            policy["attributes_mask_xfrm_hex"], 16
+        ).to_bytes(8, byteorder="little")
+
     return policy
 
 

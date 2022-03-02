@@ -6,6 +6,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2022-03-02
+### Changed
+- Remove the boolean that BlindAiClient.connect_server was returning.
+- Raise ConnectionFailed Exception when the connection to the server fails in BlindAiClient.connect_server.
+- Raise ConnectionFailed Exception when the connection to the server fails in BlindAiClient.upload_model, BlindAiClient.run_model instead of returning a response with ok=False. 
+
+### Added
+- Set a timeout when connecting to the server to request the certificate.
+
 ## [0.1.1] - 2022-02-15
 ### Added
 - Created the blindai client library.

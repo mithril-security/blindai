@@ -13,17 +13,21 @@
 # limitations under the License.
 
 import re
-import grpc
+
 import cryptography.x509
+import grpc
 from cryptography.hazmat.primitives.serialization import Encoding
 
 CHUNK_SIZE = 32 * 1024  # 32kb
 
+
 def strip_https(url: str):
     return re.sub(r"^https:\/\/", "", url)
 
+
 def encode_certificate(cert):
     return cryptography.x509.load_der_x509_certificate(cert).public_bytes(Encoding.PEM)
+
 
 def create_byte_chunk(data):
     sent_bytes = 0
@@ -33,19 +37,30 @@ def create_byte_chunk(data):
         )
         sent_bytes += min(CHUNK_SIZE, len(data) - sent_bytes)
 
+
 def check_rpc_exception(rpc_error):
     if rpc_error.code() == grpc.StatusCode.CANCELLED:
-        print(
-            f"Cancelled GRPC call: code={rpc_error.code()} message={rpc_error.details()}"
-        )
-        pass
+        return f"Cancelled GRPC call: code={rpc_error.code()} message={rpc_error.details()}"
+
     elif rpc_error.code() == grpc.StatusCode.UNAVAILABLE:
-        print(
-            f"Failed to connect to GRPC server: code={rpc_error.code()} message={rpc_error.details()}"
-        )
-        pass
+        return f"Failed to connect to GRPC server: code={rpc_error.code()} message={rpc_error.details()}"
+
     else:
-        print(
+        return (
             f"Received RPC error: code={rpc_error.code()} message={rpc_error.details()}"
         )
-        pass
+
+
+def check_socket_exception(socket_error):
+    if len(socket_error.args) >= 2:
+        error_code = socket_error.args[0]
+        error_message = socket_error.args[1]
+        return f"Failed To connect to the server due to Socket error : code={error_code} message={error_message}"
+
+    elif len(socket_error.args)==1:
+        error_message = socket_error.args[0]
+        return f"Failed To connect to the server due to Socket error : message={error_message}"
+
+    else:
+        return f"Failed To connect to the server due to Socket error "
+
