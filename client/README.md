@@ -15,12 +15,9 @@ $ pip install blindai
 ### Uploading a model
 
 ```python
-from transformers import DistilBertTokenizer, DistilBertForSequenceClassification
-import torch
+from transformers import DistilBertTokenizer
 from blindai.client import BlindAiClient, ModelDatumType
-
-# Get pretrained model
-model = DistilBertForSequenceClassification.from_pretrained("distilbert-base-uncased")
+import torch
 
 # Create dummy input for export
 tokenizer = DistilBertTokenizer.from_pretrained("distilbert-base-uncased")
@@ -34,14 +31,10 @@ torch.onnx.export(
 	input_names = ['input'], output_names = ['output'],
 	dynamic_axes={'input' : {0 : 'batch_size'},
 	'output' : {0 : 'batch_size'}})
-
+	
 # Launch client
 client = BlindAiClient()
-client.connect_server(
-    addr="localhost",
-    policy="policy.toml",
-    certificate="host_server.pem"
-)
+client.connect_server(addr="localhost", policy="policy.toml", certificate="host_server.pem")
 client.upload_model(model="./distilbert-base-uncased.onnx", shape=inputs.shape, dtype=ModelDatumType.I64)
 ```
 
@@ -50,20 +43,16 @@ client.upload_model(model="./distilbert-base-uncased.onnx", shape=inputs.shape, 
 from transformers import DistilBertTokenizer
 from blindai.client import BlindAiClient
 
+# Prepare the inputs
 tokenizer = DistilBertTokenizer.from_pretrained("distilbert-base-uncased")
-
-sentence = "Hello, my dog is cute"
+sentence = "I love AI and privacy!"
 inputs = tokenizer(sentence, padding = "max_length", max_length = 8)["input_ids"]
 
+# Load the client
 client = BlindAiClient()
-client.connect_server(
-    "localhost",
-    policy="policy.toml",
-    certificate="host_server.pem",
-    simulation=False
-)
+client.connect_server(addr="localhost", policy="policy.toml", certificate="host_server.pem")
 
-#Send the data and run the inference
+# Get prediction
 response = client.run_model(inputs)
 ```
 
