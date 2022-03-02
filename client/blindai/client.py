@@ -16,7 +16,6 @@ import logging
 import os
 import ssl
 from enum import IntEnum
-from socket import setdefaulttimeout
 import socket
 
 from cbor2 import dumps
@@ -43,7 +42,7 @@ from utils.utils import (
 )
 
 PORTS = {"untrusted_enclave": "50052", "attested_enclave": "50051"}
-TIMEOUT = 10
+CONNECTION_TIMEOUT = 10
 
 
 class ModelDatumType(IntEnum):
@@ -120,7 +119,7 @@ class BlindAiClient:
             logging.warning("Untrusted server certificate check bypassed")
 
             try:
-                setdefaulttimeout(TIMEOUT)
+                socket.setdefaulttimeout(CONNECTION_TIMEOUT)
                 untrusted_server_cert = ssl.get_server_certificate(
                     (addr, int(PORTS["untrusted_enclave"]))
                 )
@@ -133,7 +132,7 @@ class BlindAiClient:
 
             except socket.error as socket_error:
                 error = ConnectionError(check_socket_exception(socket_error))
-
+            
             finally:
                 if error is not None:
                     raise error
