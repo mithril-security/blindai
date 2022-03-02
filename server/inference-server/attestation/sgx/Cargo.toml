@@ -16,38 +16,16 @@
 # under the License.
 
 [package]
-name = "teaclave_attestation"
+name = "attestation"
 version = "0.2.0"
-authors = ["Teaclave Contributors <dev@teaclave.apache.org>"]
-description = "Provides TLS-based remote attestation mechanism in Teaclave."
+authors = ["Mithril Security"]
+description = "Rust bindings for SGX DCAP quote generation (forked from Apache Teaclave project)"
 license = "Apache-2.0"
 edition = "2018"
 
-[features]
-default = []
-
 [dependencies]
-anyhow           = { default-features = false, features = ["std"] }
-base64           = { }
-bit-vec          = { }
-cfg-if           = {  }
-chrono           = { }
-hex              = { }
-httparse         = { default-features = false }
-log              = { features = ["release_max_level_trace"]}
-num-bigint       = {  }
-percent-encoding = { }
-rustls           = { version = "0.19.1", features = ["dangerous_configuration"] }
-# sgx specific : disable the std feature of serde, instead use the alloc feature
-serde            = { default-features = false, features = ["derive"] }
-serde_json       = { default-features = false, features = ["alloc", "std"] }
-thiserror        = { }
-url              = { }
-uuid             = {  }
-ring = "0.16.20"
-webpki           = { version = "0.21", features = ["std"] }
-webpki-roots     = { version = "0.21" }
-yasna            = { features = ["chrono", "num-bigint", "bit-vec", "std"] }
+log              = { version = "0.4.14", features = ["release_max_level_trace"]}
+thiserror = "1.0.30"
 
 [target.'cfg(not(target_env = "sgx"))'.dependencies]
 sgx_types = { path = "../../../sdk/sgx_types" }

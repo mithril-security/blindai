@@ -39,13 +39,12 @@ pub struct NetworkConfig {
 }
 
 fn uri_to_socket(uri: &Uri) -> Result<SocketAddr> {
-    Ok(uri
-        .authority()
+    uri.authority()
         .context("No authority")?
         .as_str()
         .to_socket_addrs()?
         .next()
-        .context("Uri could not be converted to socket")?)
+        .context("Uri could not be converted to socket")
 }
 
 impl NetworkConfig {
@@ -90,11 +89,5 @@ pub struct SgxCollateral {
 // The `json` option says that we should use the `tokio-serde` Json codec for serialization.
 #[tonic_rpc(json)]
 pub trait UntrustedLocalApp {
-    // fn set_token(token:  String);
     fn get_collateral_from_quote(quote: Vec<u8>) -> SgxCollateral;
-}
-
-#[tonic_rpc(json)]
-pub trait LocalEnclave {
-    // fn get_quote() -> Vec<u8>;
 }

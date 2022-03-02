@@ -18,7 +18,10 @@
 //! This module provides SGX platform related functions like getting local
 //! report and transform into a remotely verifiable quote.
 
-use std::prelude::v1::*;
+extern crate sgx_rand;
+extern crate sgx_tcrypto;
+extern crate sgx_tse;
+extern crate sgx_types;
 
 use log::debug;
 use sgx_rand::{os::SgxRng, Rng};
@@ -114,8 +117,8 @@ pub fn create_sgx_isv_enclave_report(
 ) -> Result<sgx_report_t> {
     debug!("create_report");
 
-    // https://docs.microsoft.com/en-us/azure/attestation/basic-concepts 
-    // Azure Attestation will validate the provided “Quote”, 
+    // https://docs.microsoft.com/en-us/azure/attestation/basic-concepts
+    // Azure Attestation will validate the provided quote,
     // and will then ensure that the SHA256 hash of the provided Enclave Held Data
     // is expressed in the first 32 bytes of the reportData field in the quote.
 
@@ -152,10 +155,13 @@ pub fn get_sgx_quote(ak_id: &sgx_att_key_id_t, report: sgx_report_t) -> Result<V
     rng.fill_bytes(&mut quote_nonce.rand);
     qe_report_info.nonce = quote_nonce;
 
-    debug!("sgx_self_target");
     // Provide the target information of ourselves so that we can verify the QE report
     // returned with the quote
-    let res = unsafe { sgx_self_target(&mut qe_report_info.app_enclave_target_info as _) };
+    let res = unsafe {
+        sgx_self_target(std::ptr::addr_of_mut!(
+            qe_report_info.app_enclave_target_info
+        ))
+    };
 
     if res != SGX_SUCCESS {
         return Err(PlatformError::GetSelfTargetInfoError(res));

@@ -1,6 +1,8 @@
 // Adapted from https://github.com/Kixunil/tonic_lnd/blob/master/src/lib.rs#L165-L175
 // License MITNFA
 
+#![allow(unused)]
+
 use anyhow::Result;
 use rustls::{Certificate, RootCertStore, ServerCertVerified, ServerCertVerifier, TLSError};
 
@@ -26,19 +28,21 @@ impl SingleCertVerifier {
     }
 }
 
-/// Verify the certificate is exactly the one that was provided to SingleCertVerifier
-/// Will verify :
-///  - the presented certificate match the our certificate
-///  -Valid for DNS entry
+/// Verify the certificate matches the one provided
+///
+/// SingleCertVerifier will verify :
+/// - the presented certificate match the our certificate
+///
 /// However, it WILL NOT verify :
 /// - **Not Expired**
 /// - OCSP data is present
+/// - is valid for the DNS name provided
 impl ServerCertVerifier for SingleCertVerifier {
     fn verify_server_cert(
         &self,
         _roots: &RootCertStore,
         presented_certs: &[Certificate],
-        dns_name: webpki::DNSNameRef,
+        _dns_name: webpki::DNSNameRef,
         _ocsp_response: &[u8],
     ) -> Result<ServerCertVerified, TLSError> {
         match presented_certs {
