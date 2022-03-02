@@ -12,12 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from ftplib import error_proto
 import logging
 import os
 import ssl
 from enum import IntEnum
 from socket import setdefaulttimeout
+import socket
 
 from cbor2 import dumps
 from dcap_attestation import (
@@ -36,6 +36,7 @@ from untrusted_pb2 import GetSgxQuoteWithCollateralRequest as quote_request
 from untrusted_pb2_grpc import AttestationStub
 from utils.utils import (
     check_rpc_exception,
+    check_socket_exception,
     create_byte_chunk,
     encode_certificate,
     strip_https,
@@ -102,7 +103,7 @@ class BlindAiClient:
         Raises:
             ValueError: Will be raised in case the policy doesn't match the
                 server identity and configuration.
-            ConnectionError: will be raised if the connection to the server fails
+            ConnectionError: will be raised if the connection with the server fails.
         """
         self.SIMULATION_MODE = simulation
         self.DISABLE_UNTRUSTED_SERVER_CERT_CHECK = True
@@ -116,11 +117,11 @@ class BlindAiClient:
         if self.DISABLE_UNTRUSTED_SERVER_CERT_CHECK:
             logging.warning("Untrusted server certificate check bypassed")
 
-            setdefaulttimeout(TIMEOUT)
-            untrusted_server_cert = ssl.get_server_certificate(
-                (addr, int(PORTS["untrusted_enclave"]))
-            )
             try:
+                setdefaulttimeout(TIMEOUT)
+                untrusted_server_cert = ssl.get_server_certificate(
+                    (addr, int(PORTS["untrusted_enclave"]))
+                )
                 untrusted_server_creds = ssl_channel_credentials(
                     root_certificates=bytes(untrusted_server_cert, encoding="utf8")
                 )
@@ -128,6 +129,9 @@ class BlindAiClient:
             except RpcError as rpc_error:
                 error = ConnectionError(check_rpc_exception(rpc_error))
 
+            except socket.error as socket_error:
+                error = ConnectionError(check_socket_exception(socket_error))
+            
             finally:
                 if error is not None:
                     raise error
@@ -199,6 +203,8 @@ class BlindAiClient:
             SimpleReply object, containing two fields:
                 ok:  Set to True if model was loaded successfully, False otherwise
                 msg: Error message if any.
+        Raises:
+            ConnectionError: will be raised if the connection with the server fails.
         """
         response = SimpleReply()
         response.ok = False
@@ -248,6 +254,8 @@ class BlindAiClient:
                 output: array of floats. The inference results returned by the model.
                 ok:  Set to True if the inference was run successfully, False otherwise
                 msg: Error message if any.
+        Raises:
+            ConnectionError: will be raised if the connection to the server fails.
         """
 
         response = ModelResult()

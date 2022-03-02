@@ -49,3 +49,10 @@ def check_rpc_exception(rpc_error):
         return (
             f"Received RPC error: code={rpc_error.code()} message={rpc_error.details()}"
         )
+
+def check_socket_exception(socket_error):
+    error_code = socket_error.args[0]
+    error_message = socket_error.args[1]
+    return f"Failed To connect to the server due to Socket error : code={error_code} message={error_message}"
+    
+    
