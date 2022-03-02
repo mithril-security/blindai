@@ -4,6 +4,7 @@
 FROM ubuntu:18.04 AS base
 
 ENV CODENAME=bionic
+ENV UBUNTU_VERSION=18.04
 ENV VERSION=2.15.101.1-bionic1
 ENV DCAP_VERSION=1.12.101.1-bionic1
 ENV SGX_LINUX_X64_SDK=sgx_linux_x64_sdk_2.15.101.1.bin
@@ -172,6 +173,50 @@ RUN rustup self uninstall -y && \
     rm -rf /var/cache/apt/archives/*
 
 ADD docker/hardware-start.sh /root/start.sh
+
+EXPOSE 50052
+EXPOSE 50051
+
+CMD ["/root/start.sh"]
+
+#################################################
+### Hardware (production) mode - Azure DCs_v3 ###
+#################################################
+FROM base AS hardware-dcsv3
+
+# -- flag Azure DCs_v3 mode
+ENV BLINDAI_AZURE_DCSV3_PATCH=1
+
+# -- install azure_dcap_client, but we need to remove the default 
+# -- quote providing library in order to avoid conflicts
+RUN curl -sSL https://packages.microsoft.com/keys/microsoft.asc | apt-key add - && \
+    add-apt-repository "https://packages.microsoft.com/ubuntu/"$UBUNTU_VERSION"/prod" && \
+    apt-get update && \
+    apt-get remove -y libsgx-dcap-default-qpl && \
+    apt-get install -y az-dcap-client && \
+    ln -s /usr/lib/libdcap_quoteprov.so /usr/lib/x86_64-linux-gnu/libdcap_quoteprov.so.1
+
+# -- build
+COPY . ./server
+
+RUN --mount=type=cache,target=/root/server/target \
+    --mount=type=cache,target=/root/server/inference-server/scheduler/untrusted/target \
+    --mount=type=cache,target=/root/.cargo/git \
+    --mount=type=cache,target=/root/.cargo/registry \
+    make -C server SGX_MODE=HW all bin/tls/host_server.pem bin/tls/host_server.key && \
+    cp -r ./server/bin/* /root && \
+    cp ./server/policy.toml /root/policy.toml && \
+    (rm -rf ./server || true)
+
+# -- cleanup
+RUN rustup self uninstall -y && \
+    rm -rf .npm .xargo .wget-hsts && \
+    apt-get remove -y $BUILD_ONLY_DEPS && \
+    apt-get autoremove -y && \
+    rm -rf /var/lib/apt/lists/* && \
+    rm -rf /var/cache/apt/archives/*
+
+ADD docker/hardware-dcsv3.sh /root/start.sh
 
 EXPOSE 50052
 EXPOSE 50051
