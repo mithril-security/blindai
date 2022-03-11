@@ -16,4 +16,4 @@ jobs:
       - uses: actions-rs/audit-check@v1
         with:
           rust-version: ${{ matrix.rust }}
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token       : ${{ secrets.GITHUB_TOKEN }}
