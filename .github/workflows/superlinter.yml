@@ -45,14 +45,13 @@ jobs:
         with:
           # Full git history is needed to get a proper list of changed files within `super-linter`
           fetch-depth: 0
+          rust-version: ${{ matrix.rust }}
 
       ################################
       # Run Linter against code base #
       ################################
       - name: Lint Code Base
         uses: github/super-linter@v4
-        with:
-          rust-version: ${{ matrix.rust }}
         env:
           VALIDATE_ALL_CODEBASE: false
           DEFAULT_BRANCH: master
