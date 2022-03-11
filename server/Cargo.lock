@@ -686,7 +686,7 @@ dependencies = [
 
 [[package]]
 name = "inference_server"
-version = "0.2.0"
+version = "0.2.2"
 dependencies = [
  "anyhow",
  "attestation",
