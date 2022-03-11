@@ -1,24 +1,19 @@
-on: [push]
-
-name: build
-
+name: Security audit
+on:
+  push:
+    paths: 
+      - '**/Cargo.toml'
+      - '**/Cargo.lock'
 jobs:
-  check:
-    name: Rust project
+  security_audit:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        rust: ['nightly-2021-11-01']
+        
     steps:
-      - uses: actions/checkout@v2
-      - name: Install nightly-2021-11-01
-        uses: actions-rs/toolchain@v1
+      - uses: actions/checkout@v1
+      - uses: actions-rs/audit-check@v1
         with:
-            toolchain: nightly-2021-11-01
-            override: false
-            components: rustfmt, clippy
-
-      # `cargo check` command here will use installed `nightly`
-      # as it is set as an "override" for current directory
-
-      - name: Run cargo check
-        uses: actions-rs/cargo@v1
-        with:
-          command: check
+          rust-version: ${{ matrix.rust }}
+          token: ${{ secrets.GITHUB_TOKEN }}
