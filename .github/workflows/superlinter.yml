@@ -32,7 +32,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        rust: ['nightly-2021-11-01']
+        rust: ['1.31.0']
     ##################
     # Load all steps #
     ##################
