@@ -1,19 +1,12 @@
 name: Security audit
 on:
-  push:
-    paths: 
-      - '**/Cargo.toml'
-      - '**/Cargo.lock'
+  schedule:
+    - cron: '0 0 * * *'
 jobs:
-  security_audit:
+  audit:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        rust: ['nightly-2021-11-01']
-        
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
       - uses: actions-rs/audit-check@v1
         with:
-          rust-version: ${{ matrix.rust }}
-          token       : ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
