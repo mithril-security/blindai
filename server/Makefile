@@ -25,11 +25,14 @@ $(SSL_CERT_KEY):
 	@openssl req -newkey rsa:2048 -nodes -keyout bin/tls/host_server.key  \
 		-x509 -days 365 -out bin/tls/host_server.pem \
 		-subj "/C=FR/CN=blindai-srv"
+	@cp bin/tls/host_server.pem host_server.pem
 
 $(ENCLAVE_METADATA): enclave
 
 bin/policy.toml: $(ENCLAVE_METADATA)
-	python3 tools/gen_enclave_info_toml.py < $(ENCLAVE_METADATA) > bin/policy.toml
+	@echo "\033[32mGenerating policy...\033[0m"
+	@python3 tools/gen_enclave_info_toml.py < $(ENCLAVE_METADATA) > bin/policy.toml
+	@cp bin/policy.toml policy.toml
 
 check-and-reinit-submodules:
 	@if git submodule status | egrep -q '^[-]|^[+]' ; then \
