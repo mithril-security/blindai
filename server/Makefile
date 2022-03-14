@@ -31,8 +31,7 @@ $(ENCLAVE_METADATA): enclave
 
 bin/policy.toml: $(ENCLAVE_METADATA)
 	@echo "\033[32mGenerating policy...\033[0m"
-	@python3 tools/gen_enclave_info_toml.py < $(ENCLAVE_METADATA) > bin/policy.toml
-	@cp bin/policy.toml policy.toml
+	@python3 tools/gen_enclave_info_toml.py < $(ENCLAVE_METADATA) > policy.toml
 
 check-and-reinit-submodules:
 	@if git submodule status | egrep -q '^[-]|^[+]' ; then \
