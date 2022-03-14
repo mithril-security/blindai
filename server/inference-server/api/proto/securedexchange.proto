@@ -20,11 +20,20 @@ service Exchange {
     rpc RunModel (stream Data) returns (ModelResult);
 }
 
+enum DatumTypeEnum {
+    F32 = 0;
+    F64 = 1;
+    I32 = 2;
+    I64 = 3;
+    U32 = 4;
+    U64 = 5;
+};
+
 message Model {
     bytes data = 1;
     uint64 length = 2;
     repeated int32 input_fact = 3;
-    int32 datum = 4;
+    DatumTypeEnum datum = 4;
 }
 
 message Data {
