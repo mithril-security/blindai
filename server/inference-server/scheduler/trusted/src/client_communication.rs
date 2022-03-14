@@ -28,10 +28,8 @@ use std::sync::{Arc, SgxMutex as Mutex};
 use std::vec::Vec;
 
 use futures::StreamExt;
-use num_derive::FromPrimitive;
-use num_traits::FromPrimitive;
 use secured_exchange::exchange_server::Exchange;
-use secured_exchange::{Data, Model, ModelResult, SimpleReply};
+use secured_exchange::{Data, Model, ModelResult, SimpleReply, DatumTypeEnum};
 use tonic::{Request, Response, Status};
 use tract_core::internal::*;
 use tract_onnx::prelude::tract_ndarray::IxDynImpl;
@@ -45,25 +43,19 @@ pub mod secured_exchange {
 
 pub type OnnxModel = SimplePlan<TypedFact, Box<dyn TypedOp>, Graph<TypedFact, Box<dyn TypedOp>>>;
 
-#[derive(Debug, FromPrimitive, PartialEq)]
-pub enum ModelDatumType {
-    F32 = 0,
-    F64 = 1,
-    I32 = 2,
-    I64 = 3,
-    U32 = 4,
-    U64 = 5,
-}
+pub type ModelDatumType = DatumTypeEnum;
 
-fn get_datum_type(datum: &Option<ModelDatumType>) -> TractResult<DatumType> {
-    match *datum {
-        Some(ModelDatumType::F32) => return Ok(f32::datum_type()),
-        Some(ModelDatumType::F64) => return Ok(f64::datum_type()),
-        Some(ModelDatumType::I32) => return Ok(i32::datum_type()),
-        Some(ModelDatumType::I64) => return Ok(i64::datum_type()),
-        Some(ModelDatumType::U32) => return Ok(u32::datum_type()),
-        Some(ModelDatumType::U64) => return Ok(u64::datum_type()),
-        None => return Err(anyhow!("Unknown type")),
+impl ModelDatumType {
+    fn get_datum_type(datum: &Option<ModelDatumType>) -> TractResult<DatumType> {
+        match *datum {
+            Some(Self::F32) => return Ok(f32::datum_type()),
+            Some(Self::F64) => return Ok(f64::datum_type()),
+            Some(Self::I32) => return Ok(i32::datum_type()),
+            Some(Self::I64) => return Ok(i64::datum_type()),
+            Some(Self::U32) => return Ok(u32::datum_type()),
+            Some(Self::U64) => return Ok(u64::datum_type()),
+            None => return Err(anyhow!("Unknown type")),
+        }
     }
 }
 
@@ -88,7 +80,7 @@ fn load_model(
     datum: &Option<ModelDatumType>,
 ) -> TractResult<OnnxModel> {
     let mut model_slice = &model[..];
-    let datum_type = get_datum_type(datum)?;
+    let datum_type = ModelDatumType::get_datum_type(datum)?;
     let model_rec = tract_onnx::onnx()
         // load the model
         .model_for_read(&mut model_slice)?
@@ -117,7 +109,7 @@ fn run_inference(
     input_fact: &Vec<usize>,
     datum: &Option<ModelDatumType>,
 ) -> TractResult<Vec<f32>> {
-    let tensor = dispatch_numbers!(create_tensor(get_datum_type(datum)?)(input, &input_fact))?;
+    let tensor = dispatch_numbers!(create_tensor(ModelDatumType::get_datum_type(datum)?)(input, &input_fact))?;
     let result = model.run(tvec!(tensor))?;
     let arr = result[0].to_array_view::<f32>()?;
     Ok(arr
@@ -183,7 +175,7 @@ impl Exchange for Exchanger {
             model_size: model_bytes.len(),
         });
 
-        let datum = FromPrimitive::from_i32(model_proto.datum);
+        let datum = ModelDatumType::from_i32(model_proto.datum);
         match load_model(model_bytes, model_proto.input_fact.clone(), &datum) {
             Ok(model_rec) => {
                 *self.model.lock().unwrap() = Some(model_rec);
