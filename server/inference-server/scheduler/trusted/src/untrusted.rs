@@ -89,4 +89,15 @@ impl Attestation for MyAttestation {
         };
         Ok(Response::new(reply))
     }
+
+    async fn get_server_info(
+        &self,
+        _request: Request<GetServerInfoRequest>,
+    ) -> Result<Response<GetServerInfoReply>, Status> {
+        const VERSION: &str = env!("CARGO_PKG_VERSION");
+        let reply = GetServerInfoReply {
+            version: VERSION.to_string(),
+        };
+        Ok(Response::new(reply))
+    }
 }

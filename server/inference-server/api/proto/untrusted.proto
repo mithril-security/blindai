@@ -20,6 +20,7 @@ service Attestation {
     rpc GetCertificate(GetCertificateRequest) returns (GetCertificateReply);
     rpc GetToken (GetTokenRequest) returns (GetTokenReply);
     rpc GetSgxQuoteWithCollateral(GetSgxQuoteWithCollateralRequest) returns (GetSgxQuoteWithCollateralReply);
+    rpc GetServerInfo(GetServerInfoRequest) returns (GetServerInfoReply);
 }
 
 message GetCertificateRequest {
@@ -69,3 +70,11 @@ message SgxCollateral{
     string pck_certificate = 9;
     string pck_signing_chain = 10;
 }
+
+message GetServerInfoRequest {
+
+}
+
+message GetServerInfoReply {
+    string version = 1;
+} 
