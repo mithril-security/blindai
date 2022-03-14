@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import re
-
+import os
 import cryptography.x509
 import grpc
 from cryptography.hazmat.primitives.serialization import Encoding
@@ -57,10 +57,30 @@ def check_socket_exception(socket_error):
         error_message = socket_error.args[1]
         return f"Failed To connect to the server due to Socket error : code={error_code} message={error_message}"
 
-    elif len(socket_error.args)==1:
+    elif len(socket_error.args) == 1:
         error_message = socket_error.args[0]
         return f"Failed To connect to the server due to Socket error : message={error_message}"
 
     else:
         return f"Failed To connect to the server due to Socket error "
 
+
+
+def read(filename):
+    return open(os.path.join(os.path.dirname(__file__), filename)).read()
+
+
+def supported_server_version(version):
+    supported_version_file = read("../supported_server_version.py")
+    version_re = r"__version__ = \"(?P<version>.+)\""
+    supported_version = (
+        re.match(version_re, supported_version_file).group("version").split(".")
+    )
+    server_version = version.split(".")
+    for i in range(len(server_version)):
+        if supported_version[i] < server_version[i]:
+            return False
+        elif supported_version[i] > server_version[i]:
+            # The client should support older versions of the server
+            return True
+    return True
