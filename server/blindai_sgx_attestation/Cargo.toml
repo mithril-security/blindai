@@ -1,0 +1,15 @@
+[package]
+authors = ["Mithril Security"]
+description = "Rust bindings for SGX DCAP quote generation (forked from Apache Teaclave project)"
+edition = "2018"
+license = "Apache-2.0"
+name = "blindai_sgx_attestation"
+version = "0.2.2"
+
+[dependencies]
+log = {version = "0.4.14", features = ["release_max_level_trace"]}
+thiserror = "1.0.30"
+
+[target.'cfg(not(target_env = "sgx"))'.dependencies]
+sgx_types = {path = "../sgx_sdk/sgx_types"}
+sgx_urts = {path = "../sgx_sdk/sgx_urts"}

@@ -1,3 +1,3 @@
 #!/bin/sh
 cd /root
-./app
+./blindai_app

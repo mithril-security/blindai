@@ -1,2 +1,2 @@
-[build]
-rustflags = ["-C", "target-feature=+rdrnd,+rdseed,+lvi-cfi,+lvi-load-hardening"]
+[target.'x86_64-mesalock-unknown-sgx']
+rustflags = ["-C", "target-feature=+rdrnd,+rdseed,+lvi-cfi,+lvi-load-hardening", "-Z", "force-unstable-if-unmarked"]

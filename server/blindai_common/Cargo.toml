@@ -1,0 +1,15 @@
+[package]
+authors = ["Mithril Security"]
+edition = "2018"
+license = "Apache-2.0"
+name = "blindai_common"
+version = "0.2.2"
+
+[dependencies]
+anyhow = "=1.0.45"
+http = "0.2.5"
+serde = {version = "1.0.130", features = ["derive"]}
+tokio = {version = "1.0", features = ["rt"]}
+tokio-stream = {version = "0.1", features = ["net"]}
+tonic = "0.5.2"
+tonic-rpc = {version = "0.1.1", features = ["json"]}
