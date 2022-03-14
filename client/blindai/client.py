@@ -33,7 +33,7 @@ from securedexchange_pb2_grpc import ExchangeStub
 from untrusted_pb2 import (
     GetCertificateRequest as certificate_request,
     GetSgxQuoteWithCollateralRequest as quote_request,
-    GetServerInfoRequest as server_info_request
+    GetServerInfoRequest as server_info_request,
 )
 from untrusted_pb2_grpc import AttestationStub
 from utils.utils import (
@@ -42,7 +42,7 @@ from utils.utils import (
     create_byte_chunk,
     encode_certificate,
     strip_https,
-    supported_server_version
+    supported_server_version,
 )
 
 PORTS = {"untrusted_enclave": "50052", "attested_enclave": "50051"}
@@ -137,7 +137,7 @@ class BlindAiClient:
 
             except socket.error as socket_error:
                 error = ConnectionError(check_socket_exception(socket_error))
-            
+
             finally:
                 if error is not None:
                     raise error
@@ -159,7 +159,9 @@ class BlindAiClient:
 
             response = stub.GetServerInfo(server_info_request())
             if not supported_server_version(response.version):
-                raise ValueError("The server version is not supported. Please update your client.")
+                raise ValueError(
+                    "The server version is not supported. Please update your client."
+                )
 
             if self.SIMULATION_MODE:
                 logging.warning(
