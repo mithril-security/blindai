@@ -57,10 +57,9 @@ def check_socket_exception(socket_error):
         error_message = socket_error.args[1]
         return f"Failed To connect to the server due to Socket error : code={error_code} message={error_message}"
 
-    elif len(socket_error.args)==1:
+    elif len(socket_error.args) == 1:
         error_message = socket_error.args[0]
         return f"Failed To connect to the server due to Socket error : message={error_message}"
 
     else:
         return f"Failed To connect to the server due to Socket error "
-

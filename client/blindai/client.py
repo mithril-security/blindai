@@ -44,11 +44,12 @@ from utils.utils import (
 PORTS = {"untrusted_enclave": "50052", "attested_enclave": "50051"}
 CONNECTION_TIMEOUT = 10
 
-ModelDatumType = IntEnum('ModelDatumType',DatumTypeEnum.items())
+ModelDatumType = IntEnum("ModelDatumType", DatumTypeEnum.items())
+
 
 class BlindAiClient:
     def __init__(self, debug_mode=False):
-        
+
         self.channel = None
         self.policy = None
         self.stub = None
@@ -124,7 +125,7 @@ class BlindAiClient:
 
             except socket.error as socket_error:
                 error = ConnectionError(check_socket_exception(socket_error))
-            
+
             finally:
                 if error is not None:
                     raise error
