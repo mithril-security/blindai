@@ -30,6 +30,7 @@ use env_logger::Env;
 #[cfg(target_env = "sgx")]
 use std::backtrace::{self, PrintFormat};
 use std::ffi::CStr;
+use std::sync::Arc;
 
 use log::*;
 use sgx_types::*;
@@ -66,6 +67,7 @@ mod dcap_quote_provider;
 mod identity;
 mod telemetry;
 mod untrusted;
+mod model;
 
 #[no_mangle]
 pub extern "C" fn start_server(
@@ -100,8 +102,8 @@ async fn main(
     telemetry_uid: String,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let _ = backtrace::enable_backtrace("enclave.signed.so", PrintFormat::Full);
-    let (certificate, storage_identity) = identity::create_certificate()?;
-    let my_identity = MyIdentity::from_cert(certificate, storage_identity);
+    let (certificate, storage_identity, signing_key_seed) = identity::create_certificate()?;
+    let my_identity = Arc::new(MyIdentity::from_cert(certificate, storage_identity, signing_key_seed));
     let enclave_identity = my_identity.tls_identity.clone();
 
     // Read network config into network_config
@@ -136,7 +138,7 @@ async fn main(
         }
     });
 
-    let exchanger = Exchanger::new(network_config.max_model_size, network_config.max_input_size);
+    let exchanger = Exchanger::new(my_identity.clone(), network_config.max_model_size, network_config.max_input_size);
 
     let server_future = Server::builder()
         .tls_config(ServerTlsConfig::new().identity((&enclave_identity).into()))?

@@ -15,29 +15,76 @@
 syntax = "proto3";
 package securedexchange;
 
+import "google/protobuf/timestamp.proto";
+
 service Exchange {
-    rpc SendModel (stream Model) returns (SimpleReply);
-    rpc RunModel (stream Data) returns (ModelResult);
+    // Upload a model to the server
+    rpc SendModel (stream SendModelRequest) returns (SendModelReply);
+    // Run an existing model to the server
+    rpc RunModel (stream RunModelRequest) returns (RunModelReply);
 }
 
-message Model {
+// Payload header
+message PayloadHeader {
+    // Timestamp at which the server sent the response
+    // note: this is using the server's untrusted os clock
+    google.protobuf.Timestamp issued_at = 1;
+}
+
+// Payload of a response
+// This payload is serialized in each rpc's reponse `payload` field), and may be associated
+// with a signature
+message Payload {
+    PayloadHeader header = 1;
+    oneof payload {
+        SendModelPayload send_model_payload = 2;
+        RunModelPayload run_model_payload = 3;
+    }
+}
+
+/* SendModel */
+
+message SendModelRequest {
     bytes data = 1;
     uint64 length = 2;
     repeated int32 input_fact = 3;
     int32 datum = 4;
+    // whether or not the server should sign the reply
+    bool sign = 5;
 }
 
-message Data {
-    bytes input = 1;
+message SendModelReply {
+    // This is a serialized `Payload` message
+    bytes payload = 1;
+    // Signature of the payload
+    // This field is not present when `sign` is `true` in the request
+    optional bytes signature = 2;
 }
 
-message ModelResult {
+message SendModelPayload {
+    string model_id = 1;
+}
+
+/* RunModel */
+
+message RunModelRequest {
+    string model_id = 1;
+    bytes input = 2;
+    // whether or not the server should sign the reply
+    bool sign = 3;
+}
+
+message RunModelReply {
+    // This is a serialized `Payload` message
+    bytes payload = 1;
+    // Signature of the payload
+    // This field is not present when `sign` is `true` in the request
+    optional bytes signature = 2;
+}
+
+message RunModelPayload {
     repeated float output = 1;
-    bool ok = 2;
-    string msg = 3;
-}
-
-message SimpleReply {
-    bool ok = 1;
-    string msg = 2;
+    string model_id = 2;
+    // Raw SHA-256 hash of the protobuf binary encoding of the repeated float input from RunModelRequest
+    optional bytes input_hash = 3;
 }

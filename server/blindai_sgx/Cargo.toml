@@ -31,6 +31,7 @@ rand = "*"
 rcgen = {version = "0.8.13", default-features = false}
 reqwest = {version = "=0.11.4", default-features = false, features = ["json", "rustls-tls-webpki-roots"]}
 ring = "0.16.20"
+ring-compat = "0.4.0"
 rsa = {version = "*"}
 serde = "1.0.130"
 serde_cbor = "=0.11.1"
@@ -46,6 +47,7 @@ tract-core = {version = "0.15.9-pre"}
 tract-onnx = {version = "0.15.9-pre"}
 x509-parser = "*"
 h2 = "=0.3.4"
+prost-types = "=0.8"
 
 [target.'cfg(not(target_env = "sgx"))'.dependencies]
 sgx_libc = {git = "https://github.com/apache/teaclave-sgx-sdk.git"}
