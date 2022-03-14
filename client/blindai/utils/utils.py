@@ -65,6 +65,7 @@ def check_socket_exception(socket_error):
         return f"Failed To connect to the server due to Socket error "
 
 
+
 def read(filename):
     return open(os.path.join(os.path.dirname(__file__), filename)).read()
 
