@@ -18,5 +18,5 @@ use tonic_rpc::tonic_rpc;
 // The `json` option says that we should use the `tokio-serde` Json codec for serialization.
 #[tonic_rpc(json)]
 pub trait UntrustedLocalApp {
-    fn set_token(token:  String);
+    fn set_token(token: String);
 }

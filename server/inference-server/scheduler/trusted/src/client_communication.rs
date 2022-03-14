@@ -29,7 +29,7 @@ use std::vec::Vec;
 
 use futures::StreamExt;
 use secured_exchange::exchange_server::Exchange;
-use secured_exchange::{Data, Model, ModelResult, SimpleReply, DatumTypeEnum};
+use secured_exchange::{Data, DatumTypeEnum, Model, ModelResult, SimpleReply};
 use tonic::{Request, Response, Status};
 use tract_core::internal::*;
 use tract_onnx::prelude::tract_ndarray::IxDynImpl;
@@ -109,7 +109,10 @@ fn run_inference(
     input_fact: &Vec<usize>,
     datum: &Option<ModelDatumType>,
 ) -> TractResult<Vec<f32>> {
-    let tensor = dispatch_numbers!(create_tensor(ModelDatumType::get_datum_type(datum)?)(input, &input_fact))?;
+    let tensor = dispatch_numbers!(create_tensor(ModelDatumType::get_datum_type(datum)?)(
+        input,
+        &input_fact
+    ))?;
     let result = model.run(tvec!(tensor))?;
     let arr = result[0].to_array_view::<f32>()?;
     Ok(arr
