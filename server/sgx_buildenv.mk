@@ -1,22 +1,3 @@
-# Licensed to the Apache Software Foundation (ASF) under one
-# or more contributor license agreements.  See the NOTICE file
-# distributed with this work for additional information
-# regarding copyright ownership.  The ASF licenses this file
-# to you under the Apache License, Version 2.0 (the
-# "License"); you may not use this file except in compliance
-# with the License.  You may obtain a copy of the License at
-#
-#   http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing,
-# software distributed under the License is distributed on an
-# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-# KIND, either express or implied.  See the License for the
-# specific language governing permissions and limitations
-# under the License..
-#
-#
-
 CP    := /bin/cp -f
 MKDIR := mkdir -p
 STRIP := strip
@@ -42,24 +23,17 @@ COMMON_FLAGS += -Wall -Wextra -Winit-self -Wpointer-arith -Wreturn-type \
 		-Wmissing-include-dirs -Wfloat-equal -Wundef -Wshadow \
 		-Wcast-align -Wconversion -Wredundant-decls
 
-# additional warnings flags for C
 CFLAGS += -Wjump-misses-init -Wstrict-prototypes -Wunsuffixed-float-constants
-
-# additional warnings flags for C++
 CXXFLAGS += -Wnon-virtual-dtor
-
-# for static_assert()
 CXXFLAGS += -std=c++0x
 
 .DEFAULT_GOAL := all
-# this turns off the RCS / SCCS implicit rules of GNU Make
 % : RCS/%,v
 % : RCS/%
 % : %,v
 % : s.%
 % : SCCS/s.%
 
-# If a rule fails, delete $@.
 .DELETE_ON_ERROR:
 
 HOST_FILE_PROGRAM := file
@@ -96,7 +70,6 @@ endif
 CFLAGS   += $(COMMON_FLAGS)
 CXXFLAGS += $(COMMON_FLAGS)
 
-# Enable the security flags
 COMMON_LDFLAGS := -Wl,-z,relro,-z,now,-z,noexecstack
 
 # mitigation options
@@ -148,14 +121,6 @@ endif
 
 MITIGATION_CFLAGS += $(MITIGATION_ASFLAGS)
 
-# Compiler and linker options for an Enclave
-#
-# We are using '--export-dynamic' so that `g_global_data_sim' etc.
-# will be exported to dynamic symbol table.
-#
-# When `pie' is enabled, the linker (both BFD and Gold) under Ubuntu 14.04
-# will hide all symbols from dynamic symbol table even if they are marked
-# as `global' in the LD version script.
 ENCLAVE_CFLAGS   = -ffreestanding -nostdinc -fvisibility=hidden -fpie -fno-strict-overflow -fno-delete-null-pointer-checks
 ENCLAVE_CXXFLAGS = $(ENCLAVE_CFLAGS) -nostdinc++
 ENCLAVE_LDFLAGS  = $(COMMON_LDFLAGS) -Wl,-Bstatic -Wl,-Bsymbolic -Wl,--no-undefined \

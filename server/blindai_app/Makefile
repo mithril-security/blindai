@@ -1,14 +1,14 @@
 # Makefile settings - Host part
 
-LIB = ../../../tmp/lib/
-BIN = ../../../bin/
+LIB = ../tmp/lib/
+BIN = ../bin/
 SRC_RST = ./src/
-APP_U = app
+APP_U = blindai_app
 APP_T = enclave.so
 NAME_U = libEnclave_u.a
 SRC_U = ./
-SRC_T = ../trusted/
-OBJ_U = ../../../tmp/obj/
+SRC_T = ../blindai_sgx/
+OBJ_U = ../tmp/obj/
 SGX_SDK = /opt/sgxsdk
 FLAGS = -Wall -Wextra
 GCC_STEP1_U = -I $(SRC_U) -I./include -I$(SGX_SDK)/include -I$(CUSTOM_EDL_PATH) -fPIC -Wno-attributes $(SGX_COMMON_CFLAGS)
@@ -30,7 +30,7 @@ FILES_RUST_F= $(wildcard $(SRC_RST)*.rs) # Wildcare function used, no need to sp
 
 # Contains compilation rules for the enclave part
 
-include ../buildenv.mk
+include ../sgx_buildenv.mk
 
 # Custom librairies, EDL paths. Needs to be specified with make (CUSTOM_EDL_PATH) (CUSTOM_COMMON_PATH)
 
@@ -99,7 +99,7 @@ endif
 	@cd $(SRC_U) && SGX_SDK=$(SGX_SDK) cargo build --release
 	@echo "\033[32mCopying the host to the correct location... ($(BIN_U))\033[0m"
 	@mkdir -p $(BIN)
-	@cp $(SRC_U)/target/release/app $(BIN)
+	@cp $(SRC_U)/../target/release/blindai_app $(BIN)
 
 clean: c_clean
 	@rm -rf $(OBJ_U)

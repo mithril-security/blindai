@@ -1,8 +1,8 @@
 # C files generated automatically from .edl
-inference-server/scheduler/untrusted/Enclave_u.c
-inference-server/scheduler/untrusted/Enclave_u.h
-inference-server/scheduler/trusted/Enclave_t.c
-inference-server/scheduler/trusted/Enclave_t.h
+blindai_app/Enclave_u.c
+blindai_app/Enclave_u.h
+blindai_sgx/Enclave_t.c
+blindai_sgx/Enclave_t.h
 
 obj/
 lib/
@@ -16,14 +16,14 @@ host_server.pem
 host_server.key
 
 # Compilation artifacts
-inference-server/scheduler/trusted/target
-inference-server/scheduler/trusted/vendor
-inference-server/scheduler/untrusted/target
-inference-server/scheduler/trusted/enclave.meta.txt
+blindai_sgx/target
+blindai_sgx/vendor
+blindai_app/target
+blindai_sgx/enclave.meta.txt
 
-inference-server/scheduler/trusted/Enclave_private.pem
-inference-server/scheduler/trusted/Enclave_public.pem
-inference-server/scheduler/trusted/enclave.metadata.txt
+blindai_sgx/Enclave_private.pem
+blindai_sgx/Enclave_public.pem
+blindai_sgx/enclave.metadata.txt
 
 ## Python 
 # Byte-compiled / optimized / DLL files 

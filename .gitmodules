@@ -1,5 +1,5 @@
 [submodule "server/sdk"]
-	path = server/sdk
+	path = server/sgx_sdk
 	url = https://github.com/mithril-security/teaclave-sgx-sdk.git
 	branch = v1.1.4-dev
 [submodule "client/third_party/pybind11"]

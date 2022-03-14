@@ -15,7 +15,7 @@
 // specific language governing permissions and limitations
 // under the License..
 
-extern crate attestation;
+extern crate blindai_sgx_attestation;
 extern crate sgx_types;
 extern crate sgx_urts;
 
@@ -26,13 +26,13 @@ use std::{
     os::raw::c_char,
 };
 
+use blindai_common::{untrusted_local_app_server, SgxCollateral};
 use env_logger::Env;
 use log::{error, info};
 
 use sgx_types::*;
 use sgx_urts::SgxEnclave;
 
-use common::{untrusted_local_app_server, *};
 use std::{env, fs::File, io::Read};
 
 use tonic::transport::Server;
@@ -114,7 +114,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut file = File::open("config.toml")?;
     let mut contents = String::new();
     file.read_to_string(&mut contents)?;
-    let network_config: common::NetworkConfig = toml::from_str(&contents)?;
+    let network_config: blindai_common::NetworkConfig = toml::from_str(&contents)?;
 
     info!(
         "Starting server for Enclave --> Host internal communication at {}",

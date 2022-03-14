@@ -1,0 +1,55 @@
+[package]
+authors = ["Mithril Security"]
+build = "build.rs"
+edition = "2018"
+license = "Apache-2.0"
+name = "blindai_app"
+version = "0.2.2"
+
+[dependencies] # You can specify the features you need for urts, such as global_exit and global_init
+blindai_sgx_attestation = {path = '../blindai_sgx_attestation'}
+env_logger = "*"
+pkix = "*"
+sgx-quote = "*"
+sgx_pkix = "*"
+sgx_types = {path = "../sgx_sdk/sgx_types"}
+sgx_urts = {path = "../sgx_sdk/sgx_urts"}
+
+hex = "0.4.3"
+reqwest = {version = "0.11.4"}
+urlencoding = "2.1.0"
+
+anyhow = "1.0.45"
+blindai_common = {path = "../blindai_common"}
+blindai_rpc = {path = "../blindai_rpc"}
+der-parser = "6.0.0"
+log = "0.4.14"
+prost = {version = "0.8", default-features = false, features = ["prost-derive"]}
+tokio = {version = "1.0", features = ["full"]}
+tokio-stream = {version = "0.1", features = ["net"]}
+tonic = {version = "0.5", features = ["tls"]}
+tonic-rpc = {version = "0.1.1", features = ["json"]}
+x509-parser = "0.12.0"
+
+# Need to pin serde_json to 1.0.69 because we can't use 1.0.70 with current compiler, see below:
+# error[E0658]: use of unstable library feature 'btree_retain'
+#    --> /root/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_json-1.0.70/src/map.rs:263:18
+#     |
+# 263 |         self.map.retain(f);
+#     |                  ^^^^^^
+#     |
+#     = note: see issue #79025 <https://github.com/rust-lang/rust/issues/79025> for more information
+#     = help: add `#![feature(btree_retain)]` to the crate attributes to enable
+serde_json = "=1.0.69"
+
+# dangerous_configuration flag is needed to implement custom certificate validation
+# see the self_signed_tls module
+base16 = "0.2.1"
+pem = "1.0.1"
+rustls = {version = "0.19.1", features = ["dangerous_configuration"]}
+toml = "*"
+webpki = "0.21.4"
+whoami = "1.2.1"
+
+[build-dependencies]
+tonic-build = "0.5"

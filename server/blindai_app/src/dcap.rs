@@ -1,5 +1,5 @@
 use anyhow::{anyhow, bail, ensure, Context, Error, Result};
-use common::SgxCollateral;
+use blindai_common::SgxCollateral;
 use der_parser::{
     der::*,
     error::{self, BerError, BerResult},

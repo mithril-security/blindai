@@ -1,12 +1,12 @@
 # Dummy makefile, will call the host and enclave makefile when requested.
 
-SRC_U = inference-server/scheduler/untrusted/
-SRC_T = inference-server/scheduler/trusted/
+SRC_U = blindai_app
+SRC_T = blindai_sgx
 
-CUSTOM_EDL_PATH != realpath 'sdk/edl'
-CUSTOM_COMMON_PATH != realpath 'sdk/common'
-XARGO_PATH != realpath 'sdk/xargo'
-ENCLAVE_METADATA = inference-server/scheduler/trusted/enclave.meta.txt
+CUSTOM_EDL_PATH != realpath 'sgx_sdk/edl'
+CUSTOM_COMMON_PATH != realpath 'sgx_sdk/common'
+XARGO_PATH != realpath 'sgx_sdk/xargo'
+ENCLAVE_METADATA = blindai_sgx/enclave.meta.txt
 
 export CUSTOM_EDL_PATH CUSTOM_COMMON_PATH XARGO_PATH
 
@@ -14,7 +14,7 @@ SSL_CERT_KEY = bin/tls/host_server.pem bin/tls/host_server.key
 
 # Compilation process, will call the appropriate makefiles.
 
-all: host enclave policy.toml
+all: host enclave bin/policy.toml $(SSL_CERT_KEY)
 
 init: check-and-reinit-submodules $(SSL_CERT_KEY)
 
@@ -25,12 +25,11 @@ $(SSL_CERT_KEY):
 	@openssl req -newkey rsa:2048 -nodes -keyout bin/tls/host_server.key  \
 		-x509 -days 365 -out bin/tls/host_server.pem \
 		-subj "/C=FR/CN=blindai-srv"
-	@cp bin/tls/host_server.pem .
 
 $(ENCLAVE_METADATA): enclave
 
-policy.toml: $(ENCLAVE_METADATA)
-	python3 tools/gen_enclave_info_toml.py < $(ENCLAVE_METADATA) > policy.toml
+bin/policy.toml: $(ENCLAVE_METADATA)
+	python3 tools/gen_enclave_info_toml.py < $(ENCLAVE_METADATA) > bin/policy.toml
 
 check-and-reinit-submodules:
 	@if git submodule status | egrep -q '^[-]|^[+]' ; then \

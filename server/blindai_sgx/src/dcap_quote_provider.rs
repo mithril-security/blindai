@@ -15,7 +15,7 @@
 use ring::{digest, digest::Digest};
 use sgx_types::sgx_ql_att_key_id_t;
 
-use attestation::platform;
+use blindai_sgx_attestation::platform;
 
 pub(crate) struct DcapQuoteProvider {
     hash: Digest,

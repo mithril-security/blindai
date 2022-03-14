@@ -1,14 +1,14 @@
 # Makefile settings
 
 APP_T_SIGNED = enclave.signed.so
-LIB = ../../../tmp/lib/
-BIN = ../../../bin/
+LIB = ../tmp/lib/
+BIN = ../bin/
 SRC_RST = ./src/
 APP_T = enclave.so
 NAME_T = libenclave.a
-SRC_U = ../untrusted/
+SRC_U = ../blindai_app
 SRC_T = ./
-OBJ_T = ../../../tmp/obj/
+OBJ_T = ../tmp/obj/
 SGX_SDK = /opt/sgxsdk
 FLAGS = -Wall -Wextra
 GCC_STEP1_T = -fstack-protector -I$(CUSTOM_COMMON_PATH)/inc -I$(CUSTOM_EDL_PATH) -I$(SGX_SDK)/include \
@@ -28,7 +28,7 @@ SGX_ARCH = x64
 SGX_SDK = /opt/sgxsdk
 TRTS_LIB = sgx_trts
 SERVICE_LIB = sgx_tservice
-ENCLAVE_CARGO_LIB=libinference_server.a # This is the name of the enclave static library compiled by Cargo/Xargo. You will have to change it, depending of your project.
+ENCLAVE_CARGO_LIB=libblindai_sgx.a
 # Addprefix dependant variables, no need to change those
 OUTPUT_T = $(FILES_T:.c=.o)
 NAME = $(addprefix $(BIN), $(APP_T_SIGNED))
@@ -42,7 +42,7 @@ FILES_RUST_F= $(wildcard $(SRC_RST)*.rs) # Wildcare function used, no need to sp
 
 # Contains compilation rules for the enclave part
 
-include ../buildenv.mk
+include ../sgx_buildenv.mk
 
 # Custom header files and EDL paths needs to be specified with make (CUSTOM_EDL_PATH) (CUSTOM_COMMON_PATH) Same goes for Xargo location (XARGO_PATH)
 
@@ -104,7 +104,7 @@ endif
 	@mkdir -p $(BIN)
 	@openssl rsa -in Enclave_private.pem -pubout -out Enclave_public.pem
 	@$(SGX_ENCLAVE_SIGNER) sign -key $(SRC_T)Enclave_private.pem -enclave $(BIN_T) -out $@ -config $(SRC_T)Enclave.config.xml -dumpfile enclave.meta.txt
-	@cp  $(CONFIG_TOML) ../../../bin
+	@cp  $(CONFIG_TOML) ../bin
 
 Enclave_private.pem:
 	@openssl genrsa -out Enclave_private.pem -3 3072
@@ -118,7 +118,7 @@ $(NAME_T_D): $(FILES_T_F) $(OUTPUT_W_FT) $(FILES_RUST_F) $(EDL_FILE) $(ENCLAVE_C
 	@echo "\033[32mBuilding enclave static library with Xargo...\033[0m"
 # RUSTFLAGS="-Z force-unstable-if-unmarked" is needed because https://github.com/apache/incubator-teaclave-sgx-sdk/issues/231
 	@RUSTFLAGS="-Z force-unstable-if-unmarked" RUST_TARGET_PATH=$(XARGO_PATH) xargo build --target x86_64-mesalock-unknown-sgx --release 
-	@cp ../../../target/x86_64-mesalock-unknown-sgx/release/$(ENCLAVE_CARGO_LIB) $(LIB)libenclave.a
+	@cp ../target/x86_64-mesalock-unknown-sgx/release/$(ENCLAVE_CARGO_LIB) $(LIB)libenclave.a
 
 $(FILES_T_F): $(SGX_EDGER8R) $(SRC_T)/Enclave.edl
 	@echo "\033[32mGenerating trusted SGX C edl files...\033[0m"

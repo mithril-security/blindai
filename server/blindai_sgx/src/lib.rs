@@ -12,16 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#![crate_name = "inference_server"]
+#![crate_name = "blindai_sgx"]
 #![crate_type = "staticlib"]
 #![feature(once_cell)]
 
 extern crate env_logger;
-#[cfg(target_env = "sgx")]
 extern crate sgx_libc;
-#[cfg(target_env = "sgx")]
 extern crate sgx_tseal;
-#[cfg(target_env = "sgx")]
 extern crate sgx_types;
 extern crate tract_core;
 extern crate tract_onnx;
@@ -30,6 +27,7 @@ extern crate serde_cbor;
 extern crate serde_derive;
 
 use env_logger::Env;
+#[cfg(target_env = "sgx")]
 use std::backtrace::{self, PrintFormat};
 use std::ffi::CStr;
 
@@ -75,7 +73,10 @@ pub extern "C" fn start_server(
     telemetry_uid: *const c_char,
 ) -> sgx_status_t {
     env_logger::Builder::from_env(Env::default().default_filter_or("info")).init();
+
+    #[cfg(target_env = "sgx")]
     let _ = backtrace::enable_backtrace("enclave.signed.so", PrintFormat::Full);
+
     info!("Switched to enclave context");
 
     let telemetry_platform = unsafe { CStr::from_ptr(telemetry_platform) };
@@ -107,7 +108,7 @@ async fn main(
     let mut file = File::open("config.toml")?;
     let mut contents = String::new();
     file.read_to_string(&mut contents)?;
-    let network_config: common::NetworkConfig = toml::from_str(&contents)?;
+    let network_config: blindai_common::NetworkConfig = toml::from_str(&contents)?;
 
     let dcap_quote_provider = DcapQuoteProvider::new(&enclave_identity.cert_der);
     let dcap_quote_provider: &'static DcapQuoteProvider = Box::leak(Box::new(dcap_quote_provider));

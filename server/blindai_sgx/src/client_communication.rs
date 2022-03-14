@@ -12,19 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-extern crate env_logger;
-extern crate num_derive;
-extern crate num_traits;
-extern crate sgx_libc;
-extern crate sgx_tseal;
-extern crate sgx_types;
-extern crate tract_core;
-extern crate tract_onnx;
-
 use log::*;
 use std::convert::TryInto;
 use std::mem::size_of;
-use std::sync::{Arc, SgxMutex as Mutex};
+use std::sync::Arc;
+#[cfg(not(target_env = "sgx"))]
+use std::sync::Mutex;
+#[cfg(target_env = "sgx")]
+use std::sync::SgxMutex as Mutex;
 use std::vec::Vec;
 
 use futures::StreamExt;
