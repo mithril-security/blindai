@@ -25,24 +25,8 @@ client = BlindAiClient()
 client.connect_server(addr="localhost", simulation=True)
 
 client.upload_model(model="./distilbert-base-uncased.onnx", shape=inputs.shape, dtype=ModelDatumType.I64, sign=True)
-"""
-	TODO: 
-	- The server must give two different ids if for two uploaded models
-	
-"""
 inputs = tokenizer(sentence, padding = "max_length", max_length = 8)["input_ids"]
 
 response = client.run_model(inputs, sign=True)
-client.export_proof()
 
-"""
-	FURTHER ENHANCEMENTS:
-	- The client can request from the server a list of the uploaded model ids (if it has the right to access it)
-	- Add "ok" and "msg" fields to replies (And even "ok" will be replaced by error codes in the future)
-	- Probably editing the format of execution_proof file
-"""
-"""
-	QUESTIONS:
-	- Should the client be able to decide at each request if the response would be signed or not
-	or fix the decision when initiating the connection? 
-"""
+client.export_proof()

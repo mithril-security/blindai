@@ -52,21 +52,35 @@ def check_rpc_exception(rpc_error):
             f"Received RPC error: code={rpc_error.code()} message={rpc_error.details()}"
         )
 
+
 def check_socket_exception(socket_error):
     if len(socket_error.args) >= 2:
         error_code = socket_error.args[0]
         error_message = socket_error.args[1]
         return f"Failed To connect to the server due to Socket error : code={error_code} message={error_message}"
 
-    elif len(socket_error.args)==1:
+    elif len(socket_error.args) == 1:
         error_message = socket_error.args[0]
         return f"Failed To connect to the server due to Socket error : message={error_message}"
 
     else:
         return f"Failed To connect to the server due to Socket error "
 
+
 def get_enclave_signing_key(server_cert):
     ENCLAVE_ED25519_SIGNING_KEY_OID = ObjectIdentifier("1.3.6.1.3.2")
-    enclave_ed25519_signing_key = load_pem_x509_certificate(server_cert).extensions.get_extension_for_oid(ENCLAVE_ED25519_SIGNING_KEY_OID).value.value
-    enclave_signing_key = Ed25519PublicKey.from_public_bytes(enclave_ed25519_signing_key)
+    enclave_ed25519_signing_key = (
+        load_pem_x509_certificate(server_cert)
+        .extensions.get_extension_for_oid(ENCLAVE_ED25519_SIGNING_KEY_OID)
+        .value.value
+    )
+    enclave_signing_key = Ed25519PublicKey.from_public_bytes(
+        enclave_ed25519_signing_key
+    )
     return enclave_signing_key
+
+
+class SignatureError(Exception):
+    """This exception is raised when the signature or the returned digest is invalid"""
+
+    pass
