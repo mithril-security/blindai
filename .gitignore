@@ -166,3 +166,4 @@ ex.c
 
 # User files
 *.onnx
+*proof.json

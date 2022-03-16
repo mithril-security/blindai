@@ -12,18 +12,25 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from dataclasses import dataclass, field
 import ctypes
 import hashlib
 import pkgutil
 import struct
 from typing import Any, Dict, List
-
+from untrusted_pb2 import GetSgxQuoteWithCollateralReply
 import pybind11_module
 import toml
 from bitstring import Bits
 from pybind11_module import status
 
 from utils.utils import encode_certificate
+
+@dataclass
+class Proof:
+    ctx: GetSgxQuoteWithCollateralReply = None
+    replies: List[Any] = field(default_factory=list)
+    
 
 def verify_dcap_attestation(
     quote: bytes, attestation_collateral: Any, enclave_held_data: bytes

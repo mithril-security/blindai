@@ -17,6 +17,9 @@ import os
 import ssl
 from enum import IntEnum
 import socket
+import dataclasses
+import json
+from google.protobuf.json_format import MessageToDict
 
 from cbor2 import dumps
 from dcap_attestation import (
@@ -24,6 +27,7 @@ from dcap_attestation import (
     load_policy,
     verify_claims,
     verify_dcap_attestation,
+    Proof
 )
 from grpc import RpcError, secure_channel, ssl_channel_credentials
 
@@ -71,6 +75,7 @@ class BlindAiClient:
             os.environ["GRPC_TRACE"] = "transport_security,tsi"
             os.environ["GRPC_VERBOSITY"] = "DEBUG"
         self.SIMULATION_MODE = False
+        self.proof = Proof()
 
     def _is_connected(self):
         return self.channel is not None
@@ -167,7 +172,7 @@ class BlindAiClient:
             else:
                 self.policy = load_policy(policy)
                 response = stub.GetSgxQuoteWithCollateral(quote_request())
-                proof.ctx = response
+                self.proof.ctx = response
                 claims = verify_dcap_attestation(
                     response.quote, response.collateral, response.enclave_held_data
                 )
@@ -252,7 +257,8 @@ class BlindAiClient:
         if sign:
             # Should raise an exception if the signature is not valid
             self.enclave_signing_key.verify(response.signature, response.payload)
-        
+            self.proof.replies.append(response)
+
         model_id = Payload.FromString(response.payload).send_model_payload.model_id
         #self.model_ids.add(model_id)
         return model_id
@@ -315,7 +321,8 @@ class BlindAiClient:
         # Response Verification
         if sign:
             self.enclave_signing_key.verify(response.signature, response.payload)
-        
+            self.proof.replies.append(response)
+
         # Get the payload
         inference_response = Payload.FromString(response.payload).run_model_payload
         return inference_response
@@ -327,3 +334,7 @@ class BlindAiClient:
             self.channel = None
             self.stub = None
             self.policy = None
+
+    def export_proof(self):
+        with open('execution_proof.json', 'w') as proof_file:
+            json.dump(dataclasses.asdict(self.proof), proof_file, default = MessageToDict)
