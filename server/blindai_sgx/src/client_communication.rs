@@ -63,7 +63,7 @@ impl Exchange for Exchanger {
         request: Request<tonic::Streaming<SendModelRequest>>,
     ) -> Result<Response<SendModelReply>, Status> {
         let mut stream = request.into_inner();
-        let mut datum = ModelDatumType::U32; // dummy
+        let mut datum = ModelDatumType::I64; // dummy (changed for test)
 
         let mut input_fact: Vec<usize> = Vec::new();
         let mut model_bytes: Vec<u8> = Vec::new();

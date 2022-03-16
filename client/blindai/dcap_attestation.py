@@ -16,14 +16,14 @@ import ctypes
 import hashlib
 import pkgutil
 import struct
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 import pybind11_module
 import toml
 from bitstring import Bits
 from pybind11_module import status
-from utils.utils import encode_certificate
 
+from utils.utils import encode_certificate
 
 def verify_dcap_attestation(
     quote: bytes, attestation_collateral: Any, enclave_held_data: bytes
@@ -107,7 +107,6 @@ def verify_dcap_attestation(
 
     return claims
 
-
 def load_policy(path: str):
     with open(path) as f:
         policy = toml.load(f)
@@ -131,7 +130,6 @@ def load_policy(path: str):
         ).to_bytes(8, byteorder="little")
 
     return policy
-
 
 def verify_claims(claims, policy):
     if claims["sgx-mrenclave"] != policy["mr_enclave"]:
@@ -159,7 +157,6 @@ def verify_claims(claims, policy):
     ):
         raise ValueError("SGX MISC SELECT bytes do not conform to the policy")
 
-
 def get_server_cert(claims):
     """
     Get the server certificate from the Azure Attestation claims
@@ -167,3 +164,4 @@ def get_server_cert(claims):
     :return: The PEM-encoded server certificate as a byte string
     """
     return encode_certificate(claims["sgx-ehd"])
+

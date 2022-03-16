@@ -17,6 +17,8 @@ import re
 import cryptography.x509
 import grpc
 from cryptography.hazmat.primitives.serialization import Encoding
+from cryptography.x509 import ObjectIdentifier, load_pem_x509_certificate
+from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
 
 CHUNK_SIZE = 32 * 1024  # 32kb
 
@@ -50,7 +52,6 @@ def check_rpc_exception(rpc_error):
             f"Received RPC error: code={rpc_error.code()} message={rpc_error.details()}"
         )
 
-
 def check_socket_exception(socket_error):
     if len(socket_error.args) >= 2:
         error_code = socket_error.args[0]
@@ -64,3 +65,8 @@ def check_socket_exception(socket_error):
     else:
         return f"Failed To connect to the server due to Socket error "
 
+def get_enclave_signing_key(server_cert):
+    ENCLAVE_ED25519_SIGNING_KEY_OID = ObjectIdentifier("1.3.6.1.3.2")
+    enclave_ed25519_signing_key = load_pem_x509_certificate(server_cert).extensions.get_extension_for_oid(ENCLAVE_ED25519_SIGNING_KEY_OID).value.value
+    enclave_signing_key = Ed25519PublicKey.from_public_bytes(enclave_ed25519_signing_key)
+    return enclave_signing_key
