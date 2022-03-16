@@ -138,8 +138,10 @@ dmypy.json
 scratch.txt
 
 # notebook
-*.ipynb
 .ipynb_checkpoints
+
+# ONNX
+*.onnx
 
 # Vectors
 *.wordvectors

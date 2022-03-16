@@ -48,10 +48,19 @@ message SendModelRequest {
     bytes data = 1;
     uint64 length = 2;
     repeated int32 input_fact = 3;
-    int32 datum = 4;
+    DatumTypeEnum datum = 4;
     // whether or not the server should sign the reply
     bool sign = 5;
 }
+
+enum DatumTypeEnum {
+    F32 = 0;
+    F64 = 1;
+    I32 = 2;
+    I64 = 3;
+    U32 = 4;
+    U64 = 5;
+};
 
 message SendModelReply {
     // This is a serialized `Payload` message
