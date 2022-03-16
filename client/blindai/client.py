@@ -20,6 +20,7 @@ import socket
 import dataclasses
 import json
 from google.protobuf.json_format import MessageToDict
+from hashlib import sha256
 
 from cbor2 import dumps
 from dcap_attestation import (
@@ -50,6 +51,8 @@ from utils.utils import (
     get_enclave_signing_key
 )
 
+from cryptography.exceptions import InvalidSignature
+
 PORTS = {"untrusted_enclave": "50052", "attested_enclave": "50051"}
 CONNECTION_TIMEOUT = 10
 
@@ -63,6 +66,11 @@ class ModelDatumType(IntEnum):
     U64 = 5
 
 
+class SignatureError(Exception):
+    """This exception is raised when the signature or the returned digest is invalid"""
+    pass
+
+
 class BlindAiClient:
     def __init__(self, debug_mode=False):
 
@@ -70,7 +78,7 @@ class BlindAiClient:
         self.policy = None
         self.stub = None
         self.enclave_signing_key = None
-        self.model_ids = set()
+        # self.model_ids = set()
         if debug_mode:
             os.environ["GRPC_TRACE"] = "transport_security,tsi"
             os.environ["GRPC_VERBOSITY"] = "DEBUG"
@@ -220,6 +228,7 @@ class BlindAiClient:
         Raises:
             ConnectionError: will be raised if the connection with the server fails.
             FileNotFoundError: will be raised if the model file is not found.
+            SignatureError: will be raised if the response signature is invalid
         """
         response = None
         if dtype is None:
@@ -254,16 +263,23 @@ class BlindAiClient:
             if error is not None:
                 raise error
 
+        payload = Payload.FromString(response.payload).send_model_payload
         if sign:
             # Should raise an exception if the signature is not valid
-            self.enclave_signing_key.verify(response.signature, response.payload)
-            self.proof.replies.append(response)
+            try:
+                self.enclave_signing_key.verify(response.signature, response.payload)
+            except InvalidSignature:
+                raise SignatureError("Invalid signature")
+            if sha256(data).digest() != payload.model_hash:
+                raise SignatureError("Invalid returned model_hash")
+            if input_fact != payload.input_fact:
+                raise SignatureError("Invalid returned input_fact")
+            self.proof.replies.append({ "method": "upload_model", "response": response })
+        
+        #self.model_ids.add(response.model_id)
+        # return model_id
 
-        model_id = Payload.FromString(response.payload).send_model_payload.model_id
-        #self.model_ids.add(model_id)
-        return model_id
-
-    def run_model(self, data_list, model_id, sign=True):
+    def run_model(self, data_list, sign=True):
         """Send data to the server to make a secure inference
 
         The data provided must be in a list, as the tensor will be rebuilt inside the server.
@@ -274,24 +290,23 @@ class BlindAiClient:
         Returns:
             ModelResult object, containing three fields:
                 output: array of floats. The inference results returned by the model.
-                ok:  Set to True if the inference was run successfully, False otherwise
-                msg: Error message if any.
         Raises:
             ConnectionError: will be raised if the connection to the server fails.
+            SignatureError: will be raised if the response signature is invalid
         """
 
         if not self._is_connected():
             raise ConnectionError("Not connected to the server")
 
-        if model_id not in self.model_ids:
-            """
-            TODO: 
-                Add a request for the server to return the list of uploaded model_ids
-                Add other fileds to the replies to mention when errors happen in the server side
-                (Like requesting to run a non-existing model)
-            """
+        # if model_id not in self.model_ids:
+        #     """
+        #     TODO: 
+        #         Add a request for the server to return the list of uploaded model_ids
+        #         Add other fileds to the replies to mention when errors happen in the server side
+        #         (Like requesting to run a non-existing model)
+        #     """
 
-            pass
+        #     pass
         error = None
         try:
             serialized_bytes = dumps(data_list)
@@ -300,7 +315,7 @@ class BlindAiClient:
                     [
                         RunModelRequest(
                             input=serialized_bytes_chunk,
-                            model_id=model_id,
+                            # model_id=model_id,
                             sign=sign
                         )
 
@@ -319,13 +334,18 @@ class BlindAiClient:
                 raise error
 
         # Response Verification
+        payload = Payload.FromString(response.payload).run_model_payload
         if sign:
-            self.enclave_signing_key.verify(response.signature, response.payload)
-            self.proof.replies.append(response)
+            try:
+                self.enclave_signing_key.verify(response.signature, response.payload)
+            except InvalidSignature:
+                raise SignatureError("Invalid signature")
+            if sha256(serialized_bytes).digest() != payload.input_hash:
+                raise SignatureError("Invalid returned input_hash")
+            self.proof.replies.append({ "method": "run_model", "response": response })
 
         # Get the payload
-        inference_response = Payload.FromString(response.payload).run_model_payload
-        return inference_response
+        return payload
 
     def close_connection(self):
         """Close the connection between the client and the inference server."""

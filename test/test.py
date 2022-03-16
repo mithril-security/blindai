@@ -24,8 +24,7 @@ client = BlindAiClient()
 
 client.connect_server(addr="localhost", simulation=True)
 
-model_id = client.upload_model(model="./distilbert-base-uncased.onnx", shape=inputs.shape, dtype=ModelDatumType.I64, sign=True)
-print(model_id)
+client.upload_model(model="./distilbert-base-uncased.onnx", shape=inputs.shape, dtype=ModelDatumType.I64, sign=True)
 """
 	TODO: 
 	- The server must give two different ids if for two uploaded models
@@ -33,12 +32,8 @@ print(model_id)
 """
 inputs = tokenizer(sentence, padding = "max_length", max_length = 8)["input_ids"]
 
+response = client.run_model(inputs, sign=True)
 client.export_proof()
-response = client.run_model(inputs, model_id, sign=True)
-"""
-	ERROR:
-	- The payload in response cannot be parsed, the response doesn't match the format.
-"""
 
 """
 	FURTHER ENHANCEMENTS:

@@ -96,7 +96,7 @@ impl Exchange for Exchanger {
             Err(Status::invalid_argument(format!("Received no data")))?;
         }
 
-        let model = InferenceModel::load_model(&model_bytes, input_fact, datum)
+        let model = InferenceModel::load_model(&model_bytes, input_fact.clone(), datum)
             .map_err(|err| {
                 error!("Unknown error creating model: {}", err);
                 Status::unknown(format!("Unknown error"))
@@ -108,7 +108,11 @@ impl Exchange for Exchanger {
         info!("Model loaded successfully");
 
         let mut payload = SendModelPayload::default();
-        payload.model_id = "default".into();
+        // payload.model_id = "default".into();
+        if sign {
+            payload.model_hash = Some(digest::digest(&digest::SHA256, &model_bytes).as_ref().to_vec());
+            payload.input_fact = input_fact.into_iter().map(|i| i as i32).collect();
+        }
 
         let payload_with_header = Payload {
             header: Some(PayloadHeader {
@@ -172,14 +176,21 @@ impl Exchange for Exchanger {
         telemetry::add_event(TelemetryEventProps::RunModel {});
 
         let mut payload = RunModelPayload::default();
-        payload.model_id = "default".into();
+        // payload.model_id = "default".into();
         payload.output = result;
         if sign {
             payload.input_hash = Some(digest::digest(&digest::SHA256, &input).as_ref().to_vec());
         }
 
+        let payload_with_header = Payload {
+            header: Some(PayloadHeader {
+                issued_at: Some(SystemTime::now().into()),
+            }),
+            payload: Some(payload::Payload::RunModelPayload(payload)),
+        };
+
         let mut reply = RunModelReply::default();
-        reply.payload = payload.encode_to_vec();
+        reply.payload = payload_with_header.encode_to_vec();
         if sign {
             reply.signature = Some(
                 self.identity
