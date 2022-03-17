@@ -111,7 +111,10 @@ setuptools.setup(
     packages=setuptools.find_packages(exclude=["blindai/cpp/wrapper.cc"]),
     package_data={"": ["lib/*.so", "tls/*.pem"]},
     ext_modules=[CMakeExtension("pybind11_module")],
-    cmdclass={"build_ext": CMakeBuild, "build_py": BuildPy,},
+    cmdclass={
+        "build_ext": CMakeBuild,
+        "build_py": BuildPy
+    },
     zip_safe=False,
     python_requires=">=3.6.9",
     install_requires=[
