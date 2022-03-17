@@ -96,8 +96,8 @@ impl Exchange for Exchanger {
             Err(Status::invalid_argument(format!("Received no data")))?;
         }
 
-        let model = InferenceModel::load_model(&model_bytes, input_fact.clone(), datum)
-            .map_err(|err| {
+        let model =
+            InferenceModel::load_model(&model_bytes, input_fact.clone(), datum).map_err(|err| {
                 error!("Unknown error creating model: {}", err);
                 Status::unknown(format!("Unknown error"))
             })?;
@@ -110,7 +110,11 @@ impl Exchange for Exchanger {
         let mut payload = SendModelPayload::default();
         // payload.model_id = "default".into();
         if sign {
-            payload.model_hash = Some(digest::digest(&digest::SHA256, &model_bytes).as_ref().to_vec());
+            payload.model_hash = Some(
+                digest::digest(&digest::SHA256, &model_bytes)
+                    .as_ref()
+                    .to_vec(),
+            );
             payload.input_fact = input_fact.into_iter().map(|i| i as i32).collect();
         }
 
