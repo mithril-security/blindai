@@ -336,9 +336,16 @@ class BlindAiClient:
             self.stub = None
             self.policy = None
 
-    def export_proof(self):
+    def export_proof(self, path="execution_proof.json"):
         """Dump the proof of execution to a json file
-        
+        The resulted file will contain the following information:
+            ctx: The quote sent by the enclave. It is equal to 'None' if the server is running
+                in the simulation mode.
+            replies: A list of the signed responses received from the server during
+                the connection. Each entry has the following structure:
+                    method: send_model or run_model
+                    response: The response of the server
+
         """
-        with open("execution_proof.json", "w") as proof_file:
+        with open(path, "w") as proof_file:
             json.dump(dataclasses.asdict(self.proof), proof_file, default=MessageToDict)
