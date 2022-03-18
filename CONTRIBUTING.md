@@ -16,8 +16,8 @@ The following is a set of guidelines for contributing to [BlindAI](https://githu
 [How Can I Contribute?](#how-can-i-contribute)
   * [Reporting Bugs](#reporting-bugs)
   * [Suggesting Enhancements](#suggesting-enhancements)
-  * [Your First Code Contribution](#your-first-code-contribution)
   * [Pull Requests](#pull-requests)
+  * [Setting Your Local Development Environment]()
 
 [Styleguides](#styleguides)
   * [Git Commit Messages](#git-commit-messages)
@@ -128,6 +128,11 @@ In order to open a pull request:
 - Make sure to [link the related issues](https://docs.github.com/en/issues/tracking-your-work-with-issues/about-issues#efficient-communication) in the description.
 
 While the prerequisites above must be satisfied prior to having your pull request reviewed, the reviewer(s) may ask you to complete additional work, tests, or other changes before your pull request can be ultimately accepted.
+
+### Setting Your Local Development Environment
+You can find detailed explanation of how to install BlindAI in your local machine in the (official documentation)[https://docs.mithrilsecurity.io/started/installation].
+
+If you encounter any difficulties within that, don't hesistate to reach out to us through [discord](https://discord.gg/TxEHagpWd4) and ask your questions. 
 
 ## Style Guidelines
 
