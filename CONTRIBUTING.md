@@ -1,6 +1,6 @@
 # Contributing to BlindAI
 
-Hello there! thanks for taking the time to contribute to BlindAI! 
+🎉 Hello there! thanks for taking the time to contribute to BlindAI! 🎉 
 
 The following is a set of guidelines for contributing to [BlindAI](https://github.com/mithril-security/blindai) project. These are mostly guidelines, not rules. Use your best judgment, and feel free to propose changes to this document in a pull request.
 
@@ -38,28 +38,30 @@ If you have a question to ask or you want to open a discussion about Blindai or 
 
 ### BlindAI Project
 
-* [BlindAI Roadmap]()
+BlindAI is a fast, easy to use and confidential inference server, allowing to deploy models that works on sensitive data. Thanks to the end-to-end protection guarantees, data owners can send private data to be analyzed by AI models, without fearing exposing their data to anyone else.
+
+The solution has two parts:
+- A secure inference solution to serve AI models with privacy guarantees (Built with **Rust**).
+- A client SDK to securely consume the remote AI models (Built with **Python**).
+
+You can find more information about the **Roadmap** of the project [here](https://blog.mithrilsecurity.io/our-roadmap-at-mithril-security/).
 
 ### Useful Resources
-* [BlindAI Official Documentation]()
-* [Mithril Security Blog]()
-* [BlindAI Server CHANGELOG]()
-* [BlindAI Client CHANGELOG]()
+We highly encourage you to take a look at this resources for further information about BlindAI Solution. 
+
+It is also recommeneded to see the [examples](https://github.com/mithril-security/blindai/tree/master/examples) that demonstrates how BlindAI works before submitting your first contribution. 
+
+* [Documentation - BlindAI Official Documentation](https://docs.mithrilsecurity.io)
+* [Blog - Mithril Security Blog](https://blog.mithrilsecurity.io/)
+* [Article - Mithril Security Roadmap](https://blog.mithrilsecurity.io/our-roadmap-at-mithril-security/)
+* [Notebooks - BlindAI Examples](https://github.com/mithril-security/blindai/tree/master/examples)
 
 ## How Can I Contribute?
+This section presents the different ways you can take in order to contribute to BlindAI project. You can either **Report Bugs**, **Suggest Enhancements** or do **Pull Requests**.
 
 ### Reporting Bugs
 
-### Suggesting Enhancements
-
-### Your First Code Contribution
-
-#### Local development
-
-Atom Core and all packages can be developed locally. For instructions on how to do this, see the following sections in the [Atom Flight Manual](https://flight-manual.atom.io):
-
-* [Hacking on Atom Core][hacking-on-atom-core]
-* [Contributing to Official Atom Packages][contributing-to-official-atom-packages]
+### Suggesting Enhancements 
 
 ### Pull Requests
 
@@ -74,7 +76,7 @@ Atom Core and all packages can be developed locally. For instructions on how to 
 
 ### Python Styleguide
 
-All JavaScript code is linted with [Black](https://github.com/psf/black).
+All Python code is linted with [Black](https://github.com/psf/black).
 
 ### Rust Styleguide
 
@@ -86,14 +88,34 @@ All Rust code is formatted with [Rust Formatter](https://github.com/rust-lang/ru
 
 This section lists the labels we use to help us track and manage issues and pull requests.
 
-[GitHub search](https://help.github.com/articles/searching-issues/) makes it easy to use labels for finding groups of issues or pull requests you're interested in. We  encourage you to read about [other search filters](https://help.github.com/articles/searching-issues/) which will help you write more focused queries.
+[GitHub search](https://help.github.com/articles/searching-issues/) makes it easy to use labels for finding groups of issues or pull requests you're interested in.
 
-#### Type of Issue and Issue State
+The labels are organised in 4 groups : `Info`, `Type`, `Status` and `priority`.
+
+The labels are loosely grouped by their purpose, but it's not required that every issue have a label from every group or that an issue can't have more than one label from the same group.
+
+#### Issue and Pull Request Labels
 
 | Label name | Description |
 | --- | --- |
-
-#### Pull Request Labels
-
-| Label name | Description |
-| --- | --- |
+| Info : Client 🐍 | The issue/PR affects the client side |
+| Info : Server 🦀 | The issue/PR affects the server side |
+| Info : Build 🏗️ | The issue/PR is related to the build process  |
+| Info : Good First Issue 🎓 | Good for beginners and new incomers |
+| Info : Duplicate❕ | The Issue/PR is duplicate |
+| Info : Invalid 😕 | The issue/PR doesn’t seem to be relevant |
+| Type : Bug 🐞 | The Issue/PR reports/fixes a bug |
+| Type : Refactor 🏭 |  The Issue/PR only refactors the codebase, not additional feature of bug fixes are provided |
+| Type : Improvement 📈 | The Issue/PR suggests an improvement of an existing functionality |
+| Type : New Feature ➕ | The issue/PR proposes a new feature that wasn’t in the codebase.  |
+| Type : Documentation 📝 | The Issue/PR concerns the documentation (README, docstrings, CHANGELOG ...) |
+| Type : Testing 🧪 | The issue/PR adds, improves or edits tests. |
+| Status : Available 🤚 | The issue hasn’t been assigned yet |
+| Status : In progress 👨‍🔧 | The work on the Issue/PR is in progress |
+| Status : blocked 🚫 | The work one the Issue/PR is blocked by other tasks that haven’t been finished |
+| Status : Completed | The work on the Issue/PR is completed |
+| Status : Review needed 🙋‍♂️ | A review is needed in order to complete the work / approve it. |
+| Status : To merge ✅ | Approved PR and will be merged!  |
+| Priority : High 🔴 | The issue is urgent, must be fixed as soon as possible |
+| Priority : Medium 🟠 | The issue is of a medium priority |
+| Priority : Low 🟢 | The issue is of a low priority and can wait a bit |
