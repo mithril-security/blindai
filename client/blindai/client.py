@@ -337,6 +337,8 @@ class BlindAiClient:
             self.policy = None
 
     def export_proof(self):
-        """Dump the proof of execution to a json file"""
+        """Dump the proof of execution to a json file
+        
+        """
         with open("execution_proof.json", "w") as proof_file:
             json.dump(dataclasses.asdict(self.proof), proof_file, default=MessageToDict)
