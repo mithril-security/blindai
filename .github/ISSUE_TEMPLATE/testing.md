@@ -5,12 +5,16 @@ labels: 'Type : Testing :test_tube:'
 ---
 
 ## Description
+Describe the suggestion in details
 
 ## Type of Test
+Specify the types of tests (Integration, unit, ...)
 
 ## Expected Behavior
+Describe how the result of executing the tests should be
 
-## Additional Context
+## Additional Information
+Add any additional information
 
 ## Checklist
 - [ ] This tests concerns BlindAI Client

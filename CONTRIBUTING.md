@@ -17,9 +17,9 @@ The following is a set of guidelines for contributing to [BlindAI](https://githu
   * [Reporting Bugs](#reporting-bugs)
   * [Suggesting Enhancements](#suggesting-enhancements)
   * [Pull Requests](#pull-requests)
-  * [Setting Your Local Development Environment]()
+  * [Setting Your Local Development Environment](#setting-your-local-development-environment)
 
-[Styleguides](#styleguides)
+[Style Guidelines](#style-guidelines)
   * [Git Commit Messages](#git-commit-messages)
   * [Python Styleguide](#python-styleguide)
   * [Rust Styleguide](#rust-styleguide)
@@ -34,7 +34,7 @@ This project and everyone participating in it is governed by the [Mithril Securi
 ## What should I know before I get started?
 
 ### I only have a question
-If you have a question to ask or you want to open a discussion about Blindai or confidential computing in general, we have a dedicated [Discord Community](https://discord.gg/TxEHagpWd4) in which all these kind of exchanges are more than welcome!
+If you have a question to ask or you want to open a discussion about BlindAI or confidential computing in general, we have a dedicated [Discord Community](https://discord.gg/TxEHagpWd4) in which all these kind of exchanges are more than welcome!
 
 ### BlindAI Project
 
@@ -48,9 +48,9 @@ You can find more information about the **Roadmap** of the project [here](https:
 
 ### Useful ResourcesWhile these prerequisites must be sati
 
-We highly encourage you to take a look at this resources for further information about BlindAI Solution. 
+We highly encourage you to take a look at this resources for further information about BlindAI. 
 
-It is also recommeneded to see the [examples](https://github.com/mithril-security/blindai/tree/master/examples) that demonstrates how BlindAI works before submitting your first contribution. 
+It is also recommeneded to see the [examples](https://github.com/mithril-security/blindai/tree/master/examples) that demonstrate how BlindAI works before submitting your first contribution. 
 
 * [Documentation - BlindAI Official Documentation](https://docs.mithrilsecurity.io)
 * [Blog - Mithril Security Blog](https://blog.mithrilsecurity.io/)
@@ -61,14 +61,14 @@ It is also recommeneded to see the [examples](https://github.com/mithril-securit
 This section presents the different options that you can follow in order to contribute to BlindAI project. You can either **Report Bugs**, **Suggest Enhancements** or **Open Pull Requests**.
 
 ### Reporting Bugs
-This section helps you through `reporting Bugs` for BlindAI. Following the guidelines helps the maintainers to understand your report, reproduce the Bug and work on fixing at as soon as possible. 
+This section helps you through reporting Bugs for BlindAI. Following the guidelines helps the maintainers to understand your report, reproduce the Bug and work on fixing at as soon as possible. 
 
 > **Important!**
 > Before reporting a bug, please take a look at the [existing issues](https://github.com/mithril-security/blindai/issues). You may find that the bug has already been reported and that you don't need to create a new one.
 
 #### How to report a bug? 
 To report a Bug, you can either:
-- Follow this [link]() and fill the report with the required information
+- Follow this [link]() and fill the report with the required information.
 - In BlindAI github repository:
   * Go to `Issues` tab.
   * Click on `New Issue` button.
@@ -76,7 +76,7 @@ To report a Bug, you can either:
   * Fill the report with the required information.
 
 #### How to submit a good Bug Report?
-- Follow the Bug Report template as much as possible(You can add further details if needed).
+- Follow the Bug Report template as much as possible (You can add further details if needed).
 - Use a clear and descriptive title.
 - Describe the expected behavior, the one that's actually happening and how often does it reproduce.
 - Describe the exact steps which reproduce the problem.
@@ -114,7 +114,7 @@ This section helps you through the process of opening ``Pull Request`` and contr
 In order to open a pull request:
 - Go to BlindAI Github repository.
 - Fork BlindAI project.
-- [Setup your local development environment.]()
+- [Setup your local development environment.](#setting-your-local-development-environment)
 - Do you magic! and push your changes. 
 - Open a Pull Request
 - Fill the description with the required information.
@@ -123,7 +123,7 @@ In order to open a pull request:
 - Make sure your pull request solves an open issue or fixes a bug. If no related issue exists, please consider opening an issue first so that we can discuss your suggestions. 
 - Follow the [style guidelines](#style-guidelines). 
 - Make sure to use a clear and descriptive title.
-- Follow the instructions in the issue template.
+- Follow the instructions in the pull request template.
 - Provide as many relevant details as possible.
 - Make sure to [link the related issues](https://docs.github.com/en/issues/tracking-your-work-with-issues/about-issues#efficient-communication) in the description.
 
@@ -132,7 +132,7 @@ While the prerequisites above must be satisfied prior to having your pull reques
 ### Setting Your Local Development Environment
 You can find detailed explanation of how to install BlindAI in your local machine in the (official documentation)[https://docs.mithrilsecurity.io/started/installation].
 
-If you encounter any difficulties within that, don't hesistate to reach out to us through [discord](https://discord.gg/TxEHagpWd4) and ask your questions. 
+If you encounter any difficulties within that, don't hesitate to reach out to us through [discord](https://discord.gg/TxEHagpWd4) and ask your questions. 
 
 ## Style Guidelines
 
@@ -145,7 +145,7 @@ If you encounter any difficulties within that, don't hesistate to reach out to u
 
 ### Python Style Guideline
 
-All Python code is linted with [Black](https://github.com/psf/black).
+All Python code is linted with [Black](https://github.com/psf/black). You can easily coonfigure it in your IDE or run it from the command line.
 
 ### Rust Style Guideline
 
@@ -182,7 +182,7 @@ The labels are loosely grouped by their purpose, but it's not required that ever
 | Status : Available 🤚 | The issue hasn’t been assigned yet |
 | Status : In progress 👨‍🔧 | The work on the Issue/PR is in progress |
 | Status : blocked 🚫 | The work one the Issue/PR is blocked by other tasks that haven’t been finished |
-| Status : Completed | The work on the Issue/PR is completed |
+| Status : Completed 💯 | The work on the Issue/PR is completed |
 | Status : Review needed 🙋‍♂️ | A review is needed in order to complete the work / approve it. |
 | Status : To merge ✅ | Approved PR and will be merged!  |
 | Priority : High 🔴 | The issue is urgent, must be fixed as soon as possible |

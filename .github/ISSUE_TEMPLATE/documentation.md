@@ -5,11 +5,13 @@ labels: 'Type : Documentation :memo:'
 ---
 
 ## Description
-Please describe the issue in details
+Describe the issue in details
 
 ## Why this modification is needed?
+Describe the reason behind this modification
 
 ## What documents need to be updated
+
 - [ ] Main README
 - [ ] CONTRIBUTING guidelines
 - [ ] BlindAI Client README
@@ -20,9 +22,9 @@ Please describe the issue in details
 - [ ] others (**Please state them**)
 
 ## Additional Information
-Please add any additional information here.
+Add any additional information here.
 
 ## Checklist
 
-- [ ] This changes concerns BlindAI Client
-- [ ] This changes concerns BlindAI Server
+- [ ] This issue concerns BlindAI Client
+- [ ] This issue concerns BlindAI Server
