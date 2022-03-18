@@ -33,7 +33,7 @@ This project and everyone participating in it is governed by the [Mithril Securi
 
 ## What should I know before I get started?
 
-### I just have a question
+### I only have a question
 If you have a question to ask or you want to open a discussion about Blindai or confidential computing in general, we have a dedicated [Discord Community](https://discord.gg/TxEHagpWd4) in which all these kind of exchanges are more than welcome!
 
 ### BlindAI Project
@@ -46,7 +46,8 @@ The solution has two parts:
 
 You can find more information about the **Roadmap** of the project [here](https://blog.mithrilsecurity.io/our-roadmap-at-mithril-security/).
 
-### Useful Resources
+### Useful ResourcesWhile these prerequisites must be sati
+
 We highly encourage you to take a look at this resources for further information about BlindAI Solution. 
 
 It is also recommeneded to see the [examples](https://github.com/mithril-security/blindai/tree/master/examples) that demonstrates how BlindAI works before submitting your first contribution. 
@@ -57,15 +58,78 @@ It is also recommeneded to see the [examples](https://github.com/mithril-securit
 * [Notebooks - BlindAI Examples](https://github.com/mithril-security/blindai/tree/master/examples)
 
 ## How Can I Contribute?
-This section presents the different ways you can take in order to contribute to BlindAI project. You can either **Report Bugs**, **Suggest Enhancements** or do **Pull Requests**.
+This section presents the different options that you can follow in order to contribute to BlindAI project. You can either **Report Bugs**, **Suggest Enhancements** or **Open Pull Requests**.
 
 ### Reporting Bugs
+This section helps you through `reporting Bugs` for BlindAI. Following the guidelines helps the maintainers to understand your report, reproduce the Bug and work on fixing at as soon as possible. 
+
+> **Important!**
+> Before reporting a bug, please take a look at the [existing issues](https://github.com/mithril-security/blindai/issues). You may find that the bug has already been reported and that you don't need to create a new one.
+
+#### How to report a bug? 
+To report a Bug, you can either:
+- Follow this [link]() and fill the report with the required information
+- In BlindAI github repository:
+  * Go to `Issues` tab.
+  * Click on `New Issue` button.
+  * Choose the `Bug` option.
+  * Fill the report with the required information.
+
+#### How to submit a good Bug Report?
+- Follow the Bug Report template as much as possible(You can add further details if needed).
+- Use a clear and descriptive title.
+- Describe the expected behavior, the one that's actually happening and how often does it reproduce.
+- Describe the exact steps which reproduce the problem.
+- Specify the versions of BlindAI Client and Server that produced the bug.
+- Add any other relevant information about the context, your development environment (Operating system, Language version ...)
+- Attach screenshots, code snippets and any helpful resources.  
 
 ### Suggesting Enhancements 
+This section guides you through suggesting enhancements for BlindAI project. You can suggest an enhancement by opening a **Github Issue**. 
+
+> **Important!**
+> Before opening an issue, please take a look at the [existing issues](https://github.com/mithril-security/blindai/issues). You may find that the same suggestion has already been done and that you don't need to create a new one.
+
+#### How to suggest an enhancement? 
+To suggest enhamcement for BlindAI Project, you can eighther:
+
+- Follow this [link](), Choose the most relevant option and fill the report with the required information
+- In BlindAI github repository:
+  * Go to `Issues` tab.
+  * Click on `New Issue` button.
+  * Choose the most relevant option.
+  * Fill the description with the required information.
+
+#### How to submit a good enhancement suggestion?
+- Choose the most relevent issue type for your suggestion.
+- Follow the provided template as much as possible.
+- Use a clear and descriptive title.
+- Add any other relevant information about the context, your development environment (Operating system, Language version ...)
+- Attach screenshots, code snippets and any helpful resources.  
 
 ### Pull Requests
+This section helps you through the process of opening ``Pull Request`` and contributing with code to BlindAI Project!
 
-## Styleguides
+#### How to open a pull request? 
+In order to open a pull request:
+- Go to BlindAI Github repository.
+- Fork BlindAI project.
+- [Setup your local development environment.]()
+- Do you magic! and push your changes. 
+- Open a Pull Request
+- Fill the description with the required information.
+
+#### How to submit a good pull request?
+- Make sure your pull request solves an open issue or fixes a bug. If no related issue exists, please consider opening an issue first so that we can discuss your suggestions. 
+- Follow the [style guidelines](#style-guidelines). 
+- Make sure to use a clear and descriptive title.
+- Follow the instructions in the issue template.
+- Provide as many relevant details as possible.
+- Make sure to [link the related issues](https://docs.github.com/en/issues/tracking-your-work-with-issues/about-issues#efficient-communication) in the description.
+
+While the prerequisites above must be satisfied prior to having your pull request reviewed, the reviewer(s) may ask you to complete additional work, tests, or other changes before your pull request can be ultimately accepted.
+
+## Style Guidelines
 
 ### Git Commit Messages
 
@@ -74,11 +138,11 @@ This section presents the different ways you can take in order to contribute to 
 * Limit the first line to 72 characters or less
 * Reference issues and pull requests liberally after the first line
 
-### Python Styleguide
+### Python Style Guideline
 
 All Python code is linted with [Black](https://github.com/psf/black).
 
-### Rust Styleguide
+### Rust Style Guideline
 
 All Rust code is formatted with [Rust Formatter](https://github.com/rust-lang/rustfmt)
 
