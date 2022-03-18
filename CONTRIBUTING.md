@@ -85,7 +85,7 @@ To report a Bug, you can either:
 - Attach screenshots, code snippets and any helpful resources.  
 
 ### Suggesting Enhancements 
-This section guides you through suggesting enhancements for BlindAI project. You can suggest an enhancement by opening a **Github Issue**. 
+This section guides you through suggesting enhancements for BlindAI project. You can suggest an enhancement by opening a **GitHub Issue**. 
 
 > **Important!**
 > Before opening an issue, please take a look at the [existing issues](https://github.com/mithril-security/blindai/issues). You may find that the same suggestion has already been done and that you don't need to create a new one.
@@ -94,7 +94,7 @@ This section guides you through suggesting enhancements for BlindAI project. You
 To suggest enhamcement for BlindAI Project, you can eighther:
 
 - Follow this [link](), Choose the most relevant option and fill the report with the required information
-- In BlindAI github repository:
+- In BlindAI GitHub repository:
   * Go to `Issues` tab.
   * Click on `New Issue` button.
   * Choose the most relevant option.
@@ -112,7 +112,7 @@ This section helps you through the process of opening ``Pull Request`` and contr
 
 #### How to open a pull request? 
 In order to open a pull request:
-- Go to BlindAI Github repository.
+- Go to BlindAI GitHub repository.
 - Fork BlindAI project.
 - [Setup your local development environment.](#setting-your-local-development-environment)
 - Do you magic! and push your changes. 
@@ -167,8 +167,8 @@ The labels are loosely grouped by their purpose, but it's not required that ever
 
 | Label name | Description |
 | --- | --- |
-| Info : Client 🐍 | The issue/PR affects the client side |
-| Info : Server 🦀 | The issue/PR affects the server side |
+| Info : Client 🐍 | The issue/PR affects the client-side |
+| Info : Server 🦀 | The issue/PR affects the server-side |
 | Info : Build 🏗️ | The issue/PR is related to the build process  |
 | Info : Good First Issue 🎓 | Good for beginners and new incomers |
 | Info : Duplicate❕ | The Issue/PR is duplicate |
