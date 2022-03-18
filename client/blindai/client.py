@@ -49,14 +49,17 @@ from untrusted_pb2_grpc import AttestationStub
 from cryptography.exceptions import InvalidSignature
 
 from utils.utils import (
-    check_rpc_exception,
-    check_socket_exception,
     create_byte_chunk,
     encode_certificate,
     strip_https,
     get_enclave_signing_key,
-    SignatureError,
     supported_server_version,
+)
+from utils.errors import (
+    check_rpc_exception,
+    check_socket_exception,
+    SignatureError,
+    VersionError,
 )
 
 PORTS = {"untrusted_enclave": "50052", "attested_enclave": "50051"}
@@ -113,7 +116,7 @@ class BlindAiClient:
                 If set to True, the args policy and certificate will be ignored.
 
         Raises:
-            ValueError: Will be raised if the version of the server is not supported by the client.
+            VersionError: Will be raised if the version of the server is not supported by the client.
             ValueError: Will be raised in case the policy doesn't match the
                 server identity and configuration.
             ConnectionError: will be raised if the connection with the server fails.
@@ -168,7 +171,7 @@ class BlindAiClient:
 
             response = stub.GetServerInfo(server_info_request())
             if not supported_server_version(response.version):
-                raise ValueError(
+                raise VersionError(
                     "The server version is not supported. Please update your client."
                 )
 
