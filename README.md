@@ -18,13 +18,26 @@
 **BlindAI** is a **fast, easy to use and confidential inference server**, allowing you to deploy your 
 model on sensitive data. Thanks to the **end-to-end protection guarantees**, data owners can send private data to be analyzed by AI models, **without fearing exposing their data to anyone else**.
 
-We reconcile AI and privacy by leveraging Confidential Computing for secure inference. You can learn more about this technology [here](https://blog.mithrilsecurity.io/confidential-computing-explained-part-1-introduction/).
+![Overview of BlindAI](assets/blindai-schema.png)
+
+While most current solutions force users to trust the server where their data is sent, BlindAI leverages Confidential Computing to make sure that even when you send data to a third-party to have it analyzed by an AI, it remains always protected and inacessible.
+
+You can learn more about Confidential Computing through our series [here](https://blog.mithrilsecurity.io/confidential-computing-explained-part-1-introduction/).
 
 We currently only support *Intel SGX*, but we plan to cover *AMD SEV* and *Nitro Enclave* in the future. More information about our **roadmap** will be provided soon.
 
 Our solution comes in two parts:
 - A secure inference solution to serve AI models with privacy guarantees.
 - A *client SDK* to securely consume the remote AI models. 
+
+## Examples
+
+You can see how our BlindAI can be used to deploy a variety of models, to handle use cases from analysis of medical images, to confidential document analysis, through vocal biometrics identification.
+
+| Article name                                                   | Use case                                | Model name      | Model type   |
+|----------------------------------------------------------------|-----------------------------------------|-----------------|--------------|
+| [Deploy Transformers models with confidentiality](https://blog.mithrilsecurity.io/transformers-with-confidentiality/)                | Sentiment analysis                      | DistilBERT      | Transformers |
+| [Confidential medical image analysis with COVID-Net and BlindAI](https://blog.mithrilsecurity.io/confidential-covidnet-with-blindai/) | Chest XRAY analysis for COVID detection | COVID-Net-CXR-2 | Deep CNN     |
 
 ## Getting started
 
@@ -106,7 +119,7 @@ response = client.run_model(inputs)
 ### What you cannot do with BlindAI
 
 - Our solution aims to be modular but we have yet to incorporate tools for generic pre/post processing. Specific pipelines can be covered but will require additional handwork for now.
-- We do not cover training and federated learning yet, but if this feature interests you do not hesitate to show your interest through the [roadmap](https://github.com/mithril-security/blindai/projects/1) or [Discord](https://discord.gg/rWHcHeCBWk) channel. 
+- We do not cover training and federated learning yet, but if this feature interests you do not hesitate to show your interest through the [roadmap](https://blog.mithrilsecurity.io/our-roadmap-at-mithril-security/) or [Discord](https://discord.gg/rWHcHeCBWk) channel. 
 - The examples we provide are simple, and do not take into account complex mechanisms such as secure storage of confidential data with sealing keys, advanced scheduler for inference requests, or complex key management scenarios. If your use case involves more than what we show, do not hesitate to **contact us** for more information.
 
 ## Install
