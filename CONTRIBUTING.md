@@ -9,7 +9,7 @@ The following is a set of guidelines for contributing to [BlindAI](https://githu
 [Code of Conduct](#code-of-conduct)
 
 [What should I know before I get started?](#what-should-i-know-before-i-get-started)
-  * [I just have a question!](#i-just-have-a-question)
+  * [I only have a question!](#i-only-have-a-question)
   * [BlindAI Project](#blindai-project)
   * [Useful Resources](#useful-resources)
 
@@ -21,8 +21,8 @@ The following is a set of guidelines for contributing to [BlindAI](https://githu
 
 [Style Guidelines](#style-guidelines)
   * [Git Commit Messages](#git-commit-messages)
-  * [Python Styleguide](#python-styleguide)
-  * [Rust Styleguide](#rust-styleguide)
+  * [Python style guideline](#python-style-guideline)
+  * [Rust style guideline](#rust-style-guideline)
 
 [Additional Notes](#additional-notes)
   * [Issue and Pull Request Labels](#issue-and-pull-request-labels)
@@ -46,7 +46,7 @@ The solution has two parts:
 
 You can find more information about the **Roadmap** of the project [here](https://blog.mithrilsecurity.io/our-roadmap-at-mithril-security/).
 
-### Useful ResourcesWhile these prerequisites must be sati
+### Useful Resources
 
 We highly encourage you to take a look at this resources for further information about BlindAI. 
 
@@ -68,7 +68,7 @@ This section helps you through reporting Bugs for BlindAI. Following the guideli
 
 #### How to report a bug? 
 To report a Bug, you can either:
-- Follow this [link]() and fill the report with the required information.
+- Follow this [link](https://github.com/mithril-security/blindai/issues/new?assignees=&labels=&template=bug-report.md&title=) and fill the report with the required information.
 - In BlindAI github repository:
   * Go to `Issues` tab.
   * Click on `New Issue` button.
@@ -91,9 +91,9 @@ This section guides you through suggesting enhancements for BlindAI project. You
 > Before opening an issue, please take a look at the [existing issues](https://github.com/mithril-security/blindai/issues). You may find that the same suggestion has already been done and that you don't need to create a new one.
 
 #### How to suggest an enhancement? 
-To suggest enhamcement for BlindAI Project, you can eighther:
+To suggest enhamcement for BlindAI Project, you can either:
 
-- Follow this [link](), Choose the most relevant option and fill the report with the required information
+- Follow this [link](https://github.com/mithril-security/blindai/issues/new/choose), choose the most relevant option and fill the report with the required information
 - In BlindAI GitHub repository:
   * Go to `Issues` tab.
   * Click on `New Issue` button.
@@ -101,14 +101,14 @@ To suggest enhamcement for BlindAI Project, you can eighther:
   * Fill the description with the required information.
 
 #### How to submit a good enhancement suggestion?
-- Choose the most relevent issue type for your suggestion.
+- Choose the most relevant issue type for your suggestion.
 - Follow the provided template as much as possible.
 - Use a clear and descriptive title.
 - Add any other relevant information about the context, your development environment (Operating system, Language version ...)
 - Attach screenshots, code snippets and any helpful resources.  
 
 ### Pull Requests
-This section helps you through the process of opening ``Pull Request`` and contributing with code to BlindAI Project!
+This section helps you through the process of opening a Pull Request and contributing with code to BlindAI Project!
 
 #### How to open a pull request? 
 In order to open a pull request:
@@ -130,9 +130,9 @@ In order to open a pull request:
 While the prerequisites above must be satisfied prior to having your pull request reviewed, the reviewer(s) may ask you to complete additional work, tests, or other changes before your pull request can be ultimately accepted.
 
 ### Setting Your Local Development Environment
-You can find detailed explanation of how to install BlindAI in your local machine in the (official documentation)[https://docs.mithrilsecurity.io/started/installation].
+You can find detailed explanation of how to install BlindAI in your local machine in the [official documentation](https://docs.mithrilsecurity.io/started/installation).
 
-If you encounter any difficulties within that, don't hesitate to reach out to us through [discord](https://discord.gg/TxEHagpWd4) and ask your questions. 
+If you encounter any difficulties within that, don't hesitate to reach out to us through [Discord](https://discord.gg/TxEHagpWd4) and ask your questions. 
 
 ## Style Guidelines
 
@@ -145,7 +145,7 @@ If you encounter any difficulties within that, don't hesitate to reach out to us
 
 ### Python Style Guideline
 
-All Python code is linted with [Black](https://github.com/psf/black). You can easily coonfigure it in your IDE or run it from the command line.
+All Python code is linted with [Black](https://github.com/psf/black). You can easily configure it in your IDE or run it from the command line.
 
 ### Rust Style Guideline
 
@@ -161,30 +161,30 @@ This section lists the labels we use to help us track and manage issues and pull
 
 The labels are organised in 4 groups : `Info`, `Type`, `Status` and `priority`.
 
-The labels are loosely grouped by their purpose, but it's not required that every issue have a label from every group or that an issue can't have more than one label from the same group.
+The labels are loosely grouped by their purpose, but it's not required that every issue has a label from every group or that an issue can't have more than one label from the same group.
 
 #### Issue and Pull Request Labels
 
 | Label name | Description |
 | --- | --- |
-| Info : Client 🐍 | The issue/PR affects the client-side |
-| Info : Server 🦀 | The issue/PR affects the server-side |
-| Info : Build 🏗️ | The issue/PR is related to the build process  |
+| Info : Client 🐍 | The Issue/PR affects the client-side |
+| Info : Server 🦀 | The Issue/PR affects the server-side |
+| Info : Build 🏗️ | The Issue/PR is related to the build process  |
 | Info : Good First Issue 🎓 | Good for beginners and new incomers |
 | Info : Duplicate❕ | The Issue/PR is duplicate |
-| Info : Invalid 😕 | The issue/PR doesn’t seem to be relevant |
+| Info : Invalid 😕 | The Issue/PR doesn’t seem to be relevant |
 | Type : Bug 🐞 | The Issue/PR reports/fixes a bug |
-| Type : Refactor 🏭 |  The Issue/PR only refactors the codebase, not additional feature of bug fixes are provided |
+| Type : Refactor 🏭 |  The Issue/PR only refactors the codebase, not additional features of bug fixes are provided |
 | Type : Improvement 📈 | The Issue/PR suggests an improvement of an existing functionality |
-| Type : New Feature ➕ | The issue/PR proposes a new feature that wasn’t in the codebase.  |
+| Type : New Feature ➕ | The Issue/PR proposes a new feature that wasn’t in the codebase.  |
 | Type : Documentation 📝 | The Issue/PR concerns the documentation (README, docstrings, CHANGELOG ...) |
-| Type : Testing 🧪 | The issue/PR adds, improves or edits tests. |
-| Status : Available 🤚 | The issue hasn’t been assigned yet |
+| Type : Testing 🧪 | The Issue/PR adds, improves or edits tests. |
+| Status : Available 🤚 | The Issue hasn’t been assigned yet |
 | Status : In progress 👨‍🔧 | The work on the Issue/PR is in progress |
-| Status : blocked 🚫 | The work one the Issue/PR is blocked by other tasks that haven’t been finished |
+| Status : blocked 🚫 | The work on the Issue/PR is blocked by other tasks that haven’t been finished yet |
 | Status : Completed 💯 | The work on the Issue/PR is completed |
 | Status : Review needed 🙋‍♂️ | A review is needed in order to complete the work / approve it. |
 | Status : To merge ✅ | Approved PR and will be merged!  |
-| Priority : High 🔴 | The issue is urgent, must be fixed as soon as possible |
-| Priority : Medium 🟠 | The issue is of a medium priority |
-| Priority : Low 🟢 | The issue is of a low priority and can wait a bit |
+| Priority : High 🔴 | The Issue is urgent, must be fixed as soon as possible |
+| Priority : Medium 🟠 | The Issue is of a medium priority |
+| Priority : Low 🟢 | The Issue is of a low priority and can wait a bit |
