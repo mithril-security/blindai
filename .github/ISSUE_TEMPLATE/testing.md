@@ -1,7 +1,10 @@
 ---
 name: Testing
 about: Add, improve or edit tests in the codebase.
-labels: 'Type : Testing :test_tube:'
+title: ''
+labels: ''
+assignees: ''
+
 ---
 
 ## Description

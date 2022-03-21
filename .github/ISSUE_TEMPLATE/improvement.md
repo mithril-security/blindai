@@ -1,7 +1,10 @@
 ---
 name: Improvement
 about: Suggest an improvement of an existing functionality
-labels: 'Type : Improvement :chart_with_upwards_trend:'
+title: ''
+labels: ''
+assignees: ''
+
 ---
 
 ## Description

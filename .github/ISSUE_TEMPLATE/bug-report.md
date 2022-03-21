@@ -1,7 +1,10 @@
 ---
 name: Bug
 about: Create a report to help us improve
-labels: 'Type : Bug :lady_beetle:'
+title: ''
+labels: ''
+assignees: ''
+
 ---
 
 Have you read BlindAI's [Code of Conduct?](https://github.com/mithril-security/blindai/CODE_OF_CONDUCT.md) By filing an Issue, you are expected to comply with it, including treating everyone with respect.

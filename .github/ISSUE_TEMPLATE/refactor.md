@@ -1,7 +1,10 @@
 ---
 name: Refactor
-about: Refactors the codebase, not additional features of bug fixes will be introduced.
-labels: 'Type : Refactor :factory:'
+about: Refactor the codebase, not additional features of bug fixes will be introduced.
+title: ''
+labels: ''
+assignees: ''
+
 ---
 
 ## Description

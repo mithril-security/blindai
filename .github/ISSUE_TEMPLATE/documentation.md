@@ -1,7 +1,10 @@
 ---
 name: Documentation
 about: Propose modification to the documentation of the project
-labels: 'Type : Documentation :memo:'
+title: ''
+labels: ''
+assignees: ''
+
 ---
 
 ## Description
