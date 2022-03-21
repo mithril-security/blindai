@@ -1,5 +1,7 @@
-on: [push]
-
+on:
+   push:
+     paths:
+       - "**~/.cargo/audit.toml*"
 name: build
 
 jobs:
