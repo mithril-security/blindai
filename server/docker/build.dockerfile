@@ -129,7 +129,7 @@ ENV PATH="/root/.cargo/bin:$PATH"
 ##################################
 ### Hardware (production) mode ###
 ##################################
-FROM base AS hardware
+FROM base AS build-hardware
 
 # -- nodejs (needed for pccs)
 RUN curl -sL https://deb.nodesource.com/setup_14.x | bash - && \
@@ -156,13 +156,16 @@ RUN /root/setup-pccs.sh && \
 COPY . ./server
 
 RUN --mount=type=cache,target=/root/server/target \
-    --mount=type=cache,target=/root/server/inference-server/scheduler/untrusted/target \
+    --mount=type=cache,target=/root/server/tmp \
+    --mount=type=cache,target=/root/.xargo \
     --mount=type=cache,target=/root/.cargo/git \
     --mount=type=cache,target=/root/.cargo/registry \
     make -C server SGX_MODE=HW all bin/tls/host_server.pem bin/tls/host_server.key && \
     cp -r ./server/bin/* /root && \
-    cp ./server/policy.toml /root/policy.toml && \
-    (rm -rf ./server || true)
+    cp ./server/policy.toml /root/policy.toml
+
+## final image
+FROM build-hardware AS hardware
 
 # -- cleanup
 RUN rustup self uninstall -y && \
@@ -170,7 +173,8 @@ RUN rustup self uninstall -y && \
     apt-get remove -y $BUILD_ONLY_DEPS && \
     apt-get autoremove -y && \
     rm -rf /var/lib/apt/lists/* && \
-    rm -rf /var/cache/apt/archives/*
+    rm -rf /var/cache/apt/archives/* && \
+    (rm -rf ./server || true)
 
 ADD docker/hardware-start.sh /root/start.sh
 
@@ -182,7 +186,7 @@ CMD ["/root/start.sh"]
 #################################################
 ### Hardware (production) mode - Azure DCs_v3 ###
 #################################################
-FROM base AS hardware-dcsv3
+FROM base AS build-hardware-dcsv3
 
 # -- flag Azure DCs_v3 mode
 ENV BLINDAI_AZURE_DCSV3_PATCH=1
@@ -200,13 +204,16 @@ RUN curl -sSL https://packages.microsoft.com/keys/microsoft.asc | apt-key add - 
 COPY . ./server
 
 RUN --mount=type=cache,target=/root/server/target \
-    --mount=type=cache,target=/root/server/inference-server/scheduler/untrusted/target \
+    --mount=type=cache,target=/root/server/tmp \
+    --mount=type=cache,target=/root/.xargo \
     --mount=type=cache,target=/root/.cargo/git \
     --mount=type=cache,target=/root/.cargo/registry \
     make -C server SGX_MODE=HW all bin/tls/host_server.pem bin/tls/host_server.key && \
     cp -r ./server/bin/* /root && \
-    cp ./server/policy.toml /root/policy.toml && \
-    (rm -rf ./server || true)
+    cp ./server/policy.toml /root/policy.toml
+
+## final image
+FROM build-hardware-dcsv3 AS hardware-dcsv3
 
 # -- cleanup
 RUN rustup self uninstall -y && \
@@ -214,7 +221,8 @@ RUN rustup self uninstall -y && \
     apt-get remove -y $BUILD_ONLY_DEPS && \
     apt-get autoremove -y && \
     rm -rf /var/lib/apt/lists/* && \
-    rm -rf /var/cache/apt/archives/*
+    rm -rf /var/cache/apt/archives/* && \
+    (rm -rf ./server || true)
 
 ADD docker/hardware-dcsv3.sh /root/start.sh
 
@@ -226,7 +234,7 @@ CMD ["/root/start.sh"]
 ##################################
 ### Software (simulation) mode ###
 ##################################
-FROM base AS software
+FROM base AS build-software
 
 # -- build
 COPY . ./server
@@ -235,13 +243,13 @@ COPY . ./server
 ENV SGX_MODE=SW
 
 RUN --mount=type=cache,target=/root/server/target \
-    --mount=type=cache,target=/root/server/inference-server/scheduler/untrusted/target \
+    --mount=type=cache,target=/root/server/tmp \
+    --mount=type=cache,target=/root/.xargo \
     --mount=type=cache,target=/root/.cargo/git \
     --mount=type=cache,target=/root/.cargo/registry \
     make -C server SGX_MODE=SW all bin/tls/host_server.pem bin/tls/host_server.key && \
     cp -r ./server/bin/* /root && \
-    cp ./server/policy.toml /root/policy.toml && \
-    (rm -rf ./server || true)
+    cp ./server/policy.toml /root/policy.toml
 
 # -- cleanup
 RUN rustup self uninstall -y && \
@@ -249,7 +257,11 @@ RUN rustup self uninstall -y && \
     apt-get remove -y $BUILD_ONLY_DEPS && \
     apt-get autoremove -y && \
     rm -rf /var/lib/apt/lists/* && \
-    rm -rf /var/cache/apt/archives/*
+    rm -rf /var/cache/apt/archives/* && \
+    (rm -rf ./server || true)
+
+## final image
+FROM build-software AS software
 
 ADD docker/software-start.sh /root/start.sh
 

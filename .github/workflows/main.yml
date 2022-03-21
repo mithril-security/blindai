@@ -1,0 +1,168 @@
+name: Run the tests
+on: push
+jobs:
+  build-server:
+    strategy:
+      matrix:
+        image: [blindai-server-sim]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+        with:
+          submodules: true
+
+      # Setup
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1.6.0
+        with:
+          driver: docker-container
+
+          # Build server
+
+      - name: Build server
+        uses: docker/build-push-action@v2.10.0
+        with:
+          push: false
+          load: true
+          tags: mithrilsecuritysas/${{ matrix.image }}
+          context: ./server
+          file: ./server/docker/build.dockerfile
+          target: software
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          outputs: type=docker,dest=/tmp/${{ matrix.image }}.tar
+
+      # Outputs
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: ${{ matrix.image }}
+          path: /tmp/${{ matrix.image }}.tar
+
+  build-client:
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@master
+        with:
+          submodules: true
+
+      # Setup
+
+      - uses: jwlawson/actions-setup-cmake@v1.12
+      - uses: actions/cache@v2
+        with:
+          path: |
+            ${{ env.pythonLocation }}
+            ~/.cache/pip
+          key: ${{ env.pythonLocation }}-${{ hashFiles('client/setup.py') }}-${{ hashFiles('client/requirements.txt') }}
+      - uses: actions/setup-python@v3
+        with:
+          python-version: '3.9'
+
+      - name: Install dependencies
+        run: pip install -r client/requirements.txt
+
+      # Build client
+
+      - run: rm -rf client/proto && cp -r server/proto client
+
+      - uses: actions/cache@v2
+        with:
+          path: |
+            ./client/build
+            ./client/blindai.egg-info
+            ./client/blindai/lib
+            ./client/third_party/build
+            ./client/third_party/Build
+          key: client/build@2
+      - name: Building the client
+        run: |
+          cd client
+          python -m cibuildwheel --output-dir ./wheelhouse
+        env:
+          CIBW_BUILD: "cp39-manylinux_*" # force python 3.9 and manylinux for this build
+          CIBW_ARCHS: x86_64 # ignore i686/x86 (32bit) for now, as well as arm and stuff
+
+      # Outputs
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: client-artifacts
+          path: client/wheelhouse/*.whl
+
+  run-tests:
+    strategy:
+      matrix:
+        include:
+          - serverImage: blindai-server-sim
+            clientImage: ubuntu-latest
+            os: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    needs: [build-server, build-client]
+    steps:
+      - uses: actions/checkout@master
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
+      # Setup
+
+      - uses: actions/cache@v2
+        with:
+          path: |
+            ${{ env.pythonLocation }}
+            ~/.cache/pip
+          key: ${{ env.pythonLocation }}-${{ hashFiles('client/setup.py') }}-${{ hashFiles('client/requirements.txt') }}
+      - uses: actions/setup-python@v3
+        with:
+          python-version: '3.9'
+      - name: Install libGL
+        run: sudo apt update -y && sudo apt install -y libgl1-mesa-glx
+
+      - name: Install dependencies
+        run: pip install -r tests/requirements.txt
+
+      # Get server
+
+      - name: Download artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: ${{ matrix.serverImage }}
+          path: /tmp
+      - name: Load image
+        run: |
+          docker load --input /tmp/${{ matrix.serverImage }}.tar
+          docker image ls -a
+
+      # Get client
+
+      - name: Download artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: client-artifacts
+          path: /tmp/client-artifacts
+      - name: Load package
+        run: pip install /tmp/client-artifacts/*.whl
+
+      # Run tests
+      
+      - name: Launch server
+        run: |
+          docker kill -f app > /dev/null 2>&1 || true
+          docker run --rm -d -p 50051:50051 -p 50052:50052 --name app mithrilsecuritysas/${{ matrix.serverImage }}:latest 
+
+      - name: Copy policy and certificate
+        run: |
+          docker cp app:/root/policy.toml tests/policy.toml
+          docker cp app:/root/tls/host_server.pem tests/host_server.pem
+
+      - name: Run tests
+        run: cd tests && python -m unittest
+        env:
+          BLINDAI_TEST_NO_LAUNCH_SERVER: 'true'
+          BLINDAI_TEST_NO_HW: 'true'
