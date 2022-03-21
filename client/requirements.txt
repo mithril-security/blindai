@@ -16,4 +16,5 @@ cibuildwheel
 numpy
 torch
 transformers
-
+opencv-python
+onnxruntime
