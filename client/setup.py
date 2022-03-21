@@ -47,6 +47,8 @@ class CMakeBuild(build_ext):
             f"-DCMAKE_LIBRARY_OUTPUT_DIRECTORY={extdir}",
             f"-DPYTHON_EXECUTABLE={sys.executable}",
             f"-DCMAKE_BUILD_TYPE={cfg}",
+            f"-DBUILD_TESTS=false",
+            f"-DBUILD_ATTESTATION_APP=false",
         ]
 
         build_args = []
