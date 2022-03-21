@@ -32,6 +32,7 @@ def launch_server():
             stdout=sys.stdout,
             stderr=sys.stderr,
             stdin=subprocess.DEVNULL,
+            env={**os.environ, "BLINDAI_DISABLE_TELEMETRY": "true"},
         )
 
         shutil.copyfile(os.path.join(server_dir, "policy.toml"), policy_file)
