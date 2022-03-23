@@ -43,13 +43,13 @@ pub type ModelDatumType = DatumTypeEnum;
 impl ModelDatumType {
     fn get_datum_type(datum: &Option<ModelDatumType>) -> TractResult<DatumType> {
         match *datum {
-            Some(Self::F32) => return Ok(f32::datum_type()),
-            Some(Self::F64) => return Ok(f64::datum_type()),
-            Some(Self::I32) => return Ok(i32::datum_type()),
-            Some(Self::I64) => return Ok(i64::datum_type()),
-            Some(Self::U32) => return Ok(u32::datum_type()),
-            Some(Self::U64) => return Ok(u64::datum_type()),
-            None => return Err(anyhow!("Unknown type")),
+            Some(Self::F32) => Ok(f32::datum_type()),
+            Some(Self::F64) => Ok(f64::datum_type()),
+            Some(Self::I32) => Ok(i32::datum_type()),
+            Some(Self::I64) => Ok(i64::datum_type()),
+            Some(Self::U32) => Ok(u32::datum_type()),
+            Some(Self::U64) => Ok(u64::datum_type()),
+            None => Err(anyhow!("Unknown type")),
         }
     }
 }
@@ -88,12 +88,12 @@ fn load_model(
     Ok(model_rec)
 }
 
-fn create_tensor<'a, A: serde::de::DeserializeOwned + tract_core::prelude::Datum>(
+fn create_tensor<A: serde::de::DeserializeOwned + tract_core::prelude::Datum>(
     input: Vec<u8>,
-    input_fact: &Vec<usize>,
+    input_fact: &[usize],
 ) -> TractResult<Tensor> {
-    let dim = IxDynImpl::from(input_fact.as_slice());
-    let vec: Vec<A> = serde_cbor::from_slice(&input).unwrap_or(Vec::new());
+    let dim = IxDynImpl::from(input_fact);
+    let vec: Vec<A> = serde_cbor::from_slice(&input).unwrap_or_default();
     let tensor = tract_ndarray::ArrayD::from_shape_vec(dim, vec)?.into();
     Ok(tensor)
 }
@@ -101,18 +101,18 @@ fn create_tensor<'a, A: serde::de::DeserializeOwned + tract_core::prelude::Datum
 fn run_inference(
     model: &OnnxModel,
     input: Vec<u8>,
-    input_fact: &Vec<usize>,
+    input_fact: &[usize],
     datum: &Option<ModelDatumType>,
 ) -> TractResult<Vec<f32>> {
     let tensor = dispatch_numbers!(create_tensor(ModelDatumType::get_datum_type(datum)?)(
         input,
-        &input_fact
+        input_fact
     ))?;
     let result = model.run(tvec!(tensor))?;
     let arr = result[0].to_array_view::<f32>()?;
     Ok(arr
         .as_slice()
-        .ok_or(anyhow!("Failed to convert ArrayView to slice"))?
+        .ok_or_else(|| anyhow!("Failed to convert ArrayView to slice"))?
         .to_vec())
 }
 
@@ -130,8 +130,8 @@ impl Exchanger {
         Self {
             model: Arc::new(Mutex::new(None)),
             input_fact: Arc::new(Mutex::new(Vec::new())),
-            max_model_size: max_model_size,
-            max_input_size: max_input_size,
+            max_model_size,
+            max_input_size,
             datum_type: Arc::new(Mutex::new(None)),
         }
     }
@@ -157,14 +157,14 @@ impl Exchange for Exchanger {
             if model_size == 0 {
                 model_size = model_proto.length.try_into().unwrap();
             }
-            if input_fact.len() == 0 {
+            if input_fact.is_empty() {
                 for x in &model_proto.input_fact {
                     input_fact.push(*x as usize);
                 }
             }
             if model_size > max_model_size || model_bytes.len() > max_model_size {
                 error!("Incoming model is too big");
-                return Err(Status::invalid_argument(format!("Model too big")));
+                return Err(Status::invalid_argument("Model too big".to_string()));
             }
             model_bytes.append(&mut model_proto.data);
         }
@@ -182,14 +182,13 @@ impl Exchange for Exchanger {
                 input.append(&mut input_fact);
                 *self.datum_type.lock().unwrap() = datum;
                 reply.ok = true;
-                reply.msg = format!("OK");
+                reply.msg = "OK".into();
                 info!("Model loaded successfully");
             }
             Err(_x) => {
                 reply.ok = false;
-                reply.msg = format!(
-                    "Failed to load model, the model or the input format are perhaps invalid"
-                );
+                reply.msg = 
+                    "Failed to load model, the model or the input format are perhaps invalid".into();
                 error!("Failed to load model, the model or the input format are perhaps invalid");
             }
         }
@@ -211,11 +210,11 @@ impl Exchange for Exchanger {
 
         while let Some(data_stream) = stream.next().await {
             data_proto = data_stream?;
-            if data_proto.input.len() * size_of::<u8>() > max_input_size.try_into().unwrap()
+            if data_proto.input.len() * size_of::<u8>() > max_input_size
                 || input.len() * size_of::<u8>() > max_input_size
             {
                 error!("Incoming input is too big");
-                return Err(Status::invalid_argument(format!("Input too big")));
+                return Err(Status::invalid_argument("Input too big".to_string()));
             }
             input.append(&mut data_proto.input);
         }
@@ -223,7 +222,7 @@ impl Exchange for Exchanger {
         let input_fact = &*self.input_fact.lock().unwrap();
         let datum = &*self.datum_type.lock().unwrap();
         if let Some(model) = &*self.model.lock().unwrap() {
-            match run_inference(&model, input, &input_fact, &datum) {
+            match run_inference(model, input, input_fact, datum) {
                 Ok(output) => {
                     reply.output = output;
                     reply.ok = true;

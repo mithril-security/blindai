@@ -1,0 +1,26 @@
+on: [push]
+name: Clippy
+
+jobs:
+  clippy:
+    name: Clippy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: true
+          path: repo
+
+      - run: cp -r repo/server/* .
+
+      - name: Install nightly-2021-11-01
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly-2021-11-01
+          override: true
+          components: clippy, rustfmt
+
+      - uses: actions-rs/clippy-check@v1
+        with:
+          args: --all-features
+          token: ${{ secrets.GITHUB_TOKEN }}

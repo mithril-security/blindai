@@ -13,8 +13,8 @@
 // limitations under the License.
 
 use ring::{digest, digest::Digest};
-use sgx_types::sgx_ql_att_key_id_t;
 
+#[cfg(target_env = "sgx")]
 use blindai_sgx_attestation::platform;
 
 pub(crate) struct DcapQuoteProvider {
@@ -23,18 +23,21 @@ pub(crate) struct DcapQuoteProvider {
 }
 
 impl DcapQuoteProvider {
-    pub fn get_quote(self: &Self) -> anyhow::Result<Vec<u8>> {
+    pub fn get_quote(&self) -> anyhow::Result<Vec<u8>> {
         get_quote_with_data(self.hash.as_ref())
     }
     pub fn new(enclave_held_data: &[u8]) -> Self {
         DcapQuoteProvider {
-            hash: digest::digest(&digest::SHA256, &enclave_held_data),
+            hash: digest::digest(&digest::SHA256, enclave_held_data),
             enclave_held_data: enclave_held_data.to_vec(),
         }
     }
 }
 
+#[cfg(target_env = "sgx")]
 pub fn get_quote_with_data(data: &[u8]) -> anyhow::Result<Vec<u8>> {
+    use sgx_types::sgx_ql_att_key_id_t;
+
     let (mut ak_id, qe_target_info) = platform::init_sgx_quote()?;
 
     // For DCAP-based attestation, SPID should be 0
@@ -46,4 +49,9 @@ pub fn get_quote_with_data(data: &[u8]) -> anyhow::Result<Vec<u8>> {
     let quote = platform::get_sgx_quote(&ak_id, sgx_report)?;
 
     Ok(quote)
+}
+
+#[cfg(not(target_env = "sgx"))]
+pub fn get_quote_with_data(_data: &[u8]) -> anyhow::Result<Vec<u8>> {
+    unimplemented!()
 }
