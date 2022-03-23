@@ -12,12 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from dataclasses import dataclass, field
 import ctypes
 import hashlib
 import pkgutil
 import struct
-from typing import Any, Dict, List
+from typing import Any, Dict
 from untrusted_pb2 import GetSgxQuoteWithCollateralReply
 import pybind11_module
 import toml

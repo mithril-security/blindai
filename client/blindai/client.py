@@ -18,10 +18,7 @@ import ssl
 from enum import IntEnum
 import socket
 from typing import Any, List, Optional, Tuple
-from attr import dataclass
-import dataclasses
-import json
-from google.protobuf.json_format import MessageToDict
+from dataclasses import dataclass
 from hashlib import sha256
 
 from cbor2 import dumps

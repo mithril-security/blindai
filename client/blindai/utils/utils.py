@@ -14,7 +14,8 @@
 
 import re
 import os
-from attr import dataclass
+import json
+from dataclasses import dataclass
 import cryptography.x509
 from cryptography.hazmat.primitives.serialization import Encoding
 from cryptography.x509 import ObjectIdentifier, load_pem_x509_certificate
