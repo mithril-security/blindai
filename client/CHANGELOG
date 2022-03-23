@@ -6,16 +6,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.3.0] ## 2022-03-18
+## [0.3.0] ## 2022-03-25
 ### Added
 - Support receiving and verifiying signed responses from the server.
-- Export the proof of execution in a json file BlindAiClient.export_proof.
-- Request the the version of the server when initiating a connextion. Raise an exception if the returned version is not supported.  
+- Request the the version of the server when initiating a connextion and raise an exception if the returned version is not supported.  
 
 ### Changed
 - Move the definition of DatumTypeEnum to the proto file.
-- Remove the response that BlindAiClient.upload_model was returning.
-- Change the return value of BlindAiClient.run_model into an array of floats. 
+- Change the response format of BlindAiClient.upload_model.
+- Change the response format of BlindAiClient.run_model.
 
 ## [0.2.0] - 2022-03-02
 ### Added

@@ -31,14 +31,10 @@ class TestCovidNetBase:
         model = os.path.join(os.path.dirname(__file__), "assets/COVID-Net-CXR-2.onnx")
 
         client.upload_model(
-            model=model,
-            shape=(1, 480, 480, 3),
-            dtype=ModelDatumType.F32,
+            model=model, shape=(1, 480, 480, 3), dtype=ModelDatumType.F32,
         )
 
-        response = client.run_model(
-            flattened_img,
-        )
+        response = client.run_model(flattened_img,)
 
         ort_session = onnxruntime.InferenceSession(model)
         ort_inputs = {ort_session.get_inputs()[0].name: img}

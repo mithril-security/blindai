@@ -31,9 +31,7 @@ class TestDistilBertBase:
         )
 
         client.upload_model(
-            model=model_path,
-            shape=inputs.shape,
-            dtype=ModelDatumType.I64,
+            model=model_path, shape=inputs.shape, dtype=ModelDatumType.I64,
         )
 
         response = client.run_model(run_inputs)
@@ -57,12 +55,16 @@ class TestDistilBertBase:
         )
         print(response)
 
-        client.enclave_signing_key.verify(response.proof.signature, response.proof.payload)
+        client.enclave_signing_key.verify(
+            response.proof.signature, response.proof.payload
+        )
 
         response = client.run_model(run_inputs, sign=True)
         print(response)
 
-        client.enclave_signing_key.verify(response.proof.signature, response.proof.payload)
+        client.enclave_signing_key.verify(
+            response.proof.signature, response.proof.payload
+        )
 
         origin_pred = model(torch.tensor(run_inputs).unsqueeze(0)).logits.detach()
 

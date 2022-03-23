@@ -241,6 +241,11 @@ class BlindAiClient:
             dtype: The type of the model input data (f32 by default)
             sign: Get signed responses from the server or not (default is False)
 
+        Returns:
+            UploadModelResponse object, containing one field:
+                proof: optional, a ProofData object with two fields:
+                    payload: the payload returned by the server
+                    signature: the signature returned by the server 
         Raises:
             ConnectionError: will be raised if the connection with the server fails.
             FileNotFoundError: will be raised if the model file is not found.
@@ -304,7 +309,11 @@ class BlindAiClient:
             sign: Get signed responses from the server or not (default is False)
 
         Returns:
-            Array of floats. The inference results returned by the model.
+            RunModelResponse object, containing wto fields:
+                proof: optional, a ProofData object with two fields:
+                    payload: the payload returned by the server
+                    signature: the signature returned by the server
+                output: list of floats, the inference results returned by the server
         Raises:
             ConnectionError: will be raised if the connection to the server fails.
             SignatureError: will be raised if the response signature is invalid
