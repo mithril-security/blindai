@@ -17,6 +17,8 @@ import os
 import ssl
 from enum import IntEnum
 import socket
+from typing import Any, List, Optional, Tuple
+from attr import dataclass
 import dataclasses
 import json
 from google.protobuf.json_format import MessageToDict
@@ -28,7 +30,6 @@ from dcap_attestation import (
     load_policy,
     verify_claims,
     verify_dcap_attestation,
-    Proof,
 )
 from grpc import RpcError, secure_channel, ssl_channel_credentials
 
@@ -54,6 +55,7 @@ from utils.utils import (
     strip_https,
     get_enclave_signing_key,
     supported_server_version,
+    ProofData,
 )
 from utils.errors import (
     check_rpc_exception,
@@ -68,6 +70,17 @@ CONNECTION_TIMEOUT = 10
 ModelDatumType = IntEnum("ModelDatumType", DatumTypeEnum.items())
 
 
+@dataclass
+class UploadModelResponse:
+    proof: Optional[ProofData]
+
+
+@dataclass
+class RunModelResponse:
+    proof: Optional[ProofData]
+    output: List[float]
+
+
 class BlindAiClient:
     def __init__(self, debug_mode=False):
 
@@ -80,7 +93,6 @@ class BlindAiClient:
             os.environ["GRPC_TRACE"] = "transport_security,tsi"
             os.environ["GRPC_VERBOSITY"] = "DEBUG"
         self.SIMULATION_MODE = False
-        self.proof = Proof()
 
     def _is_connected(self):
         return self.channel is not None
@@ -92,10 +104,10 @@ class BlindAiClient:
     def connect_server(
         self,
         addr: str,
-        server_name="blindai-srv",
-        policy="",
-        certificate="",
-        simulation=False,
+        server_name: str = "blindai-srv",
+        policy: str = "",
+        certificate: str = "",
+        simulation: bool = False,
     ):
         """Connect to the server with the specified parameters.
         You will have to specify here the expected policy (server identity, configuration...)
@@ -185,7 +197,6 @@ class BlindAiClient:
             else:
                 self.policy = load_policy(policy)
                 response = stub.GetSgxQuoteWithCollateral(quote_request())
-                self.proof.ctx = response
                 claims = verify_dcap_attestation(
                     response.quote, response.collateral, response.enclave_held_data
                 )
@@ -217,7 +228,13 @@ class BlindAiClient:
             if error is not None:
                 raise error
 
-    def upload_model(self, model="", shape=None, dtype=ModelDatumType.F32, sign=True):
+    def upload_model(
+        self,
+        model: str = "",
+        shape: Tuple = None,
+        dtype: ModelDatumType = ModelDatumType.F32,
+        sign: bool = False,
+    ) -> UploadModelResponse:
         """Upload an inference model to the server.
         The provided model needs to be in the Onnx format.
 
@@ -225,7 +242,7 @@ class BlindAiClient:
             model: Path to Onnx model file.
             shape: The shape of the model input.
             dtype: The type of the model input data (f32 by default)
-            sign: Get signed responses from the server or not (default is True)
+            sign: Get signed responses from the server or not (default is False)
 
         Raises:
             ConnectionError: will be raised if the connection with the server fails.
@@ -266,6 +283,7 @@ class BlindAiClient:
                 raise error
 
         payload = Payload.FromString(response.payload).send_model_payload
+        proof_data = None
         if sign:
             try:
                 self.enclave_signing_key.verify(response.signature, response.payload)
@@ -275,16 +293,18 @@ class BlindAiClient:
                 raise SignatureError("Invalid returned model_hash")
             if input_fact != payload.input_fact:
                 raise SignatureError("Invalid returned input_fact")
-            self.proof.replies.append({"method": "upload_model", "response": response})
+            payload = ProofData(response.payload, response.signature)
 
-    def run_model(self, data_list, sign=True):
+        return UploadModelResponse(proof_data)
+
+    def run_model(self, data_list: List[Any], sign: bool = False) -> RunModelResponse:
         """Send data to the server to make a secure inference
 
         The data provided must be in a list, as the tensor will be rebuilt inside the server.
 
         Args:
             data_list: array of numbers, the numbers must be of the same type dtype specified in upload_model
-            sign: Get signed responses from the server or not (default is True)
+            sign: Get signed responses from the server or not (default is False)
 
         Returns:
             Array of floats. The inference results returned by the model.
@@ -319,6 +339,7 @@ class BlindAiClient:
 
         # Response Verification
         payload = Payload.FromString(response.payload).run_model_payload
+        proof_data = None
         if sign:
             try:
                 self.enclave_signing_key.verify(response.signature, response.payload)
@@ -326,10 +347,11 @@ class BlindAiClient:
                 raise SignatureError("Invalid signature")
             if sha256(serialized_bytes).digest() != payload.input_hash:
                 raise SignatureError("Invalid returned input_hash")
-            self.proof.replies.append({"method": "run_model", "response": response})
+
+            proof_data = ProofData(response.payload, response.signature)
 
         # Get the output of inference
-        return payload.output
+        return RunModelResponse(proof_data, payload.output)
 
     def close_connection(self):
         """Close the connection between the client and the inference server."""
@@ -338,17 +360,3 @@ class BlindAiClient:
             self.channel = None
             self.stub = None
             self.policy = None
-
-    def export_proof(self, path="execution_proof.json"):
-        """Dump the proof of execution to a json file
-        The resulted file will contain the following information:
-            ctx: The quote sent by the enclave. It is equal to 'None' if the server is running
-                in the simulation mode.
-            replies: A list of the signed responses received from the server during
-                the connection. Each entry has the following structure:
-                    method: send_model or run_model
-                    response: The response of the server
-
-        """
-        with open(path, "w") as proof_file:
-            json.dump(dataclasses.asdict(self.proof), proof_file, default=MessageToDict)

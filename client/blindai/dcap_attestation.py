@@ -27,12 +27,6 @@ from pybind11_module import status
 from utils.utils import encode_certificate
 
 
-@dataclass
-class Proof:
-    ctx: GetSgxQuoteWithCollateralReply = None
-    replies: List[Any] = field(default_factory=list)
-
-
 def verify_dcap_attestation(
     quote: bytes, attestation_collateral: Any, enclave_held_data: bytes
 ) -> Dict[str, str]:

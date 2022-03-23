@@ -14,12 +14,19 @@
 
 import re
 import os
+from attr import dataclass
 import cryptography.x509
 from cryptography.hazmat.primitives.serialization import Encoding
 from cryptography.x509 import ObjectIdentifier, load_pem_x509_certificate
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
 
 CHUNK_SIZE = 32 * 1024  # 32kb
+
+
+@dataclass
+class ProofData:
+    payload: bytes
+    signature: bytes
 
 
 def strip_https(url: str):
