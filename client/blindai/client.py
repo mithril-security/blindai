@@ -290,7 +290,7 @@ class BlindAiClient:
                 raise SignatureError("Invalid returned model_hash")
             if input_fact != payload.input_fact:
                 raise SignatureError("Invalid returned input_fact")
-            payload = ProofData(response.payload, response.signature)
+            proof_data = ProofData(response.payload, response.signature)
 
         return UploadModelResponse(proof_data)
 

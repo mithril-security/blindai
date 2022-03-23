@@ -1,4 +1,3 @@
-from hashlib import sha256
 from transformers import DistilBertForSequenceClassification
 from transformers import DistilBertTokenizer
 import torch
@@ -56,12 +55,12 @@ class TestDistilBertBase:
         response = client.upload_model(
             model=model_path, shape=inputs.shape, dtype=ModelDatumType.I64, sign=True
         )
-        print(response.proof)
+        print(response)
 
         client.enclave_signing_key.verify(response.proof.signature, response.proof.payload)
 
         response = client.run_model(run_inputs, sign=True)
-        print(response.proof)
+        print(response)
 
         client.enclave_signing_key.verify(response.proof.signature, response.proof.payload)
 

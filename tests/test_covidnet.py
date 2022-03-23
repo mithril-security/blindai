@@ -1,6 +1,3 @@
-from transformers import DistilBertForSequenceClassification
-from transformers import DistilBertTokenizer
-import torch
 from blindai.client import BlindAiClient, ModelDatumType
 import unittest
 from server import (
