@@ -57,6 +57,8 @@ mod identity;
 mod telemetry;
 mod untrusted;
 
+extern crate sgx_types;
+
 /// # Safety
 ///
 /// `telemetry_platform` and `telemetry_uid` need to be valid C strings.
