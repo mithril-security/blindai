@@ -38,8 +38,8 @@ where
 
         // Create Identity from the PEM key-pair
         TlsIdentity {
-            cert_der: cert_der,
-            private_key_der: private_key_der,
+            cert_der,
+            private_key_der,
         }
     }
 }
@@ -97,18 +97,17 @@ pub(crate) fn create_certificate() -> Result<(Certificate, RsaKeyPair)> {
 
     let subject_alt_names = Vec::from(subject_alt_names)
         .into_iter()
-        .map(|s| SanType::DnsName(s))
+        .map(SanType::DnsName)
         .collect::<Vec<_>>();
 
     let mut params = CertificateParams::default();
     params.subject_alt_names = subject_alt_names;
 
-    /* OIDs under the Internet Experimental OID arc (1.3.6.1.3.x) may be used for experimental purpose */
+    /* OIDs under the Internet Experimental OID arc (1.3.6.1.3.x) may be used for
+     * experimental purpose */
     let rsa_file_encryption_key_oid: Vec<_> = oid!(1.3.6 .1 .3 .1)
         .iter()
-        .ok_or(anyhow!(
-            "At least one arc of the OID does not fit into `u64`"
-        ))?
+        .ok_or_else(|| anyhow!("At least one arc of the OID does not fit into `u64`"))?
         .collect();
 
     /* create random RSA key pair */
@@ -133,7 +132,7 @@ pub(crate) fn create_certificate() -> Result<(Certificate, RsaKeyPair)> {
     /* add the RSA public key as bytes to the certificate */
     let signing_ext = CustomExtension::from_oid_content(
         &rsa_file_encryption_key_oid,
-        rsa_public_key_bytes.clone(),
+        rsa_public_key_bytes,
     );
 
     params.custom_extensions = vec![signing_ext];
