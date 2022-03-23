@@ -1,4 +1,4 @@
-# requirements for development
+# requirements for building
 cryptography>=35.0.0
 toml
 grpcio
@@ -11,9 +11,4 @@ wheel
 patchelf
 check-wheel-contents
 auditwheel
-pillow
 cibuildwheel
-numpy
-torch
-transformers
-

@@ -15,10 +15,10 @@
 use crate::dcap_quote_provider::DcapQuoteProvider;
 use blindai_common::untrusted_local_app_client::UntrustedLocalAppClient;
 use tonic::{Request, Response, Status};
-pub use untrusted::attestation_server::*;
-use untrusted::*;
+pub use untrusted_proto::attestation_server::*;
+use untrusted_proto::*;
 
-pub mod untrusted {
+pub mod untrusted_proto {
     tonic::include_proto!("untrusted");
 }
 
@@ -44,7 +44,7 @@ impl Attestation for MyAttestation {
     ) -> Result<Response<GetTokenReply>, Status> {
         println!("Got a request from {:?}", request.remote_addr());
 
-        let reply = untrusted::GetTokenReply {
+        let reply = GetTokenReply {
             token: "".to_owned(), // token: self.token.lock().unwrap().clone()
         };
         Ok(Response::new(reply))
@@ -74,20 +74,20 @@ impl Attestation for MyAttestation {
         let reply = GetSgxQuoteWithCollateralReply {
             collateral: Some(SgxCollateral {
                 version: collateral.version, // version = 1.  PCK Cert chain is in the Quote.
-                pck_crl_issuer_chain: collateral.pck_crl_issuer_chain.into(),
-                root_ca_crl: collateral.root_ca_crl.into(), // Root CA CRL
-                pck_crl: collateral.pck_crl.into(),         // PCK Cert CRL
-                tcb_info_issuer_chain: collateral.tcb_info_issuer_chain.into(),
-                tcb_info: collateral.tcb_info.into(), // TCB Info structure
-                qe_identity_issuer_chain: collateral.qe_identity_issuer_chain.into(),
-                qe_identity: collateral.qe_identity.into(), // QE Identity Structure
+                pck_crl_issuer_chain: collateral.pck_crl_issuer_chain,
+                root_ca_crl: collateral.root_ca_crl, // Root CA CRL
+                pck_crl: collateral.pck_crl,         // PCK Cert CRL
+                tcb_info_issuer_chain: collateral.tcb_info_issuer_chain,
+                tcb_info: collateral.tcb_info, // TCB Info structure
+                qe_identity_issuer_chain: collateral.qe_identity_issuer_chain,
+                qe_identity: collateral.qe_identity, // QE Identity Structure
                 pck_certificate: collateral.pck_certificate, //PEM encoded PCK certificate
                 pck_signing_chain: collateral.pck_signing_chain, /* PEM encoded PCK signing chain
                                                              * such that (pck_certificate ||
                                                              * pck_signing_chain) ==
                                                              * pck_cert_chain */
             }),
-            quote: quote,
+            quote,
             enclave_held_data: self.quote_provider.enclave_held_data.clone(),
         };
         Ok(Response::new(reply))

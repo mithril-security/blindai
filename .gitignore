@@ -141,7 +141,7 @@ scratch.txt
 .ipynb_checkpoints
 
 # ONNX
-*.onnx
+# *.onnx
 
 # Vectors
 *.wordvectors
@@ -167,5 +167,11 @@ crypto
 ex.c
 
 # User files
-*.onnx
-*proof.json
+# *.onnx
+# *proof.json
+
+# temp test files
+tests/distilbert-base-uncased.onnx
+tests/*proof.json
+tests/policy.toml
+tests/host_server.pem

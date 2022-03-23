@@ -1,0 +1,7 @@
+# requirements for tests
+pillow
+numpy
+torch
+transformers
+opencv-python
+onnxruntime

@@ -16,16 +16,6 @@
 #![crate_type = "staticlib"]
 #![feature(once_cell)]
 
-extern crate env_logger;
-extern crate sgx_libc;
-extern crate sgx_tseal;
-extern crate sgx_types;
-extern crate tract_core;
-extern crate tract_onnx;
-
-extern crate serde_cbor;
-extern crate serde_derive;
-
 use env_logger::Env;
 #[cfg(target_env = "sgx")]
 use std::backtrace::{self, PrintFormat};
@@ -67,8 +57,13 @@ mod model;
 mod telemetry;
 mod untrusted;
 
+extern crate sgx_types;
+
+/// # Safety
+///
+/// `telemetry_platform` and `telemetry_uid` need to be valid C strings.
 #[no_mangle]
-pub extern "C" fn start_server(
+pub unsafe extern "C" fn start_server(
     telemetry_platform: *const c_char,
     telemetry_uid: *const c_char,
 ) -> sgx_status_t {
@@ -79,8 +74,8 @@ pub extern "C" fn start_server(
 
     info!("Switched to enclave context");
 
-    let telemetry_platform = unsafe { CStr::from_ptr(telemetry_platform) };
-    let telemetry_uid = unsafe { CStr::from_ptr(telemetry_uid) };
+    let telemetry_platform = CStr::from_ptr(telemetry_platform);
+    let telemetry_uid = CStr::from_ptr(telemetry_uid);
 
     let telemetry_platform = telemetry_platform.to_owned().into_string().unwrap();
     let telemetry_uid = telemetry_uid.to_owned().into_string().unwrap();
@@ -99,6 +94,7 @@ async fn main(
     telemetry_platform: String,
     telemetry_uid: String,
 ) -> Result<(), Box<dyn std::error::Error>> {
+    #[cfg(target_env = "sgx")]
     let _ = backtrace::enable_backtrace("enclave.signed.so", PrintFormat::Full);
     let (certificate, storage_identity, signing_key_seed) = identity::create_certificate()?;
     let my_identity = Arc::new(MyIdentity::from_cert(
@@ -132,7 +128,7 @@ async fn main(
             Server::builder()
                 .tls_config(ServerTlsConfig::new().identity(untrusted_identity))?
                 .add_service(untrusted::AttestationServer::new(MyAttestation {
-                    quote_provider: &dcap_quote_provider,
+                    quote_provider: dcap_quote_provider,
                 }))
                 .serve(network_config.client_to_enclave_untrusted_socket()?)
                 .await?;
@@ -162,7 +158,7 @@ async fn main(
         info!("Server running in simulation mode, attestation not available.");
     }
 
-    if !std::env::var("BLINDAI_DISABLE_TELEMETRY").is_ok() {
+    if std::env::var("BLINDAI_DISABLE_TELEMETRY").is_err() {
         telemetry::setup(telemetry_platform, telemetry_uid)?;
     } else {
         debug!("Telemetry is disabled.")

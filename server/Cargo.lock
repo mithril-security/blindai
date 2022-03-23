@@ -148,7 +148,7 @@ checksum = "bef38d45163c2f1dde094a7dfd33ccf595c92905c8f8f4fdc18d06fb1037718a"
 
 [[package]]
 name = "blindai_app"
-version = "0.2.2"
+version = "0.3.0"
 dependencies = [
  "anyhow",
  "base16",
@@ -183,7 +183,7 @@ dependencies = [
 
 [[package]]
 name = "blindai_common"
-version = "0.2.2"
+version = "0.3.0"
 dependencies = [
  "anyhow",
  "http",
@@ -196,7 +196,7 @@ dependencies = [
 
 [[package]]
 name = "blindai_rpc"
-version = "0.2.2"
+version = "0.3.0"
 dependencies = [
  "tokio",
  "tokio-stream",
@@ -206,7 +206,7 @@ dependencies = [
 
 [[package]]
 name = "blindai_sgx"
-version = "0.2.2"
+version = "0.3.0"
 dependencies = [
  "anyhow",
  "base64",
@@ -234,10 +234,7 @@ dependencies = [
  "serde_cbor",
  "serde_derive",
  "serde_json",
- "sgx_libc",
- "sgx_trts",
  "sgx_tseal",
- "sgx_tstd",
  "sgx_types",
  "tokio",
  "tokio-stream",
@@ -253,7 +250,7 @@ dependencies = [
 
 [[package]]
 name = "blindai_sgx_attestation"
-version = "0.2.2"
+version = "0.3.0"
 dependencies = [
  "log",
  "sgx_types",
@@ -792,10 +789,6 @@ name = "hashbrown"
 version = "0.11.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ab5ef0d4909ef3724cc8cce6ccc8572c5c817592e9285f5464f8e86f8bd3726e"
-
-[[package]]
-name = "hashbrown_tstd"
-version = "0.11.2"
 
 [[package]]
 name = "heck"
@@ -2158,27 +2151,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "sgx_alloc"
-version = "1.1.4"
-
-[[package]]
-name = "sgx_backtrace_sys"
-version = "1.1.4"
-dependencies = [
- "cc",
- "sgx_build_helper",
- "sgx_libc",
-]
-
-[[package]]
-name = "sgx_build_helper"
-version = "1.1.4"
-
-[[package]]
-name = "sgx_demangle"
-version = "1.1.4"
-
-[[package]]
 name = "sgx_libc"
 version = "1.1.4"
 dependencies = [
@@ -2202,14 +2174,6 @@ dependencies = [
 name = "sgx_tcrypto"
 version = "1.1.4"
 dependencies = [
- "sgx_types",
-]
-
-[[package]]
-name = "sgx_tprotected_fs"
-version = "1.1.4"
-dependencies = [
- "sgx_trts",
  "sgx_types",
 ]
 
@@ -2239,30 +2203,8 @@ dependencies = [
 ]
 
 [[package]]
-name = "sgx_tstd"
-version = "1.1.4"
-dependencies = [
- "hashbrown_tstd",
- "sgx_alloc",
- "sgx_backtrace_sys",
- "sgx_demangle",
- "sgx_libc",
- "sgx_tprotected_fs",
- "sgx_trts",
- "sgx_types",
- "sgx_unwind",
-]
-
-[[package]]
 name = "sgx_types"
 version = "1.1.4"
-
-[[package]]
-name = "sgx_unwind"
-version = "1.1.4"
-dependencies = [
- "sgx_build_helper",
-]
 
 [[package]]
 name = "sgx_urts"
@@ -3125,9 +3067,12 @@ dependencies = [
 ]
 
 [[patch.unused]]
-name = "futures-test"
-version = "0.3.17"
-source = "git+https://github.com/mithril-security/futures-sgx?branch=futures-sgx#b526ad377d688c3bc8d733f25da655f38be0dbdb"
+name = "sgx_alloc"
+version = "1.1.4"
+
+[[patch.unused]]
+name = "sgx_build_helper"
+version = "1.1.4"
 
 [[patch.unused]]
 name = "sgx_cov"
@@ -3170,9 +3115,26 @@ name = "sgx_tkey_exchange"
 version = "1.1.4"
 
 [[patch.unused]]
+name = "sgx_tprotected_fs"
+version = "1.1.4"
+
+[[patch.unused]]
+name = "sgx_tstd"
+version = "1.1.4"
+
+[[patch.unused]]
 name = "sgx_tunittest"
 version = "1.1.4"
 
 [[patch.unused]]
 name = "sgx_ucrypto"
 version = "1.1.4"
+
+[[patch.unused]]
+name = "sgx_unwind"
+version = "1.1.4"
+
+[[patch.unused]]
+name = "futures-test"
+version = "0.3.17"
+source = "git+https://github.com/mithril-security/futures-sgx?branch=futures-sgx#b526ad377d688c3bc8d733f25da655f38be0dbdb"

@@ -50,10 +50,10 @@ h2 = "=0.3.4"
 prost-types = "=0.8"
 
 [target.'cfg(not(target_env = "sgx"))'.dependencies]
-sgx_libc = {git = "https://github.com/apache/teaclave-sgx-sdk.git"}
-sgx_trts = {git = "https://github.com/apache/teaclave-sgx-sdk.git"}
+# sgx_libc = {git = "https://github.com/apache/teaclave-sgx-sdk.git"}
+# sgx_trts = {git = "https://github.com/apache/teaclave-sgx-sdk.git"}
 sgx_tseal = {git = "https://github.com/apache/teaclave-sgx-sdk.git"}
-sgx_tstd = {git = "https://github.com/apache/teaclave-sgx-sdk.git", features = ["backtrace"]}
+# sgx_tstd = {git = "https://github.com/apache/teaclave-sgx-sdk.git", features = ["backtrace"]}
 sgx_types = {git = "https://github.com/apache/teaclave-sgx-sdk.git"}
 
 [build-dependencies]

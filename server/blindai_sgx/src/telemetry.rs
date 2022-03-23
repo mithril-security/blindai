@@ -109,7 +109,7 @@ pub fn setup(platform: String, uid: String) -> anyhow::Result<()> {
                 events: &events,
             };
 
-            if events.len() > 0 {
+            if !events.is_empty() {
                 let response = reqwest::Client::new()
                     .post("https://api2.amplitude.com/2/httpapi")
                     .timeout(Duration::from_secs(60))

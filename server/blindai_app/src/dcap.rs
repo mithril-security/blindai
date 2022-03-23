@@ -232,24 +232,24 @@ fn sgx_get_quote_verification_collateral(
 
     let pck_crl_issuer_chain = unsafe {
         slice::from_raw_parts(
-            (&*p_quote_collateral).pck_crl_issuer_chain as *const u8,
-            (&*p_quote_collateral).pck_crl_issuer_chain_size as usize - 1,
+            (*p_quote_collateral).pck_crl_issuer_chain as *const u8,
+            (*p_quote_collateral).pck_crl_issuer_chain_size as usize - 1,
         )
         .to_owned()
     };
 
     let root_ca_crl = unsafe {
         slice::from_raw_parts(
-            (&*p_quote_collateral).root_ca_crl as *const u8,
-            (&*p_quote_collateral).root_ca_crl_size as usize - 1,
+            (*p_quote_collateral).root_ca_crl as *const u8,
+            (*p_quote_collateral).root_ca_crl_size as usize - 1,
         )
         .to_owned()
     };
 
     let pck_crl = unsafe {
         slice::from_raw_parts(
-            (&*p_quote_collateral).pck_crl as *const u8,
-            (&*p_quote_collateral).pck_crl_size as usize - 1,
+            (*p_quote_collateral).pck_crl as *const u8,
+            (*p_quote_collateral).pck_crl_size as usize - 1,
         )
         .to_owned()
     };
@@ -257,8 +257,8 @@ fn sgx_get_quote_verification_collateral(
     let tcb_info_issuer_chain = {
         let slice = unsafe {
             slice::from_raw_parts(
-                (&*p_quote_collateral).tcb_info_issuer_chain as *const u8,
-                (&*p_quote_collateral).tcb_info_issuer_chain_size as usize - 1,
+                (*p_quote_collateral).tcb_info_issuer_chain as *const u8,
+                (*p_quote_collateral).tcb_info_issuer_chain_size as usize - 1,
             )
         };
         str::from_utf8(slice)?.to_owned()
@@ -267,8 +267,8 @@ fn sgx_get_quote_verification_collateral(
     let tcb_info = {
         let slice = unsafe {
             slice::from_raw_parts(
-                (&*p_quote_collateral).tcb_info as *const u8,
-                (&*p_quote_collateral).tcb_info_size as usize - 1,
+                (*p_quote_collateral).tcb_info as *const u8,
+                (*p_quote_collateral).tcb_info_size as usize - 1,
             )
         };
         str::from_utf8(slice)?.to_owned()
@@ -277,8 +277,8 @@ fn sgx_get_quote_verification_collateral(
     let qe_identity_issuer_chain = {
         let slice = unsafe {
             slice::from_raw_parts(
-                (&*p_quote_collateral).qe_identity_issuer_chain as *const u8,
-                (&*p_quote_collateral).qe_identity_issuer_chain_size as usize - 1,
+                (*p_quote_collateral).qe_identity_issuer_chain as *const u8,
+                (*p_quote_collateral).qe_identity_issuer_chain_size as usize - 1,
             )
         };
         str::from_utf8(slice)?.to_owned()
@@ -287,14 +287,14 @@ fn sgx_get_quote_verification_collateral(
     let qe_identity = {
         let slice = unsafe {
             slice::from_raw_parts(
-                (&*p_quote_collateral).qe_identity as *const u8,
-                (&*p_quote_collateral).qe_identity_size as usize - 1,
+                (*p_quote_collateral).qe_identity as *const u8,
+                (*p_quote_collateral).qe_identity_size as usize - 1,
             )
         };
         str::from_utf8(slice)?.to_owned()
     };
 
-    let version = unsafe { (&*p_quote_collateral).version };
+    let version = unsafe { (*p_quote_collateral).version };
 
     let pck_crl_issuer_chain = pcs_crl_to_pem(&pck_crl_issuer_chain);
     let root_ca_crl = pcs_crl_to_pem(&root_ca_crl);
