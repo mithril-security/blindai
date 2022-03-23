@@ -121,9 +121,7 @@ pub(crate) fn create_certificate() -> Result<(Certificate, RsaKeyPair, Vec<u8>)>
 
     let payload_signing_key_oid: Vec<_> = oid!(1.3.6 .1 .3 .2)
         .iter()
-        .ok_or(anyhow!(
-            "At least one arc of the OID does not fit into `u64`"
-        ))?
+        .ok_or_else(|| anyhow!("At least one arc of the OID does not fit into `u64`"))?
         .collect();
 
     let mut params = CertificateParams::default();
@@ -156,10 +154,8 @@ pub(crate) fn create_certificate() -> Result<(Certificate, RsaKeyPair, Vec<u8>)>
     };
 
     /* add the RSA public key as bytes to the certificate */
-    let ext1 = CustomExtension::from_oid_content(
-        &rsa_file_encryption_key_oid,
-        rsa_public_key_bytes,
-    );
+    let ext1 =
+        CustomExtension::from_oid_content(&rsa_file_encryption_key_oid, rsa_public_key_bytes);
 
     /* todo! : force the right params */
 

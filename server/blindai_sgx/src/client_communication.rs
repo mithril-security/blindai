@@ -83,23 +83,23 @@ impl Exchange for Exchanger {
                 }
 
                 datum = FromPrimitive::from_i32(model_proto.datum)
-                    .ok_or_else(|| Status::invalid_argument(format!("Unknown datum type")))?;
+                    .ok_or_else(|| Status::invalid_argument("Unknown datum type".to_string()))?;
                 sign = model_proto.sign;
             }
             if model_size > max_model_size || model_bytes.len() > max_model_size {
-                Err(Status::invalid_argument(format!("Model too big")))?;
+                return Err(Status::invalid_argument("Model too big".to_string()));
             }
             model_bytes.append(&mut model_proto.data)
         }
 
         if model_size == 0 {
-            Err(Status::invalid_argument(format!("Received no data")))?;
+            return Err(Status::invalid_argument("Received no data".to_string()));
         }
 
         let model =
             InferenceModel::load_model(&model_bytes, input_fact.clone(), datum).map_err(|err| {
                 error!("Unknown error creating model: {}", err);
-                Status::unknown(format!("Unknown error"))
+                Status::unknown("Unknown error".to_string())
             })?;
 
         *self.model.lock().unwrap() = Some(model);
@@ -125,8 +125,10 @@ impl Exchange for Exchanger {
             payload: Some(payload::Payload::SendModelPayload(payload)),
         };
 
-        let mut reply = SendModelReply::default();
-        reply.payload = payload_with_header.encode_to_vec();
+        let mut reply = SendModelReply {
+            payload: payload_with_header.encode_to_vec(),
+            ..Default::default()
+        };
         if sign {
             reply.signature = Some(
                 self.identity
@@ -152,12 +154,12 @@ impl Exchange for Exchanger {
 
         while let Some(data_stream) = stream.next().await {
             let mut data_proto = data_stream?;
-            if data_proto.input.len() * size_of::<u8>() > max_input_size.try_into().unwrap()
+            if data_proto.input.len() * size_of::<u8>() > max_input_size
                 || input.len() * size_of::<u8>() > max_input_size
             {
-                Err(Status::invalid_argument(format!("Input too big")))?;
+                return Err(Status::invalid_argument("Input too big".to_string()));
             }
-            if input.len() == 0 {
+            if input.is_empty() {
                 sign = data_proto.sign;
             }
             input.append(&mut data_proto.input);
@@ -168,20 +170,24 @@ impl Exchange for Exchanger {
         let model = if let Some(model) = &*model_guard {
             model
         } else {
-            Err(Status::invalid_argument(format!("Cannot find the model")))?
+            return Err(Status::invalid_argument(
+                "Cannot find the model".to_string(),
+            ));
         };
 
         let result = model.run_inference(&input).map_err(|err| {
             error!("Unknown error running inference: {}", err);
-            Status::unknown(format!("Unknown error"))
+            Status::unknown("Unknown error".to_string())
         })?;
 
         info!("Inference was a success");
         telemetry::add_event(TelemetryEventProps::RunModel {});
 
-        let mut payload = RunModelPayload::default();
+        let mut payload = RunModelPayload {
+            output: result,
+            ..Default::default()
+        };
         // payload.model_id = "default".into();
-        payload.output = result;
         if sign {
             payload.input_hash = Some(digest::digest(&digest::SHA256, &input).as_ref().to_vec());
         }
@@ -193,8 +199,10 @@ impl Exchange for Exchanger {
             payload: Some(payload::Payload::RunModelPayload(payload)),
         };
 
-        let mut reply = RunModelReply::default();
-        reply.payload = payload_with_header.encode_to_vec();
+        let mut reply = RunModelReply {
+            payload: payload_with_header.encode_to_vec(),
+            ..Default::default()
+        };
         if sign {
             reply.signature = Some(
                 self.identity

@@ -58,12 +58,12 @@ macro_rules! dispatch_numbers {
     } }
 }
 
-fn create_tensor<'a, A: serde::de::DeserializeOwned + tract_core::prelude::Datum>(
+fn create_tensor<A: serde::de::DeserializeOwned + tract_core::prelude::Datum>(
     input: &[u8],
-    input_fact: &Vec<usize>,
+    input_fact: &[usize],
 ) -> Result<Tensor> {
-    let dim = IxDynImpl::from(input_fact.as_slice());
-    let vec: Vec<A> = serde_cbor::from_slice(input).unwrap_or(Vec::new());
+    let dim = IxDynImpl::from(input_fact);
+    let vec: Vec<A> = serde_cbor::from_slice(input).unwrap_or_default();
     let tensor = tract_ndarray::ArrayD::from_shape_vec(dim, vec)?.into();
     Ok(tensor)
 }
@@ -109,7 +109,7 @@ impl InferenceModel {
         let arr = result[0].to_array_view::<f32>()?;
         Ok(arr
             .as_slice()
-            .ok_or(anyhow!("Failed to convert ArrayView to slice"))?
+            .ok_or_else(|| anyhow!("Failed to convert ArrayView to slice"))?
             .to_vec())
     }
 }
