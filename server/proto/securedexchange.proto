@@ -67,13 +67,13 @@ message SendModelReply {
     bytes payload = 1;
     // Signature of the payload
     // This field is not present when `sign` is `false` in the request
-    optional bytes signature = 2;
+    bytes signature = 2;
 }
 
 message SendModelPayload {
     // Raw SHA-256 hash of the uploaded ONNX model
     // This field is not present when `sign` is `false` in the request
-    optional bytes model_hash = 1;
+    bytes model_hash = 1;
     // Input fact
     // This field is empty when `sign` is `false` in the request
     repeated int32 input_fact = 2;
@@ -92,12 +92,12 @@ message RunModelReply {
     bytes payload = 1;
     // Signature of the payload
     // This field is not present when `sign` is `false` in the request
-    optional bytes signature = 2;
+    bytes signature = 2;
 }
 
 message RunModelPayload {
     repeated float output = 1;
     // Raw SHA-256 hash of the protobuf binary encoding of the repeated float input from RunModelRequest
     // This field is empty when `sign` is `false` in the request
-    optional bytes input_hash = 2;
+    bytes input_hash = 2;
 }

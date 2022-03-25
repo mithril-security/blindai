@@ -18,7 +18,7 @@ jobs:
         with:
           driver: docker-container
 
-          # Build server
+      # Build server
 
       - name: Build server
         uses: docker/build-push-action@v2.10.0
@@ -65,7 +65,11 @@ jobs:
           python-version: '3.9'
 
       - name: Install dependencies
-        run: pip install -r client/requirements.txt
+        run: |
+          pip install -r client/requirements.txt
+          cd client
+          python3 -m grpc_tools.protoc --proto_path=$(realpath proto) --python_out=blindai --grpc_python_out=blindai securedexchange.proto
+          python3 -m grpc_tools.protoc --proto_path=$(realpath proto) --python_out=blindai --grpc_python_out=blindai untrusted.proto
 
       # Build client
 
@@ -77,9 +81,9 @@ jobs:
             ./client/build
             ./client/blindai.egg-info
             ./client/blindai/lib
-            ./client/third_party/build
-            ./client/third_party/Build
-          key: client/build@2
+            ./client/third_party/attestationLib/build
+            ./client/third_party/attestationLib/Build
+          key: client/build-${{ env.pythonLocation }}-${{ hashFiles('client/setup.py') }}-${{ hashFiles('client/requirements.txt') }}
       - name: Building the client
         run: |
           cd client
@@ -87,6 +91,8 @@ jobs:
         env:
           CIBW_BUILD: "cp39-manylinux_*" # force python 3.9 and manylinux for this build
           CIBW_ARCHS: x86_64 # ignore i686/x86 (32bit) for now, as well as arm and stuff
+
+      - run: unzip -l client/wheelhouse/*.whl
 
       # Outputs
 

@@ -83,6 +83,8 @@ class BuildPy(build_py):
         proto_path = os.path.join(dir_path, "proto")
         import grpc_tools.protoc
 
+        print(dir_path, proto_files, proto_path)
+
         for file in proto_files:
             grpc_tools.protoc.main(
                 [
@@ -119,8 +121,8 @@ setuptools.setup(
     install_requires=[
         "cryptography>=35.0.0",
         "toml",
-        "grpcio",
-        "grpcio-tools",
+        "grpcio==1.45",
+        "grpcio-tools==1.45",
         "bitstring",
         "cbor2",
     ],
@@ -131,8 +133,8 @@ setuptools.setup(
             "wheel",
             "check-wheel-contents",
             "auditwheel",
-            "grpcio-tools",
-            "grpcio",
+            "grpcio-tools==1.45",
+            "grpcio==1.45",
         ]
     },
     classifiers=[

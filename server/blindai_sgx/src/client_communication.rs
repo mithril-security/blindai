@@ -110,11 +110,9 @@ impl Exchange for Exchanger {
         let mut payload = SendModelPayload::default();
         // payload.model_id = "default".into();
         if sign {
-            payload.model_hash = Some(
-                digest::digest(&digest::SHA256, &model_bytes)
-                    .as_ref()
-                    .to_vec(),
-            );
+            payload.model_hash = digest::digest(&digest::SHA256, &model_bytes)
+                .as_ref()
+                .to_vec();
             payload.input_fact = input_fact.into_iter().map(|i| i as i32).collect();
         }
 
@@ -130,13 +128,12 @@ impl Exchange for Exchanger {
             ..Default::default()
         };
         if sign {
-            reply.signature = Some(
-                self.identity
-                    .signing_key
-                    .sign(&reply.payload)
-                    .to_bytes()
-                    .to_vec(),
-            );
+            reply.signature = self
+                .identity
+                .signing_key
+                .sign(&reply.payload)
+                .to_bytes()
+                .to_vec();
         }
 
         Ok(Response::new(reply))
@@ -189,7 +186,7 @@ impl Exchange for Exchanger {
         };
         // payload.model_id = "default".into();
         if sign {
-            payload.input_hash = Some(digest::digest(&digest::SHA256, &input).as_ref().to_vec());
+            payload.input_hash = digest::digest(&digest::SHA256, &input).as_ref().to_vec();
         }
 
         let payload_with_header = Payload {
@@ -204,13 +201,12 @@ impl Exchange for Exchanger {
             ..Default::default()
         };
         if sign {
-            reply.signature = Some(
-                self.identity
-                    .signing_key
-                    .sign(&reply.payload)
-                    .to_bytes()
-                    .to_vec(),
-            );
+            reply.signature = self
+                .identity
+                .signing_key
+                .sign(&reply.payload)
+                .to_bytes()
+                .to_vec();
         }
 
         Ok(Response::new(reply))
