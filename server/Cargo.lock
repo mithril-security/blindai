@@ -3100,6 +3100,11 @@ dependencies = [
 ]
 
 [[patch.unused]]
+name = "futures-test"
+version = "0.3.17"
+source = "git+https://github.com/mithril-security/futures-sgx?branch=futures-sgx#b526ad377d688c3bc8d733f25da655f38be0dbdb"
+
+[[patch.unused]]
 name = "sgx_alloc"
 version = "1.1.4"
 
@@ -3166,8 +3171,3 @@ version = "1.1.4"
 [[patch.unused]]
 name = "sgx_unwind"
 version = "1.1.4"
-
-[[patch.unused]]
-name = "futures-test"
-version = "0.3.17"
-source = "git+https://github.com/mithril-security/futures-sgx?branch=futures-sgx#b526ad377d688c3bc8d733f25da655f38be0dbdb"
