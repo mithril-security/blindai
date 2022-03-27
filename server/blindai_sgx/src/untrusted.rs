@@ -82,7 +82,10 @@ impl Attestation for MyAttestation {
                 qe_identity_issuer_chain: collateral.qe_identity_issuer_chain,
                 qe_identity: collateral.qe_identity, // QE Identity Structure
                 pck_certificate: collateral.pck_certificate, //PEM encoded PCK certificate
-                pck_signing_chain: collateral.pck_signing_chain, // PEM encoded PCK signing chain such that (pck_certificate || pck_signing_chain) == pck_cert_chain
+                pck_signing_chain: collateral.pck_signing_chain, /* PEM encoded PCK signing chain
+                                                      * such that (pck_certificate ||
+                                                      * pck_signing_chain) ==
+                                                      * pck_cert_chain */
             }),
             quote,
             enclave_held_data: self.quote_provider.enclave_held_data.clone(),

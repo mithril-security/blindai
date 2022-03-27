@@ -31,12 +31,41 @@ class TestDistilBertBase:
         )
 
         client.upload_model(
-            model=model_path,
-            shape=inputs.shape,
-            dtype=ModelDatumType.I64,
+            model=model_path, shape=inputs.shape, dtype=ModelDatumType.I64,
         )
 
         response = client.run_model(run_inputs)
+        origin_pred = model(torch.tensor(run_inputs).unsqueeze(0)).logits.detach()
+
+        diff = (torch.tensor([response.output]) - origin_pred).sum().abs()
+        self.assertLess(diff, 0.001)  # difference is <0.1%
+
+    def test_signed(self):
+        client = BlindAiClient()
+
+        client.connect_server(
+            addr="localhost",
+            simulation=self.simulation,
+            policy=policy_file,
+            certificate=certificate_file,
+        )
+
+        response = client.upload_model(
+            model=model_path, shape=inputs.shape, dtype=ModelDatumType.I64, sign=True
+        )
+        print(response)
+
+        client.enclave_signing_key.verify(
+            response.proof.signature, response.proof.payload
+        )
+
+        response = client.run_model(run_inputs, sign=True)
+        print(response)
+
+        client.enclave_signing_key.verify(
+            response.proof.signature, response.proof.payload
+        )
+
         origin_pred = model(torch.tensor(run_inputs).unsqueeze(0)).logits.detach()
 
         diff = (torch.tensor([response.output]) - origin_pred).sum().abs()

@@ -15,8 +15,9 @@
 use anyhow::{anyhow, Result};
 use der_parser::oid;
 use pkix::pem::{PEM_CERTIFICATE, PEM_PRIVATE_KEY};
-use rand::rngs::OsRng;
+use rand::{rngs::OsRng, RngCore};
 use rcgen::{Certificate, CertificateParams, CustomExtension, SanType};
+use ring_compat::signature::ed25519::SigningKey;
 use rsa::{
     pkcs1::{ToRsaPrivateKey, ToRsaPublicKey},
     RsaPrivateKey, RsaPublicKey,
@@ -65,20 +66,38 @@ pub(crate) struct RsaKeyPair {
     pub private_key_der: Vec<u8>,
     pub public_key_der: Vec<u8>,
 }
-#[derive(Serialize, Deserialize)]
+
+// #[derive(Serialize, Deserialize)]
+// struct SerializableIdentity {
+//     pub tls_identity: TlsIdentity,
+//     // Key pair for secure storage
+//     pub storage_identity: RsaKeyPair,
+//     pub signing_key_seed: Vec<u8>,
+// }
+
 pub(crate) struct MyIdentity {
     pub tls_identity: TlsIdentity,
     // Key pair for secure storage
+    #[allow(unused)]
     pub storage_identity: RsaKeyPair,
+    #[allow(unused)]
+    signing_key_seed: Vec<u8>,
+    pub signing_key: SigningKey,
 }
 
 impl MyIdentity {
-    pub fn from_cert(certificate: Certificate, storage_identity: RsaKeyPair) -> Self {
+    pub fn from_cert(
+        certificate: Certificate,
+        storage_identity: RsaKeyPair,
+        signing_key_seed: Vec<u8>,
+    ) -> Self {
         let tls_identity = TlsIdentity::from(&certificate);
 
         MyIdentity {
             tls_identity,
             storage_identity,
+            signing_key: SigningKey::from_seed(&signing_key_seed).unwrap(),
+            signing_key_seed,
         }
     }
 
@@ -90,7 +109,7 @@ impl MyIdentity {
     }
 }
 
-pub(crate) fn create_certificate() -> Result<(Certificate, RsaKeyPair)> {
+pub(crate) fn create_certificate() -> Result<(Certificate, RsaKeyPair, Vec<u8>)> {
     // Generate a self signed certificate
 
     let subject_alt_names: &[_] = &["blindai-srv".to_string()];
@@ -99,6 +118,11 @@ pub(crate) fn create_certificate() -> Result<(Certificate, RsaKeyPair)> {
         .into_iter()
         .map(SanType::DnsName)
         .collect::<Vec<_>>();
+
+    let payload_signing_key_oid: Vec<_> = oid!(1.3.6 .1 .3 .2)
+        .iter()
+        .ok_or_else(|| anyhow!("At least one arc of the OID does not fit into `u64`"))?
+        .collect();
 
     let mut params = CertificateParams::default();
     params.subject_alt_names = subject_alt_names;
@@ -130,13 +154,25 @@ pub(crate) fn create_certificate() -> Result<(Certificate, RsaKeyPair)> {
     };
 
     /* add the RSA public key as bytes to the certificate */
-    let signing_ext = CustomExtension::from_oid_content(
-        &rsa_file_encryption_key_oid,
-        rsa_public_key_bytes,
-    );
+    let ext1 =
+        CustomExtension::from_oid_content(&rsa_file_encryption_key_oid, rsa_public_key_bytes);
 
-    params.custom_extensions = vec![signing_ext];
     /* todo! : force the right params */
 
-    Ok((Certificate::from_params(params)?, rsa_key_pair))
+    let mut ed25519_seed = [0u8; 32];
+    OsRng.fill_bytes(&mut ed25519_seed);
+
+    let signing_key = SigningKey::from_seed(&ed25519_seed).unwrap();
+    let verify_key = signing_key.verify_key();
+
+    let ext2 =
+        CustomExtension::from_oid_content(&payload_signing_key_oid, verify_key.as_ref().to_vec());
+
+    params.custom_extensions = vec![ext1, ext2];
+
+    Ok((
+        Certificate::from_params(params)?,
+        rsa_key_pair,
+        ed25519_seed.to_vec(),
+    ))
 }

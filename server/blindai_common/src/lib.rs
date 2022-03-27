@@ -85,8 +85,9 @@ pub struct SgxCollateral {
     pub pck_signing_chain: String,     // PCK signing chain in PEM format
 }
 
-// The `tonic_rpc` attribute says that we want to build an RPC defined by this trait.
-// The `json` option says that we should use the `tokio-serde` Json codec for serialization.
+// The `tonic_rpc` attribute says that we want to build an RPC defined by this
+// trait. The `json` option says that we should use the `tokio-serde` Json codec
+// for serialization.
 #[tonic_rpc(json)]
 pub trait UntrustedLocalApp {
     fn get_collateral_from_quote(quote: Vec<u8>) -> SgxCollateral;

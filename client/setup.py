@@ -83,6 +83,8 @@ class BuildPy(build_py):
         proto_path = os.path.join(dir_path, "proto")
         import grpc_tools.protoc
 
+        print(dir_path, proto_files, proto_path)
+
         for file in proto_files:
             grpc_tools.protoc.main(
                 [
@@ -113,17 +115,14 @@ setuptools.setup(
     packages=setuptools.find_packages(exclude=["blindai/cpp/wrapper.cc"]),
     package_data={"": ["lib/*.so", "tls/*.pem"]},
     ext_modules=[CMakeExtension("pybind11_module")],
-    cmdclass={
-        "build_ext": CMakeBuild,
-        "build_py": BuildPy,
-    },
+    cmdclass={"build_ext": CMakeBuild, "build_py": BuildPy},
     zip_safe=False,
     python_requires=">=3.6.9",
     install_requires=[
         "cryptography>=35.0.0",
         "toml",
-        "grpcio",
-        "grpcio-tools",
+        "grpcio==1.45",
+        "grpcio-tools==1.45",
         "bitstring",
         "cbor2",
     ],
@@ -134,8 +133,8 @@ setuptools.setup(
             "wheel",
             "check-wheel-contents",
             "auditwheel",
-            "grpcio-tools",
-            "grpcio",
+            "grpcio-tools==1.45",
+            "grpcio==1.45",
         ]
     },
     classifiers=[

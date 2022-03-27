@@ -27,8 +27,7 @@ use log::debug;
 use sgx_rand::{os::SgxRng, Rng};
 use sgx_tcrypto::rsgx_sha256_slice;
 use sgx_tse::{rsgx_create_report, rsgx_verify_report};
-use sgx_types::sgx_status_t::SGX_SUCCESS;
-use sgx_types::*;
+use sgx_types::{sgx_status_t::SGX_SUCCESS, *};
 
 type SgxStatus = sgx_types::sgx_status_t;
 type Result<T> = std::result::Result<T, PlatformError>;
@@ -155,8 +154,8 @@ pub fn get_sgx_quote(ak_id: &sgx_att_key_id_t, report: sgx_report_t) -> Result<V
     rng.fill_bytes(&mut quote_nonce.rand);
     qe_report_info.nonce = quote_nonce;
 
-    // Provide the target information of ourselves so that we can verify the QE report
-    // returned with the quote
+    // Provide the target information of ourselves so that we can verify the QE
+    // report returned with the quote
     let res = unsafe {
         sgx_self_target(std::ptr::addr_of_mut!(
             qe_report_info.app_enclave_target_info

@@ -6,14 +6,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] ## 2022-03-25
+### Added
+- Support receiving and verifiying signed responses from the server.
+- Request the the version of the server when initiating a connextion and raise an exception if the returned version is not supported.  
+
+### Changed
+- Move the definition of DatumTypeEnum to the proto file.
+- Change the response format of BlindAiClient.upload_model.
+- Change the response format of BlindAiClient.run_model.
+
 ## [0.2.0] - 2022-03-02
+### Added
+- Set a timeout when connecting to the server to request the certificate.
+
 ### Changed
 - Remove the boolean that BlindAiClient.connect_server was returning.
 - Raise ConnectionFailed Exception when the connection to the server fails in BlindAiClient.connect_server.
 - Raise ConnectionFailed Exception when the connection to the server fails in BlindAiClient.upload_model, BlindAiClient.run_model instead of returning a response with ok=False. 
-
-### Added
-- Set a timeout when connecting to the server to request the certificate.
 
 ## [0.1.1] - 2022-02-15
 ### Added

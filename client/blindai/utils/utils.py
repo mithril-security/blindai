@@ -14,11 +14,20 @@
 
 import re
 import os
+import json
+from dataclasses import dataclass
 import cryptography.x509
-import grpc
 from cryptography.hazmat.primitives.serialization import Encoding
+from cryptography.x509 import ObjectIdentifier, load_pem_x509_certificate
+from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
 
 CHUNK_SIZE = 32 * 1024  # 32kb
+
+
+@dataclass
+class ProofData:
+    payload: bytes
+    signature: bytes
 
 
 def strip_https(url: str):
@@ -38,32 +47,17 @@ def create_byte_chunk(data):
         sent_bytes += min(CHUNK_SIZE, len(data) - sent_bytes)
 
 
-def check_rpc_exception(rpc_error):
-    if rpc_error.code() == grpc.StatusCode.CANCELLED:
-        return f"Cancelled GRPC call: code={rpc_error.code()} message={rpc_error.details()}"
-
-    elif rpc_error.code() == grpc.StatusCode.UNAVAILABLE:
-        return f"Failed to connect to GRPC server: code={rpc_error.code()} message={rpc_error.details()}"
-
-    else:
-        return (
-            f"Received RPC error: code={rpc_error.code()} message={rpc_error.details()}"
-        )
-
-
-def check_socket_exception(socket_error):
-    if len(socket_error.args) >= 2:
-        error_code = socket_error.args[0]
-        error_message = socket_error.args[1]
-        return f"Failed To connect to the server due to Socket error : code={error_code} message={error_message}"
-
-    elif len(socket_error.args) == 1:
-        error_message = socket_error.args[0]
-        return f"Failed To connect to the server due to Socket error : message={error_message}"
-
-    else:
-        return f"Failed To connect to the server due to Socket error "
-
+def get_enclave_signing_key(server_cert):
+    ENCLAVE_ED25519_SIGNING_KEY_OID = ObjectIdentifier("1.3.6.1.3.2")
+    enclave_ed25519_signing_key = (
+        load_pem_x509_certificate(server_cert)
+        .extensions.get_extension_for_oid(ENCLAVE_ED25519_SIGNING_KEY_OID)
+        .value.value
+    )
+    enclave_signing_key = Ed25519PublicKey.from_public_bytes(
+        enclave_ed25519_signing_key
+    )
+    return enclave_signing_key
 
 
 def read(filename):

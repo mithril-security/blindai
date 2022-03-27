@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] ## 2022-03-25
+### Added
+- Now send signed responses to the client.
+- Allows to verify the model signature and the signature of the data uploaded anytime.
+- Allows version to be verified, in case an outdated client is trying to use the server.
+
+### Changed
+- Move the definition of DatumTypeEnum to the proto file.
+- Change the response format of BlindAiClient.upload_model.
+- Change the response format of BlindAiClient.run_model.
+
 ## [0.2.2] ## 2022-03-02
 ### Added
 - Support of remote attestation of Azure DCs_v3 VMs (this is a workaround as Azure PCS is sending expired collateral/keys).

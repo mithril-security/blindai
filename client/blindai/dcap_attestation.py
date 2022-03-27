@@ -17,11 +17,12 @@ import hashlib
 import pkgutil
 import struct
 from typing import Any, Dict
-
+from untrusted_pb2 import GetSgxQuoteWithCollateralReply
 import pybind11_module
 import toml
 from bitstring import Bits
 from pybind11_module import status
+
 from utils.utils import encode_certificate
 
 
