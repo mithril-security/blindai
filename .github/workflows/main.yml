@@ -67,9 +67,6 @@ jobs:
       - name: Install dependencies
         run: |
           pip install -r client/requirements.txt
-          cd client
-          python3 -m grpc_tools.protoc --proto_path=$(realpath proto) --python_out=blindai --grpc_python_out=blindai securedexchange.proto
-          python3 -m grpc_tools.protoc --proto_path=$(realpath proto) --python_out=blindai --grpc_python_out=blindai untrusted.proto
 
       # Build client
 
