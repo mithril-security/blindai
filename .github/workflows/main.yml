@@ -157,7 +157,7 @@ jobs:
       - name: Launch server
         run: |
           docker kill -f app > /dev/null 2>&1 || true
-          docker run --rm -d -p 50051:50051 -p 50052:50052 --name app mithrilsecuritysas/${{ matrix.serverImage }}:latest 
+          docker run --rm -d -e BLINDAI_DISABLE_TELEMETRY=1 -p 50051:50051 -p 50052:50052 --name app mithrilsecuritysas/${{ matrix.serverImage }}:latest 
 
       - name: Copy policy and certificate
         run: |
