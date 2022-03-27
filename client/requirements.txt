@@ -1,8 +1,8 @@
 # requirements for building
 cryptography>=35.0.0
 toml
-grpcio
-grpcio-tools
+grpcio==1.44.0
+grpcio-tools==1.44.0
 bitstring
 cbor2
 pybind11

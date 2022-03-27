@@ -4,6 +4,7 @@ import subprocess
 import platform
 import re
 import sys
+import pkg_resources
 from setuptools import Extension
 from setuptools.command.build_ext import build_ext
 from setuptools.command.build_py import build_py
@@ -81,20 +82,21 @@ class BuildPy(build_py):
         # Generate the stub
         dir_path = os.path.join(os.path.dirname(__file__))
         proto_path = os.path.join(dir_path, "proto")
+        proto_include = pkg_resources.resource_filename('grpc_tools', '_proto')
         import grpc_tools.protoc
-
-        print(dir_path, proto_files, proto_path)
 
         for file in proto_files:
             grpc_tools.protoc.main(
                 [
                     "grpc_tools.protoc",
+                    "-I{}".format(proto_include),
                     "--proto_path={}".format(proto_path),
                     "--python_out=blindai",
                     "--grpc_python_out=blindai",
                     "{}".format(file),
                 ]
             )
+
         # Build the AttestationLib
         build_script = os.path.join(os.path.dirname(__file__), "scripts/build.sh")
         subprocess.check_call([build_script])
@@ -121,8 +123,8 @@ setuptools.setup(
     install_requires=[
         "cryptography>=35.0.0",
         "toml",
-        "grpcio==1.45",
-        "grpcio-tools==1.45",
+        "grpcio==1.44",
+        "grpcio-tools==1.44",
         "bitstring",
         "cbor2",
     ],
@@ -133,8 +135,8 @@ setuptools.setup(
             "wheel",
             "check-wheel-contents",
             "auditwheel",
-            "grpcio-tools==1.45",
-            "grpcio==1.45",
+            "grpcio-tools==1.44",
+            "grpcio==1.44",
         ]
     },
     classifiers=[

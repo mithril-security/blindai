@@ -43,8 +43,8 @@ tokio-util = "=0.6.8"
 toml = "*"
 tonic = {version = "0.5.2", features = ["tls"]}
 tonic-rpc = {version = "0.1.1", features = ["json"]}
-tract-core = {version = "0.15.9-pre"}
-tract-onnx = {version = "0.15.9-pre"}
+tract-core = {version = "0.16.2-pre"}
+tract-onnx = {version = "0.16.2-pre"}
 x509-parser = "*"
 h2 = "=0.3.4"
 prost-types = "=0.8"
