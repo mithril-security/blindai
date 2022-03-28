@@ -82,7 +82,7 @@ class BuildPy(build_py):
         # Generate the stub
         dir_path = os.path.join(os.path.dirname(__file__))
         proto_path = os.path.join(dir_path, "proto")
-        proto_include = pkg_resources.resource_filename('grpc_tools', '_proto')
+        proto_include = pkg_resources.resource_filename("grpc_tools", "_proto")
         import grpc_tools.protoc
 
         for file in proto_files:
