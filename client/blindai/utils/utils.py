@@ -20,6 +20,7 @@ import cryptography.x509
 from cryptography.hazmat.primitives.serialization import Encoding
 from cryptography.x509 import ObjectIdentifier, load_pem_x509_certificate
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
+import pkgutil
 
 CHUNK_SIZE = 32 * 1024  # 32kb
 
@@ -60,21 +61,22 @@ def get_enclave_signing_key(server_cert):
     return enclave_signing_key
 
 
-def read(filename):
-    return open(os.path.join(os.path.dirname(__file__), filename)).read()
-
-
 def supported_server_version(version):
-    supported_version_file = read("../supported_server_version.py")
-    version_re = r"__version__ = \"(?P<version>.+)\""
-    supported_version = (
-        re.match(version_re, supported_version_file).group("version").split(".")
+    supported_versions_file = pkgutil.get_data(
+        __name__, "../supported_server_versions.py"
+    ).decode("utf-8")
+    versions_re = r"__version__ = \"(?P<version>.+)\""
+    supported_versions = (
+        re.match(versions_re, supported_versions_file).group("version").split(".")
     )
     server_version = version.split(".")
     for i in range(len(server_version)):
-        if supported_version[i] < server_version[i]:
+        # Numeric characters in supported_versions must match the ones in the server version
+        # Alphabetic characters are variables
+        if (supported_versions[i] == server_version[i]) or (
+            not supported_versions[i].isdigit()
+        ):
+            continue
+        else:
             return False
-        elif supported_version[i] > server_version[i]:
-            # The client should support older versions of the server
-            return True
     return True
