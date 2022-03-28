@@ -181,7 +181,7 @@ class BlindAiClient:
             response = stub.GetServerInfo(server_info_request())
             if not supported_server_version(response.version):
                 raise VersionError(
-                    "The server version is not supported. Please update your client."
+                    "Incompatible client/server versions. Please use the correct client for your server."
                 )
 
             if self.SIMULATION_MODE:

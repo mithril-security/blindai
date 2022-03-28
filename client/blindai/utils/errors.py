@@ -8,6 +8,9 @@ def check_rpc_exception(rpc_error):
     elif rpc_error.code() == grpc.StatusCode.UNAVAILABLE:
         return f"Failed to connect to GRPC server: code={rpc_error.code()} message={rpc_error.details()}"
 
+    elif rpc_error.code() == grpc.StatusCode.UNIMPLEMENTED:
+        return f"Incompatible client/server versions, code={rpc_error.code()} message={rpc_error.details()}"
+
     else:
         return (
             f"Received RPC error: code={rpc_error.code()} message={rpc_error.details()}"
