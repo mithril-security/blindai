@@ -24,7 +24,7 @@ While most current solutions force users to trust the server where their data is
 
 You can learn more about Confidential Computing through our series [here](https://blog.mithrilsecurity.io/confidential-computing-explained-part-1-introduction/).
 
-We currently only support *Intel SGX*, but we plan to cover *AMD SEV* and *Nitro Enclave* in the future. More information about our **roadmap** will be provided soon.
+We currently only support *Intel SGX*, but we plan to cover *AMD SEV* and *Nitro Enclave* in the future. More information about our **roadmap** can be found [here.](https://blog.mithrilsecurity.io/our-roadmap-at-mithril-security/)
 
 Our solution comes in two parts:
 - A secure inference solution to serve AI models with privacy guarantees.
