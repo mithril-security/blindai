@@ -30,15 +30,6 @@ Our solution comes in two parts:
 - A secure inference solution to serve AI models with privacy guarantees.
 - A *client SDK* to securely consume the remote AI models. 
 
-## Examples
-
-You can see how our BlindAI can be used to deploy a variety of models, to handle use cases from analysis of medical images, to confidential document analysis, through vocal biometrics identification.
-
-| Article name                                                   | Use case                                | Model name      | Model type   |
-|----------------------------------------------------------------|-----------------------------------------|-----------------|--------------|
-| [Deploy Transformers models with confidentiality](https://blog.mithrilsecurity.io/transformers-with-confidentiality/)                | Sentiment analysis                      | DistilBERT      | Transformers |
-| [Confidential medical image analysis with COVID-Net and BlindAI](https://blog.mithrilsecurity.io/confidential-covidnet-with-blindai/) | Chest XRAY analysis for COVID detection | COVID-Net-CXR-2 | Deep CNN     |
-
 ## Getting started
 
 To deploy a model on sensitive data, with end-to-end protection, we provide a *Docker* image to serve models with confidentiality, and a *client SDK* to consume this service securely.
@@ -61,53 +52,9 @@ Our *client SDK* is rather simple, but behind the scenes, a lot happens. If we a
 
 You can learn more about the attestation mechanism for code integrity [here](https://sgx101.gitbook.io/sgx101/sgx-bootstrap/attestation).
 
-#### i - Upload the model
-
-Then we need to load a model inside the secure inference server. First we will export our model from *Pytorch* to *ONNX*, then we can upload it securely to the inference server. Uploading the model through our API allows the model to be kept confidential, for instance when deploying it on foreign infrastructure, like Cloud or client on-premise. 
-```python
-from transformers import DistilBertTokenizer, DistilBertForSequenceClassification
-import torch
-from blindai.client import BlindAiClient, ModelDatumType
-
-# Get pretrained model
-model = DistilBertForSequenceClassification.from_pretrained("distilbert-base-uncased")
-
-# Create dummy input for export
-tokenizer = DistilBertTokenizer.from_pretrained("distilbert-base-uncased")
-sentence = "I love AI and privacy!"
-inputs = tokenizer(sentence, padding = "max_length", max_length = 8, return_tensors="pt")["input_ids"]
-
-# Export the model
-torch.onnx.export(
-	model, inputs, "./distilbert-base-uncased.onnx",
-	export_params=True, opset_version=11,
-	input_names = ['input'], output_names = ['output'],
-	dynamic_axes={'input' : {0 : 'batch_size'},
-	'output' : {0 : 'batch_size'}})
-
-# Launch client
-client = BlindAiClient()
-client.connect_server(addr="localhost", simulation=True)
-client.upload_model(model="./distilbert-base-uncased.onnx", shape=inputs.shape, dtype=ModelDatumType.I64)
-```
-
-#### ii - Send data and run model
-Upload the data securely to the inference server. 
-```python
-from transformers import DistilBertTokenizer
-from blindai.client import BlindAiClient
-
-tokenizer = DistilBertTokenizer.from_pretrained("distilbert-base-uncased")
-
-sentence = "I love AI and privacy!"
-inputs = tokenizer(sentence, padding = "max_length", max_length = 8)["input_ids"]
-
-# Load the client
-client = BlindAiClient()
-client.connect_server("localhost", simulation=True)
-
-# Get prediction
-response = client.run_model(inputs)
+You can get started quickly by downloading a ready-to-use Docker image containing the client, jupyter notebooks and some examples.
+```bash
+docker run --network host mithrilsecuritysas/blindai-client-demo
 ```
 
 ### What you can do with BlindAI
@@ -121,6 +68,15 @@ response = client.run_model(inputs)
 - Our solution aims to be modular but we have yet to incorporate tools for generic pre/post processing. Specific pipelines can be covered but will require additional handwork for now.
 - We do not cover training and federated learning yet, but if this feature interests you do not hesitate to show your interest through the [roadmap](https://blog.mithrilsecurity.io/our-roadmap-at-mithril-security/) or [Discord](https://discord.gg/TxEHagpWd4) channel. 
 - The examples we provide are simple, and do not take into account complex mechanisms such as secure storage of confidential data with sealing keys, advanced scheduler for inference requests, or complex key management scenarios. If your use case involves more than what we show, do not hesitate to **contact us** for more information.
+
+## Examples
+
+You can see how our BlindAI can be used to deploy a variety of models, to handle use cases from analysis of medical images, to confidential document analysis, through vocal biometrics identification.
+
+| Article name                                                   | Use case                                | Model name      | Model type   |
+|----------------------------------------------------------------|-----------------------------------------|-----------------|--------------|
+| [Deploy Transformers models with confidentiality](https://blog.mithrilsecurity.io/transformers-with-confidentiality/)                | Sentiment analysis                      | DistilBERT      | Transformers |
+| [Confidential medical image analysis with COVID-Net and BlindAI](https://blog.mithrilsecurity.io/confidential-covidnet-with-blindai/) | Chest XRAY analysis for COVID detection | COVID-Net-CXR-2 | Deep CNN     |
 
 ## Install
 
