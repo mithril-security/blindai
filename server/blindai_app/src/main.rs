@@ -72,6 +72,13 @@ impl untrusted_local_app_server::UntrustedLocalApp for State {
     }
 }
 
+fn fill_blank_and_print(content: &str, size: usize)
+{
+    let trail: String = std::iter::repeat("#").take((size - 2 - content.len()) / 2).collect::<String>();
+    let trail2: String = std::iter::repeat("#").take(((size - 2 - content.len()) as f32 / 2.0).ceil() as usize).collect::<String>();
+    println!("{} {} {}", trail, content, trail2);
+}
+
 fn init_enclave() -> SgxResult<SgxEnclave> {
     let mut launch_token: sgx_launch_token_t = [0; 1024];
     let mut launch_token_updated: i32 = 0;
@@ -98,6 +105,17 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         Some(v) => v.into_string().unwrap(),
         None => "HW".to_string(),
     };
+
+    let logo_str: &str = include_str!("../logo.txt");
+    let version_str: String = format!("VERSION : {}", env!("CARGO_PKG_VERSION"));
+    let text_size : usize = 58;
+    println!("{}\n", logo_str);
+    fill_blank_and_print("BlindAI - INFERENCE SERVER", text_size);
+    fill_blank_and_print("MADE BY MITHRIL SECURITY", text_size);
+    fill_blank_and_print("GITHUB: https://github.com/mithril-security/blindai", text_size);
+    fill_blank_and_print(&version_str, text_size);
+    println!("");
+    info!("Starting Enclave...");
 
     let enclave = match init_enclave() {
         Ok(r) => {
