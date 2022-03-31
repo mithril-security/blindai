@@ -52,7 +52,7 @@ Our *client SDK* is rather simple, but behind the scenes, a lot happens. If we a
 
 You can learn more about the attestation mechanism for code integrity [here](https://sgx101.gitbook.io/sgx101/sgx-bootstrap/attestation).
 
-You can get started quickly by downloading a ready-to-use Docker image containing the client, jupyter notebooks and some examples.
+You can get started quickly by downloading a ready-to-use Docker image containing a jupyter notebook environment, BlindAI client pre-installed and the examples.
 ```bash
 docker run --network host mithrilsecuritysas/blindai-client-demo
 ```
