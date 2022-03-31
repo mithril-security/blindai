@@ -7,9 +7,11 @@ BlindAI Client is a python library to create client applications for BlindAI Ser
 ## Installation
 
 ### Using pip
+
 ```bash
 $ pip install blindai
 ```
+
 ## Usage
 
 ### Uploading a model
