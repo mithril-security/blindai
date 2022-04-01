@@ -6,7 +6,6 @@ import unittest
 import os
 from server import (
     launch_server,
-    close_server,
     policy_file,
     certificate_file,
     has_hardware_support,
@@ -31,7 +30,9 @@ class TestDistilBertBase:
         )
 
         client.upload_model(
-            model=model_path, shape=inputs.shape, dtype=ModelDatumType.I64,
+            model=model_path,
+            shape=inputs.shape,
+            dtype=ModelDatumType.I64,
         )
 
         response = client.run_model(run_inputs)
@@ -112,10 +113,6 @@ def setUpModule():
     )
 
     run_inputs = tokenizer(sentence, padding="max_length", max_length=8)["input_ids"]
-
-
-def tearDownModule():
-    close_server()
 
 
 if __name__ == "__main__":
