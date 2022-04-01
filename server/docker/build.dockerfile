@@ -63,6 +63,7 @@ RUN \
         libsgx-dcap-ql=$DCAP_VERSION \
         libsgx-dcap-quote-verify=$DCAP_VERSION \
         libsgx-dcap-default-qpl=$DCAP_VERSION && \
+    mkdir -p /var/run/aesmd && \
     ln -s /usr/lib/x86_64-linux-gnu/libdcap_quoteprov.so.1 /usr/lib/x86_64-linux-gnu/libdcap_quoteprov.so && \
 
     # Intall the SGX SDK
