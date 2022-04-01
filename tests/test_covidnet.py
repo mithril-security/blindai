@@ -2,7 +2,6 @@ from blindai.client import BlindAiClient, ModelDatumType
 import unittest
 from server import (
     launch_server,
-    close_server,
     policy_file,
     certificate_file,
     has_hardware_support,
@@ -31,10 +30,14 @@ class TestCovidNetBase:
         model = os.path.join(os.path.dirname(__file__), "assets/COVID-Net-CXR-2.onnx")
 
         client.upload_model(
-            model=model, shape=(1, 480, 480, 3), dtype=ModelDatumType.F32,
+            model=model,
+            shape=(1, 480, 480, 3),
+            dtype=ModelDatumType.F32,
         )
 
-        response = client.run_model(flattened_img,)
+        response = client.run_model(
+            flattened_img,
+        )
 
         ort_session = onnxruntime.InferenceSession(model)
         ort_inputs = {ort_session.get_inputs()[0].name: img}
@@ -85,10 +88,6 @@ def setUpModule():
     img = img[np.newaxis, :, :, :]
 
     flattened_img = img.flatten().tolist()
-
-
-def tearDownModule():
-    close_server()
 
 
 if __name__ == "__main__":
