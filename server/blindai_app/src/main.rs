@@ -24,7 +24,6 @@ use std::{
     ffi::CString,
     hash::{Hash, Hasher},
     os::raw::c_char,
-    iter::repeat,
 };
 
 use blindai_common::{untrusted_local_app_server, SgxCollateral};
