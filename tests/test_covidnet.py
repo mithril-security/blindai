@@ -17,6 +17,9 @@ class TestCovidNetBase:
         if not self.simulation and not has_hardware_support:
             self.skipTest("no hardware support")
 
+    @unittest.skipIf(
+        os.getenv("BLINDAI_TEST_SKIP_COVIDNET") is not None, "skipped by env var"
+    )
     def test_base(self):
         client = BlindAiClient()
 
@@ -61,6 +64,8 @@ img, flattened_img = None, None
 
 def setUpModule():
     global flattened_img, img
+    if os.getenv("BLINDAI_TEST_SKIP_COVIDNET") is not None:
+        return
     launch_server()
 
     def crop_top(img, percent=0.15):
