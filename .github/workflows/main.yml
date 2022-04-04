@@ -165,7 +165,8 @@ jobs:
           docker cp app:/root/tls/host_server.pem tests/host_server.pem
 
       - name: Run tests
-        run: cd tests && python -m unittest
+        run: cd tests && python -m unittest || (docker logs app; false)
         env:
           BLINDAI_TEST_NO_LAUNCH_SERVER: 'true'
           BLINDAI_TEST_NO_HW: 'true'
+          BLINDAI_TEST_SKIP_COVIDNET: 'true'
