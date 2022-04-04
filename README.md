@@ -44,7 +44,7 @@ Our first article [Deploy Transformers with confidentiality](https://blog.mithri
 
 Deploy the inference server, for instance using one of our *Docker* images. To get started quickly, you can use the image with simulation, which does not require any specific hardware. 
 ```bash
-docker run -p 50051:50051 -p 50052:50052 mithrilsecuritysas/blindai-server-sim
+docker run -p 50051:50051 -p 50052:50052 -it mithrilsecuritysas/blindai-server-sim
 ```
 ### B - Sending data from the client to the server
 
