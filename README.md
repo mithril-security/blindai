@@ -37,7 +37,7 @@ Our solution comes in two parts:
 
 Since the BlindAI server relies on specific hardware (Intel SGX) for security, this Getting Started guide will focus on running the Simulation mode, which can run on any machine. Note that the Simulation mode is not secure.
 
-To learn about deploying BlindAI on real hardware, see the [Deploy on Hardware](TODO) documentation page and skip the first step. Here is also a [step-by-step guide to create an SGX-enabled Azure VM and deploy BlindAI in 5 minutes](TODO).
+To learn about deploying BlindAI on real hardware, see the [Deploy on Hardware](TODO) documentation page and skip the next step. Here is also a [step-by-step guide to create an SGX-enabled Azure VM and deploy BlindAI in 5 minutes](TODO).
 
 Run the Simulation docker image.
 
