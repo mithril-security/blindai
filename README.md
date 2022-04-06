@@ -53,7 +53,13 @@ You can learn more about the attestation mechanism for code integrity [here](htt
 
 #### Install the python library
 
-Using pip:
+If you feel extra-lazy, we also have a Jupyter notebook environment you can just pull and use, just run
+```bash
+docker run --network host mithrilsecuritysas/blindai-client-demo
+```
+It also contains the other examples 😉
+
+If you don't, install the BlindAI python client using pip:
 
 ```bash
 pip install blindai
