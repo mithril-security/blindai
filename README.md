@@ -28,7 +28,7 @@ We currently only support Intel SGX, but we plan to cover AMD SEV and Nitro Encl
 
 Our solution comes in two parts:
 
-- A secure inference server to serve AI models with privacy guarantees, developed using [**the Rust Programming Language**](https://www.rust-lang.org/).
+- A secure inference server to serve AI models with privacy guarantees, developed using [**the Rust Programming Language**](https://www.rust-lang.org/). 🦀🦀
 - A Python client SDK to securely consume the remote AI models.
 
 ## Getting started
