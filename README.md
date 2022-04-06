@@ -45,7 +45,7 @@ Run the Simulation docker image.
 docker run -it -p 50051:50051 -p 50052:50052 mithrilsecuritysas/blindai-server-sim
 ```
 
-### Step 2 - Sending data from the client to the server
+### Step 2 - Uploading the model to the server
 
 The Python client SDK has a very simple API, but it deals with most of the complexity of working with Confidential Computing. When connecting to the BlindAI server, the client will ask for a _quote_. This cryptographic _quote_ enables the client to know whether it is really talking with an Intel SGX enclave and that the loaded binary is indeed a known one. The hardware then guarantees privacy by completely isolating the server code and memory from the rest of the system.
 
@@ -98,7 +98,7 @@ client.connect_server(addr="localhost", simulation=True)
 client.upload_model(model="./distilbert-base-uncased.onnx", shape=inputs.shape, dtype=ModelDatumType.I64)
 ```
 
-#### Run an the model
+### Step 3 - Run an the model
 
 Run the model on the inference server and get the result 🥳
 
