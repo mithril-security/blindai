@@ -20,7 +20,10 @@ def launch_server():
     sock = None
 
     try:
-        if server_process is None and os.getenv("BLINDAI_TEST_NO_LAUNCH_SERVER") is None:
+        if (
+            server_process is None
+            and os.getenv("BLINDAI_TEST_NO_LAUNCH_SERVER") is None
+        ):
             server_dir = os.path.join(os.path.dirname(__file__), "../server")
             bin_dir = os.path.join(server_dir, "bin")
 
@@ -35,10 +38,12 @@ def launch_server():
             )
 
             shutil.copyfile(os.path.join(server_dir, "policy.toml"), policy_file)
-            shutil.copyfile(os.path.join(server_dir, "host_server.pem"), certificate_file)
+            shutil.copyfile(
+                os.path.join(server_dir, "host_server.pem"), certificate_file
+            )
 
         # block until server ready (port open)
-        end = now() + 30 # 30s timeout
+        end = now() + 30  # 30s timeout
         success = False
         while True:
             if now() > end:
@@ -62,7 +67,7 @@ def launch_server():
 
         print("[TESTS] The server is running")
 
-    except:
+    except Exception:
         if sock is not None:
             sock.close()
 
