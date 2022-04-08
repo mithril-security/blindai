@@ -12,3 +12,4 @@ patchelf
 check-wheel-contents
 auditwheel
 cibuildwheel
+pre-commit
