@@ -1,23 +1,12 @@
-FROM jupyter/scipy-notebook AS base
+FROM jupyter/base-notebook AS base
 
 # -- install blindai and dev dependencies
-RUN pip install blindai \
-    onnxruntime \
-    pillow \
-    numpy \
-    torch \
-    pandas \
-    transformers \
-    opencv-python
+RUN pip install --no-cache-dir blindai \
+    https://download.pytorch.org/whl/cpu/torch-1.11.0%2Bcpu-cp39-cp39-linux_x86_64.whl
 
 # -- copy examples
-COPY . .
-
-# -- fix potential write/read access errors
-USER root
-RUN chown -R ${NB_UID} ${HOME}
-USER ${NB_UID}
+COPY --chown=${NB_UID} . .
 
 # -- remove useless folders
-RUN rm -rf work
-RUN rm -rf client-demo
+RUN rm -rf work && \
+    rm -rf client-demo
