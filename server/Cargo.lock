@@ -647,8 +647,8 @@ dependencies = [
 
 [[package]]
 name = "futures"
-version = "0.3.17"
-source = "git+https://github.com/mithril-security/futures-sgx?branch=futures-sgx#b526ad377d688c3bc8d733f25da655f38be0dbdb"
+version = "0.3.21"
+source = "git+https://github.com/mithril-security/futures-sgx?tag=0.3.21-sgx#147db1fd9d7005685ac86626ca9077a6f531cbc2"
 dependencies = [
  "futures-channel",
  "futures-core",
@@ -661,8 +661,8 @@ dependencies = [
 
 [[package]]
 name = "futures-channel"
-version = "0.3.17"
-source = "git+https://github.com/mithril-security/futures-sgx?branch=futures-sgx#b526ad377d688c3bc8d733f25da655f38be0dbdb"
+version = "0.3.21"
+source = "git+https://github.com/mithril-security/futures-sgx?tag=0.3.21-sgx#147db1fd9d7005685ac86626ca9077a6f531cbc2"
 dependencies = [
  "futures-core",
  "futures-sink",
@@ -670,13 +670,13 @@ dependencies = [
 
 [[package]]
 name = "futures-core"
-version = "0.3.17"
-source = "git+https://github.com/mithril-security/futures-sgx?branch=futures-sgx#b526ad377d688c3bc8d733f25da655f38be0dbdb"
+version = "0.3.21"
+source = "git+https://github.com/mithril-security/futures-sgx?tag=0.3.21-sgx#147db1fd9d7005685ac86626ca9077a6f531cbc2"
 
 [[package]]
 name = "futures-executor"
-version = "0.3.17"
-source = "git+https://github.com/mithril-security/futures-sgx?branch=futures-sgx#b526ad377d688c3bc8d733f25da655f38be0dbdb"
+version = "0.3.21"
+source = "git+https://github.com/mithril-security/futures-sgx?tag=0.3.21-sgx#147db1fd9d7005685ac86626ca9077a6f531cbc2"
 dependencies = [
  "futures-core",
  "futures-task",
@@ -685,16 +685,14 @@ dependencies = [
 
 [[package]]
 name = "futures-io"
-version = "0.3.17"
-source = "git+https://github.com/mithril-security/futures-sgx?branch=futures-sgx#b526ad377d688c3bc8d733f25da655f38be0dbdb"
+version = "0.3.21"
+source = "git+https://github.com/mithril-security/futures-sgx?tag=0.3.21-sgx#147db1fd9d7005685ac86626ca9077a6f531cbc2"
 
 [[package]]
 name = "futures-macro"
-version = "0.3.17"
-source = "git+https://github.com/mithril-security/futures-sgx?branch=futures-sgx#b526ad377d688c3bc8d733f25da655f38be0dbdb"
+version = "0.3.21"
+source = "git+https://github.com/mithril-security/futures-sgx?tag=0.3.21-sgx#147db1fd9d7005685ac86626ca9077a6f531cbc2"
 dependencies = [
- "autocfg",
- "proc-macro-hack",
  "proc-macro2",
  "quote",
  "syn",
@@ -702,20 +700,19 @@ dependencies = [
 
 [[package]]
 name = "futures-sink"
-version = "0.3.17"
-source = "git+https://github.com/mithril-security/futures-sgx?branch=futures-sgx#b526ad377d688c3bc8d733f25da655f38be0dbdb"
+version = "0.3.21"
+source = "git+https://github.com/mithril-security/futures-sgx?tag=0.3.21-sgx#147db1fd9d7005685ac86626ca9077a6f531cbc2"
 
 [[package]]
 name = "futures-task"
-version = "0.3.17"
-source = "git+https://github.com/mithril-security/futures-sgx?branch=futures-sgx#b526ad377d688c3bc8d733f25da655f38be0dbdb"
+version = "0.3.21"
+source = "git+https://github.com/mithril-security/futures-sgx?tag=0.3.21-sgx#147db1fd9d7005685ac86626ca9077a6f531cbc2"
 
 [[package]]
 name = "futures-util"
-version = "0.3.17"
-source = "git+https://github.com/mithril-security/futures-sgx?branch=futures-sgx#b526ad377d688c3bc8d733f25da655f38be0dbdb"
+version = "0.3.21"
+source = "git+https://github.com/mithril-security/futures-sgx?tag=0.3.21-sgx#147db1fd9d7005685ac86626ca9077a6f531cbc2"
 dependencies = [
- "autocfg",
  "futures-channel",
  "futures-core",
  "futures-io",
@@ -725,8 +722,6 @@ dependencies = [
  "memchr",
  "pin-project-lite",
  "pin-utils",
- "proc-macro-hack",
- "proc-macro-nested",
  "slab",
 ]
 
@@ -1659,12 +1654,6 @@ name = "proc-macro-hack"
 version = "0.5.19"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "dbf0c48bc1d91375ae5c3cd81e3722dff1abcf81a30960240640d223f59fe0e5"
-
-[[package]]
-name = "proc-macro-nested"
-version = "0.1.7"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bc881b2c22681370c6a780e47af9840ef841837bc98118431d4e1868bd0c1086"
 
 [[package]]
 name = "proc-macro2"
@@ -3100,6 +3089,11 @@ dependencies = [
 ]
 
 [[patch.unused]]
+name = "futures-test"
+version = "0.3.21"
+source = "git+https://github.com/mithril-security/futures-sgx?tag=0.3.21-sgx#147db1fd9d7005685ac86626ca9077a6f531cbc2"
+
+[[patch.unused]]
 name = "sgx_alloc"
 version = "1.1.4"
 
@@ -3166,8 +3160,3 @@ version = "1.1.4"
 [[patch.unused]]
 name = "sgx_unwind"
 version = "1.1.4"
-
-[[patch.unused]]
-name = "futures-test"
-version = "0.3.17"
-source = "git+https://github.com/mithril-security/futures-sgx?branch=futures-sgx#b526ad377d688c3bc8d733f25da655f38be0dbdb"
