@@ -42,6 +42,16 @@ message Payload {
     }
 }
 
+// This is useful for proof files, but is not currently used on the wire
+message ResponseProof {
+    // This is a serialized `GetSgxQuoteWithCollateralReply` message
+    bytes attestation = 1;
+    // This is a serialized `Payload` message
+    bytes payload = 2;
+    // Signature of the payload
+    bytes signature = 3;
+}
+
 /* SendModel */
 
 message SendModelRequest {
