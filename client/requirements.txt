@@ -3,12 +3,13 @@ cryptography>=35.0.0
 toml
 grpcio==1.44.0
 grpcio-tools==1.44.0
+delvewheel==0.0.20
 bitstring
 cbor2
 pybind11
 setuptools
 wheel
-patchelf
 check-wheel-contents
 auditwheel
 cibuildwheel
+pre-commit

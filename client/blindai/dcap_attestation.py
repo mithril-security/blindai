@@ -18,10 +18,10 @@ import pkgutil
 import struct
 from typing import Any, Dict
 from untrusted_pb2 import GetSgxQuoteWithCollateralReply
-import pybind11_module
+import _quote_verification
 import toml
 from bitstring import Bits
-from pybind11_module import status
+from _quote_verification import status
 
 from utils.utils import encode_certificate
 
@@ -56,7 +56,7 @@ def verify_dcap_attestation(
     :return: a dictionary of claims
     """
 
-    t = pybind11_module.Verification()
+    t = _quote_verification.Verification()
     t.trustedRootCACertificate = pkgutil.get_data(__name__, "tls/trustedRootCaCert.pem")
     t.pckCertificate = attestation_collateral.pck_certificate
     t.pckSigningChain = attestation_collateral.pck_signing_chain

@@ -44,6 +44,8 @@ mod self_signed_tls;
 
 static ENCLAVE_FILE: &str = "enclave.signed.so";
 
+const SIM_MODE: bool = cfg!(SGX_MODE = "SW");
+
 extern "C" {
     fn start_server(
         eid: sgx_enclave_id_t,
@@ -72,7 +74,13 @@ impl untrusted_local_app_server::UntrustedLocalApp for State {
     }
 }
 
-const SIM_MODE: bool = cfg!(SGX_MODE = "SW");
+fn fill_blank_and_print(content: &str, size: usize)
+{
+    let trail_char = "#";
+    let trail: String = trail_char.repeat((size - 2 - content.len()) / 2);
+    let trail2: String = trail_char.repeat(((size - 2 - content.len()) as f32 / 2.0).ceil() as usize);
+    println!("{} {} {}", trail, content, trail2);
+}
 
 fn init_enclave() -> SgxResult<SgxEnclave> {
     let mut launch_token: sgx_launch_token_t = [0; 1024];
@@ -103,6 +111,17 @@ fn init_enclave() -> SgxResult<SgxEnclave> {
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     env_logger::Builder::from_env(Env::default().default_filter_or("info")).init();
+
+    let logo_str: &str = include_str!("../logo.txt");
+    let version_str: String = format!("VERSION : {}", env!("CARGO_PKG_VERSION"));
+    let text_size : usize = 58;
+    println!("{}\n", logo_str);
+    fill_blank_and_print("BlindAI - INFERENCE SERVER", text_size);
+    fill_blank_and_print("MADE BY MITHRIL SECURITY", text_size);
+    fill_blank_and_print("GITHUB: https://github.com/mithril-security/blindai", text_size);
+    fill_blank_and_print(&version_str, text_size);
+    println!();
+    info!("Starting Enclave...");
 
     let enclave = match init_enclave() {
         Ok(r) => {

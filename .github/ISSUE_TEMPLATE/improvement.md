@@ -2,7 +2,7 @@
 name: Improvement
 about: Suggest an improvement of an existing functionality
 title: ''
-labels: ''
+labels: 'Type : Improvement :chart_with_upwards_trend:'
 assignees: ''
 
 ---

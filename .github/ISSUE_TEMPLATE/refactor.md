@@ -2,7 +2,7 @@
 name: Refactor
 about: Refactor the codebase, not additional features of bug fixes will be introduced.
 title: ''
-labels: ''
+labels: 'Type : Refactor :factory:'
 assignees: ''
 
 ---
