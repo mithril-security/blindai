@@ -104,8 +104,8 @@ class BlindAiClient:
         policy: str = "",
         certificate: str = "",
         simulation: bool = False,
-        unsigned_port: str = "50052",
-        signed_port: str = "50051",
+        untrusted_port: int = 50052,
+        attested_port: int = 50051,
     ):
         """Connect to the server with the specified parameters.
         You will have to specify here the expected policy (server identity, configuration...)
@@ -124,8 +124,8 @@ class BlindAiClient:
                 Generated in the server side.
             simulation:  Connect to the server in simulation mode (default False).
                 If set to True, the args policy and certificate will be ignored.
-            unsigned_port: unsigned connection server port, default 50052
-            signed_port: signed connection server port, dedault 50051
+            untrusted_port: untrusted connection server port, default 50052
+            attested_port: attested connection server port, dedault 50051
         Raises:
             VersionError: Will be raised if the version of the server is not supported by the client.
             ValueError: Will be raised in case the policy doesn't match the
@@ -140,8 +140,8 @@ class BlindAiClient:
 
         addr = strip_https(addr)
 
-        untrusted_client_to_enclave = addr + ":" + unsigned_port
-        attested_client_to_enclave = addr + ":" + signed_port
+        untrusted_client_to_enclave = addr + ":" + str(untrusted_port)
+        attested_client_to_enclave = addr + ":" + str(attested_port)
 
         if self.DISABLE_UNTRUSTED_SERVER_CERT_CHECK:
             logging.warning("Untrusted server certificate check bypassed")
@@ -149,7 +149,7 @@ class BlindAiClient:
             try:
                 socket.setdefaulttimeout(CONNECTION_TIMEOUT)
                 untrusted_server_cert = ssl.get_server_certificate(
-                    (addr, int(unsigned_port))
+                    (addr, untrusted_port)
                 )
                 untrusted_server_creds = ssl_channel_credentials(
                     root_certificates=bytes(untrusted_server_cert, encoding="utf8")
