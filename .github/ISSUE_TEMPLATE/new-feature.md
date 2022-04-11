@@ -2,7 +2,7 @@
 name: New Feature
 about: Propose a new feature that doesn't exist in the codebase.
 title: ''
-labels: ''
+labels: 'Type : New Feature :heavy_plus_sign:'
 assignees: ''
 
 ---

@@ -2,7 +2,7 @@
 name: Documentation
 about: Propose modification to the documentation of the project
 title: ''
-labels: ''
+labels: 'Type : Documentation :memo:'
 assignees: ''
 
 ---
