@@ -74,7 +74,8 @@ def find_version():
 
 def build_attestation_lib():
     subprocess.check_call(ATTESTATION_BUILD_SCRIPT[PLATFORM]["build"])
-    subprocess.check_call(ATTESTATION_BUILD_SCRIPT[PLATFORM]["postbuild"])
+    if PLATFORM != "LINUX":
+        subprocess.check_call(ATTESTATION_BUILD_SCRIPT[PLATFORM]["postbuild"])
 
 
 def generate_stub():
