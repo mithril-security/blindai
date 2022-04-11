@@ -1,22 +1,66 @@
+from operator import sub
 import os
 import setuptools
 import subprocess
 import platform
 import re
 import sys
-import pkg_resources
 from setuptools import Extension
 from setuptools.command.build_ext import build_ext
 from setuptools.command.build_py import build_py
+import pkg_resources
 
-proto_files = ["securedexchange.proto", "untrusted.proto"]
 
-if platform.system().lower() != "linux":
+# Platform check
+SUPPORTED_PLATFORMS = {"LINUX", "WINDOWS"}
+PLATFORM = platform.system().upper()
+if PLATFORM not in SUPPORTED_PLATFORMS:
     print("The platform : {}".format(platform.system().lower()))
-    print("Currently, the library can only be built and used on linux systems.")
+    print("Building blindai client in your platform is not supported yet.")
     exit(1)
 
+# Convert distutils Windows platform specifiers to CMake -A arguments
+PLAT_TO_CMAKE = {
+    "win32": "Win32",
+    "win-amd64": "x64",
+}
 
+# AttestationLib Build Script
+ATTESTATION_BUILD_SCRIPT = {
+    "WINDOWS": {
+        "build": [
+            "powershell.exe",
+            os.path.join(os.path.dirname(__file__), "scripts/buildAttestationLib.ps1"),
+        ],
+        "postbuild": [
+            "powershell.exe",
+            "Start-Process",
+            "powershell.exe",
+            "-Verb",
+            "runAs",
+            "-ArgumentList",
+            "$"
+            + '"{}"'.format(
+                os.path.join(
+                    os.path.dirname(__file__), "scripts/postBuildAttestationLib.ps1"
+                )
+            ),
+        ],
+    },
+    "LINUX": {
+        "build": [
+            os.path.join(os.path.dirname(__file__), "scripts/buildAttestationLib.sh")
+        ],
+        "postbuild": [],
+    },
+}
+
+# Proto Files
+PROTO_FILES = ["securedexchange.proto", "untrusted.proto"]
+PROTO_PATH = os.path.join(os.path.dirname(__file__), "proto")
+
+
+# Util functions
 def read(filename):
     return open(os.path.join(os.path.dirname(__file__), filename)).read()
 
@@ -28,6 +72,29 @@ def find_version():
     return version
 
 
+def build_attestation_lib():
+    subprocess.check_call(ATTESTATION_BUILD_SCRIPT[PLATFORM]["build"])
+    subprocess.check_call(ATTESTATION_BUILD_SCRIPT[PLATFORM]["postbuild"])
+
+
+def generate_stub():
+    import grpc_tools.protoc
+
+    proto_include = pkg_resources.resource_filename("grpc_tools", "_proto")
+    for file in PROTO_FILES:
+        grpc_tools.protoc.main(
+            [
+                "grpc_tools.protoc",
+                "-I{}".format(proto_include),
+                "--proto_path={}".format(PROTO_PATH),
+                "--python_out=blindai",
+                "--grpc_python_out=blindai",
+                "{}".format(file),
+            ]
+        )
+
+
+# Build Classes
 class CMakeExtension(Extension):
     def __init__(self, name, sourcedir=""):
         Extension.__init__(self, name, sources=[])
@@ -35,6 +102,8 @@ class CMakeExtension(Extension):
 
 
 class CMakeBuild(build_ext):
+    """Build the pybind11 module and add it as an extension to the package"""
+
     def build_extension(self, ext):
         extdir = os.path.abspath(os.path.dirname(self.get_ext_fullpath(ext.name)))
 
@@ -44,25 +113,27 @@ class CMakeBuild(build_ext):
         debug = int(os.environ.get("DEBUG", 0)) if self.debug is None else self.debug
         cfg = "Debug" if debug else "Release"
 
+        cmake_generator = os.environ.get("CMAKE_GENERATOR", "")
+
         cmake_args = [
             f"-DCMAKE_LIBRARY_OUTPUT_DIRECTORY={extdir}",
             f"-DPYTHON_EXECUTABLE={sys.executable}",
             f"-DCMAKE_BUILD_TYPE={cfg}",
-            "-DBUILD_TESTS=false",
-            "-DBUILD_ATTESTATION_APP=false",
         ]
-
         build_args = []
-
         if "CMAKE_ARGS" in os.environ:
             cmake_args += [item for item in os.environ["CMAKE_ARGS"].split(" ") if item]
 
-        if "CMAKE_BUILD_PARALLEL_LEVEL" not in os.environ:
-            # self.parallel is a Python 3 only way to set parallel jobs by hand
-            # using -j in the build_ext call, not supported by pip or PyPA-build.
-            if hasattr(self, "parallel") and self.parallel:
-                # CMake 3.12+ only.
-                build_args += [f"-j{self.parallel}"]
+        if self.compiler.compiler_type == "msvc":
+            single_config = any(x in cmake_generator for x in {"NMake", "Ninja"})
+            if not single_config:
+                cmake_args += ["-A", PLAT_TO_CMAKE[self.plat_name]]
+
+            if not single_config:
+                cmake_args += [
+                    f"-DCMAKE_LIBRARY_OUTPUT_DIRECTORY_{cfg.upper()}={extdir}"
+                ]
+                build_args += ["--config", cfg]
 
         if not os.path.exists(self.build_temp):
             os.makedirs(self.build_temp)
@@ -73,34 +144,19 @@ class CMakeBuild(build_ext):
         subprocess.check_call(
             ["cmake", "--build", "."] + build_args, cwd=self.build_temp
         )
-        edit_path = os.path.join(os.path.dirname(__file__), "scripts/edit_runpath.sh")
-        subprocess.check_call([edit_path])
-
-
-class BuildPy(build_py):
-    def run(self):
-        # Generate the stub
-        dir_path = os.path.join(os.path.dirname(__file__))
-        proto_path = os.path.join(dir_path, "proto")
-        proto_include = pkg_resources.resource_filename("grpc_tools", "_proto")
-        import grpc_tools.protoc
-
-        for file in proto_files:
-            grpc_tools.protoc.main(
-                [
-                    "grpc_tools.protoc",
-                    "-I{}".format(proto_include),
-                    "--proto_path={}".format(proto_path),
-                    "--python_out=blindai",
-                    "--grpc_python_out=blindai",
-                    "{}".format(file),
-                ]
+        if PLATFORM == "LINUX":
+            # Change the run path for the _quote_verification.so
+            edit_path = os.path.join(
+                os.path.dirname(__file__), "scripts/postExtensionBuild.sh"
             )
+            subprocess.check_call([edit_path])
 
-        # Build the AttestationLib
-        build_script = os.path.join(os.path.dirname(__file__), "scripts/build.sh")
-        subprocess.check_call([build_script])
-        super(BuildPy, self).run()
+
+class BuildPackage(build_py):
+    def run(self):
+        build_attestation_lib()
+        generate_stub()
+        super(BuildPackage, self).run()
 
 
 setuptools.setup(
@@ -116,8 +172,8 @@ setuptools.setup(
     url="https://www.mithrilsecurity.io/",
     packages=setuptools.find_packages(exclude=["blindai/cpp/wrapper.cc"]),
     package_data={"": ["lib/*.so", "tls/*.pem"]},
-    ext_modules=[CMakeExtension("pybind11_module")],
-    cmdclass={"build_ext": CMakeBuild, "build_py": BuildPy},
+    ext_modules=[CMakeExtension("_quote_verification")],
+    cmdclass={"build_ext": CMakeBuild, "build_py": BuildPackage},
     zip_safe=False,
     python_requires=">=3.6.9",
     install_requires=[
