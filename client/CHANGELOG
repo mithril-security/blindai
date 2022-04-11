@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.3.0] ## 2022-03-25
 ### Added
+- Configurable ports. 
 - Support receiving and verifiying signed responses from the server.
 - Request the the version of the server when initiating a connextion and raise an exception if the returned version is not supported.  
 
