@@ -17,6 +17,7 @@
 # specific language governing permissions and limitations
 # under the License.
 
+import os
 import sys
 
 
@@ -84,6 +85,10 @@ attributes_mask_xfrm_hex = get_hex_value(content, attributes_mask_xfrm)
 # # the remote service. ISV SVN is set in the enclave configuration file.
 # min_isv_svn = {isv_svn_hex}
 
+if os.getenv("POLICY_ALLOW_DEBUG") is None or os.getenv("POLICY_ALLOW_DEBUG") == "false":
+    allow_debug = False
+else:
+    allow_debug = True
 
 sys.stdout.write(
     f"""\
@@ -99,9 +104,9 @@ attributes_flags_hex= "{attributes_flags_hex}"
 attributes_xfrm_hex= "{attributes_xfrm_hex}"
 attributes_mask_flags_hex= "{attributes_mask_flags_hex}"
 attributes_mask_xfrm_hex= "{attributes_mask_xfrm_hex}"
-# Set to true to allow enclaves compiled in DEBUG mode (this sample code uses
-# debug mode). Otherwise, set to false to force only production (non-debuggable)
+# Set to true to allow enclaves compiled in DEBUG mode
+# Otherwise, set to false to force only production (non-debuggable)
 # enclaves. A production service should never allow debug-mode enclaves.
-allow_debug = true
+allow_debug = {str(allow_debug).lower()}
 """
 )

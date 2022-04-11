@@ -67,10 +67,10 @@ pub unsafe extern "C" fn start_server(
     telemetry_platform: *const c_char,
     telemetry_uid: *const c_char,
 ) -> sgx_status_t {
-    env_logger::Builder::from_env(Env::default().default_filter_or("info")).init();
-
     #[cfg(target_env = "sgx")]
     let _ = backtrace::enable_backtrace("enclave.signed.so", PrintFormat::Full);
+
+    env_logger::Builder::from_env(Env::default().default_filter_or("info")).init();
 
     info!("Switched to enclave context");
 

@@ -12,9 +12,16 @@ export CUSTOM_EDL_PATH CUSTOM_COMMON_PATH XARGO_PATH
 
 SSL_CERT_KEY = bin/tls/host_server.pem bin/tls/host_server.key
 
+
+ifeq "$(SGX_MODE)" "HW"
+    POLICY_ALLOW_DEBUG ?= "false"
+else
+    POLICY_ALLOW_DEBUG ?= "true"
+endif
+
 # Compilation process, will call the appropriate makefiles.
 
-all: host enclave bin/policy.toml $(SSL_CERT_KEY)
+all: host enclave policy.toml $(SSL_CERT_KEY)
 
 init: check-and-reinit-submodules $(SSL_CERT_KEY)
 
@@ -29,9 +36,9 @@ $(SSL_CERT_KEY):
 
 $(ENCLAVE_METADATA): enclave
 
-bin/policy.toml: $(ENCLAVE_METADATA)
+policy.toml: $(ENCLAVE_METADATA)
 	@echo "\033[32mGenerating policy...\033[0m"
-	@python3 tools/gen_enclave_info_toml.py < $(ENCLAVE_METADATA) > policy.toml
+	@POLICY_ALLOW_DEBUG=$(POLICY_ALLOW_DEBUG) python3 tools/gen_enclave_info_toml.py < $(ENCLAVE_METADATA) > policy.toml
 
 check-and-reinit-submodules:
 	@if git submodule status | egrep -q '^[-]|^[+]' ; then \

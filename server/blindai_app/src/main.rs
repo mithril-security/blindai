@@ -33,7 +33,7 @@ use log::{error, info};
 use sgx_types::*;
 use sgx_urts::SgxEnclave;
 
-use std::{env, fs::File, io::Read};
+use std::{fs::File, io::Read};
 
 use tonic::transport::Server;
 
@@ -43,6 +43,8 @@ mod dcap;
 mod self_signed_tls;
 
 static ENCLAVE_FILE: &str = "enclave.signed.so";
+
+const SIM_MODE: bool = cfg!(SGX_MODE = "SW");
 
 extern "C" {
     fn start_server(
@@ -85,14 +87,21 @@ fn init_enclave() -> SgxResult<SgxEnclave> {
     let mut launch_token_updated: i32 = 0;
     // call sgx_create_enclave to initialize an enclave instance
     // Debug Support: set 2nd parameter to 1
-    let debug = 1;
+    let debug = match std::env::var("ENCLAVE_DEBUG_MODE").ok().as_deref() {
+        Some("true") => true,
+        Some("false") => false,
+        _ => SIM_MODE,
+    };
+
+    info!("Launching enclave with debug_mode = {}", debug);
+
     let mut misc_attr = sgx_misc_attribute_t {
         secs_attr: sgx_attributes_t { flags: 0, xfrm: 0 },
         misc_select: 0,
     };
     SgxEnclave::create(
         ENCLAVE_FILE,
-        debug,
+        if debug { 1 } else { 0 },
         &mut launch_token,
         &mut launch_token_updated,
         &mut misc_attr,
@@ -102,10 +111,6 @@ fn init_enclave() -> SgxResult<SgxEnclave> {
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     env_logger::Builder::from_env(Env::default().default_filter_or("info")).init();
-    let sgx_mode = match env::var_os("SGX_MODE") {
-        Some(v) => v.into_string().unwrap(),
-        None => "HW".to_string(),
-    };
 
     let logo_str: &str = include_str!("../logo.txt");
     let version_str: String = format!("VERSION : {}", env!("CARGO_PKG_VERSION"));
@@ -147,6 +152,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             .serve(network_config.internal_enclave_to_host_socket()?),
     );
 
+    let sgx_mode = if SIM_MODE { "SW" } else { "HW" };
     let platform: CString =
         CString::new(format!("{} - SGX {}", whoami::platform(), sgx_mode)).unwrap();
     let uid: CString = {
