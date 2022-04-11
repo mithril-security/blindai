@@ -16,18 +16,20 @@ import ctypes
 import hashlib
 import pkgutil
 import struct
-from typing import Any, Dict
-from untrusted_pb2 import GetSgxQuoteWithCollateralReply
-import _quote_verification
+from dataclasses import dataclass
+from typing import Any, Dict, Mapping
+from untrusted_pb2 import SgxCollateral
+import pybind11_module
 import toml
 from bitstring import Bits
+import _quote_verification
 from _quote_verification import status
 
 from utils.utils import encode_certificate
 
 
 def verify_dcap_attestation(
-    quote: bytes, attestation_collateral: Any, enclave_held_data: bytes
+    quote: bytes, attestation_collateral: SgxCollateral, enclave_held_data: bytes
 ) -> Dict[str, str]:
     """
     verify_dcap_attestation verifies if the enclave evidence is valid
@@ -109,59 +111,72 @@ def verify_dcap_attestation(
     return claims
 
 
-def load_policy(path: str):
-    with open(path) as f:
-        policy = toml.load(f)
-        policy["misc_mask"] = int(policy["misc_mask_hex"], 16).to_bytes(
-            4, byteorder="little"
-        )
-        policy["misc_select"] = int(policy["misc_select_hex"], 16).to_bytes(
-            4, byteorder="little"
-        )
-        policy["attributes_flags"] = int(policy["attributes_flags_hex"], 16).to_bytes(
-            8, byteorder="little"
-        )
-        policy["attributes_xfrm"] = int(policy["attributes_xfrm_hex"], 16).to_bytes(
-            8, byteorder="little"
-        )
-        policy["attributes_mask_flags"] = int(
-            policy["attributes_mask_flags_hex"], 16
-        ).to_bytes(8, byteorder="little")
-        policy["attributes_mask_xfrm"] = int(
-            policy["attributes_mask_xfrm_hex"], 16
-        ).to_bytes(8, byteorder="little")
+@dataclass
+class Policy:
+    mr_enclave: str
+    misc_select: bytes
+    misc_mask: bytes
+    attributes_flags: bytes
+    attributes_xfrm: bytes
+    attributes_mask_flags: bytes
+    attributes_mask_xfrm: bytes
+    allow_debug: bool
 
-    return policy
+    def from_file(path: str):
+        with open(path) as f:
+            policy = toml.load(path)
+            return Policy(
+                mr_enclave=policy["mr_enclave"],
+                misc_mask=int(policy["misc_mask_hex"], 16).to_bytes(
+                    4, byteorder="little"
+                ),
+                misc_select=int(policy["misc_select_hex"], 16).to_bytes(
+                    4, byteorder="little"
+                ),
+                attributes_flags=int(policy["attributes_flags_hex"], 16).to_bytes(
+                    8, byteorder="little"
+                ),
+                attributes_xfrm=int(policy["attributes_xfrm_hex"], 16).to_bytes(
+                    8, byteorder="little"
+                ),
+                attributes_mask_flags=int(
+                    policy["attributes_mask_flags_hex"], 16
+                ).to_bytes(8, byteorder="little"),
+                attributes_mask_xfrm=int(
+                    policy["attributes_mask_xfrm_hex"], 16
+                ).to_bytes(8, byteorder="little"),
+                allow_debug=policy["allow_debug"],
+            )
 
 
-def verify_claims(claims, policy):
-    if claims["sgx-mrenclave"] != policy["mr_enclave"]:
+def verify_claims(claims: dict, policy: Policy):
+    if claims["sgx-mrenclave"] != policy.mr_enclave:
         raise ValueError("MRENCLAVE doesn't match with the policy")
 
-    if claims["sgx-is-debuggable"] and not policy["allow_debug"]:
+    if claims["sgx-is-debuggable"] and not policy.allow_debug:
         raise ValueError("Enclave is in debug mode but the policy doesn't allow debug")
 
     # If this flag is set, then the enclave is initialized
     SGX_FLAGS_INITTED = Bits("0x0100000000000000")
 
     if (
-        Bits(claims["sgx-attributes"][:8]) & Bits(policy["attributes_mask_flags"])
-        != Bits(policy["attributes_flags"]) | SGX_FLAGS_INITTED
+        Bits(claims["sgx-attributes"][:8]) & Bits(policy.attributes_mask_flags)
+        != Bits(policy.attributes_flags) | SGX_FLAGS_INITTED
     ):
         raise ValueError("SGX attributes flags bytes do not conform to the policy")
 
-    if Bits(claims["sgx-attributes"][8:]) & Bits(
-        policy["attributes_mask_xfrm"]
-    ) != Bits(policy["attributes_xfrm"]):
+    if Bits(claims["sgx-attributes"][8:]) & Bits(policy.attributes_mask_xfrm) != Bits(
+        policy.attributes_xfrm
+    ):
         raise ValueError("SGX XFRM flags bytes do not conform to the policy")
 
-    if Bits(claims["sgx-misc-select"]) & Bits(policy["misc_mask"]) != Bits(
-        policy["misc_select"]
+    if Bits(claims["sgx-misc-select"]) & Bits(policy.misc_mask) != Bits(
+        policy.misc_select
     ):
         raise ValueError("SGX MISC SELECT bytes do not conform to the policy")
 
 
-def get_server_cert(claims):
+def get_server_cert(claims: dict) -> bytes:
     """
     Get the server certificate from the Azure Attestation claims
     :param claims:
