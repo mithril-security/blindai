@@ -18,7 +18,7 @@
 
 namespace py = pybind11;
 
-PYBIND11_MODULE(pybind11_module, m) {
+PYBIND11_MODULE(_quote_verification, m) {
     py::class_<intel::sgx::dcap::Verification>(m, "Verification")
         .def(py::init<>())
         .def_readwrite("pckCertificate", &intel::sgx::dcap::Verification::pckCertificate)

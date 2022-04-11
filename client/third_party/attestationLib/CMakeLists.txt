@@ -268,7 +268,9 @@ elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
 			"/MP" # Multi processor compilation
 			"/guard:cf"
 			"/INCREMENTAL"
+			"/std:c++17" # use std c++17 for the quote verification
 			"/sdl"  # superset of the baseline security checks
+			"/wd4996" # ignore warning for depricated properties in c++17
 			"${SANITIZE_FLAGS}"
 			)
 

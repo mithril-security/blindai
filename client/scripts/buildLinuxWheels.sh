@@ -1,13 +1,5 @@
 #!/bin/sh
 
-rm -r blindai/lib
-
-rm -r third_party/attestationLib/Build
-
-rm -r third_party/attestationLib/build
-
-rm -r wheelhouse
-
 python -m grpc_tools.protoc -I./proto --python_out=blindai --grpc_python_out=blindai untrusted.proto
 
 python -m grpc_tools.protoc -I./proto --python_out=blindai --grpc_python_out=blindai securedexchange.proto
