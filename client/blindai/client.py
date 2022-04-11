@@ -245,7 +245,7 @@ class BlindAiClient:
             UploadModelResponse object, containing one field:
                 proof: optional, a ProofData object with two fields:
                     payload: the payload returned by the server
-                    signature: the signature returned by the server 
+                    signature: the signature returned by the server
         Raises:
             ConnectionError: will be raised if the connection with the server fails.
             FileNotFoundError: will be raised if the model file is not found.

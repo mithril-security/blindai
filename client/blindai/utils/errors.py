@@ -28,7 +28,7 @@ def check_socket_exception(socket_error):
         return f"Failed To connect to the server due to Socket error : message={error_message}"
 
     else:
-        return f"Failed To connect to the server due to Socket error "
+        return "Failed To connect to the server due to Socket error "
 
 
 class SignatureError(Exception):
