@@ -200,5 +200,6 @@ setuptools.setup(
         "Programming Language :: Python :: 3",
         "Programming Language :: C++",
         "Operating System :: Unix",
+        "Operating System :: Microsoft :: Windows",
     ],
 )
