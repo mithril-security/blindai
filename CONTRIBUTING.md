@@ -21,8 +21,8 @@ The following is a set of guidelines for contributing to [BlindAI](https://githu
 
 [Style Guidelines](#style-guidelines)
   * [Git Commit Messages](#git-commit-messages)
-  * [Python style guideline](#python-style-guideline)
-  * [Rust style guideline](#rust-style-guideline)
+  * [Linting and Formatting](#linting-and-formatting)
+  * [Pre-commit hook](#pre-commit-hook)
 
 [Additional Notes](#additional-notes)
   * [Issue and Pull Request Labels](#issue-and-pull-request-labels)
@@ -143,14 +143,26 @@ If you encounter any difficulties within that, don't hesitate to reach out to us
 * Limit the first line to 72 characters or less
 * Reference issues and pull requests liberally after the first line
 
-### Python Style Guideline
+### Linting and formatting
 
-All Python code is linted with [Black](https://github.com/psf/black). You can easily configure it in your IDE or run it from the command line.
+This repository uses the following:
+- flake8 and black to lint/format python code.
+- Cargo formatter to format Rust code.
 
-### Rust Style Guideline
+### Pre-commit hook
+To ensure the style guidelines are maintained in the codebase, **pre-commit hook** is used.
+Once cloning the repository, make sure to follow the following steps:
 
-All Rust code is formatted with [Rust Formatter](https://github.com/rust-lang/rustfmt)
+#### Install pre-commit package manager
 
+```bash
+pip install pre-commit
+```
+#### Install the git hooks script
+
+```bash
+pre-commit install
+```
 ## Additional Notes
 
 ### Issue and Pull Request Labels
