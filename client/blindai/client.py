@@ -86,8 +86,11 @@ class SignedResponse:
     signature: Optional[bytes] = None
     attestation: Optional[GetSgxQuoteWithCollateralReply] = None
 
+    def is_simulation_mode(self) -> bool:
+        return self.attestation is None
+
     def is_signed(self) -> bool:
-        return self.signature is not None and self.attestation is not None
+        return self.signature is not None
 
     def save_to_file(self, path: str):
         with open(path, mode="wb") as file:
@@ -123,25 +126,30 @@ class UploadModelResponse(SignedResponse):
         policy: Optional[Policy] = None,
         validate_quote: bool = True,
         enclave_signing_key: Optional[bytes] = None,
+        allow_simulation_mode: bool = False,
     ):
         if not self.is_signed():
             raise SignatureError("Response is not signed")
 
-        if validate_quote and policy_file is not None:
+        if not allow_simulation_mode and self.is_simulation_mode():
+            raise SignatureError("Response was produced using simulation mode")
+
+        if not self.is_simulation_mode() and validate_quote and policy_file is not None:
             policy = Policy.from_file(policy_file)
 
         # Quote validation
 
-        if validate_quote:
+        if not self.is_simulation_mode() and validate_quote:
             enclave_signing_key = _validate_quote(self.attestation, policy)
 
         # Payload validation
 
         payload = Payload.FromString(self.payload).send_model_payload
-        try:
-            enclave_signing_key.verify(self.signature, self.payload)
-        except InvalidSignature:
-            raise SignatureError("Invalid signature")
+        if not self.is_simulation_mode():
+            try:
+                enclave_signing_key.verify(self.signature, self.payload)
+            except InvalidSignature:
+                raise SignatureError("Invalid signature")
 
         # Input validation
 
@@ -159,25 +167,30 @@ class RunModelResponse(SignedResponse):
         policy: Optional[Policy] = None,
         validate_quote: bool = True,
         enclave_signing_key: Optional[bytes] = None,
+        allow_simulation_mode: bool = False,
     ):
         if not self.is_signed():
             raise SignatureError("Response is not signed")
 
-        if validate_quote and policy_file is not None:
+        if not allow_simulation_mode and self.is_simulation_mode():
+            raise SignatureError("Response was produced using simulation mode")
+
+        if not self.is_simulation_mode() and validate_quote and policy_file is not None:
             policy = Policy.from_file(policy_file)
 
         # Quote validation
 
-        if validate_quote:
+        if not self.is_simulation_mode() and validate_quote:
             enclave_signing_key = _validate_quote(self.attestation, policy)
 
         # Payload validation
 
         payload = Payload.FromString(self.payload).run_model_payload
-        try:
-            enclave_signing_key.verify(self.signature, self.payload)
-        except InvalidSignature:
-            raise SignatureError("Invalid signature")
+        if not self.is_simulation_mode():
+            try:
+                enclave_signing_key.verify(self.signature, self.payload)
+            except InvalidSignature:
+                raise SignatureError("Invalid signature")
 
         # Input validation
 
@@ -257,7 +270,8 @@ class BlindAiClient:
         untrusted_client_to_enclave = addr + ":" + str(untrusted_port)
         attested_client_to_enclave = addr + ":" + str(attested_port)
 
-        self.policy = Policy.from_file(policy)
+        if not self.simulation_mode:
+            self.policy = Policy.from_file(policy)
 
         if self._disable_untrusted_server_cert_check:
             logging.warning("Untrusted server certificate check bypassed")
@@ -402,6 +416,7 @@ class BlindAiClient:
                 sha256(data).digest(),
                 validate_quote=False,
                 enclave_signing_key=self.enclave_signing_key,
+                allow_simulation_mode=self.simulation_mode,
             )
 
         return ret
@@ -458,6 +473,7 @@ class BlindAiClient:
                 data_list,
                 validate_quote=False,
                 enclave_signing_key=self.enclave_signing_key,
+                allow_simulation_mode=self.simulation_mode,
             )
 
         return ret
