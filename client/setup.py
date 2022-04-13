@@ -83,14 +83,6 @@ def generate_stub():
 
     proto_include = pkg_resources.resource_filename("grpc_tools", "_proto")
     for file in PROTO_FILES:
-        print([
-                "grpc_tools.protoc",
-                "-I{}".format(proto_include),
-                "--proto_path={}".format(PROTO_PATH),
-                "--python_out=blindai/pb",
-                "--grpc_python_out=blindai/pb",
-                "{}".format(file),
-            ])
         grpc_tools.protoc.main(
             [
                 "grpc_tools.protoc",
@@ -163,12 +155,9 @@ class CMakeBuild(build_ext):
 
 class BuildPackage(build_py):
     def run(self):
-        print('a')
         build_attestation_lib()
         generate_stub()
         super(BuildPackage, self).run()
-
-print('a')
 
 setuptools.setup(
     name="blindai",
