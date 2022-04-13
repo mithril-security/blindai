@@ -18,14 +18,14 @@ import pkgutil
 import struct
 from dataclasses import dataclass
 from typing import Any, Dict, Mapping
-from untrusted_pb2 import SgxCollateral
-import pybind11_module
+from blindai.pb.untrusted_pb2 import SgxCollateral
 import toml
 from bitstring import Bits
 import _quote_verification
 from _quote_verification import status
 
-from utils.utils import encode_certificate
+from blindai.utils.utils import encode_certificate
+from blindai.utils.errors import AttestationError
 
 
 def verify_dcap_attestation(
@@ -74,21 +74,21 @@ def verify_dcap_attestation(
     ret = t.verify()
 
     if ret.pckCertificateStatus != status.STATUS_OK:
-        raise ValueError(
+        raise AttestationError(
             "Error : Wrong PCK Certificate Status {}", ret.pckCertificateStatus
         )
 
     if ret.tcbInfoStatus != status.STATUS_OK:
-        raise ValueError("Error : Wrong TCB Info Status {}", ret.tcbInfoStatus)
+        raise AttestationError("Error : Wrong TCB Info Status {}", ret.tcbInfoStatus)
 
     if ret.qeIdentityStatus != status.STATUS_OK:
-        raise ValueError("Error : Wrong QE Identity Status {}", ret.qeIdentityStatus)
+        raise AttestationError("Error : Wrong QE Identity Status {}", ret.qeIdentityStatus)
 
     if ret.quoteStatus not in [status.STATUS_OK, status.STATUS_TCB_SW_HARDENING_NEEDED]:
-        raise ValueError("Error : Wrong Quote Status {}", ret.quoteStatus)
+        raise AttestationError("Error : Wrong Quote Status {}", ret.quoteStatus)
 
     if hashlib.sha256(enclave_held_data).digest() != bytes(ret.reportData)[:32]:
-        raise ValueError(
+        raise AttestationError(
             "Enclave Held Data hash doesn't match with the report data from the quote"
         )
 

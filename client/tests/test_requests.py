@@ -5,26 +5,19 @@ from typing import Iterator
 import unittest
 from unittest.mock import MagicMock, Mock, patch
 import blindai.client
-import onnxruntime
-import cv2
-import numpy as np
 import cbor2
-from google.protobuf.timestamp_pb2 import Timestamp
 
-from blindai.securedexchange_pb2 import (
+from blindai.pb.securedexchange_pb2 import (
     SendModelRequest,
     SendModelReply,
-    SendModelPayload,
     Payload,
-    PayloadHeader,
     RunModelRequest,
-    RunModelPayload,
     RunModelReply,
 )
 
 from blindai.client import BlindAiClient, ModelDatumType
 
-from covidnet import get_input
+from .covidnet import get_input, model_path, get_model
 
 
 class TestProof(unittest.TestCase):
@@ -69,9 +62,6 @@ class TestProof(unittest.TestCase):
 
         # send_model
 
-        model_path = os.path.join(
-            os.path.dirname(__file__), "../../tests/assets/COVID-Net-CXR-2.onnx"
-        )
         datum = ModelDatumType.F32
         shape = (1, 480, 480, 3)
         with open(
@@ -80,8 +70,7 @@ class TestProof(unittest.TestCase):
             real_response = pickle.load(file)
 
         def send_model_util(sign):
-            with open(model_path, "rb") as file:
-                model_bytes = file.read()
+            model_bytes = get_model()
 
             def send_model(req: Iterator[SendModelRequest]):
                 arr = b""
@@ -116,7 +105,7 @@ class TestProof(unittest.TestCase):
                     client.attestation.SerializeToString(),
                     response.attestation.SerializeToString(),
                 )
-                # path = os.path.join(os.path.dirname(__file__), "exec_send.proof")
+                # path = os.path.join(os.path.dirname(__file__), "exec_upload.proof")
                 # response.save_to_file(path)
 
         send_model_util(sign=False)

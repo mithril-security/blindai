@@ -37,6 +37,12 @@ class SignatureError(Exception):
     pass
 
 
+class AttestationError(Exception):
+    """This exception is raised when the attestation is not valid"""
+
+    pass
+
+
 class VersionError(Exception):
     """This exception is raised when the server version is not supported by the client"""
 

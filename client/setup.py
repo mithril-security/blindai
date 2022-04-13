@@ -56,7 +56,7 @@ ATTESTATION_BUILD_SCRIPT = {
 }
 
 # Proto Files
-PROTO_FILES = ["securedexchange.proto", "untrusted.proto"]
+PROTO_FILES = ["securedexchange.proto", "untrusted.proto", "proof_files.proto"]
 PROTO_PATH = os.path.join(os.path.dirname(__file__), "proto")
 
 
@@ -83,13 +83,21 @@ def generate_stub():
 
     proto_include = pkg_resources.resource_filename("grpc_tools", "_proto")
     for file in PROTO_FILES:
+        print([
+                "grpc_tools.protoc",
+                "-I{}".format(proto_include),
+                "--proto_path={}".format(PROTO_PATH),
+                "--python_out=blindai/pb",
+                "--grpc_python_out=blindai/pb",
+                "{}".format(file),
+            ])
         grpc_tools.protoc.main(
             [
                 "grpc_tools.protoc",
                 "-I{}".format(proto_include),
                 "--proto_path={}".format(PROTO_PATH),
-                "--python_out=blindai",
-                "--grpc_python_out=blindai",
+                "--python_out=blindai/pb",
+                "--grpc_python_out=blindai/pb",
                 "{}".format(file),
             ]
         )
@@ -155,10 +163,12 @@ class CMakeBuild(build_ext):
 
 class BuildPackage(build_py):
     def run(self):
+        print('a')
         build_attestation_lib()
         generate_stub()
         super(BuildPackage, self).run()
 
+print('a')
 
 setuptools.setup(
     name="blindai",
