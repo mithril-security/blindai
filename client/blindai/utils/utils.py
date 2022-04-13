@@ -13,10 +13,7 @@
 # limitations under the License.
 
 import re
-import os
-import json
-from typing import Generator, Iterator
-from dataclasses import dataclass
+from typing import Iterator
 import cryptography.x509
 from cryptography.hazmat.primitives.serialization import Encoding
 from cryptography.x509 import ObjectIdentifier, load_pem_x509_certificate
