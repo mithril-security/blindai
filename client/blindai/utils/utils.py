@@ -16,6 +16,7 @@ import re
 import os
 import json
 from dataclasses import dataclass
+from typing import Optional
 import cryptography.x509
 from cryptography.hazmat.primitives.serialization import Encoding
 from cryptography.x509 import ObjectIdentifier, load_pem_x509_certificate
@@ -29,6 +30,7 @@ CHUNK_SIZE = 32 * 1024  # 32kb
 class ProofData:
     payload: bytes
     signature: bytes
+    model_id: Optional[str]
 
 
 def strip_https(url: str):

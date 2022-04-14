@@ -73,6 +73,7 @@ pub struct InferenceModel {
     onnx: OnnxModel,
     datum_type: ModelDatumType,
     input_fact: Vec<usize>,
+    model_id: String,
 }
 
 impl InferenceModel {
@@ -80,6 +81,7 @@ impl InferenceModel {
         mut model_data: &[u8],
         input_fact: Vec<usize>,
         datum_type: ModelDatumType,
+        model_id: String,
     ) -> Result<Self> {
         let model_rec = tract_onnx::onnx()
             // load the model
@@ -97,6 +99,7 @@ impl InferenceModel {
             onnx: model_rec,
             datum_type,
             input_fact,
+            model_id,
         })
     }
 

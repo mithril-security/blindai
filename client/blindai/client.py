@@ -34,6 +34,7 @@ from grpc import RpcError, secure_channel, ssl_channel_credentials
 from securedexchange_pb2 import (
     SendModelRequest,
     RunModelRequest,
+    DeleteModelRequest,
     Payload,
     DatumTypeEnum,
 )
@@ -69,12 +70,18 @@ ModelDatumType = IntEnum("ModelDatumType", DatumTypeEnum.items())
 @dataclass
 class UploadModelResponse:
     proof: Optional[ProofData]
+    model_id: str
 
 
 @dataclass
 class RunModelResponse:
     proof: Optional[ProofData]
     output: List[float]
+
+
+@dataclass
+class DeleteModelResponse:
+    proof: Optional[ProofData]
 
 
 class BlindAiClient:
@@ -233,6 +240,7 @@ class BlindAiClient:
         shape: Tuple = None,
         dtype: ModelDatumType = ModelDatumType.F32,
         sign: bool = False,
+        model_name: str = "default",
     ) -> UploadModelResponse:
         """Upload an inference model to the server.
         The provided model needs to be in the Onnx format.
@@ -273,6 +281,7 @@ class BlindAiClient:
                             data=chunk,
                             datum=int(dtype),
                             sign=sign,
+                            model_name=model_name,
                         )
                         for chunk in create_byte_chunk(data)
                     ]
@@ -297,11 +306,15 @@ class BlindAiClient:
                 raise SignatureError("Invalid returned model_hash")
             if input_fact != payload.input_fact:
                 raise SignatureError("Invalid returned input_fact")
-            proof_data = ProofData(response.payload, response.signature)
+            proof_data = ProofData(
+                response.payload, response.signature, payload.model_id
+            )
 
-        return UploadModelResponse(proof_data)
+        return UploadModelResponse(proof_data, payload.model_id)
 
-    def run_model(self, data_list: List[Any], sign: bool = False) -> RunModelResponse:
+    def run_model(
+        self, data_list: List[Any], sign: bool = False, model_id: str = "default"
+    ) -> RunModelResponse:
         """Send data to the server to make a secure inference
 
         The data provided must be in a list, as the tensor will be rebuilt inside the server.
@@ -330,7 +343,9 @@ class BlindAiClient:
             response = self.stub.RunModel(
                 iter(
                     [
-                        RunModelRequest(input=serialized_bytes_chunk, sign=sign)
+                        RunModelRequest(
+                            input=serialized_bytes_chunk, sign=sign, model_id=model_id
+                        )
                         for serialized_bytes_chunk in create_byte_chunk(
                             serialized_bytes
                         )
@@ -355,11 +370,50 @@ class BlindAiClient:
                 raise SignatureError("Invalid signature")
             if sha256(serialized_bytes).digest() != payload.input_hash:
                 raise SignatureError("Invalid returned input_hash")
+            if payload.model_id != model_id:
+                raise SignatureError("Invalid model")
 
-            proof_data = ProofData(response.payload, response.signature)
+            proof_data = ProofData(
+                response.payload, response.signature, payload.model_id
+            )
 
         # Get the output of inference
         return RunModelResponse(proof_data, payload.output)
+
+    def delete_model(self, model_id, sign=False) -> DeleteModelResponse:
+        if not self._is_connected():
+            raise ConnectionError("Not connected to the server")
+
+        error = None
+        try:
+            response = self.stub.DeleteModel(
+                DeleteModelRequest(model_id=model_id.encode(), sign=sign)
+            )
+
+        except RpcError as rpc_error:
+            error = ConnectionError(check_rpc_exception(rpc_error))
+
+        finally:
+            if error is not None:
+                raise error
+
+        # Response Verification
+        payload = Payload.FromString(response.payload).delete_model_payload
+        proof_data = None
+        if sign:
+            try:
+                self.enclave_signing_key.verify(response.signature, response.payload)
+            except InvalidSignature:
+                raise SignatureError("Invalid signature")
+            if payload.model_id != model_id:
+                raise SignatureError("Invalid model")
+
+            proof_data = ProofData(
+                response.payload, response.signature, payload.model_id
+            )
+
+        # Get the output of inference
+        return DeleteModelResponse(proof_data)
 
     def close_connection(self):
         """Close the connection between the client and the inference server."""

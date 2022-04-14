@@ -74,11 +74,11 @@ impl untrusted_local_app_server::UntrustedLocalApp for State {
     }
 }
 
-fn fill_blank_and_print(content: &str, size: usize)
-{
+fn fill_blank_and_print(content: &str, size: usize) {
     let trail_char = "#";
     let trail: String = trail_char.repeat((size - 2 - content.len()) / 2);
-    let trail2: String = trail_char.repeat(((size - 2 - content.len()) as f32 / 2.0).ceil() as usize);
+    let trail2: String =
+        trail_char.repeat(((size - 2 - content.len()) as f32 / 2.0).ceil() as usize);
     println!("{} {} {}", trail, content, trail2);
 }
 
@@ -114,11 +114,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let logo_str: &str = include_str!("../logo.txt");
     let version_str: String = format!("VERSION : {}", env!("CARGO_PKG_VERSION"));
-    let text_size : usize = 58;
+    let text_size: usize = 58;
     println!("{}\n", logo_str);
     fill_blank_and_print("BlindAI - INFERENCE SERVER", text_size);
     fill_blank_and_print("MADE BY MITHRIL SECURITY", text_size);
-    fill_blank_and_print("GITHUB: https://github.com/mithril-security/blindai", text_size);
+    fill_blank_and_print(
+        "GITHUB: https://github.com/mithril-security/blindai",
+        text_size,
+    );
     fill_blank_and_print(&version_str, text_size);
     println!();
     info!("Starting Enclave...");

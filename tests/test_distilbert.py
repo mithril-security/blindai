@@ -29,13 +29,15 @@ class TestDistilBertBase:
             certificate=certificate_file,
         )
 
-        client.upload_model(
+        response = client.upload_model(
             model=model_path,
             shape=inputs.shape,
             dtype=ModelDatumType.I64,
+            model_name=self.model_name_base,
         )
+        model_id = response.model_id
 
-        response = client.run_model(run_inputs)
+        response = client.run_model(run_inputs, model_id=model_id)
         origin_pred = model(torch.tensor(run_inputs).unsqueeze(0)).logits.detach()
 
         diff = (torch.tensor([response.output]) - origin_pred).sum().abs()
@@ -52,15 +54,19 @@ class TestDistilBertBase:
         )
 
         response = client.upload_model(
-            model=model_path, shape=inputs.shape, dtype=ModelDatumType.I64, sign=True
+            model=model_path,
+            shape=inputs.shape,
+            dtype=ModelDatumType.I64,
+            sign=True,
+            model_name=self.model_name_signed,
         )
         print(response)
-
+        model_id = response.model_id
         client.enclave_signing_key.verify(
             response.proof.signature, response.proof.payload
         )
 
-        response = client.run_model(run_inputs, sign=True)
+        response = client.run_model(run_inputs, sign=True, model_id=model_id)
         print(response)
 
         client.enclave_signing_key.verify(
@@ -75,10 +81,14 @@ class TestDistilBertBase:
 
 class TestDistilBertSW(TestDistilBertBase, unittest.TestCase):
     simulation = True
+    model_name_base = "model_1"
+    model_name_signed = "model_1_signed"
 
 
 class TestDistilBertHW(TestDistilBertBase, unittest.TestCase):
     simulation = False
+    model_name_base = "model_2"
+    model_name_signed = "model_2_signed"
 
 
 model, inputs, run_inputs = None, None, None
@@ -86,7 +96,7 @@ model, inputs, run_inputs = None, None, None
 
 def setUpModule():
     global model, inputs, run_inputs
-    launch_server()
+    # launch_server()
 
     # Setup the distilbert model
     model = DistilBertForSequenceClassification.from_pretrained(
