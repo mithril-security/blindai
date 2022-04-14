@@ -31,6 +31,22 @@ Our solution comes in two parts:
 - A secure inference server to serve AI models with privacy guarantees, developed using [**the Rust Programming Language**](https://www.rust-lang.org/). 🦀🦀
 - A Python client SDK to securely consume the remote AI models.
 
+## Models covered by BlindAI
+
+Here is a list of models BlindAI supports, the use cases it unlocks and articles to provide more context on each case. The articles are in preparation and we welcome all contributions to show how BlindAI can be used to deploy AI models with confidentiality!
+
+| Model name           | Model family  | Link to model                                                 | Example use case                        | Article                                                                                                                               |
+|----------------------|---------------|---------------------------------------------------------------|-----------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------|
+| DistilBERT           | BERT          | https://huggingface.co/docs/transformers/model_doc/distilbert | Sentiment analysis                      | [Deploy Transformers models with confidentiality](https://blog.mithrilsecurity.io/transformers-with-confidentiality/)                 |
+| COVID-Net-CXR-2      | 2D CNN        | https://github.com/lindawangg/COVID-Net                       | Chest XRAY analysis for COVID detection | [Confidential medical image analysis with COVID-Net and BlindAI](https://blog.mithrilsecurity.io/confidential-covidnet-with-blindai/) |
+| GPT2                 | GPT           | https://huggingface.co/gpt2                                   | Document analysis                       | To be announced                                                                                                                       |
+| Wav2vec2             | Wav2vec       | https://huggingface.co/docs/transformers/model_doc/wav2vec2   | Speech to text                          | To be announced                                                                                                                       |
+| Facenet              | Resnet        | https://github.com/timesler/facenet-pytorch                   | Facial recognition                      | To be announced                                                                                                                       |
+| YoloV5               | Yolo          | https://github.com/ultralytics/yolov5                         | Object detection                        | To be announced                                                                                                                       |
+| Word2Vec             | Word2Vec      | https://spacy.io/usage/embeddings-transformers                | Document search                         | To be announced                                                                                                                       |
+| Neural Random Forest | Random Forest | https://arxiv.org/abs/1604.07143                              | Credit scoring                          | To be announced                                                                                                                       |
+| M5 network           | 1D CNN        | https://arxiv.org/pdf/1610.00087.pdf                          | Speaker recognition                     | To be announced                                                                                                                       |
+
 ## Getting started
 
 ### Step 1 - Deploying the server
@@ -124,15 +140,6 @@ client.connect_server("localhost", simulation=True)
 # Get prediction
 response = client.run_model(inputs)
 ```
-
-## Examples
-
-You can see how BlindAI can be used to deploy a variety of models:
-
-| Article name                                                                                                                          | Use case                                | Model name      | Model type   |
-| ------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------- | --------------- | ------------ |
-| [Deploy Transformers models with confidentiality](https://blog.mithrilsecurity.io/transformers-with-confidentiality/)                 | Sentiment analysis                      | DistilBERT      | Transformers |
-| [Confidential medical image analysis with COVID-Net and BlindAI](https://blog.mithrilsecurity.io/confidential-covidnet-with-blindai/) | Chest XRAY analysis for COVID detection | COVID-Net-CXR-2 | Deep CNN     |
 
 ### What you can do with BlindAI
 
