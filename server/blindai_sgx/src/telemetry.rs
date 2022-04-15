@@ -13,7 +13,7 @@ const AMPLITUDE_API_KEY: &str = "33888bd644f1dc39f72f2963c944c94c";
 
 static TELEMETRY_CHANNEL: SyncOnceCell<UnboundedSender<TelemetryEvent>> = SyncOnceCell::new();
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Clone, Serialize)]
 pub enum TelemetryEventProps {
     Started {},
     SendModel {
@@ -29,7 +29,10 @@ pub enum TelemetryEventProps {
     },
 }
 
+#[derive(Debug, Clone)]
 pub struct TelemetryEvent {
+    event_type: &'static str,
+    is_client_event: bool,
     props: TelemetryEventProps,
     time: SystemTime,
     client_info: Option<ClientInfo>,
@@ -43,11 +46,30 @@ impl TelemetryEventProps {
             TelemetryEventProps::RunModel { .. } => "run_model",
         }
     }
+    fn user_event_type(&self) -> Option<&'static str> {
+        match self {
+            TelemetryEventProps::Started { .. } => None,
+            TelemetryEventProps::SendModel { .. } => Some("client_send_model"),
+            TelemetryEventProps::RunModel { .. } => Some("client_run_model"),
+        }
+    }
 }
 
 pub fn add_event(event: TelemetryEventProps, client_info: Option<ClientInfo>) {
     if let Some(sender) = TELEMETRY_CHANNEL.get() {
+        if client_info.is_some() && event.user_event_type().is_some() {
+            // send the event as a user event too
+            let _ = sender.send(TelemetryEvent {
+                is_client_event: true,
+                event_type: event.user_event_type().unwrap(),
+                props: event.clone(),
+                time: SystemTime::now(),
+                client_info: client_info.clone(),
+            });
+        }
         let _ = sender.send(TelemetryEvent {
+            is_client_event: false,
+            event_type: event.event_type(),
             props: event,
             time: SystemTime::now(),
             client_info,
@@ -64,7 +86,7 @@ struct RequestEvent<'a> {
     time: u64,
     app_version: &'a str,
     user_properties: ReqestUserProperties<'a>,
-    event_properties: Option<TelemetryEventProps>,
+    event_properties: Option<&'a TelemetryEventProps>,
 }
 
 #[derive(Debug, Serialize, Default)]
@@ -72,13 +94,13 @@ struct ReqestUserProperties<'a> {
     sgx_mode: &'a str,
     uptime: u64,
     azure_dcsv3_patch_enabled: bool,
-    client_uid: Option<String>,
-    client_platform_name: Option<String>,
-    client_platform_arch: Option<String>,
-    client_platform_version: Option<String>,
-    client_platform_release: Option<String>,
-    client_user_agent: Option<String>,
-    client_user_agent_version: Option<String>,
+    client_uid: Option<&'a str>,
+    client_platform_name: Option<&'a str>,
+    client_platform_arch: Option<&'a str>,
+    client_platform_version: Option<&'a str>,
+    client_platform_release: Option<&'a str>,
+    client_user_agent: Option<&'a str>,
+    client_user_agent_version: Option<&'a str>,
 }
 
 #[derive(Debug, Serialize)]
@@ -98,61 +120,89 @@ pub fn setup(platform: String, uid: String) -> anyhow::Result<()> {
     let first_start = SystemTime::now();
     tokio::task::spawn(async move {
         loop {
-            let mut events = Vec::new();
-            while let Ok(properties) = receiver.try_recv() {
-                let event_type = properties.props.event_type();
-                let mut user_properties = ReqestUserProperties {
-                    uptime: properties
-                        .time
-                        .duration_since(first_start)
-                        .unwrap()
-                        .as_secs(),
-                    sgx_mode,
-                    azure_dcsv3_patch_enabled,
-                    ..Default::default()
-                };
-
-                if let Some(client_info) = properties.client_info {
-                    user_properties.client_uid = Some(client_info.uid);
-                    user_properties.client_platform_name = Some(client_info.platform_name);
-                    user_properties.client_platform_arch = Some(client_info.platform_arch);
-                    user_properties.client_platform_version = Some(client_info.platform_version);
-                    user_properties.client_platform_release = Some(client_info.platform_release);
-                    user_properties.client_user_agent = Some(client_info.user_agent);
-                    user_properties.client_user_agent_version = Some(client_info.user_agent_version);
+            {
+                let mut received_events = Vec::new();
+                let mut events = Vec::new();
+                while let Ok(properties) = receiver.try_recv() {
+                    received_events.push(properties);
                 }
 
-                let event = RequestEvent {
-                    user_id: &uid,
-                    event_type,
-                    device_id: &platform,
-                    time: properties
-                        .time
-                        .duration_since(UNIX_EPOCH)
-                        .unwrap()
-                        .as_secs(),
-                    app_version: env!("CARGO_PKG_VERSION"),
-                    user_properties,
-                    event_properties: Some(properties.props),
+                for properties in &received_events {
+                    let mut user_properties = ReqestUserProperties {
+                        uptime: properties
+                            .time
+                            .duration_since(first_start)
+                            .unwrap()
+                            .as_secs(),
+                        sgx_mode,
+                        azure_dcsv3_patch_enabled,
+                        ..Default::default()
+                    };
+
+                    if let Some(ref client_info) = properties.client_info {
+                        user_properties.client_uid = Some(client_info.uid.as_ref());
+                        user_properties.client_platform_name =
+                            Some(client_info.platform_name.as_ref());
+                        user_properties.client_platform_arch =
+                            Some(client_info.platform_arch.as_ref());
+                        user_properties.client_platform_version =
+                            Some(client_info.platform_version.as_ref());
+                        user_properties.client_platform_release =
+                            Some(client_info.platform_release.as_ref());
+                        user_properties.client_user_agent = Some(client_info.user_agent.as_ref());
+                        user_properties.client_user_agent_version =
+                            Some(client_info.user_agent_version.as_ref());
+                    }
+
+                    let event_type = properties.event_type;
+                    let (user_id, device_id, app_version) = {
+                        let client_info = properties.client_info.as_ref();
+                        if properties.is_client_event && client_info.is_some() {
+                            // this is a client event
+                            let ua = client_info.unwrap();
+                            (
+                                ua.uid.as_ref(),
+                                ua.user_agent.as_ref(),
+                                ua.user_agent_version.as_ref(),
+                            )
+                        } else {
+                            // this is a server event
+                            (uid.as_ref(), platform.as_ref(), env!("CARGO_PKG_VERSION"))
+                        }
+                    };
+
+                    let event = RequestEvent {
+                        user_id,
+                        event_type,
+                        device_id,
+                        time: properties
+                            .time
+                            .duration_since(UNIX_EPOCH)
+                            .unwrap()
+                            .as_secs(),
+                        app_version,
+                        user_properties,
+                        event_properties: Some(&properties.props),
+                    };
+
+                    events.push(event);
+                }
+
+                let request = AmplitudeRequest {
+                    api_key: AMPLITUDE_API_KEY,
+                    events: &events,
                 };
 
-                events.push(event);
-            }
-
-            let request = AmplitudeRequest {
-                api_key: AMPLITUDE_API_KEY,
-                events: &events,
-            };
-
-            if !events.is_empty() {
-                let response = reqwest::Client::new()
-                    .post("https://api2.amplitude.com/2/httpapi")
-                    .timeout(Duration::from_secs(60))
-                    .json(&request)
-                    .send()
-                    .await;
-                if let Err(e) = response {
-                    debug!("Cannot contact telemetry server: {}", e);
+                if !events.is_empty() {
+                    let response = reqwest::Client::new()
+                        .post("https://api2.amplitude.com/2/httpapi")
+                        .timeout(Duration::from_secs(60))
+                        .json(&request)
+                        .send()
+                        .await;
+                    if let Err(e) = response {
+                        debug!("Cannot contact telemetry server: {}", e);
+                    }
                 }
             }
 
