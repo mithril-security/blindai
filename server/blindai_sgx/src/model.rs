@@ -73,6 +73,7 @@ pub struct InferenceModel {
     onnx: OnnxModel,
     datum_type: ModelDatumType,
     input_fact: Vec<usize>,
+    model_name: Option<String>,
 }
 
 impl InferenceModel {
@@ -80,6 +81,7 @@ impl InferenceModel {
         mut model_data: &[u8],
         input_fact: Vec<usize>,
         datum_type: ModelDatumType,
+        model_name: Option<String>,
     ) -> Result<Self> {
         let model_rec = tract_onnx::onnx()
             // load the model
@@ -97,6 +99,7 @@ impl InferenceModel {
             onnx: model_rec,
             datum_type,
             input_fact,
+            model_name,
         })
     }
 
@@ -111,5 +114,9 @@ impl InferenceModel {
             .as_slice()
             .ok_or_else(|| anyhow!("Failed to convert ArrayView to slice"))?
             .to_vec())
+    }
+
+    pub fn model_name(&self) -> Option<&str> {
+        self.model_name.as_deref()
     }
 }

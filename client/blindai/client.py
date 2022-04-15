@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import getpass
 import logging
 import os
 import socket
@@ -38,6 +39,7 @@ from blindai.pb.securedexchange_pb2 import (
     Payload,
     RunModelRequest,
     SendModelRequest,
+    ClientInfo,
 )
 from blindai.pb.proof_files_pb2 import ResponseProof
 from blindai.pb.securedexchange_pb2_grpc import ExchangeStub
@@ -59,6 +61,8 @@ from blindai.utils.utils import (
     strip_https,
     supported_server_version,
 )
+from blindai.version import __version__ as app_version
+
 
 CONNECTION_TIMEOUT = 10
 
@@ -211,11 +215,27 @@ class BlindAiClient:
     simulation_mode: bool = False
     _disable_untrusted_server_cert_check: bool = False
     attestation: Optional[GetSgxQuoteWithCollateralReply] = None
+    server_version: Optional[str] = None
+    client_info: ClientInfo
+    
 
     def __init__(self, debug_mode=False):
         if debug_mode:
             os.environ["GRPC_TRACE"] = "transport_security,tsi"
             os.environ["GRPC_VERBOSITY"] = "DEBUG"
+
+        uname = os.uname()
+        self.client_info = ClientInfo(
+            uid=sha256((socket.gethostname() + "-" + getpass.getuser()).encode("utf-8"))
+                .digest()
+                .hex(),
+            platform_name=uname.sysname,
+            platform_arch=uname.machine,
+            platform_version=uname.version,
+            platform_release=uname.release,
+            user_agent="blindai_python",
+            user_agent_version=app_version,
+        )
 
     def is_connected(self) -> bool:
         return self._channel is not None
@@ -308,6 +328,7 @@ class BlindAiClient:
             stub = AttestationStub(channel)
 
             response = stub.GetServerInfo(server_info_request())
+            self.server_version = response.version
             if not supported_server_version(response.version):
                 raise VersionError(
                     "Incompatible client/server versions. Please use the correct client for your server."
@@ -395,6 +416,8 @@ class BlindAiClient:
                             data=chunk,
                             datum=int(dtype),
                             sign=sign,
+                            client_info=self.client_info,
+                            model_name=os.path.basename(model),
                         )
                         for chunk in create_byte_chunk(data)
                     ]
@@ -449,7 +472,11 @@ class BlindAiClient:
             response = self._stub.RunModel(
                 iter(
                     [
-                        RunModelRequest(input=serialized_bytes_chunk, sign=sign)
+                        RunModelRequest(
+                            client_info=self.client_info,
+                            input=serialized_bytes_chunk,
+                            sign=sign,
+                        )
                         for serialized_bytes_chunk in create_byte_chunk(
                             serialized_bytes
                         )
@@ -485,3 +512,4 @@ class BlindAiClient:
             self._channel = None
             self._stub = None
             self.policy = None
+            self.server_version = None

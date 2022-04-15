@@ -71,12 +71,18 @@ impl Exchange for Exchanger {
         let mut model_size = 0usize;
         let mut sign = false;
 
+        let mut model_name = None;
+        let mut client_info = None;
+
         // get all model chunks from the client into a big Vec
         while let Some(model_stream) = stream.next().await {
             let mut model_proto = model_stream?;
             if model_size == 0 {
                 model_size = model_proto.length.try_into().unwrap();
                 model_bytes.reserve_exact(model_size);
+
+                model_name = if !model_proto.model_name.is_empty() { Some(model_proto.model_name) } else { None };
+                client_info = model_proto.client_info;
 
                 for x in &model_proto.input_fact {
                     input_fact.push(*x as usize);
@@ -96,15 +102,26 @@ impl Exchange for Exchanger {
             return Err(Status::invalid_argument("Received no data".to_string()));
         }
 
-        let model =
-            InferenceModel::load_model(&model_bytes, input_fact.clone(), datum).map_err(|err| {
-                error!("Unknown error creating model: {}", err);
-                Status::unknown("Unknown error".to_string())
-            })?;
+        let model = InferenceModel::load_model(
+            &model_bytes,
+            input_fact.clone(),
+            datum,
+            model_name.clone(),
+        )
+        .map_err(|err| {
+            error!("Unknown error creating model: {}", err);
+            Status::unknown("Unknown error".to_string())
+        })?;
 
         *self.model.lock().unwrap() = Some(model);
 
-        telemetry::add_event(TelemetryEventProps::SendModel { model_size });
+        telemetry::add_event(
+            TelemetryEventProps::SendModel {
+                model_size,
+                model_name,
+            },
+            client_info,
+        );
         info!("Model loaded successfully");
 
         let mut payload = SendModelPayload::default();
@@ -149,8 +166,13 @@ impl Exchange for Exchanger {
         let mut sign = false;
         let max_input_size = self.max_input_size;
 
+        let mut client_info = None;
+
         while let Some(data_stream) = stream.next().await {
             let mut data_proto = data_stream?;
+
+            client_info = data_proto.client_info;
+
             if data_proto.input.len() * size_of::<u8>() > max_input_size
                 || input.len() * size_of::<u8>() > max_input_size
             {
@@ -178,7 +200,12 @@ impl Exchange for Exchanger {
         })?;
 
         info!("Inference was a success");
-        telemetry::add_event(TelemetryEventProps::RunModel {});
+        telemetry::add_event(
+            TelemetryEventProps::RunModel {
+                model_name: model.model_name().map(|e| e.to_string()),
+            },
+            client_info,
+        );
 
         let mut payload = RunModelPayload {
             output: result,
