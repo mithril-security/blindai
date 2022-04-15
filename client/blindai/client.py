@@ -370,7 +370,7 @@ class BlindAiClient:
                 raise SignatureError("Invalid signature")
             if sha256(serialized_bytes).digest() != payload.input_hash:
                 raise SignatureError("Invalid returned input_hash")
-            if payload.model_id != model_id:
+            if (model_id != "default") and (payload.model_id != model_id):
                 raise SignatureError("Invalid model")
 
             proof_data = ProofData(

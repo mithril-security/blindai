@@ -45,6 +45,7 @@ tonic = {version = "0.5.2", features = ["tls"]}
 tonic-rpc = {version = "0.1.1", features = ["json"]}
 tract-core = {version = "0.16.2-pre"}
 tract-onnx = {version = "0.16.2-pre"}
+uuid = {version="0.8.2", features=["v4"]}
 x509-parser = "*"
 h2 = "=0.3.4"
 prost-types = "=0.8"

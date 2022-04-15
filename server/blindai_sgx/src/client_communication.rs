@@ -12,8 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use futures::StreamExt;
 use log::*;
+use num_traits::FromPrimitive;
+use prost::Message;
 use ring::digest;
+use ring_compat::signature::Signer;
+use secured_exchange::exchange_server::Exchange;
 #[cfg(not(target_env = "sgx"))]
 use std::sync::Mutex;
 #[cfg(target_env = "sgx")]
@@ -21,13 +26,8 @@ use std::sync::SgxMutex as Mutex;
 use std::{
     collections::HashMap, convert::TryInto, mem::size_of, sync::Arc, time::SystemTime, vec::Vec,
 };
-
-use futures::StreamExt;
-use num_traits::FromPrimitive;
-use prost::Message;
-use ring_compat::signature::Signer;
-use secured_exchange::exchange_server::Exchange;
 use tonic::{Request, Response, Status};
+use uuid::Uuid;
 
 use crate::{
     identity::MyIdentity,
@@ -42,6 +42,7 @@ pub mod secured_exchange {
 
 pub(crate) struct Exchanger {
     models: std::sync::Arc<Mutex<HashMap<String, InferenceModel>>>,
+    most_recent_model_uuid: std::sync::Arc<Mutex<Option<String>>>,
     identity: Arc<MyIdentity>,
     max_model_size: usize,
     max_input_size: usize,
@@ -54,6 +55,7 @@ impl Exchanger {
             models: Arc::new(Mutex::new(HashMap::new())),
             max_model_size,
             max_input_size,
+            most_recent_model_uuid: Arc::new(Mutex::new(None)),
         }
     }
 }
@@ -72,7 +74,7 @@ impl Exchange for Exchanger {
         let max_model_size = self.max_model_size;
         let mut model_size = 0usize;
         let mut sign = false;
-        let mut model_id = "".to_string();
+        let mut model_name = "".to_string();
 
         // get all model chunks from the client into a big Vec
         while let Some(model_stream) = stream.next().await {
@@ -88,7 +90,7 @@ impl Exchange for Exchanger {
                 datum = FromPrimitive::from_i32(model_proto.datum)
                     .ok_or_else(|| Status::invalid_argument("Unknown datum type".to_string()))?;
                 sign = model_proto.sign;
-                model_id = model_proto.model_name.to_string();
+                model_name = model_proto.model_name.to_string();
             }
             if model_size > max_model_size || model_bytes.len() > max_model_size {
                 return Err(Status::invalid_argument("Model too big".to_string()));
@@ -99,12 +101,18 @@ impl Exchange for Exchanger {
         if model_size == 0 {
             return Err(Status::invalid_argument("Received no data".to_string()));
         }
-        let model =
-            InferenceModel::load_model(&model_bytes, input_fact.clone(), datum, model_id.clone())
-                .map_err(|err| {
-                error!("Unknown error creating model: {}", err);
-                Status::unknown("Unknown error".to_string())
-            })?;
+        let model_id = Uuid::new_v4().to_string();
+        let model = InferenceModel::load_model(
+            &model_bytes,
+            input_fact.clone(),
+            datum,
+            model_id.clone(),
+            model_name,
+        )
+        .map_err(|err| {
+            error!("Unknown error creating model: {}", err);
+            Status::unknown("Unknown error".to_string())
+        })?;
 
         let mut models = self.models.lock().unwrap();
         match models.get(&model_id) {
@@ -118,7 +126,7 @@ impl Exchange for Exchanger {
                 info!("Model loaded successfully");
             }
         }
-
+        *self.most_recent_model_uuid.lock().unwrap() = Some(model_id.clone());
         telemetry::add_event(TelemetryEventProps::SendModel { model_size });
 
         let mut payload = SendModelPayload::default();
@@ -178,12 +186,25 @@ impl Exchange for Exchanger {
             input.append(&mut data_proto.input);
         }
 
+        // No model_id was provided, the last insterted model will be used
+        if model_id == "default".to_string() {
+            let uuid_guard = self.most_recent_model_uuid.lock().unwrap();
+            let id = if let Some(id) = &*uuid_guard {
+                id
+            } else {
+                return Err(Status::invalid_argument(
+                    "Cannot find the most recent model".to_string(),
+                ));
+            };
+            model_id = id.to_string();
+        }
+
+        // Find the model with model_id
         let guard = self.models.lock().unwrap();
         let model = match guard.get(&model_id) {
             Some(model) => model,
             None => {
-                //insert the model
-                error!("Model ({}) doesn't exist ", model_id);
+                error!("Model doesn't exist ");
                 return Err(Status::invalid_argument("Model doesn't exist".to_string()));
             }
         };
@@ -240,11 +261,11 @@ impl Exchange for Exchanger {
         match models.get(&model_id) {
             Some(_) => {
                 models.remove(&model_id);
-                info!("Model ({}) deleted successfuly", model_id)
+                info!("Model deleted successfuly", model_id)
             }
             None => {
                 //insert the model
-                error!("Model ({}) doesn't exist", model_id);
+                error!("Model doesn't exist", model_id);
                 return Err(Status::invalid_argument("Model doesn't exist".to_string()));
             }
         }

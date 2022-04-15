@@ -42,6 +42,7 @@ class TestDistilBertBase:
 
         diff = (torch.tensor([response.output]) - origin_pred).sum().abs()
         self.assertLess(diff, 0.001)  # difference is <0.1%
+        client.delete_model(model_id)
 
     def test_signed(self):
         client = BlindAiClient()
@@ -58,15 +59,14 @@ class TestDistilBertBase:
             shape=inputs.shape,
             dtype=ModelDatumType.I64,
             sign=True,
-            model_name=self.model_name_signed,
         )
+
         print(response)
-        model_id = response.model_id
         client.enclave_signing_key.verify(
             response.proof.signature, response.proof.payload
         )
 
-        response = client.run_model(run_inputs, sign=True, model_id=model_id)
+        response = client.run_model(run_inputs, sign=True)
         print(response)
 
         client.enclave_signing_key.verify(
@@ -82,13 +82,11 @@ class TestDistilBertBase:
 class TestDistilBertSW(TestDistilBertBase, unittest.TestCase):
     simulation = True
     model_name_base = "model_1"
-    model_name_signed = "model_1_signed"
 
 
 class TestDistilBertHW(TestDistilBertBase, unittest.TestCase):
     simulation = False
     model_name_base = "model_2"
-    model_name_signed = "model_2_signed"
 
 
 model, inputs, run_inputs = None, None, None
@@ -96,7 +94,7 @@ model, inputs, run_inputs = None, None, None
 
 def setUpModule():
     global model, inputs, run_inputs
-    launch_server()
+    # launch_server()
 
     # Setup the distilbert model
     model = DistilBertForSequenceClassification.from_pretrained(

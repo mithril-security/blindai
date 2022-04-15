@@ -74,6 +74,7 @@ pub struct InferenceModel {
     datum_type: ModelDatumType,
     input_fact: Vec<usize>,
     model_id: String,
+    model_name: String,
 }
 
 impl InferenceModel {
@@ -82,6 +83,7 @@ impl InferenceModel {
         input_fact: Vec<usize>,
         datum_type: ModelDatumType,
         model_id: String,
+        model_name: String,
     ) -> Result<Self> {
         let model_rec = tract_onnx::onnx()
             // load the model
@@ -100,6 +102,7 @@ impl InferenceModel {
             datum_type,
             input_fact,
             model_id,
+            model_name,
         })
     }
 
