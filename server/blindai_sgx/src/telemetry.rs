@@ -3,6 +3,8 @@ use std::{
     time::{Duration, SystemTime, UNIX_EPOCH},
 };
 
+use crate::client_communication::secured_exchange::ClientInfo;
+
 use log::debug;
 use serde::Serialize;
 use tokio::sync::mpsc::{self, UnboundedSender};
@@ -14,13 +16,19 @@ static TELEMETRY_CHANNEL: SyncOnceCell<UnboundedSender<TelemetryEvent>> = SyncOn
 #[derive(Debug, Serialize)]
 pub enum TelemetryEventProps {
     Started {},
-    SendModel { model_size: usize },
-    RunModel {},
+    SendModel {
+        model_name: Option<String>,
+        model_size: usize,
+    },
+    RunModel {
+        model_name: Option<String>,
+    },
 }
 
 pub struct TelemetryEvent {
     props: TelemetryEventProps,
     time: SystemTime,
+    client_info: Option<ClientInfo>,
 }
 
 impl TelemetryEventProps {
@@ -33,11 +41,12 @@ impl TelemetryEventProps {
     }
 }
 
-pub fn add_event(event: TelemetryEventProps) {
+pub fn add_event(event: TelemetryEventProps, client_info: Option<ClientInfo>) {
     if let Some(sender) = TELEMETRY_CHANNEL.get() {
         let _ = sender.send(TelemetryEvent {
             props: event,
             time: SystemTime::now(),
+            client_info,
         });
     }
     // else, telemetry is disabled
@@ -54,10 +63,18 @@ struct RequestEvent<'a> {
     event_properties: Option<TelemetryEventProps>,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Default)]
 struct ReqestUserProperties<'a> {
     sgx_mode: &'a str,
     uptime: u64,
+    azure_dcsv3_patch_enabled: bool,
+    client_uid: Option<String>,
+    client_platform_name: Option<String>,
+    client_platform_arch: Option<String>,
+    client_platform_version: Option<String>,
+    client_platform_release: Option<String>,
+    client_user_agent: Option<String>,
+    client_user_agent_version: Option<String>,
 }
 
 #[derive(Debug, Serialize)]
@@ -72,20 +89,34 @@ pub fn setup(platform: String, uid: String) -> anyhow::Result<()> {
     TELEMETRY_CHANNEL.set(sender).unwrap();
     let sgx_mode = if cfg!(SGX_MODE = "SW") { "SW" } else { "HW" };
 
+    let azure_dcsv3_patch_enabled = std::env::var("BLINDAI_AZURE_DCSV3_PATCH").is_ok();
+
     let first_start = SystemTime::now();
     tokio::task::spawn(async move {
         loop {
             let mut events = Vec::new();
             while let Ok(properties) = receiver.try_recv() {
                 let event_type = properties.props.event_type();
-                let user_properties = ReqestUserProperties {
+                let mut user_properties = ReqestUserProperties {
                     uptime: properties
                         .time
                         .duration_since(first_start)
                         .unwrap()
                         .as_secs(),
                     sgx_mode,
+                    azure_dcsv3_patch_enabled,
+                    ..Default::default()
                 };
+
+                if let Some(client_info) = properties.client_info {
+                    user_properties.client_uid = Some(client_info.uid);
+                    user_properties.client_platform_name = Some(client_info.platform_name);
+                    user_properties.client_platform_arch = Some(client_info.platform_arch);
+                    user_properties.client_platform_version = Some(client_info.platform_version);
+                    user_properties.client_platform_release = Some(client_info.platform_release);
+                    user_properties.client_user_agent = Some(client_info.user_agent);
+                    user_properties.client_user_agent_version = Some(client_info.user_agent_version);
+                }
 
                 let event = RequestEvent {
                     user_id: &uid,

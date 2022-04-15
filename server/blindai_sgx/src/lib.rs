@@ -163,7 +163,7 @@ async fn main(
     } else {
         debug!("Telemetry is disabled.")
     }
-    telemetry::add_event(TelemetryEventProps::Started {});
+    telemetry::add_event(TelemetryEventProps::Started {}, None);
 
     server_future.await?;
 
