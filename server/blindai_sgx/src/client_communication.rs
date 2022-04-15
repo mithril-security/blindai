@@ -18,7 +18,13 @@ use ring::digest;
 use std::sync::Mutex;
 #[cfg(target_env = "sgx")]
 use std::sync::SgxMutex as Mutex;
-use std::{convert::TryInto, mem::size_of, sync::Arc, time::SystemTime, vec::Vec};
+use std::{
+    convert::TryInto,
+    mem::size_of,
+    sync::Arc,
+    time::{Instant, SystemTime},
+    vec::Vec,
+};
 
 use futures::StreamExt;
 use num_traits::FromPrimitive;
@@ -62,8 +68,10 @@ impl Exchange for Exchanger {
         &self,
         request: Request<tonic::Streaming<SendModelRequest>>,
     ) -> Result<Response<SendModelReply>, Status> {
+        let start_time = Instant::now();
+
         let mut stream = request.into_inner();
-        let mut datum = ModelDatumType::I64; // dummy (changed for test)
+        let mut datum = ModelDatumType::I64; // dummy
 
         let mut input_fact: Vec<usize> = Vec::new();
         let mut model_bytes: Vec<u8> = Vec::new();
@@ -81,7 +89,11 @@ impl Exchange for Exchanger {
                 model_size = model_proto.length.try_into().unwrap();
                 model_bytes.reserve_exact(model_size);
 
-                model_name = if !model_proto.model_name.is_empty() { Some(model_proto.model_name) } else { None };
+                model_name = if !model_proto.model_name.is_empty() {
+                    Some(model_proto.model_name)
+                } else {
+                    None
+                };
                 client_info = model_proto.client_info;
 
                 for x in &model_proto.input_fact {
@@ -102,27 +114,14 @@ impl Exchange for Exchanger {
             return Err(Status::invalid_argument("Received no data".to_string()));
         }
 
-        let model = InferenceModel::load_model(
-            &model_bytes,
-            input_fact.clone(),
-            datum,
-            model_name.clone(),
-        )
-        .map_err(|err| {
-            error!("Unknown error creating model: {}", err);
-            Status::unknown("Unknown error".to_string())
-        })?;
+        let model =
+            InferenceModel::load_model(&model_bytes, input_fact.clone(), datum, model_name.clone())
+                .map_err(|err| {
+                    error!("Unknown error creating model: {}", err);
+                    Status::unknown("Unknown error".to_string())
+                })?;
 
         *self.model.lock().unwrap() = Some(model);
-
-        telemetry::add_event(
-            TelemetryEventProps::SendModel {
-                model_size,
-                model_name,
-            },
-            client_info,
-        );
-        info!("Model loaded successfully");
 
         let mut payload = SendModelPayload::default();
         // payload.model_id = "default".into();
@@ -153,6 +152,32 @@ impl Exchange for Exchanger {
                 .to_vec();
         }
 
+        let elapsed = start_time.elapsed();
+        info!(
+            "[{} {}] SendModel successful in {}ms (model={}, size={}, sign={})",
+            client_info
+                .as_ref()
+                .map(|c| c.user_agent.as_ref())
+                .unwrap_or("<unknown>"),
+            client_info
+                .as_ref()
+                .map(|c| c.user_agent_version.as_ref())
+                .unwrap_or("<unknown>"),
+            elapsed.as_millis(),
+            model_name.as_deref().unwrap_or("<unknown>"),
+            model_size,
+            sign
+        );
+        telemetry::add_event(
+            TelemetryEventProps::SendModel {
+                model_size,
+                model_name,
+                sign,
+                time_taken: elapsed.as_secs_f64(),
+            },
+            client_info,
+        );
+
         Ok(Response::new(reply))
     }
 
@@ -160,6 +185,8 @@ impl Exchange for Exchanger {
         &self,
         request: Request<tonic::Streaming<RunModelRequest>>,
     ) -> Result<Response<RunModelReply>, Status> {
+        let start_time = Instant::now();
+
         let mut stream = request.into_inner();
 
         let mut input: Vec<u8> = Vec::new();
@@ -199,14 +226,6 @@ impl Exchange for Exchanger {
             Status::unknown("Unknown error".to_string())
         })?;
 
-        info!("Inference was a success");
-        telemetry::add_event(
-            TelemetryEventProps::RunModel {
-                model_name: model.model_name().map(|e| e.to_string()),
-            },
-            client_info,
-        );
-
         let mut payload = RunModelPayload {
             output: result,
             ..Default::default()
@@ -235,6 +254,30 @@ impl Exchange for Exchanger {
                 .to_bytes()
                 .to_vec();
         }
+
+        let elapsed = start_time.elapsed();
+        info!(
+            "[{} {}] RunModel successful in {}ms (model={}, sign={})",
+            client_info
+                .as_ref()
+                .map(|c| c.user_agent.as_ref())
+                .unwrap_or("<unknown>"),
+            client_info
+                .as_ref()
+                .map(|c| c.user_agent_version.as_ref())
+                .unwrap_or("<unknown>"),
+            elapsed.as_millis(),
+            model.model_name().unwrap_or("<unknown>"),
+            sign
+        );
+        telemetry::add_event(
+            TelemetryEventProps::RunModel {
+                model_name: model.model_name().map(|e| e.to_string()),
+                sign,
+                time_taken: elapsed.as_secs_f64(),
+            },
+            client_info,
+        );
 
         Ok(Response::new(reply))
     }
