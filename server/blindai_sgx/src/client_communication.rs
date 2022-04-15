@@ -261,11 +261,11 @@ impl Exchange for Exchanger {
         match models.get(&model_id) {
             Some(_) => {
                 models.remove(&model_id);
-                info!("Model deleted successfuly", model_id)
+                info!("Model deleted successfuly")
             }
             None => {
                 //insert the model
-                error!("Model doesn't exist", model_id);
+                error!("Model doesn't exist");
                 return Err(Status::invalid_argument("Model doesn't exist".to_string()));
             }
         }

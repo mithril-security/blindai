@@ -94,7 +94,7 @@ model, inputs, run_inputs = None, None, None
 
 def setUpModule():
     global model, inputs, run_inputs
-    # launch_server()
+    launch_server()
 
     # Setup the distilbert model
     model = DistilBertForSequenceClassification.from_pretrained(
