@@ -19,9 +19,13 @@ pub enum TelemetryEventProps {
     SendModel {
         model_name: Option<String>,
         model_size: usize,
+        sign: bool,
+        time_taken: f64,
     },
     RunModel {
         model_name: Option<String>,
+        sign: bool,
+        time_taken: f64,
     },
 }
 
