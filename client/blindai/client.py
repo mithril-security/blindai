@@ -27,7 +27,6 @@ from grpc import Channel, RpcError, secure_channel, ssl_channel_credentials
 
 from blindai.dcap_attestation import (
     Policy,
-    get_server_cert,
     verify_claims,
     verify_dcap_attestation,
 )
@@ -79,7 +78,7 @@ def _validate_quote(
     )
 
     verify_claims(claims, policy)
-    server_cert = get_server_cert(claims)
+    server_cert = claims.get_server_cert()
     enclave_signing_key = get_enclave_signing_key(server_cert)
 
     return enclave_signing_key
@@ -97,10 +96,30 @@ class SignedResponse:
         return self.signature is not None
 
     def save_to_file(self, path: str):
+        """Save the response to a file.
+        The response can later be loaded with:
+        ```py
+        res = SignedResponse()
+        res.load_from_file(path)
+        ```
+
+        Args:
+            path (str): Path of the file.
+        """
         with open(path, mode="wb") as file:
             file.write(self.as_bytes())
 
-    def as_bytes(self):
+    def as_bytes(self) -> bytes:
+        """Save the response as bytes.
+        The response can later be loaded with:
+        ```py
+        res = SignedResponse()
+        res.load_from_bytes(data)
+        ```
+
+        Returns:
+            bytes: The data.
+        """
         return ResponseProof(
             payload=self.payload,
             signature=self.signature,
@@ -108,10 +127,20 @@ class SignedResponse:
         ).SerializeToString()
 
     def load_from_file(self, path: str):
+        """Load the response from a file.
+
+        Args:
+            path (str): Path of the file.
+        """
         with open(path, "rb") as file:
             self.load_from_bytes(file.read())
 
     def load_from_bytes(self, b: bytes):
+        """Load the response from bytes.
+
+        Args:
+            b (bytes): The data.
+        """
         proof = ResponseProof.FromString(b)
         self.payload = proof.payload
         self.signature = proof.signature
@@ -132,6 +161,22 @@ class UploadModelResponse(SignedResponse):
         enclave_signing_key: Optional[bytes] = None,
         allow_simulation_mode: bool = False,
     ):
+        """Validates whether this response is valid. This is used for responses you have saved as bytes or in a file.
+        This will raise an error if the response is not signed or if it is not valid.
+
+        Args:
+            model_hash (bytes): Hash of the model to verify against.
+            policy_file (Optional[str], optional): Path to the policy file. Defaults to None.
+            policy (Optional[Policy], optional): Policy to use. Use `policy_file` to load from a file directly. Defaults to None.
+            validate_quote (bool, optional): Whether or not the attestation should be validated too. Defaults to True.
+            enclave_signing_key (Optional[bytes], optional): Enclave signing key in case the attestation should not be validated. Defaults to None.
+            allow_simulation_mode (bool, optional): Whether or not simulation mode responses should be accepted. Defaults to False.
+
+        Raises:
+            AttestationError: Attestation is invalid.
+            SignatureError: Signed response is invalid.
+            FileNotFoundError: Will be raised if the policy file is not found.
+        """
         if not self.is_signed():
             raise SignatureError("Response is not signed")
 
@@ -173,6 +218,22 @@ class RunModelResponse(SignedResponse):
         enclave_signing_key: Optional[bytes] = None,
         allow_simulation_mode: bool = False,
     ):
+        """Validates whether this response is valid. This is used for responses you have saved as bytes or in a file.
+        This will raise an error if the response is not signed or if it is not valid.
+
+        Args:
+            data_list (List[Any]): Input used to run the model, to validate against.
+            policy_file (Optional[str], optional): Path to the policy file. Defaults to None.
+            policy (Optional[Policy], optional): Policy to use. Use `policy_file` to load from a file directly. Defaults to None.
+            validate_quote (bool, optional): Whether or not the attestation should be validated too. Defaults to True.
+            enclave_signing_key (Optional[bytes], optional): Enclave signing key in case the attestation should not be validated. Defaults to None.
+            allow_simulation_mode (bool, optional): Whether or not simulation mode responses should be accepted. Defaults to False.
+
+        Raises:
+            AttestationError: Attestation is invalid.
+            SignatureError: Signed response is invalid.
+            FileNotFoundError: Will be raised if the policy file is not found.
+        """
         if not self.is_signed():
             raise SignatureError("Response is not signed")
 
@@ -217,7 +278,6 @@ class BlindAiClient:
     attestation: Optional[GetSgxQuoteWithCollateralReply] = None
     server_version: Optional[str] = None
     client_info: ClientInfo
-    
 
     def __init__(self, debug_mode=False):
         if debug_mode:
@@ -227,8 +287,8 @@ class BlindAiClient:
         uname = os.uname()
         self.client_info = ClientInfo(
             uid=sha256((socket.gethostname() + "-" + getpass.getuser()).encode("utf-8"))
-                .digest()
-                .hex(),
+            .digest()
+            .hex(),
             platform_name=uname.sysname,
             platform_arch=uname.machine,
             platform_version=uname.version,
@@ -264,21 +324,22 @@ class BlindAiClient:
         have most of the security provided by the hardware mode.
 
         Args:
-            addr: The address of BlindAI server you want to reach.
-            server_name: Contains the CN expected by the server TLS certificate.
-            policy: Path to the toml file describing the policy of the server.
-                Generated in the server side.
-            certificate: Path to the public key of the untrusted inference server.
-                Generated in the server side.
-            simulation:  Connect to the server in simulation mode (default False).
-                If set to True, the args policy and certificate will be ignored.
-            untrusted_port: untrusted connection server port, default 50052
-            attested_port: attested connection server port, dedault 50051
+            addr (str): The address of BlindAI server you want to reach.
+            server_name (str, optional): Contains the CN expected by the server TLS certificate. Defaults to "blindai-srv".
+            policy (Optional[str], optional): Path to the toml file describing the policy of the server.
+                Generated in the server side. Defaults to None.
+            certificate (Optional[str], optional): Path to the public key of the untrusted inference server.
+                Generated in the server side. Defaults to None.
+            simulation (bool, optional): Connect to the server in simulation mode.
+                If set to True, the args policy and certificate will be ignored. Defaults to False.
+            untrusted_port (int, optional): Untrusted connection server port. Defaults to 50052.
+            attested_port (int, optional): Attested connection server port. Defaults to 50051.
+
         Raises:
-            VersionError: Will be raised if the version of the server is not supported by the client.
-            ValueError: Will be raised in case the policy doesn't match the
-                server identity and configuration.
+            AttestationError: Will be raised in case the policy doesn't match the
+                server identity and configuration, or if te attestation is invalid.
             ConnectionError: will be raised if the connection with the server fails.
+            VersionError: Will be raised if the version of the server is not supported by the client.
             FileNotFoundError: will be raised if the policy file, or the certificate file is not
                 found (in Hardware mode).
         """
@@ -350,13 +411,13 @@ class BlindAiClient:
                 )
 
                 verify_claims(claims, self.policy)
-                server_cert = get_server_cert(claims)
+                server_cert = claims.get_server_cert()
 
                 logging.info("Quote verification passed")
                 logging.info(
                     f"Certificate from attestation process\n {server_cert.decode('ascii')}"
                 )
-                logging.info("MREnclave\n" + claims["sgx-mrenclave"])
+                logging.info("MREnclave\n" + claims.sgx_mrenclave)
 
             channel.close()
             self.enclave_signing_key = get_enclave_signing_key(server_cert)
@@ -384,21 +445,20 @@ class BlindAiClient:
         The provided model needs to be in the Onnx format.
 
         Args:
-            model: Path to Onnx model file.
-            shape: The shape of the model input.
-            dtype: The type of the model input data (f32 by default)
-            sign: Get signed responses from the server or not (default is False)
+            model (str): Path to Onnx model file.
+            shape (Tuple, optional): The shape of the model input. Defaults to None.
+            dtype (ModelDatumType, optional): The type of the model input data (f32 by default). Defaults to ModelDatumType.F32.
+            sign (bool, optional): Get signed responses from the server or not. Defaults to False.
+
+        Raises:
+            ConnectionError: Will be raised if the client is not connected.
+            FileNotFoundError: Will be raised if the model file is not found.
+            SignatureError: Will be raised if the response signature is invalid.
 
         Returns:
-            UploadModelResponse object, containing one field:
-                proof: optional, a ProofData object with two fields:
-                    payload: the payload returned by the server
-                    signature: the signature returned by the server
-        Raises:
-            ConnectionError: will be raised if the connection with the server fails.
-            FileNotFoundError: will be raised if the model file is not found.
-            SignatureError: will be raised if the response signature is invalid
+            UploadModelResponse: The response object.
         """
+
         response = None
         if not self.is_connected():
             raise ConnectionError("Not connected to the server")
@@ -445,23 +505,20 @@ class BlindAiClient:
         return ret
 
     def run_model(self, data_list: List[Any], sign: bool = False) -> RunModelResponse:
-        """Send data to the server to make a secure inference
+        """Send data to the server to make a secure inference.
 
         The data provided must be in a list, as the tensor will be rebuilt inside the server.
 
         Args:
-            data_list: array of numbers, the numbers must be of the same type dtype specified in upload_model
-            sign: Get signed responses from the server or not (default is False)
+            data_list (List[Any]): The input data. It must be an array of numbers of the same type dtype specified in `upload_model`.
+            sign (bool, optional): Get signed responses from the server or not. Defaults to False.
+
+        Raises:
+            ConnectionError: Will be raised if the client is not connected.
+            SignatureError: Will be raised if the response signature is invalid
 
         Returns:
-            RunModelResponse object, containing wto fields:
-                proof: optional, a ProofData object with two fields:
-                    payload: the payload returned by the server
-                    signature: the signature returned by the server
-                output: list of floats, the inference results returned by the server
-        Raises:
-            ConnectionError: will be raised if the connection to the server fails.
-            SignatureError: will be raised if the response signature is invalid
+            RunModelResponse: The response object.
         """
 
         if not self.is_connected():
