@@ -13,10 +13,7 @@
 # limitations under the License.
 
 import re
-import os
-import json
-from dataclasses import dataclass
-from typing import Optional
+from typing import Iterator
 import cryptography.x509
 from cryptography.hazmat.primitives.serialization import Encoding
 from cryptography.x509 import ObjectIdentifier, load_pem_x509_certificate
@@ -26,22 +23,15 @@ import pkgutil
 CHUNK_SIZE = 32 * 1024  # 32kb
 
 
-@dataclass
-class ProofData:
-    payload: bytes
-    signature: bytes
-    model_id: Optional[str]
-
-
-def strip_https(url: str):
+def strip_https(url: str) -> str:
     return re.sub(r"^https:\/\/", "", url)
 
 
-def encode_certificate(cert):
+def encode_certificate(cert: bytes):
     return cryptography.x509.load_der_x509_certificate(cert).public_bytes(Encoding.PEM)
 
 
-def create_byte_chunk(data):
+def create_byte_chunk(data: bytes) -> Iterator[bytes]:
     sent_bytes = 0
     while sent_bytes < len(data):
         yield bytes(
@@ -50,7 +40,7 @@ def create_byte_chunk(data):
         sent_bytes += min(CHUNK_SIZE, len(data) - sent_bytes)
 
 
-def get_enclave_signing_key(server_cert):
+def get_enclave_signing_key(server_cert: bytes) -> bytes:
     ENCLAVE_ED25519_SIGNING_KEY_OID = ObjectIdentifier("1.3.6.1.3.2")
     enclave_ed25519_signing_key = (
         load_pem_x509_certificate(server_cert)
@@ -63,7 +53,7 @@ def get_enclave_signing_key(server_cert):
     return enclave_signing_key
 
 
-def supported_server_version(version):
+def supported_server_version(version: str) -> bool:
     supported_versions_file = pkgutil.get_data(
         __name__, "../supported_server_versions.py"
     ).decode("utf-8")

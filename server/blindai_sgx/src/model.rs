@@ -17,6 +17,7 @@ use std::vec::Vec;
 use anyhow::{anyhow, Result};
 use num_derive::FromPrimitive;
 use tract_onnx::prelude::{tract_ndarray::IxDynImpl, *};
+use uuid::Uuid;
 
 pub type OnnxModel = SimplePlan<TypedFact, Box<dyn TypedOp>, Graph<TypedFact, Box<dyn TypedOp>>>;
 
@@ -73,8 +74,8 @@ pub struct InferenceModel {
     onnx: OnnxModel,
     datum_type: ModelDatumType,
     input_fact: Vec<usize>,
-    model_id: String,
-    model_name: String,
+    model_id: Uuid,
+    model_name: Option<String>,
 }
 
 impl InferenceModel {
@@ -82,8 +83,8 @@ impl InferenceModel {
         mut model_data: &[u8],
         input_fact: Vec<usize>,
         datum_type: ModelDatumType,
-        model_id: String,
-        model_name: String,
+        model_id: Uuid,
+        model_name: Option<String>,
     ) -> Result<Self> {
         let model_rec = tract_onnx::onnx()
             // load the model
@@ -117,5 +118,9 @@ impl InferenceModel {
             .as_slice()
             .ok_or_else(|| anyhow!("Failed to convert ArrayView to slice"))?
             .to_vec())
+    }
+
+    pub fn model_name(&self) -> Option<&str> {
+        self.model_name.as_deref()
     }
 }

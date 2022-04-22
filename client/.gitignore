@@ -19,6 +19,8 @@ wheelhouse/
 #stub files
 blindai/*pb2.py
 blindai/*grpc.py
+blindai/pb/*pb2.py
+blindai/pb/*grpc.py
 
 # User files
 *.so

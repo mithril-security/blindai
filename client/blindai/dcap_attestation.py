@@ -16,45 +16,61 @@ import ctypes
 import hashlib
 import pkgutil
 import struct
-from typing import Any, Dict
-from untrusted_pb2 import GetSgxQuoteWithCollateralReply
-import _quote_verification
+from typing_extensions import Self
+from dataclasses import dataclass
+from blindai.pb.untrusted_pb2 import SgxCollateral
 import toml
 from bitstring import Bits
+import _quote_verification
 from _quote_verification import status
 
-from utils.utils import encode_certificate
+from blindai.utils.utils import encode_certificate
+from blindai.utils.errors import AttestationError
+
+
+@dataclass
+class DcapClaims:
+    sgx_ehd: bytes
+    sgx_is_debuggable: bool
+    sgx_mrenclave: str
+    sgx_misc_select: bytes
+    sgx_attributes: bytes
+    raw_quote: bytes
+
+    def get_server_cert(self):
+        """Get the server certificate from the Attestation claims.
+
+        Returns:
+            bytes: The PEM-encoded server certificate as a byte string
+        """
+        return encode_certificate(self.sgx_ehd)
 
 
 def verify_dcap_attestation(
-    quote: bytes, attestation_collateral: Any, enclave_held_data: bytes
-) -> Dict[str, str]:
-    """
-    verify_dcap_attestation verifies if the enclave evidence is valid
-    * validates if the quote is trustworthy (issued by an approved Intel CPU) with the
-        attestation collateral using SGX Quote Verification Library
-    * validates if the SHA256 hash of Enclave Held Data (EHD) matches the first 32 bytes
+    quote: bytes, attestation_collateral: SgxCollateral, enclave_held_data: bytes
+) -> DcapClaims:
+    """Verifies if the enclave evidence is valid.
+    * Validates if the quote is trustworthy (issued by an approved Intel CPU) with the
+        attestation collateral using SGX Quote Verification Library.
+    * Validates if the SHA256 hash of Enclave Held Data (EHD) matches the first 32 bytes
         of reportData field in the enclave quote. After this check
-    we can be sure that the EHD bytes are endorsed by the enclave
-    TODO: Handle the case where the retuned quote status is STATUS_TCB_SW_HARDENING_NEEDED
-    We must do more cautious checks in this case in order to determine whether or not to accept the quote
-    It returns a dictionnary of claims about the enclave like :
-    {
-        "sgx-ehd" : <enclave held data>
-        "sgx-is-debuggable": true,
-        "sgx-mrenclave": <SGX enclave MRENCLAVE hex string>
-        "sgx-misc-select": <bytes MISC SELECT>
-        "sgx-attributes": <bytes with SGX Attributes>
-        "raw": {
-            "quote": <raw binary quote>
-        }
-    }
-    :param quote: SGX quote
-    :param attestation_collateral: SGX collateral needed to assess the validity of the quote
-        (collateral is signed by Intel)
-    :param enclave_held_data: enclave held data
-    :return: a dictionary of claims
+        we can be sure that the EHD bytes are endorsed by the enclave.
+
+    Args:
+        quote (bytes): SGX quote
+        attestation_collateral (SgxCollateral): SGX collateral needed to assess the validity of the quote
+            (collateral is signed by Intel)
+        enclave_held_data (bytes): Enclave held data
+
+    Raises:
+        AttestationError: Attestation does not match policy.
+
+    Returns:
+        DcapClaims: The claims.
     """
+
+    # TODO: Handle the case where the retuned quote status is STATUS_TCB_SW_HARDENING_NEEDED
+    # We must do more cautious checks in this case in order to determine whether or not to accept the quote
 
     t = _quote_verification.Verification()
     t.trustedRootCACertificate = pkgutil.get_data(__name__, "tls/trustedRootCaCert.pem")
@@ -72,99 +88,120 @@ def verify_dcap_attestation(
     ret = t.verify()
 
     if ret.pckCertificateStatus != status.STATUS_OK:
-        raise ValueError(
-            "Error : Wrong PCK Certificate Status {}", ret.pckCertificateStatus
+        raise AttestationError(
+            "Wrong PCK Certificate Status {}", ret.pckCertificateStatus
         )
 
     if ret.tcbInfoStatus != status.STATUS_OK:
-        raise ValueError("Error : Wrong TCB Info Status {}", ret.tcbInfoStatus)
+        raise AttestationError("Wrong TCB Info Status {}", ret.tcbInfoStatus)
 
     if ret.qeIdentityStatus != status.STATUS_OK:
-        raise ValueError("Error : Wrong QE Identity Status {}", ret.qeIdentityStatus)
+        raise AttestationError("Wrong QE Identity Status {}", ret.qeIdentityStatus)
 
     if ret.quoteStatus not in [status.STATUS_OK, status.STATUS_TCB_SW_HARDENING_NEEDED]:
-        raise ValueError("Error : Wrong Quote Status {}", ret.quoteStatus)
+        raise AttestationError("Wrong Quote Status {}", ret.quoteStatus)
 
     if hashlib.sha256(enclave_held_data).digest() != bytes(ret.reportData)[:32]:
-        raise ValueError(
+        raise AttestationError(
             "Enclave Held Data hash doesn't match with the report data from the quote"
         )
 
-    claims = {
-        "raw": {"quote": quote},
-        "sgx-attributes": b"".join(struct.pack("B", x) for x in ret.attributes),
-        "sgx-misc-select": bytes(ctypes.c_uint32(ret.miscSelect)),
-        "sgx-mrenclave": bytes(ret.mrEnclave).hex(),
-        "sgx-ehd": enclave_held_data,
-    }
-
-    # https://www.intel.com/content/dam/www/public/us/en/documents/manuals/64-ia-32-architectures-software-developer-vol-3d-part-4-manual.pdf
-    # The ATTRIBUTES data structure is comprised of bit-granular fields that are used in the SECS
-    # DEBUG flag is at bit 1
-    # If 1, the enclave permit debugger to read and write enclave data using EDBGRD and EDBGWR
-    # Using a mask we test if this bit is set
-
-    claims["sgx-is-debuggable"] = bool(ret.attributes[0] & (1 << 1))
+    claims = DcapClaims(
+        raw_quote=quote,
+        sgx_attributes=b"".join(struct.pack("B", x) for x in ret.attributes),
+        sgx_misc_select=bytes(ctypes.c_uint32(ret.miscSelect)),
+        sgx_mrenclave=bytes(ret.mrEnclave).hex(),
+        sgx_ehd=enclave_held_data,
+        # https://www.intel.com/content/dam/www/public/us/en/documents/manuals/64-ia-32-architectures-software-developer-vol-3d-part-4-manual.pdf
+        # The ATTRIBUTES data structure is comprised of bit-granular fields that are used in the SECS
+        # DEBUG flag is at bit 1
+        # If 1, the enclave permit debugger to read and write enclave data using EDBGRD and EDBGWR
+        # Using a mask we test if this bit is set
+        sgx_is_debuggable=bool(ret.attributes[0] & (1 << 1)),
+    )
 
     return claims
 
 
-def load_policy(path: str):
-    with open(path) as f:
-        policy = toml.load(f)
-        policy["misc_mask"] = int(policy["misc_mask_hex"], 16).to_bytes(
-            4, byteorder="little"
-        )
-        policy["misc_select"] = int(policy["misc_select_hex"], 16).to_bytes(
-            4, byteorder="little"
-        )
-        policy["attributes_flags"] = int(policy["attributes_flags_hex"], 16).to_bytes(
-            8, byteorder="little"
-        )
-        policy["attributes_xfrm"] = int(policy["attributes_xfrm_hex"], 16).to_bytes(
-            8, byteorder="little"
-        )
-        policy["attributes_mask_flags"] = int(
-            policy["attributes_mask_flags_hex"], 16
-        ).to_bytes(8, byteorder="little")
-        policy["attributes_mask_xfrm"] = int(
-            policy["attributes_mask_xfrm_hex"], 16
-        ).to_bytes(8, byteorder="little")
+@dataclass
+class Policy:
+    mr_enclave: str
+    misc_select: bytes
+    misc_mask: bytes
+    attributes_flags: bytes
+    attributes_xfrm: bytes
+    attributes_mask_flags: bytes
+    attributes_mask_xfrm: bytes
+    allow_debug: bool
 
-    return policy
+    def from_file(path: str) -> Self:
+        """Load a policy from a file.
+
+        Args:
+            path (str): The path of the file.
+
+        Returns:
+            Policy: The policy.
+        """
+        policy = toml.load(path)
+        return Policy(
+            mr_enclave=policy["mr_enclave"],
+            misc_mask=int(policy["misc_mask_hex"], 16).to_bytes(4, byteorder="little"),
+            misc_select=int(policy["misc_select_hex"], 16).to_bytes(
+                4, byteorder="little"
+            ),
+            attributes_flags=int(policy["attributes_flags_hex"], 16).to_bytes(
+                8, byteorder="little"
+            ),
+            attributes_xfrm=int(policy["attributes_xfrm_hex"], 16).to_bytes(
+                8, byteorder="little"
+            ),
+            attributes_mask_flags=int(policy["attributes_mask_flags_hex"], 16).to_bytes(
+                8, byteorder="little"
+            ),
+            attributes_mask_xfrm=int(policy["attributes_mask_xfrm_hex"], 16).to_bytes(
+                8, byteorder="little"
+            ),
+            allow_debug=policy["allow_debug"],
+        )
 
 
-def verify_claims(claims, policy):
-    if claims["sgx-mrenclave"] != policy["mr_enclave"]:
-        raise ValueError("MRENCLAVE doesn't match with the policy")
+def verify_claims(claims: DcapClaims, policy: Policy):
+    """Verify enclave claims against a policy.
 
-    if claims["sgx-is-debuggable"] and not policy["allow_debug"]:
-        raise ValueError("Enclave is in debug mode but the policy doesn't allow debug")
+    Args:
+        claims (DcapClaims): The claims.
+        policy (Policy): The enclave policy.
+
+    Raises:
+        AttestationError: Attestation does not match policy.
+    """
+
+    if claims.sgx_mrenclave != policy.mr_enclave:
+        raise AttestationError("MRENCLAVE doesn't match with the policy")
+
+    if claims.sgx_is_debuggable and not policy.allow_debug:
+        raise AttestationError(
+            "Enclave is in debug mode but the policy doesn't allow debug"
+        )
 
     # If this flag is set, then the enclave is initialized
     SGX_FLAGS_INITTED = Bits("0x0100000000000000")
 
     if (
-        Bits(claims["sgx-attributes"][:8]) & Bits(policy["attributes_mask_flags"])
-        != Bits(policy["attributes_flags"]) | SGX_FLAGS_INITTED
+        Bits(claims.sgx_attributes[:8]) & Bits(policy.attributes_mask_flags)
+        != Bits(policy.attributes_flags) | SGX_FLAGS_INITTED
     ):
-        raise ValueError("SGX attributes flags bytes do not conform to the policy")
+        raise AttestationError(
+            "SGX attributes flags bytes do not conform to the policy"
+        )
 
-    if Bits(claims["sgx-attributes"][8:]) & Bits(
-        policy["attributes_mask_xfrm"]
-    ) != Bits(policy["attributes_xfrm"]):
-        raise ValueError("SGX XFRM flags bytes do not conform to the policy")
-
-    if Bits(claims["sgx-misc-select"]) & Bits(policy["misc_mask"]) != Bits(
-        policy["misc_select"]
+    if Bits(claims.sgx_attributes[8:]) & Bits(policy.attributes_mask_xfrm) != Bits(
+        policy.attributes_xfrm
     ):
-        raise ValueError("SGX MISC SELECT bytes do not conform to the policy")
+        raise AttestationError("SGX XFRM flags bytes do not conform to the policy")
 
-
-def get_server_cert(claims):
-    """
-    Get the server certificate from the Azure Attestation claims
-    :param claims:
-    :return: The PEM-encoded server certificate as a byte string
-    """
-    return encode_certificate(claims["sgx-ehd"])
+    if Bits(claims.sgx_misc_select) & Bits(policy.misc_mask) != Bits(
+        policy.misc_select
+    ):
+        raise AttestationError("SGX MISC SELECT bytes do not conform to the policy")
