@@ -50,7 +50,6 @@ message Payload {
     oneof payload {
         SendModelPayload send_model_payload = 2;
         RunModelPayload run_model_payload = 3;
-        DeleteModelPayload delete_model_payload = 4;
     }
 }
 
@@ -67,8 +66,6 @@ message SendModelRequest {
     ClientInfo client_info = 6;
     // this is optional
     string model_name = 7;
-
-    bool generate_model_id = 8;
 }
 
 enum DatumTypeEnum {
@@ -128,7 +125,7 @@ message RunModelPayload {
 /* DeleteModel */
 
 message DeleteModelRequest {
-    bytes model_id = 1;
+    string model_id = 1;
 }
 
 message DeleteModelReply {

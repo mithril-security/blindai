@@ -44,6 +44,7 @@ use std::fs;
 
 use crate::client_communication::{secured_exchange::exchange_server::ExchangeServer, Exchanger};
 
+use crate::model_store::ModelStore;
 use crate::{dcap_quote_provider::DcapQuoteProvider, telemetry::TelemetryEventProps};
 
 use untrusted::MyAttestation;
@@ -54,6 +55,7 @@ mod client_communication;
 mod dcap_quote_provider;
 mod identity;
 mod model;
+mod model_store;
 mod telemetry;
 mod untrusted;
 
@@ -137,6 +139,7 @@ async fn main(
     });
 
     let exchanger = Exchanger::new(
+        ModelStore::new().into(),
         my_identity.clone(),
         network_config.max_model_size,
         network_config.max_input_size,

@@ -18,13 +18,7 @@ use num_traits::FromPrimitive;
 use prost::Message;
 use ring::digest;
 use ring_compat::signature::Signer;
-use secured_exchange::exchange_server::Exchange;
-#[cfg(not(target_env = "sgx"))]
-use std::sync::Mutex;
-#[cfg(target_env = "sgx")]
-use std::sync::SgxMutex as Mutex;
 use std::{
-    collections::HashMap,
     convert::TryInto,
     mem::size_of,
     str::FromStr,
@@ -33,46 +27,40 @@ use std::{
     vec::Vec,
 };
 
-use futures::StreamExt;
-use num_traits::FromPrimitive;
-use prost::Message;
-use ring_compat::signature::Signer;
-use secured_exchange::exchange_server::Exchange;
 use tonic::{Request, Response, Status};
 use uuid::Uuid;
 
 use crate::{
     identity::MyIdentity,
-    model::{InferenceModel, ModelDatumType},
+    model::{ModelDatumType},
+    model_store::ModelStore,
     telemetry::{self, TelemetryEventProps},
 };
-use secured_exchange::*;
+use secured_exchange::{exchange_server::Exchange, *};
 
 pub mod secured_exchange {
     tonic::include_proto!("securedexchange");
 }
 
 pub(crate) struct Exchanger {
-    /// NOTE (lock interdependance): Code taking both `models` and
-    /// `most_recent_model_uuid` simultaneously should take `models` first,
-    /// to avoid the possibility of a deadlock
-    // FIXME: use a concurrent hash map or something better
-    // (inference runs can be long, and shouldn't lock the whole map)
-    models: std::sync::Arc<Mutex<HashMap<Uuid, InferenceModel>>>,
-    most_recent_model_uuid: std::sync::Arc<Mutex<Option<Uuid>>>,
+    model_store: Arc<ModelStore>,
     identity: Arc<MyIdentity>,
     max_model_size: usize,
     max_input_size: usize,
 }
 
 impl Exchanger {
-    pub fn new(identity: Arc<MyIdentity>, max_model_size: usize, max_input_size: usize) -> Self {
+    pub fn new(
+        model_store: Arc<ModelStore>,
+        identity: Arc<MyIdentity>,
+        max_model_size: usize,
+        max_input_size: usize,
+    ) -> Self {
         Self {
             identity,
-            models: Arc::new(Mutex::new(HashMap::new())),
+            model_store,
             max_model_size,
             max_input_size,
-            most_recent_model_uuid: Arc::new(Mutex::new(None)),
         }
     }
 }
@@ -118,10 +106,9 @@ impl Exchange for Exchanger {
                 datum = FromPrimitive::from_i32(model_proto.datum)
                     .ok_or_else(|| Status::invalid_argument("Unknown datum type".to_string()))?;
                 sign = model_proto.sign;
-                model_name = model_proto.model_name.to_string();
             }
             if model_size > max_model_size || model_bytes.len() > max_model_size {
-                return Err(Status::invalid_argument("Model too big".to_string()));
+                return Err(Status::invalid_argument("Model is too big".to_string()));
             }
             model_bytes.append(&mut model_proto.data)
         }
@@ -129,54 +116,22 @@ impl Exchange for Exchanger {
         if model_size == 0 {
             return Err(Status::invalid_argument("Received no data".to_string()));
         }
-        let model_id = Uuid::new_v4();
 
-        // Load the model
-        let model = InferenceModel::load_model(
-            &model_bytes,
-            input_fact.clone(),
-            datum,
-            model_id,
-            model_name,
-        )
-        .map_err(|err| {
-            error!("Unknown error creating model: {}", err);
-            Status::unknown("Unknown error".to_string())
-        })?;
-
-        // Create an entry in the hashmap
-        {
-            let mut models = self.models.lock().unwrap();
-
-            // HashMap entry api requires only one lookup and should be prefered than .get()
-            // followed with .insert()
-            match models.entry(&model_id) {
-                Occupied(_) => {
-                    error!(
-                        "UUID collision: model with uuid ({}) already exists.",
-                        model_id
-                    );
-                    return Err(Status::unknown("Unknown error".to_string()));
-                }
-                Vacant(entry) => entry.insert(model),
-            }
-            // `most_recent_model_uuid` is locked here and `models` is not yet unlocked.
-            // if some other piece of code locks `models` before `most_recent_model_uuid`,
-            // this will result in a probable deadlock situation
-            *self.most_recent_model_uuid.lock().unwrap() = Some(model_id);
-
-            // both locks are released here
-        }
+        let (model_id, model_hash) = self
+            .model_store
+            .add_model(&model_bytes, input_fact.clone(), datum, model_name.clone())
+            .map_err(|err| {
+                error!("Error while creating model: {}", err);
+                Status::unknown("Unknown error".to_string())
+            })?;
 
         // Construct the return payload
         let mut payload = SendModelPayload::default();
         if sign {
-            payload.model_hash = digest::digest(&digest::SHA256, &model_bytes)
-                .as_ref()
-                .to_vec();
+            payload.model_hash = model_hash.as_ref().to_vec();
             payload.input_fact = input_fact.into_iter().map(|i| i as i32).collect();
         }
-        payload.model_id = model_id;
+        payload.model_id = model_id.to_string();
         let payload_with_header = Payload {
             header: Some(PayloadHeader {
                 issued_at: Some(SystemTime::now().into()),
@@ -260,35 +215,33 @@ impl Exchange for Exchanger {
             input.append(&mut data_proto.input);
         }
 
-        // No model_id was provided, the last insterted model will be used
-        if model_id.is_empty() {
-            let uuid_guard = self.most_recent_model_uuid.lock().unwrap();
-            let id = if let Some(id) = &*uuid_guard {
-                id
-            } else {
-                return Err(Status::invalid_argument(
-                    "Cannot find the most recent model",
-                ));
-            };
-            model_id = id.to_string();
-        }
-
         // Find the model with model_id
 
-        {
-            let guard = self.models.lock().unwrap();
-            let model = match guard.get(&model_id) {
-                Some(model) => model,
-                None => {
-                    return Err(Status::invalid_argument("Model doesn't exist"));
-                }
-            };
+        let uuid = match Uuid::from_str(&model_id) {
+            Ok(uuid) => uuid,
+            Err(_) => return Err(Status::invalid_argument("Model doesn't exist")),
+        };
 
-            let result = model.run_inference(&input).map_err(|err| {
-                error!("Unknown error running inference: {}", err);
-                Status::unknown("Unknown error".to_string())
-            })?;
-        }
+        let res = self.model_store.use_model(uuid, |model| {
+            (
+                model.run_inference(&input),
+                model.model_name().map(|s| s.to_string()),
+            )
+        });
+        let res = match res {
+            Some(res) => res,
+            None => return Err(Status::invalid_argument("Model doesn't exist")),
+        };
+
+        let (result, model_name) = res;
+
+        let result = match result {
+            Ok(res) => res,
+            Err(err) => {
+                error!("Error while running inference: {}", err);
+                return Err(Status::unknown("Unknown error".to_string()));
+            }
+        };
 
         let mut payload = RunModelPayload {
             output: result,
@@ -332,12 +285,12 @@ impl Exchange for Exchanger {
                 .map(|c| c.user_agent_version.as_ref())
                 .unwrap_or("<unknown>"),
             elapsed.as_millis(),
-            model.model_name().unwrap_or("<unknown>"),
+            model_name.as_deref().unwrap_or("<unknown>"),
             sign
         );
         telemetry::add_event(
             TelemetryEventProps::RunModel {
-                model_name: model.model_name().map(|e| e.to_string()),
+                model_name: model_name.map(|e| e.to_string()),
                 sign,
                 time_taken: elapsed.as_secs_f64(),
             },
@@ -352,20 +305,17 @@ impl Exchange for Exchanger {
         request: Request<DeleteModelRequest>,
     ) -> Result<Response<DeleteModelReply>, Status> {
         let request = request.into_inner();
-        let model_id = Uuid::from_str(request.model_id)
-            .map_err(|_| Err(Status::invalid_argument("Model doesn't exist")))?;
+        let model_id = Uuid::from_str(&request.model_id)
+            .map_err(|_| Status::invalid_argument("Model doesn't exist"))?;
 
         // Delete the model
-        {
-            let mut models = self.models.lock().unwrap();
-            if models.remove(&model_id).is_none() {
-                error!("Model doesn't exist");
-                return Err(Status::invalid_argument("Model doesn't exist"));
-            }
+        if self.model_store.delete_model(model_id).is_none() {
+            error!("Model doesn't exist");
+            return Err(Status::invalid_argument("Model doesn't exist"));
         }
 
         // Construct the payload
-        let mut reply = DeleteModelReply {};
+        let reply = DeleteModelReply {};
         Ok(Response::new(reply))
     }
 }

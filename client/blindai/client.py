@@ -222,7 +222,7 @@ class RunModelResponse(SignedResponse):
     def validate(
         self,
         data_list: List[Any],
-        model_id: str,
+        model_id: Optional[str],
         policy_file: Optional[str] = None,
         policy: Optional[Policy] = None,
         validate_quote: bool = True,
@@ -234,7 +234,7 @@ class RunModelResponse(SignedResponse):
 
         Args:
             data_list (List[Any]): Input used to run the model, to validate against.
-            data_list (str): The model id to check against.
+            model_id (Optional[str], optional): The model id to check against.
             policy_file (Optional[str], optional): Path to the policy file. Defaults to None.
             policy (Optional[Policy], optional): Policy to use. Use `policy_file` to load from a file directly. Defaults to None.
             validate_quote (bool, optional): Whether or not the attestation should be validated too. Defaults to True.
@@ -275,7 +275,7 @@ class RunModelResponse(SignedResponse):
         if sha256(serialized_bytes).digest() != payload.input_hash:
             raise SignatureError("Invalid returned input_hash")
 
-        if model_id != payload.model_id:
+        if model_id is not None and model_id != payload.model_id:
             raise SignatureError("Invalid returned model_id")
 
     def _load_payload(self):
@@ -583,6 +583,7 @@ class BlindAiClient:
             ret.attestation = self.attestation
             ret.validate(
                 data_list,
+                model_id=model_id,
                 validate_quote=False,
                 enclave_signing_key=self.enclave_signing_key,
                 allow_simulation_mode=self.simulation_mode,
@@ -604,11 +605,11 @@ class BlindAiClient:
         Returns:
             DeleteModelResponse: The response object.
         """
-        if not self._is_connected():
+        if not self.is_connected():
             raise ConnectionError("Not connected to the server")
 
         try:
-            self.stub.DeleteModel(
+            self._stub.DeleteModel(
                 DeleteModelRequest(model_id=model_id)
             )
 

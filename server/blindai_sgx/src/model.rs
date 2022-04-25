@@ -16,6 +16,7 @@ use std::vec::Vec;
 
 use anyhow::{anyhow, Result};
 use num_derive::FromPrimitive;
+use ring::digest::Digest;
 use tract_onnx::prelude::{tract_ndarray::IxDynImpl, *};
 use uuid::Uuid;
 
@@ -71,11 +72,13 @@ fn create_tensor<A: serde::de::DeserializeOwned + tract_core::prelude::Datum>(
 
 #[derive(Debug)]
 pub struct InferenceModel {
-    onnx: OnnxModel,
+    pub onnx: Arc<OnnxModel>,
     datum_type: ModelDatumType,
     input_fact: Vec<usize>,
+    #[allow(unused)]
     model_id: Uuid,
     model_name: Option<String>,
+    model_hash: Digest,
 }
 
 impl InferenceModel {
@@ -85,6 +88,7 @@ impl InferenceModel {
         datum_type: ModelDatumType,
         model_id: Uuid,
         model_name: Option<String>,
+        model_hash: Digest,
     ) -> Result<Self> {
         let model_rec = tract_onnx::onnx()
             // load the model
@@ -99,12 +103,31 @@ impl InferenceModel {
             // make the model runnable and fix its inputs and outputs
             .into_runnable()?;
         Ok(InferenceModel {
-            onnx: model_rec,
+            onnx: model_rec.into(),
             datum_type,
             input_fact,
             model_id,
             model_name,
+            model_hash,
         })
+    }
+
+    pub fn from_onnx_loaded(
+        onnx: Arc<OnnxModel>,
+        input_fact: Vec<usize>,
+        datum_type: ModelDatumType,
+        model_id: Uuid,
+        model_name: Option<String>,
+        model_hash: Digest,
+    ) -> Self {
+        InferenceModel {
+            onnx,
+            datum_type,
+            input_fact,
+            model_id,
+            model_name,
+            model_hash,
+        }
     }
 
     pub fn run_inference(&self, input: &[u8]) -> Result<Vec<f32>> {
@@ -122,5 +145,9 @@ impl InferenceModel {
 
     pub fn model_name(&self) -> Option<&str> {
         self.model_name.as_deref()
+    }
+
+    pub fn model_hash(&self) -> Digest {
+        self.model_hash
     }
 }

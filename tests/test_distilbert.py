@@ -33,7 +33,7 @@ class TestDistilBertBase:
             model=model_path,
             shape=inputs.shape,
             dtype=ModelDatumType.I64,
-            model_name=self.model_name_base,
+            model_name="test.onnx",
         )
         model_id = response.model_id
 
@@ -80,12 +80,10 @@ class TestDistilBertBase:
 
 class TestDistilBertSW(TestDistilBertBase, unittest.TestCase):
     simulation = True
-    model_name_base = "model_1"
 
 
 class TestDistilBertHW(TestDistilBertBase, unittest.TestCase):
     simulation = False
-    model_name_base = "model_2"
 
 
 model, inputs, run_inputs = None, None, None
