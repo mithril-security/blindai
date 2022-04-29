@@ -100,6 +100,13 @@ class TestProof(unittest.TestCase):
         response.load_from_file(exec_run)
         policy = Policy.from_file(policy_file)
 
+        print('aaa')
+        print(response)
+        print(response.attestation)
+        print(response.payload)
+        print(response.signature)
+        print(response.output)
+
         response.validate(
             response.model_id,
             get_input(),

@@ -164,6 +164,8 @@ class TestRequest(unittest.TestCase):
 
         input = get_input()
 
+        print(real_response)
+
         def run_model_util(sign):
             def run_model(req: Iterator[RunModelRequest]):
                 arr = b""
@@ -248,6 +250,13 @@ class TestRequest(unittest.TestCase):
             os.path.join(os.path.dirname(__file__), "run_model.dat"), "rb"
         ) as file:
             real_response = pickle.load(file)
+
+        print('asdddddddd')
+        print(real_response)
+        print(real_response.attestation)
+        print(real_response.payload)
+        print(real_response.signature)
+        print(real_response.output)
 
         def run_model(req: Iterator[RunModelRequest]):
             arr = b""

@@ -1,0 +1,43 @@
+name: Run Python Tests
+on:
+  pull_request:
+    branches:
+      - master
+      - main
+
+jobs:
+  python-run-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: true
+
+      - uses: jwlawson/actions-setup-cmake@v1.12
+      - name: Install Python 3
+        uses: actions/setup-python@v3
+        with:
+          python-version: 3.9
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r client/requirements.txt
+
+      - name: Build BlindAI
+        run: |
+          cd client
+          python3 setup.py install
+          pip install .
+
+      - name: Run tests
+        run: |
+          cd client
+          python3 -m coverage run -m unittest tests/test*.py
+          python3 -m coverage xml
+
+      - name: Coverage report
+        uses: orgoro/coverage@v2
+        with:
+          coverageFile: client/coverage.xml
+          token: ${{ secrets.GITHUB_TOKEN }}
