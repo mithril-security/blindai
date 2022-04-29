@@ -68,12 +68,23 @@ fn create_tensor<A: serde::de::DeserializeOwned + tract_core::prelude::Datum>(
     Ok(tensor)
 }
 
+fn convert_tensor<A: serde::ser::Serialize + tract_core::prelude::Datum>(
+     input: &tract_onnx::prelude::Tensor,
+) -> Result<Vec<u8>> {
+    let arr = input.to_array_view::<A>()?;
+    let slice = arr
+            .as_slice()
+            .ok_or_else(|| anyhow!("Failed to convert ArrayView to slice"))?;
+    Ok(serde_cbor::to_vec(&slice)?)
+} 
+
 #[derive(Debug)]
 pub struct InferenceModel {
     onnx: OnnxModel,
     datum_type: ModelDatumType,
     input_fact: Vec<usize>,
     model_name: Option<String>,
+    pub datum_output: ModelDatumType, // public because this will be sent back to the client to deserialize the data properly
 }
 
 impl InferenceModel {
@@ -82,6 +93,7 @@ impl InferenceModel {
         input_fact: Vec<usize>,
         datum_type: ModelDatumType,
         model_name: Option<String>,
+        datum_output: ModelDatumType,
     ) -> Result<Self> {
         let model_rec = tract_onnx::onnx()
             // load the model
@@ -100,20 +112,20 @@ impl InferenceModel {
             datum_type,
             input_fact,
             model_name,
+            datum_output,
         })
     }
 
-    pub fn run_inference(&self, input: &[u8]) -> Result<Vec<f32>> {
+    pub fn run_inference(&self, input: &[u8]) -> Result<Vec<u8>> {
         let tensor = dispatch_numbers!(create_tensor(self.datum_type.get_datum_type())(
             input,
             &self.input_fact
         ))?;
         let result = self.onnx.run(tvec!(tensor))?;
-        let arr = result[0].to_array_view::<f32>()?;
-        Ok(arr
-            .as_slice()
-            .ok_or_else(|| anyhow!("Failed to convert ArrayView to slice"))?
-            .to_vec())
+        let arr = dispatch_numbers!(convert_tensor(&self.datum_output.get_datum_type())(
+            &result[0]
+        ))?;
+       Ok(arr)
     }
 
     pub fn model_name(&self) -> Option<&str> {

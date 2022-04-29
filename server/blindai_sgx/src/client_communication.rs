@@ -72,6 +72,7 @@ impl Exchange for Exchanger {
 
         let mut stream = request.into_inner();
         let mut datum = ModelDatumType::I64; // dummy
+        let mut datum_output = ModelDatumType::I64; // dummy
 
         let mut input_fact: Vec<usize> = Vec::new();
         let mut model_bytes: Vec<u8> = Vec::new();
@@ -102,6 +103,8 @@ impl Exchange for Exchanger {
 
                 datum = FromPrimitive::from_i32(model_proto.datum)
                     .ok_or_else(|| Status::invalid_argument("Unknown datum type".to_string()))?;
+                datum_output = FromPrimitive::from_i32(model_proto.datum_output)
+                    .ok_or_else(|| Status::invalid_argument("Unknown datum type".to_string()))?;
                 sign = model_proto.sign;
             }
             if model_size > max_model_size || model_bytes.len() > max_model_size {
@@ -115,7 +118,7 @@ impl Exchange for Exchanger {
         }
 
         let model =
-            InferenceModel::load_model(&model_bytes, input_fact.clone(), datum, model_name.clone())
+            InferenceModel::load_model(&model_bytes, input_fact.clone(), datum, model_name.clone(), datum_output)
                 .map_err(|err| {
                     error!("Unknown error creating model: {}", err);
                     Status::unknown("Unknown error".to_string())
@@ -228,6 +231,7 @@ impl Exchange for Exchanger {
 
         let mut payload = RunModelPayload {
             output: result,
+            datum_output: model.datum_output as i32,
             ..Default::default()
         };
         // payload.model_id = "default".into();

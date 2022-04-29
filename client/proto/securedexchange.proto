@@ -65,6 +65,7 @@ message SendModelRequest {
     ClientInfo client_info = 6;
     // this is optional
     string model_name = 7;
+    DatumTypeEnum datum_output = 8;
 }
 
 enum DatumTypeEnum {
@@ -82,6 +83,7 @@ message SendModelReply {
     // Signature of the payload
     // This field is not present when `sign` is `false` in the request
     bytes signature = 2;
+
 }
 
 message SendModelPayload {
@@ -112,8 +114,9 @@ message RunModelReply {
 }
 
 message RunModelPayload {
-    repeated float output = 1;
+    bytes output = 1;
+    DatumTypeEnum datum_output = 2;
     // Raw SHA-256 hash of the protobuf binary encoding of the repeated float input from RunModelRequest
     // This field is empty when `sign` is `false` in the request
-    bytes input_hash = 2;
+    bytes input_hash = 3;
 }

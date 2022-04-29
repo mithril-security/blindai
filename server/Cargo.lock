@@ -2652,8 +2652,8 @@ dependencies = [
 
 [[package]]
 name = "tract-core"
-version = "0.16.2-pre"
-source = "git+https://github.com/mithril-security/tract-sgx-xargo.git?tag=0.16.2-pre-interpolation-nearest#51e2f9680c2403fc589638f09536227e0d00a6dd"
+version = "0.16.6-pre"
+source = "git+https://github.com/mithril-security/tract-sgx-xargo.git?tag=0.16.6-pre-interpolation-nearest#6cb21e97ccde2921db4838346463355a4f6a9815"
 dependencies = [
  "anyhow",
  "bit-set",
@@ -2674,8 +2674,8 @@ dependencies = [
 
 [[package]]
 name = "tract-data"
-version = "0.16.2-pre"
-source = "git+https://github.com/mithril-security/tract-sgx-xargo.git?tag=0.16.2-pre-interpolation-nearest#51e2f9680c2403fc589638f09536227e0d00a6dd"
+version = "0.16.6-pre"
+source = "git+https://github.com/mithril-security/tract-sgx-xargo.git?tag=0.16.6-pre-interpolation-nearest#6cb21e97ccde2921db4838346463355a4f6a9815"
 dependencies = [
  "anyhow",
  "educe",
@@ -2692,8 +2692,8 @@ dependencies = [
 
 [[package]]
 name = "tract-hir"
-version = "0.16.2-pre"
-source = "git+https://github.com/mithril-security/tract-sgx-xargo.git?tag=0.16.2-pre-interpolation-nearest#51e2f9680c2403fc589638f09536227e0d00a6dd"
+version = "0.16.6-pre"
+source = "git+https://github.com/mithril-security/tract-sgx-xargo.git?tag=0.16.6-pre-interpolation-nearest#6cb21e97ccde2921db4838346463355a4f6a9815"
 dependencies = [
  "derive-new",
  "educe",
@@ -2703,8 +2703,8 @@ dependencies = [
 
 [[package]]
 name = "tract-linalg"
-version = "0.16.2-pre"
-source = "git+https://github.com/mithril-security/tract-sgx-xargo.git?tag=0.16.2-pre-interpolation-nearest#51e2f9680c2403fc589638f09536227e0d00a6dd"
+version = "0.16.6-pre"
+source = "git+https://github.com/mithril-security/tract-sgx-xargo.git?tag=0.16.6-pre-interpolation-nearest#6cb21e97ccde2921db4838346463355a4f6a9815"
 dependencies = [
  "cc",
  "derive-new",
@@ -2725,8 +2725,8 @@ dependencies = [
 
 [[package]]
 name = "tract-nnef"
-version = "0.16.2-pre"
-source = "git+https://github.com/mithril-security/tract-sgx-xargo.git?tag=0.16.2-pre-interpolation-nearest#51e2f9680c2403fc589638f09536227e0d00a6dd"
+version = "0.16.6-pre"
+source = "git+https://github.com/mithril-security/tract-sgx-xargo.git?tag=0.16.6-pre-interpolation-nearest#6cb21e97ccde2921db4838346463355a4f6a9815"
 dependencies = [
  "byteorder",
  "flate2",
@@ -2739,8 +2739,8 @@ dependencies = [
 
 [[package]]
 name = "tract-onnx"
-version = "0.16.2-pre"
-source = "git+https://github.com/mithril-security/tract-sgx-xargo.git?tag=0.16.2-pre-interpolation-nearest#51e2f9680c2403fc589638f09536227e0d00a6dd"
+version = "0.16.6-pre"
+source = "git+https://github.com/mithril-security/tract-sgx-xargo.git?tag=0.16.6-pre-interpolation-nearest#6cb21e97ccde2921db4838346463355a4f6a9815"
 dependencies = [
  "bytes",
  "derive-new",
@@ -2758,8 +2758,8 @@ dependencies = [
 
 [[package]]
 name = "tract-onnx-opl"
-version = "0.16.2-pre"
-source = "git+https://github.com/mithril-security/tract-sgx-xargo.git?tag=0.16.2-pre-interpolation-nearest#51e2f9680c2403fc589638f09536227e0d00a6dd"
+version = "0.16.6-pre"
+source = "git+https://github.com/mithril-security/tract-sgx-xargo.git?tag=0.16.6-pre-interpolation-nearest#6cb21e97ccde2921db4838346463355a4f6a9815"
 dependencies = [
  "educe",
  "tract-nnef",
