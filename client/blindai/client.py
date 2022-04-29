@@ -22,6 +22,7 @@ from hashlib import sha256
 from typing import Any, List, Optional, Tuple
 
 from cbor2 import dumps as cbor2_dumps
+from cbor2 import loads as cbor2_loads
 from cryptography.exceptions import InvalidSignature
 from grpc import Channel, RpcError, secure_channel, ssl_channel_credentials
 
@@ -439,6 +440,7 @@ class BlindAiClient:
         model: str,
         shape: Tuple = None,
         dtype: ModelDatumType = ModelDatumType.F32,
+        dtype_out: ModelDatumType = ModelDatumType.F32,
         sign: bool = False,
     ) -> UploadModelResponse:
         """Upload an inference model to the server.
@@ -448,6 +450,7 @@ class BlindAiClient:
             model (str): Path to Onnx model file.
             shape (Tuple, optional): The shape of the model input. Defaults to None.
             dtype (ModelDatumType, optional): The type of the model input data (f32 by default). Defaults to ModelDatumType.F32.
+            dtype_out (ModelDatumType, optional): The type of the model output data (f32 by default). Defaults to ModelDatumType.F32.
             sign (bool, optional): Get signed responses from the server or not. Defaults to False.
 
         Raises:
@@ -478,6 +481,7 @@ class BlindAiClient:
                             sign=sign,
                             client_info=self.client_info,
                             model_name=os.path.basename(model),
+                            datum_output=int(dtype_out),
                         )
                         for chunk in create_byte_chunk(data)
                     ]
@@ -547,7 +551,7 @@ class BlindAiClient:
         # Response Verification
         payload = Payload.FromString(response.payload).run_model_payload
         ret = RunModelResponse()
-        ret.output = payload.output
+        ret.output = cbor2_loads(payload.output)
 
         if sign:
             ret.payload = response.payload
