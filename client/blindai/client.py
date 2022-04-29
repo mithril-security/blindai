@@ -305,7 +305,7 @@ class BlindAiClient:
     client_info: ClientInfo
 
     def __init__(self, debug_mode=False):
-        if debug_mode:
+        if debug_mode: # pragma: no cover
             os.environ["GRPC_TRACE"] = "transport_security,tsi"
             os.environ["GRPC_VERBOSITY"] = "DEBUG"
 

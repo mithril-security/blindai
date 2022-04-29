@@ -14,8 +14,15 @@ from blindai.client import (
 )
 from blindai.dcap_attestation import Policy
 from blindai.utils.errors import SignatureError, AttestationError
+from unittest.mock import *
+from datetime import datetime, timedelta
+import time  # so we can override time.time
 
 from .covidnet import get_input, get_model
+
+mock_time = Mock()
+mock_time.return_value = time.mktime(datetime(2022, 4, 15).timetuple())
+
 
 exec_run = os.path.join(os.path.dirname(__file__), "exec_run.proof")
 exec_upload = os.path.join(os.path.dirname(__file__), "exec_upload.proof")
@@ -24,6 +31,7 @@ policy_file = os.path.join(os.path.dirname(__file__), "policy.toml")
 
 
 class TestProof(unittest.TestCase):
+    @patch("time.time", mock_time)
     def test_parse_run(self):
         response = RunModelResponse()
         response.load_from_file(exec_run)
@@ -56,6 +64,7 @@ class TestProof(unittest.TestCase):
         self.assertEqual(response.attestation, response4.attestation)
         self.assertEqual(response.output, response4.output)
 
+    @patch("time.time", mock_time)
     def test_parse_upload(self):
         response = UploadModelResponse()
         response.load_from_file(exec_upload)
@@ -85,6 +94,7 @@ class TestProof(unittest.TestCase):
         self.assertEqual(response.signature, response4.signature)
         self.assertEqual(response.attestation, response4.attestation)
 
+    @patch("time.time", mock_time)
     def test_validate_run(self):
         response = RunModelResponse()
         response.load_from_file(exec_run)
@@ -161,6 +171,7 @@ class TestProof(unittest.TestCase):
             policy_file=policy_file,
         )
 
+    @patch("time.time", mock_time)
     def test_validate_upload(self):
         response = UploadModelResponse()
         response.load_from_file(exec_upload)
