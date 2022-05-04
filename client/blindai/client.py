@@ -281,7 +281,7 @@ class BlindAiClient:
     server_version: Optional[str] = None
     client_info: ClientInfo
 
-    def __init__(self, debug_mode=True):
+    def __init__(self, debug_mode=False):
         if debug_mode:
             os.environ["GRPC_TRACE"] = "transport_security,tsi"
             os.environ["GRPC_VERBOSITY"] = "DEBUG"
