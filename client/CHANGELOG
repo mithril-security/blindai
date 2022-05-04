@@ -11,12 +11,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Windows support.
 - Configurable ports' numbers in BlindAiClient.connect_server.
 - Support receiving and verifiying signed responses from the server.
-- Request the the version of the server when initiating a connextion and raise an exception if the returned version is not supported.  
+- Support exporting response to files and bytes, for later signature verification.
+- Request the version of the server when initiating a connection and raise an exception if the returned version is not supported.
+- Client now sends debug info to the server (version, platform, model names and sizes).
+- Allow changing the tensor output type.
+- Added intergration and unit testing.
+- Added proper response classes.
 
 ### Changed
-- Move the definition of DatumTypeEnum to the proto file.
-- Change the response format of BlindAiClient.upload_model.
-- Change the response format of BlindAiClient.run_model.
+- Updated the protobuf for blindai-server 0.3.0.
 
 ## [0.2.0] - 2022-03-02
 ### Added
