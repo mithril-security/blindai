@@ -291,7 +291,7 @@ class BlindAiClient:
             uid=sha256((socket.gethostname() + "-" + getpass.getuser()).encode("utf-8"))
             .digest()
             .hex(),
-            platform_name=uname.sysname,
+            platform_name=uname.system,
             platform_arch=uname.machine,
             platform_version=uname.version,
             platform_release=uname.release,
