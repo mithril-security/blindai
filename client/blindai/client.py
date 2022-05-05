@@ -17,6 +17,7 @@ import logging
 import os
 import socket
 import ssl
+import platform
 from enum import IntEnum
 from hashlib import sha256
 from typing import Any, List, Optional, Tuple
@@ -285,12 +286,12 @@ class BlindAiClient:
             os.environ["GRPC_TRACE"] = "transport_security,tsi"
             os.environ["GRPC_VERBOSITY"] = "DEBUG"
 
-        uname = os.uname()
+        uname = platform.uname()
         self.client_info = ClientInfo(
             uid=sha256((socket.gethostname() + "-" + getpass.getuser()).encode("utf-8"))
             .digest()
             .hex(),
-            platform_name=uname.sysname,
+            platform_name=uname.system,
             platform_arch=uname.machine,
             platform_version=uname.version,
             platform_release=uname.release,
