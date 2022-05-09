@@ -114,21 +114,17 @@ Run the Simulation docker image.
 docker run -it -p 50051:50051 -p 50052:50052 mithrilsecuritysas/blindai-server-sim
 ```
 
-### Step 2 - Uploading the model to the server
+### Step 2 - Prepare the model
 
-The Python client SDK has a very simple API, but it deals with most of the complexity of working with Confidential Computing. When connecting to the BlindAI server, the client will ask for a _quote_. This cryptographic _quote_ enables the client to know whether it is really talking with an Intel SGX enclave and that the loaded binary is indeed a known one. The hardware then guarantees privacy by completely isolating the server code and memory from the rest of the system.
+This example shows how you can run a Wav2Vec2 model to perform Speech-To-Text with confidentiality guarantees. 
 
-You can learn more about the attestation mechanism for code integrity [here](https://sgx101.gitbook.io/sgx101/sgx-bootstrap/attestation).
+By using BlindAI, people can send data for the AI to analyze their conversations without having to fear privacy leaks.
 
-#### Install the python library
+Wav2Vec2 is a state-of-the art Transformers model for speech. You can learn more about it on [FAIR blog's post](https://ai.facebook.com/blog/wav2vec-20-learning-the-structure-of-speech-from-raw-audio/).
 
-If you feel extra-lazy, we also have a Jupyter notebook environment you can just pull and use, just run
-```bash
-docker run --network host mithrilsecuritysas/blindai-client-demo
-```
-It also contains the other examples 😉
+#### Install the python libraries
 
-If you don't, install the BlindAI python client using pip:
+Install the BlindAI python client using pip:
 
 ```bash
 pip install blindai
@@ -137,70 +133,107 @@ pip install blindai
 Make sure you also have the following dependencies for this example:
 
 ```bash
-pip install transformers torch
+pip install transformers[onnx] torch
+pip install --upgrade numpy==1.21
+pip install librosa
 ```
 
-#### Upload the model
+You also need ffmpeg to process the audio file.
 
-We will use the DistilBert model in this example.
+```bash
+sudo apt-get install -y ffmpeg
+```
 
-The inference server can load any [ONNX model](https://onnx.ai/). We will export our DistilBert model from Pytorch to ONNX.
+#### Prepare the model
 
-```python
-from transformers import DistilBertTokenizer, DistilBertForSequenceClassification
+Here we will use a large Wav2Vec2 model. First step is to get the model and tokenizers.
+
+```py
 import torch
-from blindai.client import BlindAiClient, ModelDatumType
+import torch.nn as nn
+from transformers import Wav2Vec2ForCTC
 
-# Get pretrained model
-model = DistilBertForSequenceClassification.from_pretrained("distilbert-base-uncased")
+# load model
+model = Wav2Vec2ForCTC.from_pretrained("facebook/wav2vec2-base-960h")
 
-# Create dummy input for export
-tokenizer = DistilBertTokenizer.from_pretrained("distilbert-base-uncased")
-sentence = "I love AI and privacy!"
-inputs = tokenizer(sentence, padding = "max_length", max_length = 8, return_tensors="pt")["input_ids"]
+# In order to facilitate the deployment, we will add the post processing directly to the full model.
+# This way, the client will not have to do the post processing.
+class ArgmaxLayer(nn.Module):
+    def __init__(self):
+        super(ArgmaxLayer, self).__init__()
 
-# Export the model
+    def forward(self, outputs):
+        return torch.argmax(outputs.logits, dim = -1)
+
+final_layer = ArgmaxLayer()
+
+# Finally we concatenate everything
+full_model = nn.Sequential(model, final_layer)
+
+# Now we can export the model in ONNX format, so that we can feed later the ONNX to our BlindAI server.
+dummy_input = torch.randn(1, 28894)
 torch.onnx.export(
-	model, inputs, "./distilbert-base-uncased.onnx",
-	export_params=True, opset_version=11,
-	input_names = ['input'], output_names = ['output'],
-	dynamic_axes={'input' : {0 : 'batch_size'},
-	'output' : {0 : 'batch_size'}})
+    full_model,
+    dummy_input,
+    './wav2vec2_hello_world.onnx',
+    export_params=True,
+    opset_version = 11)
+```
+
+### Step 3 - Upload the model
+
+```py
+from blindai.client import BlindAiClient, ModelDatumType
 
 # Launch client
 client = BlindAiClient()
 client.connect_server(addr="localhost", simulation=True)
-client.upload_model(model="./distilbert-base-uncased.onnx", shape=inputs.shape, dtype=ModelDatumType.I64)
+
+client.upload_model(model="./wav2vec2_hello_world.onnx", shape=(1, 28894), 
+                    dtype=ModelDatumType.F32, dtype_out=ModelDatumType.I64)
 ```
 
-### Step 3 - Run an the model
+### Step 4 - Run an the model
+
+We can download an hello world audio file to be used as example. Let's download it.
+
+```bash
+wget https://github.com/mithril-security/blindai/raw/master/examples/wav2vec2/hello_world.wav
+```
 
 Run the model on the inference server and get the result 🥳
 
 ```python
-from transformers import DistilBertTokenizer
+from transformers import Wav2Vec2Processor
+import torch
+import librosa
 from blindai.client import BlindAiClient
 
-tokenizer = DistilBertTokenizer.from_pretrained("distilbert-base-uncased")
+# Load processor
+processor = Wav2Vec2Processor.from_pretrained("facebook/wav2vec2-base-960h")
 
-sentence = "I love AI and privacy!"
-inputs = tokenizer(sentence, padding = "max_length", max_length = 8)["input_ids"]
+audio, rate = librosa.load("./hello_world.wav", sr = 16000)
 
-# Load the client
+# Tokenize sampled audio to input into model
+input_values = processor(audio, sampling_rate=rate, return_tensors="pt", padding="longest").input_values
+
+# Now we can send the audio data to be processed confidentially!
 client = BlindAiClient()
-client.connect_server("localhost", simulation=True)
+client.connect_server(addr="localhost", simulation=True)
+response = client.run_model(input_values.flatten().tolist())
 
-# Get prediction
-response = client.run_model(inputs)
+# We can reconstruct the output now:
+print(processor.batch_decode(torch.tensor(response.output).unsqueeze(0)))
 ```
+Output: `["HELLO WORLD"]`
 
-### What you can do with BlindAI
+## What you can do with BlindAI
 
 - Easily deploy state-of-the-art models with confidentiality. Run any [ONNX model](https://onnx.ai/), from **BERT** for text to **ResNets** for **images**, and much more.
 - Provide guarantees to third parties, for instance clients or regulators, that you are indeed providing **data protection**, through **code attestation**.
 - Explore different scenarios from confidential **Sentiment analysis**, to **medical imaging** with our pool of examples.
 
-### What you cannot do with BlindAI
+## What you cannot do with BlindAI
 
 - Our solution aims to be modular but we have yet to incorporate tools for generic pre/post processing. Specific pipelines can be covered but will require additional handwork for now.
 - We do not cover training and federated learning yet, but if this feature interests you do not hesitate to show your interest through the [roadmap](https://blog.mithrilsecurity.io/our-roadmap-at-mithril-security/) or [Discord](https://discord.gg/TxEHagpWd4) channel.
