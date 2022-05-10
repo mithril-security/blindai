@@ -25,7 +25,7 @@ Our solution comes in two parts:
 - A secure inference server to serve AI models with privacy guarantees, developed using [**the Rust Programming Language**](https://www.rust-lang.org/). 🦀🦀
 - A Python client SDK to securely consume the remote AI models.
 
-## Motivation
+## :lock: Motivation
 
 Today, most AI tools offer no privacy by design mechanisms, so when data is sent to be analysed by third parties, the data is exposed to malicious usage or potential leakage. 
 
@@ -39,7 +39,13 @@ Currently, even though data can be sent securely with TLS, some stakeholders in 
 
 By using BlindAI, data remains always protected as it is only decrypted inside a Trusted Execution Environment, called an enclave, whose contents are protected by hardware. While data is in clear inside the enclave, it is inaccessible to the outside thanks to isolation and memory encryption. This way, data can be processed, enriched, and analysed by AI, without exposing it to external parties.
 
-## Which part of the AI workflow do we cover?
+## :rocket: Geting started
+
+We provide a [Getting started](https://docs.mithrilsecurity.io/getting-started/quick-start) example on our docs, with the deployment of DistilBERT with BlindAI, to make it possible to analyze confidential text with privacy guarantees.
+
+We have also articles and corresponding notebooks to deploy COVID-Net and Wav2vec2 with BlindAI, to enable respectively analysis of Chest X-Rays and speech with end-to-end protection. You can find them just [below](#models-covered-by-blindai) in our full table of use cases and models covered.
+
+## :book: Which part of the AI workflow do we cover?
 
 ![Position AI toolkit](assets/position_ai_toolkit.PNG)
 
@@ -49,7 +55,7 @@ This scenario often comes up once you have been able to train a model on a speci
 
 BlindAI can be seen as a variant of current serving solutions, like Nvidia Triton, Torchserve, TFserve, Kserve and so on. We provide the networking layer and the client SDK to consume the service remotely and securely, thanks to our secure AI backend.
 
-## How do I use it?
+## :wrench: How do I use it?
 
 ### A - Export the AI workflow
 
@@ -67,13 +73,7 @@ Once the model is exported and ready to be served, the workflow is always the sa
 - Upload the ONNX model inside the inference server using our SDK. By leveraging our SDK, we make sure the IP of the model is protected as well.
 - Send data securely to be analysed by the AI model using our SDK.
 
-### C - Get started with real examples
-
-We provide a [Getting started](https://docs.mithrilsecurity.io/getting-started/quick-start) example on our docs, with the deployment of DistilBERT with BlindAI, to make it possible to analyze confidential text with privacy guarantees.
-
-We have also articles and corresponding notebooks to deploy COVID-Net and Wav2vec2 with BlindAI, to enable respectively analysis of Chest X-Rays and speech with end-to-end protection. You can find them just [below](#models-covered-by-blindai) in our full table of use cases and models covered.
-
-## Models covered by BlindAI
+## :sunny: Models covered by BlindAI
 
 Here is a list of models BlindAI supports, the use cases it unlocks and articles to provide more context on each case. The articles are in preparation and we welcome all contributions to show how BlindAI can be used to deploy AI models with confidentiality!
 
