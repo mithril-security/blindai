@@ -39,7 +39,7 @@ Currently, even though data can be sent securely with TLS, some stakeholders in 
 
 By using BlindAI, data remains always protected as it is only decrypted inside a Trusted Execution Environment, called an enclave, whose contents are protected by hardware. While data is in clear inside the enclave, it is inaccessible to the outside thanks to isolation and memory encryption. This way, data can be processed, enriched, and analysed by AI, without exposing it to external parties.
 
-## :rocket: Geting started
+## :rocket: Getting started
 
 We provide a [Getting started](https://docs.mithrilsecurity.io/getting-started/quick-start) example on our docs, with the deployment of DistilBERT with BlindAI, to make it possible to analyze confidential text with privacy guarantees.
 
