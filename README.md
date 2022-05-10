@@ -10,7 +10,7 @@
   <a href="https://blog.mithrilsecurity.io/">Blog</a> |
   <a href="https://www.twitter.com/mithrilsecurity">Twitter</a> | 
   <a href="https://docs.mithrilsecurity.io/">Documentation</a> |
-  <a href="https://hub.docker.com/u/mithrilsecuritysas*">DockerHub</a> |
+  <a href="https://hub.docker.com/u/mithrilsecuritysas*">Docker Hub</a> |
   <a href="https://discord.gg/TxEHagpWd4">Discord</a>
 </h4>
 
@@ -67,23 +67,11 @@ Once the model is exported and ready to be served, the workflow is always the sa
 - Upload the ONNX model inside the inference server using our SDK. By leveraging our SDK, we make sure the IP of the model is protected as well.
 - Send data securely to be analysed by the AI model using our SDK.
 
-We describe these steps in more details in the [Getting started](#Getting-started) section and in even further details in our [docs](https://docs.mithrilsecurity.io/getting-started/quick-start).
+### C - Get started with real examples
 
-## Current hardware support 
+We provide a [Getting started](https://docs.mithrilsecurity.io/getting-started/quick-start) example on our docs, with the deployment of DistilBERT with BlindAI, to make it possible to analyze confidential text with privacy guarantees.
 
-Our solution currently leverages Intel SGX enclaves to protect data.
-
-If you want to deploy our solution with real hardware protection and not only simulation, you can either deploy it on premise with the right hardware specs, or rent a machine adapted for Confidential Computing in the Cloud.
-
-You can have a look at our recommendations for Intel SGX here if you want to try with real hardware on your premises.
-
-Or you can go to Azure Confidential Computing VMs to try, with our guides available here.
-
-## What next
-
-We intend to cover AMD SEV and Nitro Enclave in the future, which would make our solution available on GCP and AWS. 
-
-While we only cover deployment for now, we will start working on covering more complex pre/post processing pipelines inside enclaves, and training with Nvidia secure GPUs. More information about our roadmap can be found [here](https://blog.mithrilsecurity.io/our-roadmap-at-mithril-security/).
+We have also articles and corresponding notebooks to deploy COVID-Net and Wav2vec2 with BlindAI, to enable respectively analysis of Chest X-Rays and speech with end-to-end protection. You can find them just [below](#models-covered-by-blindai) in our full table of use cases and models covered.
 
 ## Models covered by BlindAI
 
@@ -100,133 +88,6 @@ Here is a list of models BlindAI supports, the use cases it unlocks and articles
 | Neural Random Forest | Random Forest | https://arxiv.org/abs/1604.07143                              | Credit scoring                          | To be announced                                                                                                                       | To be announced                                                                                      |
 | M5 network           | 1D CNN        | https://arxiv.org/pdf/1610.00087.pdf                          | Speaker recognition                     | To be announced                                                                                                                       | To be announced                                                                                      |
 
-## Getting started
-
-### Step 1 - Deploying the server
-
-Since the BlindAI server relies on specific hardware (Intel SGX) for security, this Getting Started guide will focus on running the Simulation mode, which can run on any machine. Note that the Simulation mode is not secure.
-
-To learn about deploying BlindAI on real hardware, see the [Deploy on Hardware](https://docs.mithrilsecurity.io/getting-started/deploy-on-hardware) documentation page and skip the next step. Here is also a [step-by-step guide to create an SGX-enabled Azure VM and deploy BlindAI in 5 minutes](https://docs.mithrilsecurity.io/getting-started/cloud-deployment).
-
-Run the Simulation docker image.
-
-```bash
-docker run -it -p 50051:50051 -p 50052:50052 mithrilsecuritysas/blindai-server-sim
-```
-
-### Step 2 - Prepare the model
-
-This example shows how you can run a Wav2Vec2 model to perform Speech-To-Text with confidentiality guarantees. 
-
-By using BlindAI, people can send data for the AI to analyze their conversations without having to fear privacy leaks.
-
-Wav2Vec2 is a state-of-the art Transformers model for speech. You can learn more about it on [FAIR blog's post](https://ai.facebook.com/blog/wav2vec-20-learning-the-structure-of-speech-from-raw-audio/).
-
-#### Install the python libraries
-
-Install the BlindAI python client using pip:
-
-```bash
-pip install blindai
-```
-
-Make sure you also have the following dependencies for this example:
-
-```bash
-pip install transformers[onnx] torch
-pip install --upgrade numpy==1.21
-pip install librosa
-```
-
-You also need ffmpeg to process the audio file.
-
-```bash
-sudo apt-get install -y ffmpeg
-```
-
-#### Prepare the model
-
-Here we will use a large Wav2Vec2 model. First step is to get the model and tokenizers.
-
-```py
-import torch
-import torch.nn as nn
-from transformers import Wav2Vec2ForCTC
-
-# load model
-model = Wav2Vec2ForCTC.from_pretrained("facebook/wav2vec2-base-960h")
-
-# In order to facilitate the deployment, we will add the post processing directly to the full model.
-# This way, the client will not have to do the post processing.
-class ArgmaxLayer(nn.Module):
-    def __init__(self):
-        super(ArgmaxLayer, self).__init__()
-
-    def forward(self, outputs):
-        return torch.argmax(outputs.logits, dim = -1)
-
-final_layer = ArgmaxLayer()
-
-# Finally we concatenate everything
-full_model = nn.Sequential(model, final_layer)
-
-# Now we can export the model in ONNX format, so that we can feed later the ONNX to our BlindAI server.
-dummy_input = torch.randn(1, 28894)
-torch.onnx.export(
-    full_model,
-    dummy_input,
-    './wav2vec2_hello_world.onnx',
-    export_params=True,
-    opset_version = 11)
-```
-
-### Step 3 - Upload the model
-
-```py
-from blindai.client import BlindAiClient, ModelDatumType
-
-# Launch client
-client = BlindAiClient()
-client.connect_server(addr="localhost", simulation=True)
-
-client.upload_model(model="./wav2vec2_hello_world.onnx", shape=(1, 28894), 
-                    dtype=ModelDatumType.F32, dtype_out=ModelDatumType.I64)
-```
-
-### Step 4 - Run an the model
-
-We can download an hello world audio file to be used as example. Let's download it.
-
-```bash
-wget https://github.com/mithril-security/blindai/raw/master/examples/wav2vec2/hello_world.wav
-```
-
-Run the model on the inference server and get the result 🥳
-
-```python
-from transformers import Wav2Vec2Processor
-import torch
-import librosa
-from blindai.client import BlindAiClient
-
-# Load processor
-processor = Wav2Vec2Processor.from_pretrained("facebook/wav2vec2-base-960h")
-
-audio, rate = librosa.load("./hello_world.wav", sr = 16000)
-
-# Tokenize sampled audio to input into model
-input_values = processor(audio, sampling_rate=rate, return_tensors="pt", padding="longest").input_values
-
-# Now we can send the audio data to be processed confidentially!
-client = BlindAiClient()
-client.connect_server(addr="localhost", simulation=True)
-response = client.run_model(input_values.flatten().tolist())
-
-# We can reconstruct the output now:
-print(processor.batch_decode(torch.tensor(response.output).unsqueeze(0)))
-```
-Output: `["HELLO WORLD"]`
-
 ## What you can do with BlindAI
 
 - Easily deploy state-of-the-art models with confidentiality. Run any [ONNX model](https://onnx.ai/), from **BERT** for text to **ResNets** for **images**, and much more.
@@ -238,6 +99,20 @@ Output: `["HELLO WORLD"]`
 - Our solution aims to be modular but we have yet to incorporate tools for generic pre/post processing. Specific pipelines can be covered but will require additional handwork for now.
 - We do not cover training and federated learning yet, but if this feature interests you do not hesitate to show your interest through the [roadmap](https://blog.mithrilsecurity.io/our-roadmap-at-mithril-security/) or [Discord](https://discord.gg/TxEHagpWd4) channel.
 - The examples we provide are simple, and do not take into account complex mechanisms such as secure storage of confidential data with sealing keys, advanced scheduler for inference requests, or complex key management scenarios. If your use case involves more than what we show, do not hesitate to **contact us** for more information.
+
+## Current hardware support 
+
+Our solution currently leverages Intel SGX enclaves to protect data.
+
+If you want to deploy our solution with real hardware protection and not only simulation, you can either deploy it on premise with the right hardware specs, or rent a machine adapted for Confidential Computing in the Cloud.
+
+You can go to [Azure Confidential Computing VMs to try](https://docs.microsoft.com/en-us/azure/confidential-computing/confidential-computing-enclaves), with our [guides available here](https://docs.mithrilsecurity.io/getting-started/cloud-deployment) for deployment on DCsv2 and DCsv3.
+
+## What next
+
+We intend to cover AMD SEV and Nitro Enclave in the future, which would make our solution available on GCP and AWS. 
+
+While we only cover deployment for now, we will start working on covering more complex pre/post processing pipelines inside enclaves, and training with Nvidia secure GPUs. More information about our roadmap can be found [here](https://blog.mithrilsecurity.io/our-roadmap-at-mithril-security/).
 
 ## Telemetry
 
