@@ -25,6 +25,23 @@ Our solution comes in two parts:
 - A secure inference server to serve AI models with privacy guarantees, developed using [**the Rust Programming Language**](https://www.rust-lang.org/). 🦀🦀
 - A Python client SDK to securely consume the remote AI models.
 
+## :round_pushpin: Table of content
+
+- [:lock: Motivation](#-lock--motivation)
+- [:rocket: Getting started](#-rocket--getting-started)
+- [:book: Which part of the AI workflow do we cover?](#-book--which-part-of-the-ai-workflow-do-we-cover-)
+- [:wrench: How do I use it?](#-wrench--how-do-i-use-it-)
+  * [A - Export the AI workflow](#a---export-the-ai-workflow)
+  * [B - Deploy it on BlindAI](#b---deploy-it-on-blindai)
+- [:sunny: Models covered by BlindAI](#-sunny--models-covered-by-blindai)
+- [:white_check_mark: What you can do with BlindAI](#-white-check-mark--what-you-can-do-with-blindai)
+- [:negative_squared_cross_mark: What you cannot do with BlindAI](#-negative-squared-cross-mark--what-you-cannot-do-with-blindai)
+- [:computer: Current hardware support](#-computer--current-hardware-support)
+- [:satellite: What next](#-satellite--what-next)
+- [:question:FAQ](#-question-faq)
+- [Telemetry](#telemetry)
+- [Disclaimer](#disclaimer)
+
 ## :lock: Motivation
 
 Today, most AI tools offer no privacy by design mechanisms, so when data is sent to be analysed by third parties, the data is exposed to malicious usage or potential leakage. 
@@ -88,19 +105,19 @@ Here is a list of models BlindAI supports, the use cases it unlocks and articles
 | Neural Random Forest | Random Forest | https://arxiv.org/abs/1604.07143                              | Credit scoring                          | To be announced                                                                                                                       | To be announced                                                                                      |
 | M5 network           | 1D CNN        | https://arxiv.org/pdf/1610.00087.pdf                          | Speaker recognition                     | To be announced                                                                                                                       | To be announced                                                                                      |
 
-## What you can do with BlindAI
+## :white_check_mark: What you can do with BlindAI
 
 - Easily deploy state-of-the-art models with confidentiality. Run any [ONNX model](https://onnx.ai/), from **BERT** for text to **ResNets** for **images**, and much more.
 - Provide guarantees to third parties, for instance clients or regulators, that you are indeed providing **data protection**, through **code attestation**.
 - Explore different scenarios from confidential **Sentiment analysis**, to **medical imaging** with our pool of examples.
 
-## What you cannot do with BlindAI
+## :negative_squared_cross_mark: What you cannot do with BlindAI
 
 - Our solution aims to be modular but we have yet to incorporate tools for generic pre/post processing. Specific pipelines can be covered but will require additional handwork for now.
 - We do not cover training and federated learning yet, but if this feature interests you do not hesitate to show your interest through the [roadmap](https://blog.mithrilsecurity.io/our-roadmap-at-mithril-security/) or [Discord](https://discord.gg/TxEHagpWd4) channel.
 - The examples we provide are simple, and do not take into account complex mechanisms such as secure storage of confidential data with sealing keys, advanced scheduler for inference requests, or complex key management scenarios. If your use case involves more than what we show, do not hesitate to **contact us** for more information.
 
-## Current hardware support 
+## :computer: Current hardware support 
 
 Our solution currently leverages Intel SGX enclaves to protect data.
 
@@ -108,11 +125,41 @@ If you want to deploy our solution with real hardware protection and not only si
 
 You can go to [Azure Confidential Computing VMs to try](https://docs.microsoft.com/en-us/azure/confidential-computing/confidential-computing-enclaves), with our [guides available here](https://docs.mithrilsecurity.io/getting-started/cloud-deployment) for deployment on DCsv2 and DCsv3.
 
-## What next
+## :satellite: What next
 
 We intend to cover AMD SEV and Nitro Enclave in the future, which would make our solution available on GCP and AWS. 
 
 While we only cover deployment for now, we will start working on covering more complex pre/post processing pipelines inside enclaves, and training with Nvidia secure GPUs. More information about our roadmap can be found [here](https://blog.mithrilsecurity.io/our-roadmap-at-mithril-security/).
+
+## :question:FAQ
+
+**Q: How do I make sure data that I send is protected**
+
+**A:** We leverage secure enclaves to provide end-to-end protection. This means that even while your data is sent to someone else for them to apply an AI on it, your data remains protected thanks to hardware memory isolation and encryption.
+
+We provide some information in our workshop [Reconcile AI and privacy with Confidential Computing](https://www.youtube.com/watch?v=tAT23GKMi_0).
+
+You can also have a look on our series [Confidential Computing explained](https://blog.mithrilsecurity.io/confidential-computing-explained-part-1-introduction/).
+
+**Q: How much slowdown should we expect when using BlindAI?**
+
+**A:** We will provide a detailled benchmark soon. Usually you should see a negligeable slowdown with some simple models, and we have observed up to 30-40% slowdown for complex models.
+
+**Q: What is the maximal data/model size with BlindAI?**
+
+**A:** With the latest Intel Xeon Icelake 3rd Gen, the enclaves can now protect up to 1TB of code and data. This means that most models, even the biggest ones, can be made confidential with our solution. 
+
+**Q: What do I need to do to use BlindAI?**
+
+**A:** The general workflow of BlindAI is described [here](#wrench-how-do-i-use-it). Basically you need to export your model in ONNX, upload it to the server and then you can send data to be analyzed securely.
+
+**Q: Can I use Python script with BlindAI?**
+
+**A:** We only support ONNX models for now, but most of the time preprocessing or postprocessing workflows can be expressed using ONNX operators. In that case you just have to include it in your model before exporting it to ONNX. You can see example for instance in the [Wav2vec2 example](https://github.com/mithril-security/blindai/blob/master/examples/wav2vec2/BlindAI-Wav2vec2.ipynb).
+
+**Q: Do you do training or federated learning?**
+
+**A:** We do not cover training or federated learning yet. However this is definitively on our roadmap, and you should expect news from us soon. For more information, please reach out to us at contact [at] mithrilsecurity dot io.
 
 ## Telemetry
 
