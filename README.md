@@ -27,18 +27,18 @@ Our solution comes in two parts:
 
 ## :round_pushpin: Table of content
 
-- [:lock: Motivation](#-lock--motivation)
-- [:rocket: Getting started](#-rocket--getting-started)
-- [:book: Which part of the AI workflow do we cover?](#-book--which-part-of-the-ai-workflow-do-we-cover-)
-- [:wrench: How do I use it?](#-wrench--how-do-i-use-it-)
+- [:lock: Motivation](#lock-motivation)
+- [:rocket: Getting started](#rocket-getting-started)
+- [:book: Which part of the AI workflow do we cover?](#book-which-part-of-the-ai-workflow-do-we-cover)
+- [:wrench: How do I use it?](#wrench-how-do-i-use-it)
   * [A - Export the AI workflow](#a---export-the-ai-workflow)
   * [B - Deploy it on BlindAI](#b---deploy-it-on-blindai)
-- [:sunny: Models covered by BlindAI](#-sunny--models-covered-by-blindai)
-- [:white_check_mark: What you can do with BlindAI](#-white-check-mark--what-you-can-do-with-blindai)
-- [:negative_squared_cross_mark: What you cannot do with BlindAI](#-negative-squared-cross-mark--what-you-cannot-do-with-blindai)
-- [:computer: Current hardware support](#-computer--current-hardware-support)
-- [:satellite: What next](#-satellite--what-next)
-- [:question:FAQ](#-question-faq)
+- [:sunny: Models covered by BlindAI](#sunny-models-covered-by-blindai)
+- [:white_check_mark: What you can do with BlindAI](#whitecheckmark-what-you-can-do-with-blindai)
+- [:negative_squared_cross_mark: What you cannot do with BlindAI](#negativesquaredcrossmark-what-you-cannot-do-with-blindai)
+- [:computer: Current hardware support](#computer-current-hardware-support)
+- [:satellite: What next](#satellite-what-next)
+- [:question:FAQ](#questionfaq)
 - [Telemetry](#telemetry)
 - [Disclaimer](#disclaimer)
 
