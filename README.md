@@ -86,9 +86,9 @@ Because we leverage the Tract project behind the scenes, the following operators
 
 Once the model is exported and ready to be served, the workflow is always the same:
 
-- Run our inference Docker, for instance using Docker, it simply needs to be exported in our secure AI deployment solution using our SDK. 
+- Run our inference server, for instance using Docker. 
 - Upload the ONNX model inside the inference server using our SDK. By leveraging our SDK, we make sure the IP of the model is protected as well.
-- Send data securely to be analysed by the AI model using our SDK.
+- Send data securely to be analysed by the AI model with the client SDK.
 
 ## :sunny: Models covered by BlindAI
 
