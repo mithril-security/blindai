@@ -8,7 +8,7 @@ link_directories(blindai/lib)
 add_subdirectory(third_party/pybind11)
 pybind11_add_module(_quote_verification blindai/cpp/wrapper.cc)
 
-if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang" OR CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     target_link_libraries(_quote_verification 
     PRIVATE verify
     PRIVATE QuoteVerification

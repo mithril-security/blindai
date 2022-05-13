@@ -94,7 +94,7 @@ target_link_libraries(${PROJECT_NAME}Static PRIVATE
 if(MSVC)
     target_compile_definitions(${PROJECT_NAME}Static PUBLIC ATTESTATIONLIBRARY_STATIC)
     target_compile_definitions(${PROJECT_NAME} PUBLIC _ATTESTATIONLIBRARY_EXPORTS)
-else()
+elseif(NOT(APPLE))
     set_target_properties(${PROJECT_NAME} PROPERTIES LINK_FLAGS "-Wl,--exclude-libs,ALL") # hide external libs symbols in shared object, do not add it for Enclave as we use LDS file here
 endif()
 
