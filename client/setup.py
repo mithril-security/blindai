@@ -12,7 +12,7 @@ import pkg_resources
 
 
 # Platform check
-SUPPORTED_PLATFORMS = {"LINUX", "WINDOWS"}
+SUPPORTED_PLATFORMS = {"LINUX", "WINDOWS", "DARWIN"}
 PLATFORM = platform.system().upper()
 if PLATFORM not in SUPPORTED_PLATFORMS:
     print("The platform : {}".format(platform.system().lower()))
@@ -53,6 +53,13 @@ ATTESTATION_BUILD_SCRIPT = {
         ],
         "postbuild": [],
     },
+
+    "DARWIN": {
+        "build": [
+            os.path.join(os.path.dirname(__file__), "scripts/buildAttestationLibDarwin.sh")
+        ],
+        "postbuild": [],
+    },
 }
 
 # Proto Files
@@ -74,7 +81,7 @@ def find_version():
 
 def build_attestation_lib():
     subprocess.check_call(ATTESTATION_BUILD_SCRIPT[PLATFORM]["build"])
-    if PLATFORM != "LINUX":
+    if PLATFORM not in  ["LINUX", "DARWIN"]:
         subprocess.check_call(ATTESTATION_BUILD_SCRIPT[PLATFORM]["postbuild"])
 
 
@@ -94,6 +101,11 @@ def generate_stub():
             ]
         )
 
+def get_libs():
+    if PLATFORM == "LINUX":
+        return "lib/*.so"
+    if PLATFORM == "DARWIN":
+        return "lib/*.dylib"
 
 # Build Classes
 class CMakeExtension(Extension):
@@ -151,6 +163,13 @@ class CMakeBuild(build_ext):
                 os.path.dirname(__file__), "scripts/postExtensionBuild.sh"
             )
             subprocess.check_call([edit_path])
+        
+        if PLATFORM == "DARWIN":
+            # Change the run path for the _quote_verification.dylib
+            edit_path = os.path.join(
+                os.path.dirname(__file__), "scripts/postExtensionBuildDarwin.sh"
+            )
+            subprocess.check_call([edit_path])
 
 
 class BuildPackage(build_py):
@@ -171,7 +190,7 @@ setuptools.setup(
     keywords="confidential computing inference client enclave sgx machine learning",
     url="https://www.mithrilsecurity.io/",
     packages=setuptools.find_packages(exclude=["blindai/cpp/wrapper.cc"]),
-    package_data={"": ["lib/*.so", "tls/*.pem"]},
+    package_data={"": [get_libs(), "tls/*.pem"]},
     ext_modules=[CMakeExtension("_quote_verification")],
     cmdclass={"build_ext": CMakeBuild, "build_py": BuildPackage},
     zip_safe=False,
@@ -200,5 +219,6 @@ setuptools.setup(
         "Programming Language :: C++",
         "Operating System :: Unix",
         "Operating System :: Microsoft :: Windows",
+        "Operating System :: MacOS :: MacOS X"
     ],
 )
