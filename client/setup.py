@@ -106,6 +106,8 @@ def get_libs():
         return "lib/*.so"
     if PLATFORM == "DARWIN":
         return "lib/*.dylib"
+    if PLATFORM == "WINDOWS":
+        return "lib/*.dll"
 
 # Build Classes
 class CMakeExtension(Extension):
@@ -194,7 +196,7 @@ setuptools.setup(
     ext_modules=[CMakeExtension("_quote_verification")],
     cmdclass={"build_ext": CMakeBuild, "build_py": BuildPackage},
     zip_safe=False,
-    python_requires=">=3.6.9",
+    python_requires=">=3.6.8",
     install_requires=[
         "cryptography>=35.0.0",
         "toml",
