@@ -13,11 +13,14 @@ __realpath(){
 }
 
 # install_name_tool is used on OSX
+OLD_PWD=$(pwd)
+QUOTE_LIBS=$(find . -name "_quote_verification*.so")
+for QUOTE_LIB in ${QUOTE_LIBS}
+do
+    BASE_DIR=$(__realpath $(basename ${QUOTE_LIB}))
+    cd ${OLD_PWD}
 
-QUOTE_LIB=$(find . -name "_quote_verification*.so")
-BASE_DIR=$(__realpath $(basename ${QUOTE_LIB}))
-cd -
-
-# install_name_tool replaces patchelf on Linux
-install_name_tool -change libverify.dylib "$BASE_DIR/blindai/lib/libverify.dylib" ${QUOTE_LIB}
-install_name_tool -change @rpath/libQuoteVerification.dylib "$BASE_DIR/blindai/lib/libQuoteVerification.dylib" ${QUOTE_LIB}
+    # install_name_tool replaces patchelf on Linux
+    install_name_tool -change libverify.dylib "$BASE_DIR/blindai/lib/libverify.dylib" ${QUOTE_LIB}
+    install_name_tool -change @rpath/libQuoteVerification.dylib "$BASE_DIR/blindai/lib/libQuoteVerification.dylib" ${QUOTE_LIB}
+done

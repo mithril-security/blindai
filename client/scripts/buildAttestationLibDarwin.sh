@@ -23,3 +23,7 @@ cp libverify.dylib ../../../../../../../../blindai/lib
 cd ../../../../../../Build/out/lib
 
 cp libQuoteVerification.dylib ../../../../../blindai/lib
+
+cd ../../../../../blindai/lib
+
+install_name_tool -change "@rpath/libQuoteVerification.dylib" "$(pwd)/libQuoteVerification.dylib" libverify.dylib
