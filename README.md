@@ -6,11 +6,11 @@
 
 <h4 align="center">
   <a href="https://www.mithrilsecurity.io">Website</a> |
-  <a href="https://www.linkedin.com/company/mithril-security-company">LinkedIn</a> | 
-  <a href="https://blog.mithrilsecurity.io/">Blog</a> |
-  <a href="https://www.twitter.com/mithrilsecurity">Twitter</a> | 
   <a href="https://docs.mithrilsecurity.io/">Documentation</a> |
+  <a href="https://blog.mithrilsecurity.io/">Blog</a> |
   <a href="https://hub.docker.com/u/mithrilsecuritysas">Docker Hub</a> |
+  <a href="https://www.linkedin.com/company/mithril-security-company">LinkedIn</a> | 
+  <a href="https://www.twitter.com/mithrilsecurity">Twitter</a> | 
   <a href="https://discord.gg/TxEHagpWd4">Discord</a>
 </h4>
 
@@ -34,6 +34,7 @@ Our solution comes in two parts:
   * [A - Export the AI workflow](#a---export-the-ai-workflow)
   * [B - Deploy it on BlindAI](#b---deploy-it-on-blindai)
 - [:sunny: Models covered by BlindAI](#sunny-models-covered-by-blindai)
+- [:page_facing_up: Documentation](#pagefacingup-documentation)
 - [:white_check_mark: What you can do with BlindAI](#white_check_mark-what-you-can-do-with-blindai)
 - [:negative_squared_cross_mark: What you cannot do with BlindAI](#negative_squared_cross_mark-what-you-cannot-do-with-blindai)
 - [:computer: Current hardware support](#computer-current-hardware-support)
@@ -106,6 +107,10 @@ Here is a list of models BlindAI supports, the use cases it unlocks and articles
 | M5 network           | 1D CNN        | https://arxiv.org/pdf/1610.00087.pdf                          | Speaker recognition                     | To be announced                                                                                                                       | To be announced                                                                                      | To be announced     | To be announced                 |                                                                                  |
 
 We will publish soon the scripts to run the benchmarks. 
+
+## :page_facing_up: Documentation
+
+To learn more about our project, do not hesitate to read our [documentation](https://docs.mithrilsecurity.io/).
 
 ## :white_check_mark: What you can do with BlindAI
 
