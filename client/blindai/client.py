@@ -24,6 +24,7 @@ from typing import Any, List, Optional, Tuple
 from cbor2 import dumps as cbor2_dumps
 from cryptography.exceptions import InvalidSignature
 from grpc import Channel, RpcError, secure_channel, ssl_channel_credentials
+from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
 
 from blindai.dcap_attestation import (
     Policy,
@@ -74,7 +75,7 @@ ModelDatumType = IntEnum("ModelDatumType", DatumTypeEnum.items())
 
 def _validate_quote(
     attestation: GetSgxQuoteWithCollateralReply, policy: Policy
-) -> bytes:
+) -> Ed25519PublicKey:
     """Returns the enclave signing key"""
 
     claims = verify_dcap_attestation(
@@ -218,11 +219,12 @@ class UploadModelResponse(SignedResponse):
 
 class RunModelResponse(SignedResponse):
     output: List[float]
+    model_id: str
 
     def validate(
         self,
+        model_id: str,
         data_list: List[Any],
-        model_id: Optional[str],
         policy_file: Optional[str] = None,
         policy: Optional[Policy] = None,
         validate_quote: bool = True,
@@ -233,8 +235,8 @@ class RunModelResponse(SignedResponse):
         This will raise an error if the response is not signed or if it is not valid.
 
         Args:
+            model_id (str): The model id to check against.
             data_list (List[Any]): Input used to run the model, to validate against.
-            model_id (Optional[str], optional): The model id to check against.
             policy_file (Optional[str], optional): Path to the policy file. Defaults to None.
             policy (Optional[Policy], optional): Policy to use. Use `policy_file` to load from a file directly. Defaults to None.
             validate_quote (bool, optional): Whether or not the attestation should be validated too. Defaults to True.
@@ -275,12 +277,14 @@ class RunModelResponse(SignedResponse):
         if sha256(serialized_bytes).digest() != payload.input_hash:
             raise SignatureError("Invalid returned input_hash")
 
-        if model_id is not None and model_id != payload.model_id:
+        if model_id != payload.model_id:
             raise SignatureError("Invalid returned model_id")
 
     def _load_payload(self):
         payload = Payload.FromString(self.payload).run_model_payload
         self.output = payload.output
+        self.model_id = payload.model_id
+
 
 
 class DeleteModelResponse:
@@ -529,16 +533,15 @@ class BlindAiClient:
 
         return ret
 
-    def run_model(self, data_list: List[Any], sign: bool = False, model_id: Optional[str] = None) -> RunModelResponse:
+    def run_model(self, model_id: str, data_list: List[Any], sign: bool = False) -> RunModelResponse:
         """Send data to the server to make a secure inference.
 
         The data provided must be in a list, as the tensor will be rebuilt inside the server.
 
         Args:
+            model_id (str): If set, will run a specific model.
             data_list (List[Any]): The input data. It must be an array of numbers of the same type dtype specified in `upload_model`.
             sign (bool, optional): Get signed responses from the server or not. Defaults to False.
-            model_id (Optional[str], optional): If set, will run a specific model.
-                By default, run the last model that was uploaded to the inference server
 
         Raises:
             ConnectionError: Will be raised if the client is not connected.
@@ -582,8 +585,8 @@ class BlindAiClient:
             ret.signature = response.signature
             ret.attestation = self.attestation
             ret.validate(
+                model_id,
                 data_list,
-                model_id=model_id,
                 validate_quote=False,
                 enclave_signing_key=self.enclave_signing_key,
                 allow_simulation_mode=self.simulation_mode,

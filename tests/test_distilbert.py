@@ -37,7 +37,7 @@ class TestDistilBertBase:
         )
         model_id = response.model_id
 
-        response = client.run_model(run_inputs, model_id=model_id)
+        response = client.run_model(model_id, run_inputs)
         origin_pred = model(torch.tensor(run_inputs).unsqueeze(0)).logits.detach()
 
         diff = (torch.tensor([response.output]) - origin_pred).sum().abs()
@@ -60,13 +60,14 @@ class TestDistilBertBase:
             dtype=ModelDatumType.I64,
             sign=True,
         )
+        model_id = response.model_id
 
         print(response)
         client.enclave_signing_key.verify(
             response.signature, response.payload
         )
 
-        response = client.run_model(run_inputs, sign=True)
+        response = client.run_model(model_id, run_inputs, sign=True)
 
         client.enclave_signing_key.verify(
             response.signature, response.payload

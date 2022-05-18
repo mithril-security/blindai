@@ -58,6 +58,7 @@ impl ModelStore {
                 Entry::Occupied(mut entry) => {
                     let (num, onnx) = entry.get_mut();
                     *num += 1;
+                    debug!("Reusing an existing ONNX entry for model. (n = {})", *num);
                     InferenceModel::from_onnx_loaded(
                         onnx.clone(),
                         input_fact,
@@ -68,6 +69,7 @@ impl ModelStore {
                     )
                 }
                 Entry::Vacant(entry) => {
+                    debug!("Creating a new ONNX entry for model.");
                     // FIXME(cchudant): this call may take a while to run, we may want to refactor
                     // this so that the lock  isn't taken here
                     let model = InferenceModel::load_model(

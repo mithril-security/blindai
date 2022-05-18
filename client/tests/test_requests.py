@@ -1,6 +1,7 @@
 from hashlib import sha256
 import os
 import pickle
+import time
 from typing import Iterator
 import unittest
 from unittest.mock import MagicMock, Mock, patch
@@ -13,9 +14,16 @@ from blindai.pb.securedexchange_pb2 import (
     Payload,
     RunModelRequest,
     RunModelReply,
+    PayloadHeader,
+    RunModelPayload,
 )
 
-from blindai.client import BlindAiClient, ModelDatumType
+from blindai.client import (
+    BlindAiClient,
+    ModelDatumType,
+    RunModelResponse,
+    UploadModelResponse,
+)
 
 from .covidnet import get_input, model_path, get_model
 
@@ -24,12 +32,11 @@ class TestProof(unittest.TestCase):
     @patch("blindai.client.AttestationStub")
     @patch("blindai.client.secure_channel")
     def test_connect(self, secure_channel: MagicMock, AttestationStub: MagicMock):
+        res = UploadModelResponse()
+        res.load_from_file(os.path.join(os.path.dirname(__file__), "exec_upload.proof"))
 
         client = BlindAiClient()
-        with open(
-            os.path.join(os.path.dirname(__file__), "quote_collateral.dat"), "rb"
-        ) as file:
-            attestation = pickle.load(file)
+        attestation = res.attestation
         AttestationStub().GetSgxQuoteWithCollateral = Mock(return_value=attestation)
         client.connect_server(
             "localhost",
@@ -42,17 +49,21 @@ class TestProof(unittest.TestCase):
     @patch("blindai.client.secure_channel")
     def test_upload_model(
         self,
-        secure_channel: MagicMock,
+        _secure_channel: MagicMock,
         AttestationStub: MagicMock,
         ExchangeStub: MagicMock,
     ):
+        res = UploadModelResponse()
+        res.load_from_file(os.path.join(os.path.dirname(__file__), "exec_upload.proof"))
+        real_response = SendModelReply(
+            payload=res.payload,
+            signature=res.signature,
+        )
+
         # connect
 
-        client = blindai.client.BlindAiClient()
-        with open(
-            os.path.join(os.path.dirname(__file__), "quote_collateral.dat"), "rb"
-        ) as file:
-            attestation = pickle.load(file)
+        client = BlindAiClient()
+        attestation = res.attestation
         AttestationStub().GetSgxQuoteWithCollateral = Mock(return_value=attestation)
         client.connect_server(
             "localhost",
@@ -64,10 +75,6 @@ class TestProof(unittest.TestCase):
 
         datum = ModelDatumType.F32
         shape = (1, 480, 480, 3)
-        with open(
-            os.path.join(os.path.dirname(__file__), "upload_model.dat"), "rb"
-        ) as file:
-            real_response = pickle.load(file)
 
         def send_model_util(sign):
             model_bytes = get_model()
@@ -116,17 +123,21 @@ class TestProof(unittest.TestCase):
     @patch("blindai.client.secure_channel")
     def test_run_model(
         self,
-        secure_channel: MagicMock,
+        _secure_channel: MagicMock,
         AttestationStub: MagicMock,
         ExchangeStub: MagicMock,
     ):
+        res = RunModelResponse()
+        res.load_from_file(os.path.join(os.path.dirname(__file__), "exec_run.proof"))
+        real_response = RunModelReply(
+            payload=res.payload,
+            signature=res.signature,
+        )
+
         # connect
 
-        client = blindai.client.BlindAiClient()
-        with open(
-            os.path.join(os.path.dirname(__file__), "quote_collateral.dat"), "rb"
-        ) as file:
-            attestation = pickle.load(file)
+        client = BlindAiClient()
+        attestation = res.attestation
         AttestationStub().GetSgxQuoteWithCollateral = Mock(return_value=attestation)
         client.connect_server(
             "localhost",
@@ -137,10 +148,6 @@ class TestProof(unittest.TestCase):
         # run_model
 
         input = get_input()
-        with open(
-            os.path.join(os.path.dirname(__file__), "run_model.dat"), "rb"
-        ) as file:
-            real_response = pickle.load(file)
 
         def run_model_util(sign):
             def run_model(req: Iterator[RunModelRequest]):
@@ -160,7 +167,7 @@ class TestProof(unittest.TestCase):
 
             ExchangeStub().RunModel = Mock(side_effect=run_model)
 
-            response = client.run_model(input, sign=sign)
+            response = client.run_model(res.model_id, input, sign=sign)
 
             if not sign:
                 self.assertFalse(response.is_signed())
