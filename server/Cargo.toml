@@ -49,6 +49,16 @@ tower = {git = 'https://github.com/mithril-security/tower-sgx', branch = "tower-
 tracing-core = {git = 'https://github.com/mithril-security/tracing-sgx', branch = "tracing-core-sgx"}
 tract-core = {git = "https://github.com/mithril-security/tract-sgx-xargo.git", tag = "0.16.6-pre-interpolation-nearest"}
 tract-onnx = {git = "https://github.com/mithril-security/tract-sgx-xargo.git", tag = "0.16.6-pre-interpolation-nearest"}
+tokenizers =  {git = "ssh://git@github.com/mithril-security/tokenizers-sgx.git", branch = "target-sgx"}
+once_cell = {git = "ssh://git@github.com/mithril-security/once_cell-sgx.git", tag = "1.8.0x"}
+nom = {git = "ssh://git@github.com/mithril-security/nom-sgx.git", branch = "v6.1.2"}
+crossbeam-utils = { git = 'https://github.com/mithril-security/crossbeam-sgx' }
+crossbeam-channel = { git = 'https://github.com/mithril-security/crossbeam-sgx' }
+onig = {git = "ssh://git@github.com/mithril-security/rust-onig-sgx.git", branch = "target-sgx"}
+rayon = { git = "https://github.com/mithril-security/rayon-sgx.git", branch = "target-sgx"}
+rayon-core = { git = "https://github.com/mithril-security/rayon-sgx.git", branch = "target-sgx"}
+regex = {git = "ssh://git@github.com/mithril-security/regex-sgx.git", branch = "target-sgx"}
+lexical-core = { git = "ssh://git@github.com/mithril-security/rust-lexical-patch.git", branch = "v0.7.6x"}
 
 [patch.'https://github.com/apache/teaclave-sgx-sdk.git']
 sgx_alloc = {path = "./sgx_sdk/sgx_alloc"}

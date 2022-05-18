@@ -22,6 +22,8 @@ service Exchange {
     rpc SendModel (stream SendModelRequest) returns (SendModelReply);
     // Run an existing model to the server
     rpc RunModel (stream RunModelRequest) returns (RunModelReply);
+    // Upload a tokenizer to the server
+    rpc SendTokenizer (stream SendTokenizerRequest) returns (SendTokenizerReply);
 }
 
 message ClientInfo {
@@ -49,6 +51,7 @@ message Payload {
     oneof payload {
         SendModelPayload send_model_payload = 2;
         RunModelPayload run_model_payload = 3;
+        SendTokenizerPayload send_tokenizer_payload = 4;
     }
 }
 
@@ -119,4 +122,30 @@ message RunModelPayload {
     // Raw SHA-256 hash of the protobuf binary encoding of the repeated float input from RunModelRequest
     // This field is empty when `sign` is `false` in the request
     bytes input_hash = 3;
+}
+
+message SendTokenizerRequest {
+    bytes data = 1;
+    uint64 length = 2;
+    // whether or not the server should sign the reply
+    bool sign = 5;
+    // this is optional
+    ClientInfo client_info = 6;
+    // this is optional
+    string tokenizer_name = 7;
+}
+
+message SendTokenizerReply {
+    // This is a serialized `Payload` message
+    bytes payload = 1;
+    // Signature of the payload
+    // This field is not present when `sign` is `false` in the request
+    bytes signature = 2;
+
+}
+
+message SendTokenizerPayload {
+    // Raw SHA-256 hash of the uploaded ONNX model
+    // This field is not present when `sign` is `false` in the request
+    bytes tokenizer_hash = 1;
 }

@@ -41,6 +41,7 @@ from blindai.pb.securedexchange_pb2 import (
     RunModelRequest,
     SendModelRequest,
     ClientInfo,
+    SendTokenizerRequest,
 )
 from blindai.pb.proof_files_pb2 import ResponseProof
 from blindai.pb.securedexchange_pb2_grpc import ExchangeStub
@@ -389,7 +390,6 @@ class BlindAiClient:
                 options=connection_options,
             )
             stub = AttestationStub(channel)
-
             response = stub.GetServerInfo(server_info_request())
             self.server_version = response.version
             if not supported_server_version(response.version):
@@ -560,6 +560,72 @@ class BlindAiClient:
             ret.attestation = self.attestation
             ret.validate(
                 data_list,
+                validate_quote=False,
+                enclave_signing_key=self.enclave_signing_key,
+                allow_simulation_mode=self.simulation_mode,
+            )
+
+        return ret
+
+
+    def upload_tokenizer(
+        self,
+        tokenizer: str,
+        sign: bool = False,
+    ) -> UploadModelResponse:
+        """Upload a tokenizer to the server.
+        The provided tokenizer needs to be in the json format.
+
+        Args:
+            tokenizer (str): Path to json file.
+            dtype (ModelDatumType, optional): The type of the model input data (f32 by default). Defaults to ModelDatumType.F32.
+            dtype_out (ModelDatumType, optional): The type of the model output data (f32 by default). Defaults to ModelDatumType.F32.
+            sign (bool, optional): Get signed responses from the server or not. Defaults to False.
+
+        Raises:
+            ConnectionError: Will be raised if the client is not connected.
+            FileNotFoundError: Will be raised if the model file is not found.
+            SignatureError: Will be raised if the response signature is invalid.
+
+        Returns:
+            UploadTokenizerResponse: The response object.
+        """
+
+        response = None
+        if not self.is_connected():
+            raise ConnectionError("Not connected to the server")
+
+        try:
+            with open(tokenizer, "rb") as f:
+                data = f.read()
+            response = self._stub.SendTokenizer(
+                iter(
+                    [
+                        SendTokenizerRequest(
+                            length=len(data),
+                            data=chunk,
+                            sign=sign,
+                            client_info=self.client_info,
+                            tokenizer_name=os.path.basename(tokenizer),
+                        )
+                        for chunk in create_byte_chunk(data)
+                    ]
+                )
+            )
+
+        except RpcError as rpc_error:
+            raise ConnectionError(check_rpc_exception(rpc_error))
+
+        # Response Verification
+        # payload = Payload.FromString(response.payload).send_model_payload
+        ret = UploadModelResponse()
+
+        if sign:
+            ret.payload = response.payload
+            ret.signature = response.signature
+            ret.attestation = self.attestation
+            ret.validate(
+                sha256(data).digest(),
                 validate_quote=False,
                 enclave_signing_key=self.enclave_signing_key,
                 allow_simulation_mode=self.simulation_mode,

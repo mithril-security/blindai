@@ -17,6 +17,7 @@ use std::vec::Vec;
 use anyhow::{anyhow, Result};
 use num_derive::FromPrimitive;
 use tract_onnx::prelude::{tract_ndarray::IxDynImpl, *};
+use tokenizers::{Tokenizer, TokenizerImpl};
 
 pub type OnnxModel = SimplePlan<TypedFact, Box<dyn TypedOp>, Graph<TypedFact, Box<dyn TypedOp>>>;
 
@@ -81,6 +82,7 @@ fn convert_tensor<A: serde::ser::Serialize + tract_core::prelude::Datum>(
 #[derive(Debug)]
 pub struct InferenceModel {
     onnx: OnnxModel,
+    tokenizer: Option<Tokenizer>,
     datum_type: ModelDatumType,
     input_fact: Vec<usize>,
     model_name: Option<String>,
@@ -109,6 +111,7 @@ impl InferenceModel {
             .into_runnable()?;
         Ok(InferenceModel {
             onnx: model_rec,
+            tokenizer: None,
             datum_type,
             input_fact,
             model_name,
@@ -116,16 +119,33 @@ impl InferenceModel {
         })
     }
 
+    pub fn load_tokenizer(&mut self, json: String) -> tokenizers::Result<()> {
+        self.tokenizer = Some(Tokenizer::from_memory(&json)?);
+        Ok(())
+    }
+
     pub fn run_inference(&self, input: &[u8]) -> Result<Vec<u8>> {
-        let tensor = dispatch_numbers!(create_tensor(self.datum_type.get_datum_type())(
-            input,
-            &self.input_fact
-        ))?;
-        let result = self.onnx.run(tvec!(tensor))?;
-        let arr = dispatch_numbers!(convert_tensor(&self.datum_output.get_datum_type())(
-            &result[0]
-        ))?;
-       Ok(arr)
+        if let Some(tokenizer) = &self.tokenizer {
+            println!("Tokenizing input");
+            // println!("{:?}", input);
+            // let tokenized = match tokenizer.encode("I Love AI and privacy", true) {
+            //     Ok(t) => t,
+            //     Err(e) => return Err(anyhow!("Tokenizer error: {}", e)),
+            // };
+            // let tokens = tokenized.get_ids();
+            // let model_input: Vec<u8> = tokens.iter().map(|id| u8::from(id)).collect();
+            println!("{:?} {:?}", input, self.input_fact);
+            let tensor = dispatch_numbers!(create_tensor(self.datum_type.get_datum_type())(
+                input,
+                &self.input_fact
+            ))?;
+            let result = self.onnx.run(tvec!(tensor))?;
+            let arr = dispatch_numbers!(convert_tensor(&self.datum_output.get_datum_type())(
+                &result[0]
+            ))?;
+            return Ok(arr);
+        }
+        Err(anyhow!("Tokenizer not loaded"))
     }
 
     pub fn model_name(&self) -> Option<&str> {

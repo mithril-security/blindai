@@ -180,7 +180,122 @@ impl Exchange for Exchanger {
             },
             client_info,
         );
+        Ok(Response::new(reply))
+    }
 
+    async fn send_tokenizer(
+        &self,
+        request: Request<tonic::Streaming<SendTokenizerRequest>>,
+    ) -> Result<Response<SendTokenizerReply>, Status> {
+        let start_time = Instant::now();
+
+        let mut stream = request.into_inner();
+
+        let mut tokenizer_bytes: Vec<u8> = Vec::new();
+        let max_tokenizer_size = self.max_model_size;
+        let mut tokenizer_size = 0usize;
+        let mut sign = false;
+
+        let mut tokenizer_name = None;
+        let mut client_info = None;
+
+        // get all tokenizer chunks from the client into a big Vec
+        while let Some(tokenizer_stream) = stream.next().await {
+            let mut tokenizer_proto = tokenizer_stream?;
+            if tokenizer_size == 0 {
+                tokenizer_size = tokenizer_proto.length.try_into().unwrap();
+                tokenizer_bytes.reserve_exact(tokenizer_size);
+
+                tokenizer_name = if !tokenizer_proto.tokenizer_name.is_empty() {
+                    Some(tokenizer_proto.tokenizer_name)
+                } else {
+                    None
+                };
+                client_info = tokenizer_proto.client_info;
+                sign = tokenizer_proto.sign;
+            }
+            if tokenizer_size > max_tokenizer_size || tokenizer_bytes.len() > max_tokenizer_size {
+                return Err(Status::invalid_argument("Tokenizer too big".to_string()));
+            }
+            tokenizer_bytes.append(&mut tokenizer_proto.data)
+        }
+
+        if tokenizer_size == 0 {
+            return Err(Status::invalid_argument("Received no data".to_string()));
+        }
+
+        let mut payload = SendTokenizerPayload::default();
+        // payload.model_id = "default".into();
+        if sign {
+            payload.tokenizer_hash = digest::digest(&digest::SHA256, &tokenizer_bytes)
+                .as_ref()
+                .to_vec();
+        }
+
+        let mut model_guard = self.model.lock().unwrap();
+
+        let mut model = if let Some(model) = model_guard.as_mut() {
+            model
+        } else {
+            return Err(Status::invalid_argument(
+                "Cannot find the model".to_string(),
+            ));
+        };
+
+        let tokenizer = String::from_utf8(tokenizer_bytes).map_err(|err| {
+            error!("Unknown error creating tokenizer: {}", err);
+            Status::unknown("Unknown error".to_string())
+        })?;
+
+        if let Err(e) = model.load_tokenizer(tokenizer) {
+            return Err(Status::invalid_argument(format!("{}", e)));
+        }
+
+        let payload_with_header = Payload {
+            header: Some(PayloadHeader {
+                issued_at: Some(SystemTime::now().into()),
+            }),
+            payload: Some(payload::Payload::SendTokenizerPayload(payload)),
+        };
+
+        let mut reply = SendTokenizerReply {
+            payload: payload_with_header.encode_to_vec(),
+            ..Default::default()
+        };
+        if sign {
+            reply.signature = self
+                .identity
+                .signing_key
+                .sign(&reply.payload)
+                .to_bytes()
+                .to_vec();
+        }
+
+        let elapsed = start_time.elapsed();
+        info!(
+            "[{} {}] SendTokenizer successful in {}ms (tokenizer={}, size={}, sign={})",
+            client_info
+                .as_ref()
+                .map(|c| c.user_agent.as_ref())
+                .unwrap_or("<unknown>"),
+            client_info
+                .as_ref()
+                .map(|c| c.user_agent_version.as_ref())
+                .unwrap_or("<unknown>"),
+            elapsed.as_millis(),
+            tokenizer_name.as_deref().unwrap_or("<unknown>"),
+            tokenizer_size,
+            sign
+        );
+        telemetry::add_event(
+            TelemetryEventProps::SendModel {
+                model_size:tokenizer_size,
+                model_name:tokenizer_name,
+                sign,
+                time_taken: elapsed.as_secs_f64(),
+            },
+            client_info,
+        );
         Ok(Response::new(reply))
     }
 
