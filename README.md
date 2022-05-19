@@ -49,11 +49,9 @@ Today, most AI tools offer no privacy by design mechanisms, so when data is sent
 
 We illustrate it below with the use of AI for voice assistants. Audio recordings are often sent to the Cloud to be analysed, leaving conversations exposed to leaks and uncontrolled usage without users’ knowledge or consent.
 
-![Without BlindAI](https://github.com/mithril-security/animations/raw/main/Without_BlindAI_min.gif)
-
 Currently, even though data can be sent securely with TLS, some stakeholders in the loop can see and expose data : the AI company renting the machine, the Cloud provider or a malicious insider. 
 
-![With BlindAI](https://github.com/mithril-security/animations/raw/main/With_blindAI_min.gif)
+![Before / after BlindAI](https://github.com/mithril-security/animations/raw/main/With_and_without_blindai.gif)
 
 By using BlindAI, data remains always protected as it is only decrypted inside a Trusted Execution Environment, called an enclave, whose contents are protected by hardware. While data is in clear inside the enclave, it is inaccessible to the outside thanks to isolation and memory encryption. This way, data can be processed, enriched, and analysed by AI, without exposing it to external parties.
 
