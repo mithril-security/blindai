@@ -34,7 +34,7 @@ Our solution comes in two parts:
   * [A - Export the AI workflow](#a---export-the-ai-workflow)
   * [B - Deploy it on BlindAI](#b---deploy-it-on-blindai)
 - [:sunny: Models covered by BlindAI](#sunny-models-covered-by-blindai)
-- [:page_facing_up: Documentation](#pagefacingup-documentation)
+- [:page_facing_up: Documentation](#page_facing_up-documentation)
 - [:white_check_mark: What you can do with BlindAI](#white_check_mark-what-you-can-do-with-blindai)
 - [:negative_squared_cross_mark: What you cannot do with BlindAI](#negative_squared_cross_mark-what-you-cannot-do-with-blindai)
 - [:computer: Current hardware support](#computer-current-hardware-support)
