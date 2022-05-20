@@ -13,6 +13,7 @@
 // limitations under the License.
 
 use std::vec::Vec;
+use std::convert::TryFrom;
 
 use anyhow::{anyhow, Result};
 use num_derive::FromPrimitive;
@@ -29,6 +30,7 @@ pub enum ModelDatumType {
     I64 = 3,
     U32 = 4,
     U64 = 5,
+    STRING = 6
 }
 
 impl ModelDatumType {
@@ -40,6 +42,7 @@ impl ModelDatumType {
             ModelDatumType::I64 => i64::datum_type(),
             ModelDatumType::U32 => u32::datum_type(),
             ModelDatumType::U64 => u64::datum_type(),
+            ModelDatumType::STRING => String::datum_type(),
         }
     }
 }
@@ -125,27 +128,37 @@ impl InferenceModel {
     }
 
     pub fn run_inference(&self, input: &[u8]) -> Result<Vec<u8>> {
-        if let Some(tokenizer) = &self.tokenizer {
-            println!("Tokenizing input");
-            // println!("{:?}", input);
-            // let tokenized = match tokenizer.encode("I Love AI and privacy", true) {
-            //     Ok(t) => t,
-            //     Err(e) => return Err(anyhow!("Tokenizer error: {}", e)),
-            // };
-            // let tokens = tokenized.get_ids();
-            // let model_input: Vec<u8> = tokens.iter().map(|id| u8::from(id)).collect();
-            println!("{:?} {:?}", input, self.input_fact);
-            let tensor = dispatch_numbers!(create_tensor(self.datum_type.get_datum_type())(
+        let mut tensor;
+        if self.datum_type == ModelDatumType::STRING {
+            if let Some(tokenizer) = &self.tokenizer {
+                let string: String = serde_cbor::from_slice(input).unwrap_or_default();
+                let tokenized = match tokenizer.encode(string, true) {
+                    Ok(t) => t,
+                    Err(e) => return Err(anyhow!("Tokenizer error: {}", e)),
+                };
+                let tokens = tokenized.get_ids();
+                let dim = IxDynImpl::from(&self.input_fact[..]);
+                let mut tensor_input = vec![0;self.input_fact[1]]; // hardcoded shape for now
+                tokens.iter().enumerate().for_each(|(i, token)| {
+                    tensor_input[i] = *token as i32;
+                });
+                tensor = tract_ndarray::ArrayD::from_shape_vec(dim, tensor_input)?.into();
+            }
+            else {
+                return Err(anyhow!("Tokenizer not loaded"));
+            }
+        }
+        else {
+            tensor = dispatch_numbers!(create_tensor(self.datum_type.get_datum_type())(
                 input,
                 &self.input_fact
             ))?;
-            let result = self.onnx.run(tvec!(tensor))?;
-            let arr = dispatch_numbers!(convert_tensor(&self.datum_output.get_datum_type())(
-                &result[0]
-            ))?;
-            return Ok(arr);
         }
-        Err(anyhow!("Tokenizer not loaded"))
+        let result = self.onnx.run(tvec!(tensor))?;
+        let arr = dispatch_numbers!(convert_tensor(&self.datum_output.get_datum_type())(
+            &result[0]
+        ))?;
+        Ok(arr)
     }
 
     pub fn model_name(&self) -> Option<&str> {

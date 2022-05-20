@@ -41,6 +41,33 @@ class TestDistilBertBase:
         diff = (torch.tensor([response.output]) - origin_pred).sum().abs()
         self.assertLess(diff, 0.001)  # difference is <0.1%
 
+    def test_tokenizer(self):
+        client = BlindAiClient()
+
+        client.connect_server(
+            addr="localhost",
+            simulation=self.simulation,
+            policy=policy_file,
+            certificate=certificate_file,
+        )
+
+        client.upload_model(
+            model=model_path,
+            shape=inputs.shape,
+            dtype=ModelDatumType.STRING,
+        )
+
+        client.upload_tokenizer(
+            tokenizer="tokenizers_demo/bert-base-uncased.json",
+        )
+
+        response = client.run_model(sentence)
+        origin_pred = model(torch.tensor(run_inputs).unsqueeze(0)).logits.detach()
+
+        diff = (torch.tensor([response.output]) - origin_pred).sum().abs()
+        self.assertLess(diff, 0.001)  # difference is <0.1%
+        
+
     def test_signed(self):
         client = BlindAiClient()
 
@@ -83,7 +110,7 @@ model, inputs, run_inputs = None, None, None
 
 
 def setUpModule():
-    global model, inputs, run_inputs
+    global model, inputs, run_inputs, sentence
     launch_server()
 
     # Setup the distilbert model

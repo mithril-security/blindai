@@ -78,6 +78,7 @@ enum DatumTypeEnum {
     I64 = 3;
     U32 = 4;
     U64 = 5;
+    STRING = 6;
 };
 
 message SendModelReply {
