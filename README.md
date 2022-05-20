@@ -6,152 +6,165 @@
 
 <h4 align="center">
   <a href="https://www.mithrilsecurity.io">Website</a> |
-  <a href="https://www.linkedin.com/company/mithril-security-company">LinkedIn</a> | 
-  <a href="https://blog.mithrilsecurity.io/">Blog</a> |
-  <a href="https://www.twitter.com/mithrilsecurity">Twitter</a> | 
   <a href="https://docs.mithrilsecurity.io/">Documentation</a> |
+  <a href="https://blog.mithrilsecurity.io/">Blog</a> |
+  <a href="https://hub.docker.com/u/mithrilsecuritysas">Docker Hub</a> |
+  <a href="https://www.linkedin.com/company/mithril-security-company">LinkedIn</a> | 
+  <a href="https://www.twitter.com/mithrilsecurity">Twitter</a> | 
   <a href="https://discord.gg/TxEHagpWd4">Discord</a>
 </h4>
 
 <h3 align="center">Fast, accessible and privacy friendly AI deployment 🚀🔒</h3>
 
-**BlindAI** is a **fast, easy to use and confidential inference server**, allowing you to deploy your
-model on sensitive data. Thanks to the **end-to-end protection guarantees**, data owners can send private data to be analyzed by AI models, **without fearing exposing their data to anyone else**.
+BlindAI is a confidential AI inference server. Like regular AI inference solutions, BlindAI helps AI engineers serve models for end-users to benefit from their predictions, but with an added privacy layer. Data sent by users to the AI model is kept confidential at all times, from the transfer to the analysis. This way, users can benefit from AI models without ever having to expose their data in clear to anyone: neither the AI service provider, nor the Cloud provider (if any), can see the data.
 
-![Overview of BlindAI](assets/blindai-schema.png)
-
-While most current solutions force users to trust the server where their data is sent, BlindAI leverages Confidential Computing to make sure that even when you send data to a third-party to have it analyzed by an AI, it remains always protected and inaccessible.
-
-Confidential Computing uses special hardware to ensure the privacy of a computation. You can learn more about this technology in our blog series [here](https://blog.mithrilsecurity.io/confidential-computing-explained-part-1-introduction/).
-
-We currently only support Intel SGX, but we plan to cover AMD SEV and Nitro Enclave in the future. More information about our roadmap can be found [here](https://blog.mithrilsecurity.io/our-roadmap-at-mithril-security/).
+Confidentiality is assured by using special hardware-enforced Trusted Execution Environments. To read more about those, read our blog series [here](https://blog.mithrilsecurity.io/confidential-computing-explained-part-1-introduction/)
 
 Our solution comes in two parts:
 
 - A secure inference server to serve AI models with privacy guarantees, developed using [**the Rust Programming Language**](https://www.rust-lang.org/). 🦀🦀
 - A Python client SDK to securely consume the remote AI models.
 
-## Models covered by BlindAI
+## :round_pushpin: Table of content
+
+- [:lock: Motivation](#lock-motivation)
+- [:rocket: Getting started](#rocket-getting-started)
+- [:book: Which part of the AI workflow do we cover?](#book-which-part-of-the-ai-workflow-do-we-cover)
+- [:wrench: How do I use it?](#wrench-how-do-i-use-it)
+  * [A - Export the AI workflow](#a---export-the-ai-workflow)
+  * [B - Deploy it on BlindAI](#b---deploy-it-on-blindai)
+- [:sunny: Models covered by BlindAI](#sunny-models-covered-by-blindai)
+- [:page_facing_up: Documentation](#page_facing_up-documentation)
+- [:white_check_mark: What you can do with BlindAI](#white_check_mark-what-you-can-do-with-blindai)
+- [:negative_squared_cross_mark: What you cannot do with BlindAI](#negative_squared_cross_mark-what-you-cannot-do-with-blindai)
+- [:computer: Current hardware support](#computer-current-hardware-support)
+- [:satellite: What next](#satellite-what-next)
+- [:question:FAQ](#questionfaq)
+- [Telemetry](#telemetry)
+- [Disclaimer](#disclaimer)
+
+## :lock: Motivation
+
+Today, most AI tools offer no privacy by design mechanisms, so when data is sent to be analysed by third parties, the data is exposed to malicious usage or potential leakage. 
+
+We illustrate it below with the use of AI for voice assistants. Audio recordings are often sent to the Cloud to be analysed, leaving conversations exposed to leaks and uncontrolled usage without users’ knowledge or consent.
+
+Currently, even though data can be sent securely with TLS, some stakeholders in the loop can see and expose data : the AI company renting the machine, the Cloud provider or a malicious insider. 
+
+![Before / after BlindAI](https://github.com/mithril-security/animations/raw/main/With_and_without_blindai.gif)
+
+By using BlindAI, data remains always protected as it is only decrypted inside a Trusted Execution Environment, called an enclave, whose contents are protected by hardware. While data is in clear inside the enclave, it is inaccessible to the outside thanks to isolation and memory encryption. This way, data can be processed, enriched, and analysed by AI, without exposing it to external parties.
+
+## :rocket: Getting started
+
+We provide a [Getting started](https://docs.mithrilsecurity.io/getting-started/quick-start) example on our docs, with the deployment of DistilBERT with BlindAI, to make it possible to analyze confidential text with privacy guarantees.
+
+We have also articles and corresponding notebooks to deploy COVID-Net and Wav2vec2 with BlindAI, to enable respectively analysis of Chest X-Rays and speech with end-to-end protection. You can find them just [below](#sunny-models-covered-by-blindai) in our full table of use cases and models covered.
+
+## :book: Which part of the AI workflow do we cover?
+
+![Position AI toolkit](assets/position_ai_toolkit.PNG)
+
+BlindAI is currently a solution for AI model deployment. We suppose the model has already been trained and wants to be deployed but requires privacy guarantees for the data owners sending data to the model. We focus mostly on deep learning models, though inference of random forests can be covered by BlindAI.
+
+This scenario often comes up once you have been able to train a model on a specific dataset, most likely on premise, like on biometric, medical or financial data, and now want to deploy it at scale as a Service to your users.
+
+BlindAI can be seen as a variant of current serving solutions, like Nvidia Triton, Torchserve, TFserve, Kserve and so on. We provide the networking layer and the client SDK to consume the service remotely and securely, thanks to our secure AI backend.
+
+## :wrench: How do I use it?
+
+### A - Export the AI workflow
+
+For data scientists to deploy their workloads they must first export their AI models, and possibly their pre/post processing in ONNX format. Pytorch or Tensorflow models can easily be exported into an ONNX file. Exporting a neural network in ONNX format facilitates its deployment, as it will be optimised for inference.
+
+Because we leverage the Tract project behind the scenes, the following operators are currently supported: https://github.com/sonos/tract#onnx 
+
+### B - Deploy it on BlindAI
+
+![Workflow of BlindAI](assets/workflow_blindai.PNG)
+
+Once the model is exported and ready to be served, the workflow is always the same:
+
+- Run our inference server, for instance using Docker. 
+- Upload the ONNX model inside the inference server using our SDK. By leveraging our SDK, we make sure the IP of the model is protected as well.
+- Send data securely to be analysed by the AI model with the client SDK.
+
+## :sunny: Models covered by BlindAI
 
 Here is a list of models BlindAI supports, the use cases it unlocks and articles to provide more context on each case. The articles are in preparation and we welcome all contributions to show how BlindAI can be used to deploy AI models with confidentiality!
 
-| Model name           | Model family  | Link to model                                                 | Example use case                        | Article                                                                                                                               |
-|----------------------|---------------|---------------------------------------------------------------|-----------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------|
-| DistilBERT           | BERT          | https://huggingface.co/docs/transformers/model_doc/distilbert | Sentiment analysis                      | [Deploy Transformers models with confidentiality](https://blog.mithrilsecurity.io/transformers-with-confidentiality/)                 |
-| COVID-Net-CXR-2      | 2D CNN        | https://github.com/lindawangg/COVID-Net                       | Chest XRAY analysis for COVID detection | [Confidential medical image analysis with COVID-Net and BlindAI](https://blog.mithrilsecurity.io/confidential-covidnet-with-blindai/) |
-| GPT2                 | GPT           | https://huggingface.co/gpt2                                   | Document analysis                       | To be announced                                                                                                                       |
-| Wav2vec2             | Wav2vec       | https://huggingface.co/docs/transformers/model_doc/wav2vec2   | Speech to text                          | To be announced                                                                                                                       |
-| Facenet              | Resnet        | https://github.com/timesler/facenet-pytorch                   | Facial recognition                      | To be announced                                                                                                                       |
-| YoloV5               | Yolo          | https://github.com/ultralytics/yolov5                         | Object detection                        | To be announced                                                                                                                       |
-| Word2Vec             | Word2Vec      | https://spacy.io/usage/embeddings-transformers                | Document search                         | To be announced                                                                                                                       |
-| Neural Random Forest | Random Forest | https://arxiv.org/abs/1604.07143                              | Credit scoring                          | To be announced                                                                                                                       |
-| M5 network           | 1D CNN        | https://arxiv.org/pdf/1610.00087.pdf                          | Speaker recognition                     | To be announced                                                                                                                       |
+| Model name           | Model family  | Link to model                                                 | Example use case                        | Article                                                                                                                               | Link to the notebook                                                                                 | Inference time (ms) | Hardware                        |
+|----------------------|---------------|---------------------------------------------------------------|-----------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------|---------------------|---------------------------------|
+| DistilBERT           | BERT          | https://huggingface.co/docs/transformers/model_doc/distilbert | Sentiment analysis                      | [Deploy Transformers models with confidentiality](https://blog.mithrilsecurity.io/transformers-with-confidentiality/)                 | https://github.com/mithril-security/blindai/blob/master/examples/distilbert/BlindAI-DistilBERT.ipynb | 28.435              | Intel(R) Xeon(R) Platinum 8370C |
+| COVID-Net-CXR-2      | 2D CNN        | https://github.com/lindawangg/COVID-Net                       | Chest XRAY analysis for COVID detection | [Confidential medical image analysis with COVID-Net and BlindAI](https://blog.mithrilsecurity.io/confidential-covidnet-with-blindai/) | https://github.com/mithril-security/blindai/blob/master/examples/covidnet/BlindAI-COVID-Net.ipynb    | To be announced     | To be announced                 |
+| Wav2vec2             | Wav2vec       | https://huggingface.co/docs/transformers/model_doc/wav2vec2   | Speech to text                          | To be announced                                                                                                                       | https://github.com/mithril-security/blindai/blob/master/examples/wav2vec2/BlindAI-Wav2vec2.ipynb     | 617.04              | Intel(R) Xeon(R) Platinum 8370C |
+| Facenet              | Resnet        | https://github.com/timesler/facenet-pytorch                   | Facial recognition                      | To be announced                                                                                                                       | To be announced                                                                                      | 47.135              | Intel(R) Xeon(R) Platinum 8370C |
+| YoloV5               | Yolo          | https://github.com/ultralytics/yolov5                         | Object detection                        | To be announced                                                                                                                       | To be announced                                                                                      | To be announced     | To be announced                 |
+| Word2Vec             | Word2Vec      | https://spacy.io/usage/embeddings-transformers                | Document search                         | To be announced                                                                                                                       | To be announced                                                                                      | To be announced     | To be announced                 |
+| Neural Random Forest | Random Forest | https://arxiv.org/abs/1604.07143                              | Credit scoring                          | To be announced                                                                                                                       | To be announced                                                                                      | To be announced     | To be announced                 |
+| M5 network           | 1D CNN        | https://arxiv.org/pdf/1610.00087.pdf                          | Speaker recognition                     | To be announced                                                                                                                       | To be announced                                                                                      | To be announced     | To be announced                 |                                                                                  |
 
-## Getting started
+We will publish soon the scripts to run the benchmarks. 
 
-### Step 1 - Deploying the server
+## :page_facing_up: Documentation
 
-Since the BlindAI server relies on specific hardware (Intel SGX) for security, this Getting Started guide will focus on running the Simulation mode, which can run on any machine. Note that the Simulation mode is not secure.
+To learn more about our project, do not hesitate to read our [documentation](https://docs.mithrilsecurity.io/).
 
-To learn about deploying BlindAI on real hardware, see the [Deploy on Hardware](https://docs.mithrilsecurity.io/getting-started/deploy-on-hardware) documentation page and skip the next step. Here is also a [step-by-step guide to create an SGX-enabled Azure VM and deploy BlindAI in 5 minutes](https://docs.mithrilsecurity.io/getting-started/cloud-deployment).
-
-Run the Simulation docker image.
-
-```bash
-docker run -it -p 50051:50051 -p 50052:50052 mithrilsecuritysas/blindai-server-sim
-```
-
-### Step 2 - Uploading the model to the server
-
-The Python client SDK has a very simple API, but it deals with most of the complexity of working with Confidential Computing. When connecting to the BlindAI server, the client will ask for a _quote_. This cryptographic _quote_ enables the client to know whether it is really talking with an Intel SGX enclave and that the loaded binary is indeed a known one. The hardware then guarantees privacy by completely isolating the server code and memory from the rest of the system.
-
-You can learn more about the attestation mechanism for code integrity [here](https://sgx101.gitbook.io/sgx101/sgx-bootstrap/attestation).
-
-#### Install the python library
-
-If you feel extra-lazy, we also have a Jupyter notebook environment you can just pull and use, just run
-```bash
-docker run --network host mithrilsecuritysas/blindai-client-demo
-```
-It also contains the other examples 😉
-
-If you don't, install the BlindAI python client using pip:
-
-```bash
-pip install blindai
-```
-
-Make sure you also have the following dependencies for this example:
-
-```bash
-pip install transformers torch
-```
-
-#### Upload the model
-
-We will use the DistilBert model in this example.
-
-The inference server can load any [ONNX model](https://onnx.ai/). We will export our DistilBert model from Pytorch to ONNX.
-
-```python
-from transformers import DistilBertTokenizer, DistilBertForSequenceClassification
-import torch
-from blindai.client import BlindAiClient, ModelDatumType
-
-# Get pretrained model
-model = DistilBertForSequenceClassification.from_pretrained("distilbert-base-uncased")
-
-# Create dummy input for export
-tokenizer = DistilBertTokenizer.from_pretrained("distilbert-base-uncased")
-sentence = "I love AI and privacy!"
-inputs = tokenizer(sentence, padding = "max_length", max_length = 8, return_tensors="pt")["input_ids"]
-
-# Export the model
-torch.onnx.export(
-	model, inputs, "./distilbert-base-uncased.onnx",
-	export_params=True, opset_version=11,
-	input_names = ['input'], output_names = ['output'],
-	dynamic_axes={'input' : {0 : 'batch_size'},
-	'output' : {0 : 'batch_size'}})
-
-# Launch client
-client = BlindAiClient()
-client.connect_server(addr="localhost", simulation=True)
-client.upload_model(model="./distilbert-base-uncased.onnx", shape=inputs.shape, dtype=ModelDatumType.I64)
-```
-
-### Step 3 - Run an the model
-
-Run the model on the inference server and get the result 🥳
-
-```python
-from transformers import DistilBertTokenizer
-from blindai.client import BlindAiClient
-
-tokenizer = DistilBertTokenizer.from_pretrained("distilbert-base-uncased")
-
-sentence = "I love AI and privacy!"
-inputs = tokenizer(sentence, padding = "max_length", max_length = 8)["input_ids"]
-
-# Load the client
-client = BlindAiClient()
-client.connect_server("localhost", simulation=True)
-
-# Get prediction
-response = client.run_model(inputs)
-```
-
-### What you can do with BlindAI
+## :white_check_mark: What you can do with BlindAI
 
 - Easily deploy state-of-the-art models with confidentiality. Run any [ONNX model](https://onnx.ai/), from **BERT** for text to **ResNets** for **images**, and much more.
 - Provide guarantees to third parties, for instance clients or regulators, that you are indeed providing **data protection**, through **code attestation**.
 - Explore different scenarios from confidential **Sentiment analysis**, to **medical imaging** with our pool of examples.
 
-### What you cannot do with BlindAI
+## :negative_squared_cross_mark: What you cannot do with BlindAI
 
 - Our solution aims to be modular but we have yet to incorporate tools for generic pre/post processing. Specific pipelines can be covered but will require additional handwork for now.
 - We do not cover training and federated learning yet, but if this feature interests you do not hesitate to show your interest through the [roadmap](https://blog.mithrilsecurity.io/our-roadmap-at-mithril-security/) or [Discord](https://discord.gg/TxEHagpWd4) channel.
 - The examples we provide are simple, and do not take into account complex mechanisms such as secure storage of confidential data with sealing keys, advanced scheduler for inference requests, or complex key management scenarios. If your use case involves more than what we show, do not hesitate to **contact us** for more information.
+
+## :computer: Current hardware support 
+
+Our solution currently leverages Intel SGX enclaves to protect data.
+
+If you want to deploy our solution with real hardware protection and not only simulation, you can either deploy it on premise with the right hardware specs, or rent a machine adapted for Confidential Computing in the Cloud.
+
+You can go to [Azure Confidential Computing VMs to try](https://docs.microsoft.com/en-us/azure/confidential-computing/confidential-computing-enclaves), with our [guides available here](https://docs.mithrilsecurity.io/getting-started/cloud-deployment) for deployment on DCsv2 and DCsv3.
+
+## :satellite: What next
+
+We intend to cover AMD SEV and Nitro Enclave in the future, which would make our solution available on GCP and AWS. 
+
+While we only cover deployment for now, we will start working on covering more complex pre/post processing pipelines inside enclaves, and training with Nvidia secure GPUs. More information about our roadmap can be found [here](https://blog.mithrilsecurity.io/our-roadmap-at-mithril-security/).
+
+## :question:FAQ
+
+**Q: How do I make sure data that I send is protected**
+
+**A:** We leverage secure enclaves to provide end-to-end protection. This means that even while your data is sent to someone else for them to apply an AI on it, your data remains protected thanks to hardware memory isolation and encryption.
+
+We provide some information in our workshop [Reconcile AI and privacy with Confidential Computing](https://www.youtube.com/watch?v=tAT23GKMi_0).
+
+You can also have a look on our series [Confidential Computing explained](https://blog.mithrilsecurity.io/confidential-computing-explained-part-1-introduction/).
+
+**Q: How much slowdown should we expect when using BlindAI?**
+
+**A:** We will provide a detailled benchmark soon. Usually you should see a negligeable slowdown with some simple models, and we have observed up to 30-40% slowdown for complex models.
+
+**Q: What is the maximal data/model size with BlindAI?**
+
+**A:** With the latest Intel Xeon Icelake 3rd Gen, the enclaves can now protect up to 1TB of code and data. This means that most models, even the biggest ones, can be made confidential with our solution. 
+
+**Q: What do I need to do to use BlindAI?**
+
+**A:** The general workflow of BlindAI is described [here](#wrench-how-do-i-use-it). Basically you need to export your model in ONNX, upload it to the server and then you can send data to be analyzed securely.
+
+**Q: Can I use Python script with BlindAI?**
+
+**A:** We only support ONNX models for now, but most of the time preprocessing or postprocessing workflows can be expressed using ONNX operators. In that case you just have to include it in your model before exporting it to ONNX. You can see example for instance in the [Wav2vec2 example](https://github.com/mithril-security/blindai/blob/master/examples/wav2vec2/BlindAI-Wav2vec2.ipynb).
+
+**Q: Do you do training or federated learning?**
+
+**A:** We do not cover training or federated learning yet. However this is definitively on our roadmap, and you should expect news from us soon. For more information, please reach out to us at contact [at] mithrilsecurity dot io.
 
 ## Telemetry
 

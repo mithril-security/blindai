@@ -41,14 +41,14 @@ rustls = {git = 'https://github.com/mithril-security/rustls-sgx', branch = "rust
 serde = {git = 'https://github.com/mithril-security/serde-xargo-sgx.git', tag = "v1.0.130-sgx"}
 serde_derive = {git = 'https://github.com/mithril-security/serde-xargo-sgx.git', tag = "v1.0.130-sgx"}
 socket2 = {git = "https://github.com/mithril-security/socket2-sgx.git", tag = "v0.4.2-sgx"}
-tar = {git = "https://github.com/mithril-security/tar-rs-sgx.git", tag = "0.4.33x"}
+tar = {git = "https://github.com/mithril-security/tar-rs-sgx-xargo.git", tag = "0.4.38"}
 tokio = {git = 'https://github.com/mithril-security/tokio-sgx', tag = "tokio-1.12.0-sgx"}
 tokio-util = {git = 'https://github.com/mithril-security/tokio-sgx', tag = "tokio-1.12.0-sgx"}
 tonic-rpc = {git = "https://github.com/mithril-security/tonic-rpc.git", branch = "main"}
 tower = {git = 'https://github.com/mithril-security/tower-sgx', branch = "tower-sgx"}
 tracing-core = {git = 'https://github.com/mithril-security/tracing-sgx', branch = "tracing-core-sgx"}
-tract-core = {git = "https://github.com/mithril-security/tract-sgx-xargo.git", tag = "0.16.6-pre-interpolation-nearest"}
-tract-onnx = {git = "https://github.com/mithril-security/tract-sgx-xargo.git", tag = "0.16.6-pre-interpolation-nearest"}
+tract-core = {git = "https://github.com/mithril-security/tract-sgx-xargo.git", tag = "0.16.6-pre-interpolation-nearest-bump-tar"}
+tract-onnx = {git = "https://github.com/mithril-security/tract-sgx-xargo.git", tag = "0.16.6-pre-interpolation-nearest-bump-tar"}
 tokenizers =  {git = "ssh://git@github.com/mithril-security/tokenizers-sgx.git", branch = "target-sgx"}
 once_cell = {git = "ssh://git@github.com/mithril-security/once_cell-sgx.git", tag = "1.8.0x"}
 nom = {git = "ssh://git@github.com/mithril-security/nom-sgx.git", branch = "v6.1.2"}

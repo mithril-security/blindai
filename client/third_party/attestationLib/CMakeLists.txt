@@ -169,8 +169,8 @@ set(THREADS_PREFER_PTHREAD_FLAG ON)
 
 set(CMAKE_POSITION_INDEPENDENT_CODE TRUE) # adds -fpic/-fpie/-pie
 
-if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-	if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang" OR CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+	if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
 		if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS "5.0")
 			message(FATAL_ERROR "Clang 5.0 or above required.")
 		endif()
@@ -190,7 +190,11 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "GNU
 				)
         # implicit-conversion: Checks for suspicious behavior of implicit conversions. Enables implicit-unsigned-integer-truncation, implicit-signed-integer-truncation, and implicit-integer-sign-change.
 		# nullability: Enables nullability-arg, nullability-assign, and nullability-return. While violating nullability does not have undefined behavior, it is often unintentional, so UBSan offers to catch it.
-		set(CMAKE_EXE_LINKER_FLAGS_RELEASE_CLANG "-fsanitize=undefined,safe-stack,implicit-conversion,nullability")
+		if(APPLE)
+			set(CMAKE_EXE_LINKER_FLAGS_RELEASE_CLANG "-fsanitize=undefined,implicit-conversion,nullability")
+		else()
+			set(CMAKE_EXE_LINKER_FLAGS_RELEASE_CLANG "-fsanitize=undefined,safe-stack,implicit-conversion,nullability")
+		endif()
 	endif()
 	if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
 		if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS "5.0")
@@ -228,10 +232,12 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "GNU
 			"-Wredundant-decls"
 			)
 	if(NOT DEFINED SANITIZE_FLAGS)
-		set(SANITIZE_FLAGS
+		if(NOT(APPLE))
+			set(SANITIZE_FLAGS
 				"-Wl,-z,relro" "-Wl,-z,now" #data relocation and protection (RELRO)
 				"-Wl,-z,noexecstack"       #stack execution protection
 				"-Wl,--no-undefined")
+		endif()
 	endif()
 	set(CMAKE_CXX_FLAGS
 			"${CMAKE_C_FLAGS}"
@@ -247,10 +253,17 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "GNU
 	set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g -DDEBUG -UNDEBUG -UEDEBUG")
 	set(CMAKE_C_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG}")
 
+	if(APPLE)
 	set(COMMON_LINKER_FLAGS
-			"-ldl" "-lrt" "-lpthread"
+			"-ldl" "-lpthread"
 			"${SANITIZE_FLAGS}"
 			)
+	else()
+		set(COMMON_LINKER_FLAGS
+				"-ldl" "-lrt" "-lpthread"
+				"${SANITIZE_FLAGS}"
+				)
+	endif()
 
 	set(CMAKE_EXE_LINKER_FLAGS_RELEASE "${COMMON_LINKER_FLAGS}" "-pie" "${CMAKE_EXE_LINKER_FLAGS_RELEASE_CLANG}")
 	set(CMAKE_SHARED_LINKER_FLAGS_RELEASE "${COMMON_LINKER_FLAGS}")
