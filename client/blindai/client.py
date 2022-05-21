@@ -472,17 +472,18 @@ class BlindAiClient:
             with open(model, "rb") as f:
                 data = f.read()
 
-            print(type(shape), type(dtype), type(dtype_out))
-            input_facts = shape if type(shape) == list else [list(shape)]
+            print(type(shape), shape)
+            input_facts = list(map(lambda x: list(x), shape)) if type(
+                shape) == list else [list(shape)]
             dtypes = list(dtype) if type(dtype) == tuple else [dtype]
             dtypes_out = list(dtype_out) if type(dtype_out) == tuple else [dtype_out]
 
-            print(input_facts, dtypes, dtypes)
             tensor_inputs = []
             for (input_fact, datum_input, datum_output) in zip(input_facts, dtypes, dtypes_out):
                 tensor_inputs.append(TensorInput(
                     datum_input=datum_input, input_fact=input_fact, datum_output=datum_output))
-
+            print(input_facts)
+            print(tensor_inputs)
             response = self._stub.SendModel(
                 iter(
                     [

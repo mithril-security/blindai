@@ -122,6 +122,8 @@ impl Exchange for Exchanger {
             model_bytes.append(&mut model_proto.data)
         }
 
+        println!("{:?}", tensor_inputs);
+
         if model_size == 0 {
             return Err(Status::invalid_argument("Received no data".to_string()));
         }
@@ -214,6 +216,7 @@ impl Exchange for Exchanger {
         let mut client_info = None;
         let mut tensor_input = None;
 
+        let mut count = 0;
         while let Some(data_stream) = stream.next().await {
             let mut data_proto = data_stream?;
 
@@ -229,9 +232,13 @@ impl Exchange for Exchanger {
                 sign = data_proto.sign;
             }
             input.append(&mut data_proto.input);
-            for x in &tensor_input.clone().unwrap().input_fact {
-                input_fact.push(*x as usize);
+
+            if count == 0 {
+                for x in &tensor_input.clone().unwrap().input_fact {
+                    input_fact.push(*x as usize);
+                }
             }
+            count += 1;
             datum_type = FromPrimitive::from_i32(tensor_input.clone().unwrap().datum_input.clone())
                 .ok_or_else(|| Status::invalid_argument("Unknown datum type".to_string()))?
         }

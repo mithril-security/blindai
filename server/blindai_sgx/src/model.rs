@@ -81,31 +81,6 @@ fn convert_tensor<A: serde::ser::Serialize + tract_core::prelude::Datum>(
     Ok(serde_cbor::to_vec(&slice)?)
 }
 
-// #[derive(Debug, Clone, PartialEq, Hash, Eq)]
-// pub struct TensorInput {
-//     input_fact: Vec<usize>,
-//     datum_input: ModelDatumType,
-//     datum_output: ModelDatumType,
-// }
-
-// impl TensorInput {
-//     pub fn new(
-//         input_fact: Vec<usize>,
-//         datum_input: ModelDatumType,
-//         datum_output: ModelDatumType,
-//     ) -> TensorInput {
-//         TensorInput {
-//             input_fact: input_fact.clone(),
-//             datum_input: datum_input.clone(),
-//             datum_output: datum_output.clone(),
-//         }
-//     }
-
-//     pub fn get_datum_out(&self) -> ModelDatumType {
-//         self.datum_output
-//     }
-// }
-
 pub type MultipleOnnxModels = HashMap<(Vec<usize>, ModelDatumType), OnnxModel>;
 
 #[derive(Debug)]
