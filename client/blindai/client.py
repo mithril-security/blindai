@@ -41,6 +41,7 @@ from blindai.pb.securedexchange_pb2 import (
     RunModelRequest,
     SendModelRequest,
     ClientInfo,
+    TensorInput
 )
 from blindai.pb.proof_files_pb2 import ResponseProof
 from blindai.pb.securedexchange_pb2_grpc import ExchangeStub
@@ -439,9 +440,9 @@ class BlindAiClient:
     def upload_model(
         self,
         model: str,
-        shape: Tuple = None,
-        dtype: ModelDatumType = ModelDatumType.F32,
-        dtype_out: ModelDatumType = ModelDatumType.F32,
+        shape: Tuple[Tuple, list] = None,
+        dtype: Tuple[Tuple, ModelDatumType] = (ModelDatumType.F32,),
+        dtype_out: Tuple[Tuple, ModelDatumType] = (ModelDatumType.F32,),
         sign: bool = False,
     ) -> UploadModelResponse:
         """Upload an inference model to the server.
@@ -470,19 +471,28 @@ class BlindAiClient:
         try:
             with open(model, "rb") as f:
                 data = f.read()
-            input_fact = list(shape)
+
+            print(type(shape), type(dtype), type(dtype_out))
+            input_facts = shape if type(shape) == list else [list(shape)]
+            dtypes = list(dtype) if type(dtype) == tuple else [dtype]
+            dtypes_out = list(dtype_out) if type(dtype_out) == tuple else [dtype_out]
+
+            print(input_facts, dtypes, dtypes)
+            tensor_inputs = []
+            for (input_fact, datum_input, datum_output) in zip(input_facts, dtypes, dtypes_out):
+                tensor_inputs.append(TensorInput(
+                    datum_input=datum_input, input_fact=input_fact, datum_output=datum_output))
+
             response = self._stub.SendModel(
                 iter(
                     [
                         SendModelRequest(
                             length=len(data),
-                            input_fact=input_fact,
                             data=chunk,
-                            datum=int(dtype),
                             sign=sign,
                             client_info=self.client_info,
                             model_name=os.path.basename(model),
-                            datum_output=int(dtype_out),
+                            tensor_inputs=tensor_inputs,
                         )
                         for chunk in create_byte_chunk(data)
                     ]
@@ -509,7 +519,7 @@ class BlindAiClient:
 
         return ret
 
-    def run_model(self, data_list: List[Any], sign: bool = False) -> RunModelResponse:
+    def run_model(self, data_list: List[Any], sign: bool = False, dtype: ModelDatumType = ModelDatumType.F32, shape: Tuple = None) -> RunModelResponse:
         """Send data to the server to make a secure inference.
 
         The data provided must be in a list, as the tensor will be rebuilt inside the server.
@@ -531,6 +541,9 @@ class BlindAiClient:
 
         try:
             serialized_bytes = cbor2_dumps(data_list)
+            input_fact = list(shape)
+            tensor_input = TensorInput(input_fact=input_fact, datum_input=dtype)
+
             response = self._stub.RunModel(
                 iter(
                     [
@@ -538,6 +551,7 @@ class BlindAiClient:
                             client_info=self.client_info,
                             input=serialized_bytes_chunk,
                             sign=sign,
+                            tensor_input=tensor_input
                         )
                         for serialized_bytes_chunk in create_byte_chunk(
                             serialized_bytes

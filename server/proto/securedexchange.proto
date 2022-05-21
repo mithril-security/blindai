@@ -24,6 +24,15 @@ service Exchange {
     rpc RunModel (stream RunModelRequest) returns (RunModelReply);
 }
 
+enum DatumTypeEnum {
+    F32 = 0;
+    F64 = 1;
+    I32 = 2;
+    I64 = 3;
+    U32 = 4;
+    U64 = 5;
+};
+
 message ClientInfo {
     string uid = 1;
     string platform_name = 2;
@@ -52,30 +61,26 @@ message Payload {
     }
 }
 
+/* Tensor */
+message TensorInput {
+    repeated int32 input_fact = 1;
+    DatumTypeEnum datum_input = 2;
+    DatumTypeEnum datum_output = 3;
+}
+
 /* SendModel */
 
 message SendModelRequest {
     bytes data = 1;
     uint64 length = 2;
-    repeated int32 input_fact = 3;
-    DatumTypeEnum datum = 4;
+    repeated TensorInput tensor_inputs = 3;
     // whether or not the server should sign the reply
-    bool sign = 5;
+    bool sign = 4;
     // this is optional
-    ClientInfo client_info = 6;
+    ClientInfo client_info = 5;
     // this is optional
-    string model_name = 7;
-    DatumTypeEnum datum_output = 8;
+    string model_name = 6;
 }
-
-enum DatumTypeEnum {
-    F32 = 0;
-    F64 = 1;
-    I32 = 2;
-    I64 = 3;
-    U32 = 4;
-    U64 = 5;
-};
 
 message SendModelReply {
     // This is a serialized `Payload` message
@@ -102,6 +107,7 @@ message RunModelRequest {
     bool sign = 2;
     // this is optional
     ClientInfo client_info = 3;
+    TensorInput tensor_input = 4;
 }
 
 message RunModelReply {

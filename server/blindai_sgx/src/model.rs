@@ -14,13 +14,16 @@
 
 use std::vec::Vec;
 
+use crate::client_communication::secured_exchange::TensorInput;
 use anyhow::{anyhow, Result};
 use num_derive::FromPrimitive;
+use std::collections::HashMap;
+use tonic::Status;
 use tract_onnx::prelude::{tract_ndarray::IxDynImpl, *};
 
 pub type OnnxModel = SimplePlan<TypedFact, Box<dyn TypedOp>, Graph<TypedFact, Box<dyn TypedOp>>>;
 
-#[derive(Debug, FromPrimitive, PartialEq, Clone, Copy)]
+#[derive(Debug, FromPrimitive, PartialEq, Clone, Copy, Eq, Hash)]
 pub enum ModelDatumType {
     F32 = 0,
     F64 = 1,
@@ -69,63 +72,122 @@ fn create_tensor<A: serde::de::DeserializeOwned + tract_core::prelude::Datum>(
 }
 
 fn convert_tensor<A: serde::ser::Serialize + tract_core::prelude::Datum>(
-     input: &tract_onnx::prelude::Tensor,
+    input: &tract_onnx::prelude::Tensor,
 ) -> Result<Vec<u8>> {
     let arr = input.to_array_view::<A>()?;
     let slice = arr
-            .as_slice()
-            .ok_or_else(|| anyhow!("Failed to convert ArrayView to slice"))?;
+        .as_slice()
+        .ok_or_else(|| anyhow!("Failed to convert ArrayView to slice"))?;
     Ok(serde_cbor::to_vec(&slice)?)
-} 
+}
+
+// #[derive(Debug, Clone, PartialEq, Hash, Eq)]
+// pub struct TensorInput {
+//     input_fact: Vec<usize>,
+//     datum_input: ModelDatumType,
+//     datum_output: ModelDatumType,
+// }
+
+// impl TensorInput {
+//     pub fn new(
+//         input_fact: Vec<usize>,
+//         datum_input: ModelDatumType,
+//         datum_output: ModelDatumType,
+//     ) -> TensorInput {
+//         TensorInput {
+//             input_fact: input_fact.clone(),
+//             datum_input: datum_input.clone(),
+//             datum_output: datum_output.clone(),
+//         }
+//     }
+
+//     pub fn get_datum_out(&self) -> ModelDatumType {
+//         self.datum_output
+//     }
+// }
+
+pub type MultipleOnnxModels = HashMap<(Vec<usize>, ModelDatumType), OnnxModel>;
 
 #[derive(Debug)]
 pub struct InferenceModel {
-    onnx: OnnxModel,
-    datum_type: ModelDatumType,
-    input_fact: Vec<usize>,
+    onnx_models: MultipleOnnxModels,
     model_name: Option<String>,
-    pub datum_output: ModelDatumType, // public because this will be sent back to the client to deserialize the data properly
+    pub tensor_inputs: Vec<TensorInput>,
+    pub datum_input_output: HashMap<(Vec<usize>, ModelDatumType), ModelDatumType>,
 }
 
 impl InferenceModel {
     pub fn load_model(
         mut model_data: &[u8],
-        input_fact: Vec<usize>,
-        datum_type: ModelDatumType,
         model_name: Option<String>,
-        datum_output: ModelDatumType,
+        tensor_inputs: Vec<TensorInput>,
     ) -> Result<Self> {
-        let model_rec = tract_onnx::onnx()
-            // load the model
-            .model_for_read(&mut model_data)?
-            // specify input type and shape
-            .with_input_fact(
-                0,
-                InferenceFact::dt_shape(datum_type.get_datum_type(), &input_fact),
-            )?
-            // optimize the model
-            .into_optimized()?
-            // make the model runnable and fix its inputs and outputs
-            .into_runnable()?;
+        let mut model_recs: MultipleOnnxModels = MultipleOnnxModels::new();
+        let mut datum_input_output: HashMap<(Vec<usize>, ModelDatumType), ModelDatumType> =
+            HashMap::new();
+
+        let mut datum_input: ModelDatumType = ModelDatumType::I64; // dummy
+        let mut datum_output: ModelDatumType = ModelDatumType::I64; // dummy
+        for tensor_input in tensor_inputs.clone() {
+            let mut input_fact: Vec<usize> = vec![];
+            for x in &tensor_input.input_fact {
+                input_fact.push(*x as usize);
+            }
+            datum_input = num_traits::FromPrimitive::from_i32(tensor_input.datum_input.clone())
+                .ok_or_else(|| Status::invalid_argument("Unknown datum type".to_string()))?;
+
+            datum_output = num_traits::FromPrimitive::from_i32(tensor_input.datum_input.clone())
+                .ok_or_else(|| Status::invalid_argument("Unknown datum type".to_string()))?;
+            let model_rec = tract_onnx::onnx()
+                // load the model
+                .model_for_read(&mut model_data)?
+                // specify input type and shape
+                .with_input_fact(
+                    0,
+                    InferenceFact::dt_shape(datum_input.get_datum_type(), tensor_input.input_fact),
+                )?
+                // optimize the model
+                .into_optimized()?
+                // make the model runnable and fix its inputs and outputs
+                .into_runnable()?;
+
+            model_recs.insert((input_fact.clone(), datum_input), model_rec);
+            datum_input_output.insert(
+                (input_fact.clone(), datum_input.clone()),
+                datum_output.clone(),
+            );
+        }
         Ok(InferenceModel {
-            onnx: model_rec,
-            datum_type,
-            input_fact,
+            onnx_models: model_recs.clone(),
+            tensor_inputs: tensor_inputs.clone(),
             model_name,
-            datum_output,
+            datum_input_output: datum_input_output.clone(),
         })
     }
 
-    pub fn run_inference(&self, input: &[u8]) -> Result<Vec<u8>> {
-        let tensor = dispatch_numbers!(create_tensor(self.datum_type.get_datum_type())(
+    pub fn run_inference(
+        &self,
+        input: &[u8],
+        input_fact: Vec<usize>,
+        datum_type: ModelDatumType,
+    ) -> Result<Vec<u8>> {
+        let tensor = dispatch_numbers!(create_tensor(datum_type.get_datum_type())(
             input,
-            &self.input_fact
+            &input_fact.clone()
         ))?;
-        let result = self.onnx.run(tvec!(tensor))?;
-        let arr = dispatch_numbers!(convert_tensor(&self.datum_output.get_datum_type())(
-            &result[0]
-        ))?;
-       Ok(arr)
+        println!("Running inference");
+        let onnx = self
+            .onnx_models
+            .get(&(input_fact.clone(), datum_type))
+            .unwrap();
+        let result = onnx.run(tvec!(tensor))?;
+
+        let datum_output = self
+            .datum_input_output
+            .get(&(input_fact.clone(), datum_type))
+            .unwrap();
+        let arr = dispatch_numbers!(convert_tensor(&datum_output.get_datum_type())(&result[0]))?;
+        Ok(arr)
     }
 
     pub fn model_name(&self) -> Option<&str> {

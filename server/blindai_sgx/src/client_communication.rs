@@ -34,6 +34,7 @@ use secured_exchange::exchange_server::Exchange;
 use tonic::{Request, Response, Status};
 
 use crate::{
+    client_communication::secured_exchange::TensorInput,
     identity::MyIdentity,
     model::{InferenceModel, ModelDatumType},
     telemetry::{self, TelemetryEventProps},
@@ -71,10 +72,10 @@ impl Exchange for Exchanger {
         let start_time = Instant::now();
 
         let mut stream = request.into_inner();
-        let mut datum = ModelDatumType::I64; // dummy
-        let mut datum_output = ModelDatumType::I64; // dummy
+        let mut tensor_inputs: Vec<TensorInput> = vec![]; // dummy
+        let mut datum_output: Vec<ModelDatumType> = vec![ModelDatumType::I64]; // dummy
 
-        let mut input_fact: Vec<usize> = Vec::new();
+        let mut input_facts: Vec<Vec<usize>> = Vec::new();
         let mut model_bytes: Vec<u8> = Vec::new();
         let max_model_size = self.max_model_size;
         let mut model_size = 0usize;
@@ -97,14 +98,22 @@ impl Exchange for Exchanger {
                 };
                 client_info = model_proto.client_info;
 
-                for x in &model_proto.input_fact {
-                    input_fact.push(*x as usize);
+                for x in &model_proto.tensor_inputs {
+                    tensor_inputs.push(x.clone());
                 }
 
-                datum = FromPrimitive::from_i32(model_proto.datum)
-                    .ok_or_else(|| Status::invalid_argument("Unknown datum type".to_string()))?;
-                datum_output = FromPrimitive::from_i32(model_proto.datum_output)
-                    .ok_or_else(|| Status::invalid_argument("Unknown datum type".to_string()))?;
+                // for x in &model_proto.datum {
+                //     datums.push(FromPrimitive::from_i32(*x).ok_or_else(|| {
+                //         Status::invalid_argument("Unknown datum type".to_string())
+                //     })?);
+                // }
+
+                // for x in &model_proto.datum_output {
+                //     datum_output.push(FromPrimitive::from_i32(*x).ok_or_else(|| {
+                //         Status::invalid_argument("Unknown datum type".to_string())
+                //     })?);
+                // }
+
                 sign = model_proto.sign;
             }
             if model_size > max_model_size || model_bytes.len() > max_model_size {
@@ -118,7 +127,7 @@ impl Exchange for Exchanger {
         }
 
         let model =
-            InferenceModel::load_model(&model_bytes, input_fact.clone(), datum, model_name.clone(), datum_output)
+            InferenceModel::load_model(&model_bytes, model_name.clone(), tensor_inputs.clone())
                 .map_err(|err| {
                     error!("Unknown error creating model: {}", err);
                     Status::unknown("Unknown error".to_string())
@@ -132,7 +141,11 @@ impl Exchange for Exchanger {
             payload.model_hash = digest::digest(&digest::SHA256, &model_bytes)
                 .as_ref()
                 .to_vec();
-            payload.input_fact = input_fact.into_iter().map(|i| i as i32).collect();
+            payload.input_fact = input_facts
+                .into_iter()
+                .flatten()
+                .map(|i| i as i32)
+                .collect();
         }
 
         let payload_with_header = Payload {
@@ -193,15 +206,19 @@ impl Exchange for Exchanger {
         let mut stream = request.into_inner();
 
         let mut input: Vec<u8> = Vec::new();
+        let mut input_fact: Vec<usize> = vec![];
+        let mut datum_type: ModelDatumType = ModelDatumType::I64; // dummy
         let mut sign = false;
         let max_input_size = self.max_input_size;
 
         let mut client_info = None;
+        let mut tensor_input = None;
 
         while let Some(data_stream) = stream.next().await {
             let mut data_proto = data_stream?;
 
             client_info = data_proto.client_info;
+            tensor_input = data_proto.tensor_input;
 
             if data_proto.input.len() * size_of::<u8>() > max_input_size
                 || input.len() * size_of::<u8>() > max_input_size
@@ -212,10 +229,13 @@ impl Exchange for Exchanger {
                 sign = data_proto.sign;
             }
             input.append(&mut data_proto.input);
+            for x in &tensor_input.clone().unwrap().input_fact {
+                input_fact.push(*x as usize);
+            }
+            datum_type = FromPrimitive::from_i32(tensor_input.clone().unwrap().datum_input.clone())
+                .ok_or_else(|| Status::invalid_argument("Unknown datum type".to_string()))?
         }
-
         let model_guard = self.model.lock().unwrap();
-
         let model = if let Some(model) = &*model_guard {
             model
         } else {
@@ -223,15 +243,20 @@ impl Exchange for Exchanger {
                 "Cannot find the model".to_string(),
             ));
         };
+        let result = model
+            .run_inference(&input.clone(), input_fact.clone(), datum_type)
+            .map_err(|err| {
+                error!("Unknown error running inference: {}", err);
+                Status::unknown("Unknown error".to_string())
+            })?;
 
-        let result = model.run_inference(&input).map_err(|err| {
-            error!("Unknown error running inference: {}", err);
-            Status::unknown("Unknown error".to_string())
-        })?;
-
+        let datum_out: ModelDatumType = *model
+            .datum_input_output
+            .get(&(input_fact, datum_type))
+            .unwrap();
         let mut payload = RunModelPayload {
             output: result,
-            datum_output: model.datum_output as i32,
+            datum_output: datum_out as i32,
             ..Default::default()
         };
         // payload.model_id = "default".into();
