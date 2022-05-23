@@ -14,7 +14,7 @@
 
 use std::vec::Vec;
 
-use crate::client_communication::secured_exchange::TensorInput;
+use crate::client_communication::secured_exchange::TensorInfo;
 use anyhow::{anyhow, Result};
 use num_derive::FromPrimitive;
 use std::collections::HashMap;
@@ -81,86 +81,93 @@ fn convert_tensor<A: serde::ser::Serialize + tract_core::prelude::Datum>(
     Ok(serde_cbor::to_vec(&slice)?)
 }
 
-pub type MultipleOnnxModels = HashMap<(Vec<usize>, ModelDatumType), OnnxModel>;
+pub type MultipleOnnxModels = HashMap<String, OnnxModel>;
 
 #[derive(Debug)]
 pub struct InferenceModel {
     onnx_models: MultipleOnnxModels,
     model_name: Option<String>,
-    pub tensor_inputs: Vec<TensorInput>,
-    pub datum_input_output: HashMap<(Vec<usize>, ModelDatumType), ModelDatumType>,
+    pub datum_inputs: HashMap<String, ModelDatumType>,
+    input_facts: HashMap<String, Vec<usize>>,
+    pub datum_outputs: HashMap<String, ModelDatumType>,
 }
 
 impl InferenceModel {
     pub fn load_model(
-        mut model_data: &[u8],
+        mut model_data: Vec<u8>,
         model_name: Option<String>,
-        tensor_inputs: Vec<TensorInput>,
+        tensor_inputs: HashMap<String, TensorInfo>,
+        tensor_outputs: HashMap<String, TensorInfo>,
     ) -> Result<Self> {
-        let mut model_recs: MultipleOnnxModels = MultipleOnnxModels::new();
-        let mut datum_input_output: HashMap<(Vec<usize>, ModelDatumType), ModelDatumType> =
-            HashMap::new();
+        let convert_type = |t| {
+            num_traits::FromPrimitive::from_i32(t)
+                .ok_or_else(|| Status::invalid_argument("Unknown datum type".to_string()))
+        };
 
-        let mut datum_input: ModelDatumType = ModelDatumType::I64; // dummy
-        let mut datum_output: ModelDatumType = ModelDatumType::I64; // dummy
-        for tensor_input in tensor_inputs.clone() {
+        let mut model_recs: MultipleOnnxModels = HashMap::new();
+        let mut datum_outputs: HashMap<String, ModelDatumType> = HashMap::new();
+        let mut datum_inputs: HashMap<String, ModelDatumType> = HashMap::new();
+        let mut input_facts: HashMap<String, Vec<usize>> = HashMap::new();
+
+        let mut datum_input: ModelDatumType; // dummy
+        let mut datum_output: ModelDatumType; // dummy
+
+        for it in tensor_inputs.clone().iter() {
+            let (index, tensor_input) = it;
             let mut input_fact: Vec<usize> = vec![];
-            for x in &tensor_input.input_fact {
+            /*
+            * copy model data to create multiple maps to different input configurations
+            (<(1,480,480,3), F32> --> Model)
+            (<(1,450,450,3), F32> --> Model)
+            */
+            let model_data_copy: &mut [u8] = &mut model_data;
+
+            for x in &tensor_input.fact {
                 input_fact.push(*x as usize);
             }
-            datum_input = num_traits::FromPrimitive::from_i32(tensor_input.datum_input.clone())
-                .ok_or_else(|| Status::invalid_argument("Unknown datum type".to_string()))?;
+            datum_input = convert_type(tensor_input.datum_type.clone())?;
 
-            datum_output = num_traits::FromPrimitive::from_i32(tensor_input.datum_input.clone())
-                .ok_or_else(|| Status::invalid_argument("Unknown datum type".to_string()))?;
+            datum_output = convert_type(tensor_outputs.get(index).unwrap().datum_type.clone())?;
+
             let model_rec = tract_onnx::onnx()
                 // load the model
-                .model_for_read(&mut model_data)?
+                .model_for_read(&mut &model_data_copy[..])?
                 // specify input type and shape
                 .with_input_fact(
                     0,
-                    InferenceFact::dt_shape(datum_input.get_datum_type(), tensor_input.input_fact),
+                    InferenceFact::dt_shape(datum_input.get_datum_type(), &input_fact),
                 )?
                 // optimize the model
                 .into_optimized()?
                 // make the model runnable and fix its inputs and outputs
                 .into_runnable()?;
 
-            model_recs.insert((input_fact.clone(), datum_input), model_rec);
-            datum_input_output.insert(
-                (input_fact.clone(), datum_input.clone()),
-                datum_output.clone(),
-            );
+            model_recs.insert(index.clone(), model_rec);
+            datum_outputs.insert(index.clone(), datum_output.clone());
+            datum_inputs.insert(index.clone(), datum_input.clone());
+            input_facts.insert(index.clone(), input_fact.clone());
         }
+
         Ok(InferenceModel {
             onnx_models: model_recs.clone(),
-            tensor_inputs: tensor_inputs.clone(),
+            datum_inputs: datum_inputs.clone(),
+            input_facts: input_facts.clone(),
             model_name,
-            datum_input_output: datum_input_output.clone(),
+            datum_outputs: datum_outputs.clone(),
         })
     }
 
-    pub fn run_inference(
-        &self,
-        input: &[u8],
-        input_fact: Vec<usize>,
-        datum_type: ModelDatumType,
-    ) -> Result<Vec<u8>> {
+    pub fn run_inference(&self, input: &[u8], tensor_index: &String) -> Result<Vec<u8>> {
+        let datum_type = self.datum_inputs.get(tensor_index).unwrap();
+        let input_fact = self.input_facts.get(tensor_index).unwrap();
         let tensor = dispatch_numbers!(create_tensor(datum_type.get_datum_type())(
             input,
             &input_fact.clone()
         ))?;
-        println!("Running inference");
-        let onnx = self
-            .onnx_models
-            .get(&(input_fact.clone(), datum_type))
-            .unwrap();
+        let onnx = self.onnx_models.get(tensor_index).unwrap();
         let result = onnx.run(tvec!(tensor))?;
 
-        let datum_output = self
-            .datum_input_output
-            .get(&(input_fact.clone(), datum_type))
-            .unwrap();
+        let datum_output = self.datum_outputs.get(tensor_index).unwrap();
         let arr = dispatch_numbers!(convert_tensor(&datum_output.get_datum_type())(&result[0]))?;
         Ok(arr)
     }

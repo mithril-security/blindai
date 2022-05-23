@@ -20,7 +20,7 @@ import ssl
 import platform
 from enum import IntEnum
 from hashlib import sha256
-from typing import Any, List, Optional, Tuple
+from typing import Any, Dict, List, Optional
 
 from cbor2 import dumps as cbor2_dumps
 from cbor2 import loads as cbor2_loads
@@ -41,7 +41,8 @@ from blindai.pb.securedexchange_pb2 import (
     RunModelRequest,
     SendModelRequest,
     ClientInfo,
-    TensorInput
+    Pair,
+    TensorInfo
 )
 from blindai.pb.proof_files_pb2 import ResponseProof
 from blindai.pb.securedexchange_pb2_grpc import ExchangeStub
@@ -281,6 +282,8 @@ class BlindAiClient:
     attestation: Optional[GetSgxQuoteWithCollateralReply] = None
     server_version: Optional[str] = None
     client_info: ClientInfo
+    tensor_inputs: Dict
+    tensor_outputs: Dict
 
     def __init__(self, debug_mode=False):
         if debug_mode:
@@ -440,9 +443,8 @@ class BlindAiClient:
     def upload_model(
         self,
         model: str,
-        shape: Tuple[Tuple, list] = None,
-        dtype: Tuple[Tuple, ModelDatumType] = (ModelDatumType.F32,),
-        dtype_out: Tuple[Tuple, ModelDatumType] = (ModelDatumType.F32,),
+        tensor_inputs: Dict[str, TensorInfo],
+        tensor_outputs: Dict[str, ModelDatumType],
         sign: bool = False,
     ) -> UploadModelResponse:
         """Upload an inference model to the server.
@@ -472,18 +474,15 @@ class BlindAiClient:
             with open(model, "rb") as f:
                 data = f.read()
 
-            print(type(shape), shape)
-            input_facts = list(map(lambda x: list(x), shape)) if type(
-                shape) == list else [list(shape)]
-            dtypes = list(dtype) if type(dtype) == tuple else [dtype]
-            dtypes_out = list(dtype_out) if type(dtype_out) == tuple else [dtype_out]
+            inputs = []
+            for k, v in tensor_inputs.items():
+                inputs.append(Pair(index=k, info=v))
 
-            tensor_inputs = []
-            for (input_fact, datum_input, datum_output) in zip(input_facts, dtypes, dtypes_out):
-                tensor_inputs.append(TensorInput(
-                    datum_input=datum_input, input_fact=input_fact, datum_output=datum_output))
-            print(input_facts)
-            print(tensor_inputs)
+            outputs = []
+            for k, v in tensor_outputs.items():
+                tensor_info = TensorInfo(fact=[1, 480, 480, 3], datum_type=v)
+                outputs.append(Pair(index=k, info=tensor_info))
+
             response = self._stub.SendModel(
                 iter(
                     [
@@ -493,7 +492,8 @@ class BlindAiClient:
                             sign=sign,
                             client_info=self.client_info,
                             model_name=os.path.basename(model),
-                            tensor_inputs=tensor_inputs,
+                            tensor_inputs=inputs,
+                            tensor_outputs=outputs
                         )
                         for chunk in create_byte_chunk(data)
                     ]
@@ -520,7 +520,7 @@ class BlindAiClient:
 
         return ret
 
-    def run_model(self, data_list: List[Any], sign: bool = False, dtype: ModelDatumType = ModelDatumType.F32, shape: Tuple = None) -> RunModelResponse:
+    def run_model(self, data_list: List[Any], tensor_index: str, sign: bool = False) -> RunModelResponse:
         """Send data to the server to make a secure inference.
 
         The data provided must be in a list, as the tensor will be rebuilt inside the server.
@@ -542,8 +542,6 @@ class BlindAiClient:
 
         try:
             serialized_bytes = cbor2_dumps(data_list)
-            input_fact = list(shape)
-            tensor_input = TensorInput(input_fact=input_fact, datum_input=dtype)
 
             response = self._stub.RunModel(
                 iter(
@@ -552,7 +550,7 @@ class BlindAiClient:
                             client_info=self.client_info,
                             input=serialized_bytes_chunk,
                             sign=sign,
-                            tensor_input=tensor_input
+                            tensor_index=tensor_index
                         )
                         for serialized_bytes_chunk in create_byte_chunk(
                             serialized_bytes
