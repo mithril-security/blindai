@@ -6,11 +6,11 @@
 
 <h4 align="center">
   <a href="https://www.mithrilsecurity.io">Website</a> |
-  <a href="https://www.linkedin.com/company/mithril-security-company">LinkedIn</a> | 
-  <a href="https://blog.mithrilsecurity.io/">Blog</a> |
-  <a href="https://www.twitter.com/mithrilsecurity">Twitter</a> | 
   <a href="https://docs.mithrilsecurity.io/">Documentation</a> |
+  <a href="https://blog.mithrilsecurity.io/">Blog</a> |
   <a href="https://hub.docker.com/u/mithrilsecuritysas">Docker Hub</a> |
+  <a href="https://www.linkedin.com/company/mithril-security-company">LinkedIn</a> | 
+  <a href="https://www.twitter.com/mithrilsecurity">Twitter</a> | 
   <a href="https://discord.gg/TxEHagpWd4">Discord</a>
 </h4>
 
@@ -34,6 +34,7 @@ Our solution comes in two parts:
   * [A - Export the AI workflow](#a---export-the-ai-workflow)
   * [B - Deploy it on BlindAI](#b---deploy-it-on-blindai)
 - [:sunny: Models covered by BlindAI](#sunny-models-covered-by-blindai)
+- [:page_facing_up: Documentation](#page_facing_up-documentation)
 - [:white_check_mark: What you can do with BlindAI](#white_check_mark-what-you-can-do-with-blindai)
 - [:negative_squared_cross_mark: What you cannot do with BlindAI](#negative_squared_cross_mark-what-you-cannot-do-with-blindai)
 - [:computer: Current hardware support](#computer-current-hardware-support)
@@ -48,11 +49,9 @@ Today, most AI tools offer no privacy by design mechanisms, so when data is sent
 
 We illustrate it below with the use of AI for voice assistants. Audio recordings are often sent to the Cloud to be analysed, leaving conversations exposed to leaks and uncontrolled usage without users’ knowledge or consent.
 
-![Without BlindAI](https://github.com/mithril-security/animations/raw/main/Without_BlindAI_min.gif)
-
 Currently, even though data can be sent securely with TLS, some stakeholders in the loop can see and expose data : the AI company renting the machine, the Cloud provider or a malicious insider. 
 
-![With BlindAI](https://github.com/mithril-security/animations/raw/main/With_blindAI_min.gif)
+![Before / after BlindAI](https://github.com/mithril-security/animations/raw/main/With_and_without_blindai.gif)
 
 By using BlindAI, data remains always protected as it is only decrypted inside a Trusted Execution Environment, called an enclave, whose contents are protected by hardware. While data is in clear inside the enclave, it is inaccessible to the outside thanks to isolation and memory encryption. This way, data can be processed, enriched, and analysed by AI, without exposing it to external parties.
 
@@ -106,6 +105,10 @@ Here is a list of models BlindAI supports, the use cases it unlocks and articles
 | M5 network           | 1D CNN        | https://arxiv.org/pdf/1610.00087.pdf                          | Speaker recognition                     | To be announced                                                                                                                       | To be announced                                                                                      | To be announced     | To be announced                 |                                                                                  |
 
 We will publish soon the scripts to run the benchmarks. 
+
+## :page_facing_up: Documentation
+
+To learn more about our project, do not hesitate to read our [documentation](https://docs.mithrilsecurity.io/).
 
 ## :white_check_mark: What you can do with BlindAI
 
