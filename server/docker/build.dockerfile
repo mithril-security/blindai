@@ -159,8 +159,8 @@ COPY . ./server
 
 ENV SGX_MODE=HW
 
-RUN --mount=type=cache,target=/root/server/target \
-    --mount=type=cache,target=/root/server/tmp \
+RUN --mount=type=cache,id=HW-/root/server/target,target=/root/server/target \
+    --mount=type=cache,id=HW-/root/server/tmp,target=/root/server/tmp \
     --mount=type=cache,target=/root/.xargo \
     --mount=type=cache,target=/root/.cargo/git \
     --mount=type=cache,target=/root/.cargo/registry \
@@ -285,8 +285,8 @@ COPY . ./server
 
 ENV SGX_MODE=SW
 
-RUN --mount=type=cache,target=/root/server/target \
-    --mount=type=cache,target=/root/server/tmp \
+RUN --mount=type=cache,id=SW-/root/server/target,target=/root/server/target \
+    --mount=type=cache,id=SW-/root/server/tmp,target=/root/server/tmp \
     --mount=type=cache,target=/root/.xargo \
     --mount=type=cache,target=/root/.cargo/git \
     --mount=type=cache,target=/root/.cargo/registry \

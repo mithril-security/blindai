@@ -11,7 +11,10 @@ import os
 import onnxruntime
 import cv2
 import numpy as np
+import logging
 
+
+logging.basicConfig(level=logging.INFO)
 
 class TestCovidNetBase:
     def setUp(self):
@@ -41,7 +44,7 @@ class TestCovidNetBase:
         )
 
         if not self.simulation and os.getenv("BLINDAI_DUMPRES") is not None:
-            upload_response.save_to_file("exec_upload.proof")
+            upload_response.save_to_file("./client/tests/exec_upload.proof")
 
         response = client.run_model(
             upload_response.model_id,
@@ -50,7 +53,7 @@ class TestCovidNetBase:
         )
 
         if not self.simulation and os.getenv("BLINDAI_DUMPRES") is not None:
-            response.save_to_file("exec_run.proof")
+            response.save_to_file("./client/tests/exec_run.proof")
 
         ort_session = onnxruntime.InferenceSession(model)
         ort_inputs = {ort_session.get_inputs()[0].name: img}

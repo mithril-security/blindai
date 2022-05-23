@@ -75,6 +75,7 @@ impl Exchange for Exchanger {
 
         let mut stream = request.into_inner();
         let mut datum = ModelDatumType::I64; // dummy
+        let mut datum_output = ModelDatumType::I64; // dummy
 
         let mut input_fact: Vec<usize> = Vec::new();
         let mut model_bytes: Vec<u8> = Vec::new();
@@ -105,6 +106,8 @@ impl Exchange for Exchanger {
 
                 datum = FromPrimitive::from_i32(model_proto.datum)
                     .ok_or_else(|| Status::invalid_argument("Unknown datum type".to_string()))?;
+                datum_output = FromPrimitive::from_i32(model_proto.datum_output)
+                    .ok_or_else(|| Status::invalid_argument("Unknown datum type".to_string()))?;
                 sign = model_proto.sign;
             }
             if model_size > max_model_size || model_bytes.len() > max_model_size {
@@ -119,7 +122,7 @@ impl Exchange for Exchanger {
 
         let (model_id, model_hash) = self
             .model_store
-            .add_model(&model_bytes, input_fact.clone(), datum, model_name.clone())
+            .add_model(&model_bytes, input_fact.clone(), datum, model_name.clone(), datum_output)
             .map_err(|err| {
                 error!("Error while creating model: {}", err);
                 Status::unknown("Unknown error".to_string())
@@ -226,6 +229,7 @@ impl Exchange for Exchanger {
             (
                 model.run_inference(&input),
                 model.model_name().map(|s| s.to_string()),
+                model.datum_output(),
             )
         });
         let res = match res {
@@ -233,7 +237,7 @@ impl Exchange for Exchanger {
             None => return Err(Status::invalid_argument("Model doesn't exist")),
         };
 
-        let (result, model_name) = res;
+        let (result, model_name, datum_output) = res;
 
         let result = match result {
             Ok(res) => res,
@@ -245,6 +249,7 @@ impl Exchange for Exchanger {
 
         let mut payload = RunModelPayload {
             output: result,
+            datum_output: datum_output as i32,
             ..Default::default()
         };
         if sign {

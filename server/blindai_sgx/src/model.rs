@@ -70,6 +70,16 @@ fn create_tensor<A: serde::de::DeserializeOwned + tract_core::prelude::Datum>(
     Ok(tensor)
 }
 
+fn convert_tensor<A: serde::ser::Serialize + tract_core::prelude::Datum>(
+     input: &tract_onnx::prelude::Tensor,
+) -> Result<Vec<u8>> {
+    let arr = input.to_array_view::<A>()?;
+    let slice = arr
+            .as_slice()
+            .ok_or_else(|| anyhow!("Failed to convert ArrayView to slice"))?;
+    Ok(serde_cbor::to_vec(&slice)?)
+} 
+
 #[derive(Debug)]
 pub struct InferenceModel {
     pub onnx: Arc<OnnxModel>,
@@ -79,6 +89,7 @@ pub struct InferenceModel {
     model_id: Uuid,
     model_name: Option<String>,
     model_hash: Digest,
+    datum_output: ModelDatumType,
 }
 
 impl InferenceModel {
@@ -89,6 +100,7 @@ impl InferenceModel {
         model_id: Uuid,
         model_name: Option<String>,
         model_hash: Digest,
+        datum_output: ModelDatumType,
     ) -> Result<Self> {
         let model_rec = tract_onnx::onnx()
             // load the model
@@ -109,6 +121,7 @@ impl InferenceModel {
             model_id,
             model_name,
             model_hash,
+            datum_output,
         })
     }
 
@@ -119,6 +132,7 @@ impl InferenceModel {
         model_id: Uuid,
         model_name: Option<String>,
         model_hash: Digest,
+        datum_output: ModelDatumType,
     ) -> Self {
         InferenceModel {
             onnx,
@@ -127,20 +141,20 @@ impl InferenceModel {
             model_id,
             model_name,
             model_hash,
+            datum_output,
         }
     }
 
-    pub fn run_inference(&self, input: &[u8]) -> Result<Vec<f32>> {
+    pub fn run_inference(&self, input: &[u8]) -> Result<Vec<u8>> {
         let tensor = dispatch_numbers!(create_tensor(self.datum_type.get_datum_type())(
             input,
             &self.input_fact
         ))?;
         let result = self.onnx.run(tvec!(tensor))?;
-        let arr = result[0].to_array_view::<f32>()?;
-        Ok(arr
-            .as_slice()
-            .ok_or_else(|| anyhow!("Failed to convert ArrayView to slice"))?
-            .to_vec())
+        let arr = dispatch_numbers!(convert_tensor(&self.datum_output.get_datum_type())(
+            &result[0]
+        ))?;
+       Ok(arr)
     }
 
     pub fn model_name(&self) -> Option<&str> {
@@ -149,5 +163,9 @@ impl InferenceModel {
 
     pub fn model_hash(&self) -> Digest {
         self.model_hash
+    }
+
+    pub fn datum_output(&self) -> ModelDatumType {
+        self.datum_output
     }
 }

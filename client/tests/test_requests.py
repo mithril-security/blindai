@@ -74,6 +74,7 @@ class TestProof(unittest.TestCase):
         # send_model
 
         datum = ModelDatumType.F32
+        datum_out = ModelDatumType.F32
         shape = (1, 480, 480, 3)
 
         def send_model_util(sign):
@@ -99,7 +100,9 @@ class TestProof(unittest.TestCase):
 
             ExchangeStub().SendModel = Mock(side_effect=send_model)
 
-            response = client.upload_model(model_path, shape, datum, sign)
+            response = client.upload_model(
+                model_path, shape=shape, dtype=datum, dtype_out=datum_out, sign=sign
+            )
 
             if not sign:
                 self.assertFalse(response.is_signed())

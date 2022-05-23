@@ -1,2 +1,13 @@
 target
 docker/*.dockerfile
+
+bin/
+target/
+tmp/
+
+blindai_app/Enclave_u.c
+blindai_app/Enclave_u.h
+blindai_sgx/Enclave_t.c
+blindai_sgx/Enclave_t.h
+
+blindai_sgx/enclave.meta.txt

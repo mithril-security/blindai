@@ -39,6 +39,7 @@ impl ModelStore {
         input_fact: Vec<usize>,
         datum: ModelDatumType,
         model_name: Option<String>,
+        datum_output: ModelDatumType,
     ) -> Result<(Uuid, Digest)> {
         let model_id = Uuid::new_v4();
         let model_hash = digest::digest(&digest::SHA256, &model_bytes);
@@ -58,7 +59,7 @@ impl ModelStore {
                 Entry::Occupied(mut entry) => {
                     let (num, onnx) = entry.get_mut();
                     *num += 1;
-                    debug!("Reusing an existing ONNX entry for model. (n = {})", *num);
+                    info!("Reusing an existing ONNX entry for model. (n = {})", *num);
                     InferenceModel::from_onnx_loaded(
                         onnx.clone(),
                         input_fact,
@@ -66,10 +67,11 @@ impl ModelStore {
                         model_id,
                         model_name,
                         model_hash,
+                        datum_output,
                     )
                 }
                 Entry::Vacant(entry) => {
-                    debug!("Creating a new ONNX entry for model.");
+                    info!("Creating a new ONNX entry for model.");
                     // FIXME(cchudant): this call may take a while to run, we may want to refactor
                     // this so that the lock  isn't taken here
                     let model = InferenceModel::load_model(
@@ -79,6 +81,7 @@ impl ModelStore {
                         model_id,
                         model_name,
                         model_hash,
+                        datum_output,
                     )?;
                     entry.insert((1, model.onnx.clone()));
                     model
