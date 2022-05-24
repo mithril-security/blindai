@@ -81,11 +81,9 @@ fn convert_tensor<A: serde::ser::Serialize + tract_core::prelude::Datum>(
     Ok(serde_cbor::to_vec(&slice)?)
 }
 
-pub type MultipleOnnxModels = HashMap<String, OnnxModel>;
-
 #[derive(Debug)]
 pub struct InferenceModel {
-    onnx_models: MultipleOnnxModels,
+    onnx_models: HashMap<String, OnnxModel>,
     model_name: Option<String>,
     pub datum_inputs: HashMap<String, ModelDatumType>,
     input_facts: HashMap<String, Vec<usize>>,
@@ -104,7 +102,7 @@ impl InferenceModel {
                 .ok_or_else(|| Status::invalid_argument("Unknown datum type".to_string()))
         };
 
-        let mut model_recs: MultipleOnnxModels = HashMap::new();
+        let mut model_recs: HashMap<String, OnnxModel> = HashMap::new();
         let mut datum_outputs: HashMap<String, ModelDatumType> = HashMap::new();
         let mut datum_inputs: HashMap<String, ModelDatumType> = HashMap::new();
         let mut input_facts: HashMap<String, Vec<usize>> = HashMap::new();
@@ -115,11 +113,6 @@ impl InferenceModel {
         for it in tensor_inputs.clone().iter() {
             let (index, tensor_input) = it;
             let mut input_fact: Vec<usize> = vec![];
-            /*
-            * copy model data to create multiple maps to different input configurations
-            (<(1,480,480,3), F32> --> Model)
-            (<(1,450,450,3), F32> --> Model)
-            */
             let model_data_copy: &mut [u8] = &mut model_data;
 
             for x in &tensor_input.fact {

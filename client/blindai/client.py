@@ -444,7 +444,7 @@ class BlindAiClient:
         self,
         model: str,
         tensor_inputs: Dict[str, TensorInfo],
-        tensor_outputs: Dict[str, ModelDatumType],
+        tensor_outputs: Optional[Dict[str, ModelDatumType]] = {"index_0": ModelDatumType.F32},
         sign: bool = False,
     ) -> UploadModelResponse:
         """Upload an inference model to the server.
@@ -452,9 +452,8 @@ class BlindAiClient:
 
         Args:
             model (str): Path to Onnx model file.
-            shape (Tuple, optional): The shape of the model input. Defaults to None.
-            dtype (ModelDatumType, optional): The type of the model input data (f32 by default). Defaults to ModelDatumType.F32.
-            dtype_out (ModelDatumType, optional): The type of the model output data (f32 by default). Defaults to ModelDatumType.F32.
+            tensor_inputs (Dict[str, TensorInfo]): A dictionary describing multiple inputs of the model.
+            tensor_outputs (Dict[str, ModelDatumType], optional):A dictionary describing multiple inputs of the model. Defaults to {"index_0": ModelDatumType.F32}.
             sign (bool, optional): Get signed responses from the server or not. Defaults to False.
 
         Raises:
@@ -480,7 +479,7 @@ class BlindAiClient:
 
             outputs = []
             for k, v in tensor_outputs.items():
-                tensor_info = TensorInfo(fact=[1, 480, 480, 3], datum_type=v)
+                tensor_info = TensorInfo(fact=[], datum_type=v)
                 outputs.append(Pair(index=k, info=tensor_info))
 
             response = self._stub.SendModel(
@@ -527,6 +526,7 @@ class BlindAiClient:
 
         Args:
             data_list (List[Any]): The input data. It must be an array of numbers of the same type dtype specified in `upload_model`.
+            tensor_index (str): The key of the tensor input in the `tensor_inputs` dictionary.
             sign (bool, optional): Get signed responses from the server or not. Defaults to False.
 
         Raises:
