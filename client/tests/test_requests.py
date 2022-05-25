@@ -7,6 +7,9 @@ import unittest
 from unittest.mock import MagicMock, Mock, patch
 import blindai.client
 import cbor2
+from unittest.mock import *
+from datetime import datetime, timedelta
+import time  # so we can override time.time
 
 from blindai.pb.securedexchange_pb2 import (
     SendModelRequest,
@@ -25,12 +28,20 @@ from blindai.client import (
     UploadModelResponse,
 )
 
+import cryptography
+from cryptography.hazmat.primitives import serialization
+
 from .covidnet import get_input, model_path, get_model
 
 
-class TestProof(unittest.TestCase):
+mock_time = Mock()
+mock_time.return_value = time.mktime(datetime(2022, 4, 15).timetuple())
+
+
+class TestRequest(unittest.TestCase):
     @patch("blindai.client.AttestationStub")
     @patch("blindai.client.secure_channel")
+    @patch("time.time", mock_time)
     def test_connect(self, secure_channel: MagicMock, AttestationStub: MagicMock):
         res = UploadModelResponse()
         res.load_from_file(os.path.join(os.path.dirname(__file__), "exec_upload.proof"))
@@ -47,6 +58,7 @@ class TestProof(unittest.TestCase):
     @patch("blindai.client.ExchangeStub")
     @patch("blindai.client.AttestationStub")
     @patch("blindai.client.secure_channel")
+    @patch("time.time", mock_time)
     def test_upload_model(
         self,
         _secure_channel: MagicMock,
@@ -124,6 +136,7 @@ class TestProof(unittest.TestCase):
     @patch("blindai.client.ExchangeStub")
     @patch("blindai.client.AttestationStub")
     @patch("blindai.client.secure_channel")
+    @patch("time.time", mock_time)
     def test_run_model(
         self,
         _secure_channel: MagicMock,
@@ -180,7 +193,7 @@ class TestProof(unittest.TestCase):
 
                 self.assertEqual(
                     response.output,
-                    Payload.FromString(real_response.payload).run_model_payload.output,
+                    cbor2.loads(Payload.FromString(real_response.payload).run_model_payload.output),
                 )
 
                 client.enclave_signing_key.verify(response.signature, response.payload)
@@ -194,6 +207,76 @@ class TestProof(unittest.TestCase):
         run_model_util(sign=False)
         run_model_util(sign=True)
 
+        # close server
 
-if __name__ == "__main__":
-    unittest.main()
+        self.assertTrue(client.is_connected())
+        client.close_connection()
+        self.assertFalse(client.is_connected())
+        client.close_connection()
+        self.assertFalse(client.is_connected())
+
+    @patch("blindai.client.ExchangeStub")
+    @patch("blindai.client.AttestationStub")
+    @patch("blindai.client.secure_channel")
+    @patch("ssl.get_server_certificate")
+    @patch("time.time", mock_time)
+    def test_run_model_simulation(
+        self,
+        get_server_certificate: MagicMock,
+        secure_channel: MagicMock,
+        AttestationStub: MagicMock,
+        ExchangeStub: MagicMock,
+    ):
+        res = RunModelResponse()
+        res.load_from_file(os.path.join(os.path.dirname(__file__), "exec_run.proof"))
+        real_response = RunModelReply(
+            payload=res.payload,
+            signature=res.signature,
+        )
+
+        # connect
+
+        cert = b"-----BEGIN CERTIFICATE-----\nMIICoTCCAkagAwIBAgIICPOHq4cyW9gwCgYIKoZIzj0EAwIwITEfMB0GA1UEAwwW\ncmNnZW4gc2VsZiBzaWduZWQgY2VydDAgFw03NTAxMDEwMDAwMDBaGA80MDk2MDEw\nMTAwMDAwMFowITEfMB0GA1UEAwwWcmNnZW4gc2VsZiBzaWduZWQgY2VydDBZMBMG\nByqGSM49AgEGCCqGSM49AwEHA0IABJcBq9016gGORpbhaaJyA9fhqVh2eypiefoA\ng/C/hn+VvTSkckm6EFZSuoV8lYQ4+zVTrPBhb1hB7uPQVIggnQSjggFkMIIBYDAW\nBgNVHREEDzANggtibGluZGFpLXNydjCCARkGBSsGAQMBBIIBDjCCAQoCggEBAMn1\n2jMlbFgPAFxtzKr93ZsUEfWN7dzrC698IyXFy71F9VZPxlSFTtPLX5huC9HPRtb4\ncMXDIoFhLGahDpjN4qUarczYbFGqALqrOS0R9vod28vwq/4Wh9pif0Bj3kkR/qGK\nlZbGpr8LXEYiM1U2d4r7HwQlj//KLXcvJXv75TR6Mo3IDZmA43mlQs6rdQCJEBoU\nmodYq506xsoXZ62/HhB4IM/yK/ZAfMG/FWgL9ZW8SZLRS0WYKq8jSeDYvJGWk7YT\nRdOK4qk+HzueP5/VTErUmFWOkoFgAqidSQqL4KzTGxzSXRIn3a+YQocdnKcFZspZ\nHynF6EZmh9D2dk5PxaMCAwEAATApBgUrBgEDAgQg88lQ7Z5k8IE41l9q+T5zDELZ\nENSSG3HAXXcBwlakpKAwCgYIKoZIzj0EAwIDSQAwRgIhAIpFE0AGf/gwi4dw2onq\nmhQSC3k266hjXhwl+kEUw8K9AiEAj40q1gMJUjLSOn76W/sOVskFene71pVMN/Gl\nF1X0vsg=\n-----END CERTIFICATE-----\n"
+        get_server_certificate.return_value = cert.decode("ascii")
+        response = Mock()
+        response.enclave_tls_certificate = (
+            cryptography.x509.load_pem_x509_certificate(cert).public_bytes(
+                encoding=serialization.Encoding.DER,
+            )
+        )
+        AttestationStub().GetCertificate = Mock(return_value=response)
+
+        client = blindai.client.BlindAiClient()
+        client.connect_server("localhost", simulation=True)
+
+        # run_model
+
+        input = get_input()
+
+        def run_model(req: Iterator[RunModelRequest]):
+            arr = b""
+            reql = list(req)
+            for el in reql:
+                self.assertLessEqual(len(el.input), 32 * 1024)
+                arr += el.input
+                self.assertEqual(el.sign, False)
+
+            self.assertEqual(arr, cbor2.dumps(input))
+
+            return RunModelReply(
+                payload=real_response.payload,
+            )
+
+        ExchangeStub().RunModel = Mock(side_effect=run_model)
+
+        response = client.run_model(res.model_id, input)
+
+        self.assertFalse(response.is_signed())
+
+        # close server
+
+        self.assertTrue(client.is_connected())
+        client.close_connection()
+        self.assertFalse(client.is_connected())
+        client.close_connection()
+        self.assertFalse(client.is_connected())
