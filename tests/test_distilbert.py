@@ -62,6 +62,7 @@ class TestDistilBertBase:
         )
         model_id = response.model_id
 
+        print(response)
         client.enclave_signing_key.verify(
             response.signature, response.payload
         )
