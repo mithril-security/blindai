@@ -29,17 +29,20 @@ class TestDistilBertBase:
             certificate=certificate_file,
         )
 
-        client.upload_model(
+        response = client.upload_model(
             model=model_path,
             shape=inputs.shape,
             dtype=ModelDatumType.I64,
+            model_name="test.onnx",
         )
+        model_id = response.model_id
 
-        response = client.run_model(run_inputs)
+        response = client.run_model(model_id, run_inputs)
         origin_pred = model(torch.tensor(run_inputs).unsqueeze(0)).logits.detach()
 
         diff = (torch.tensor([response.output]) - origin_pred).sum().abs()
         self.assertLess(diff, 0.001)  # difference is <0.1%
+        client.delete_model(model_id)
 
     def test_signed(self):
         client = BlindAiClient()
@@ -52,14 +55,19 @@ class TestDistilBertBase:
         )
 
         response = client.upload_model(
-            model=model_path, shape=inputs.shape, dtype=ModelDatumType.I64, sign=True
+            model=model_path,
+            shape=inputs.shape,
+            dtype=ModelDatumType.I64,
+            sign=True,
         )
+        model_id = response.model_id
 
+        print(response)
         client.enclave_signing_key.verify(
             response.signature, response.payload
         )
 
-        response = client.run_model(run_inputs, sign=True)
+        response = client.run_model(model_id, run_inputs, sign=True)
 
         client.enclave_signing_key.verify(
             response.signature, response.payload

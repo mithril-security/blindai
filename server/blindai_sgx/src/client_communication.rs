@@ -12,50 +12,53 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use futures::StreamExt;
 use log::*;
+use num_traits::FromPrimitive;
+use prost::Message;
 use ring::digest;
-#[cfg(not(target_env = "sgx"))]
-use std::sync::Mutex;
-#[cfg(target_env = "sgx")]
-use std::sync::SgxMutex as Mutex;
+use ring_compat::signature::Signer;
 use std::{
     convert::TryInto,
     mem::size_of,
+    str::FromStr,
     sync::Arc,
     time::{Instant, SystemTime},
     vec::Vec,
 };
 
-use futures::StreamExt;
-use num_traits::FromPrimitive;
-use prost::Message;
-use ring_compat::signature::Signer;
-use secured_exchange::exchange_server::Exchange;
 use tonic::{Request, Response, Status};
+use uuid::Uuid;
 
 use crate::{
     identity::MyIdentity,
-    model::{InferenceModel, ModelDatumType},
+    model::{ModelDatumType},
+    model_store::ModelStore,
     telemetry::{self, TelemetryEventProps},
 };
-use secured_exchange::*;
+use secured_exchange::{exchange_server::Exchange, *};
 
 pub mod secured_exchange {
     tonic::include_proto!("securedexchange");
 }
 
 pub(crate) struct Exchanger {
-    model: std::sync::Arc<Mutex<Option<InferenceModel>>>,
+    model_store: Arc<ModelStore>,
     identity: Arc<MyIdentity>,
     max_model_size: usize,
     max_input_size: usize,
 }
 
 impl Exchanger {
-    pub fn new(identity: Arc<MyIdentity>, max_model_size: usize, max_input_size: usize) -> Self {
+    pub fn new(
+        model_store: Arc<ModelStore>,
+        identity: Arc<MyIdentity>,
+        max_model_size: usize,
+        max_input_size: usize,
+    ) -> Self {
         Self {
             identity,
-            model: Arc::new(Mutex::new(None)),
+            model_store,
             max_model_size,
             max_input_size,
         }
@@ -83,7 +86,7 @@ impl Exchange for Exchanger {
         let mut model_name = None;
         let mut client_info = None;
 
-        // get all model chunks from the client into a big Vec
+        // Get all model chunks from the client into a big Vec
         while let Some(model_stream) = stream.next().await {
             let mut model_proto = model_stream?;
             if model_size == 0 {
@@ -108,7 +111,7 @@ impl Exchange for Exchanger {
                 sign = model_proto.sign;
             }
             if model_size > max_model_size || model_bytes.len() > max_model_size {
-                return Err(Status::invalid_argument("Model too big".to_string()));
+                return Err(Status::invalid_argument("Model is too big".to_string()));
             }
             model_bytes.append(&mut model_proto.data)
         }
@@ -117,24 +120,21 @@ impl Exchange for Exchanger {
             return Err(Status::invalid_argument("Received no data".to_string()));
         }
 
-        let model =
-            InferenceModel::load_model(&model_bytes, input_fact.clone(), datum, model_name.clone(), datum_output)
-                .map_err(|err| {
-                    error!("Unknown error creating model: {}", err);
-                    Status::unknown("Unknown error".to_string())
-                })?;
+        let (model_id, model_hash) = self
+            .model_store
+            .add_model(&model_bytes, input_fact.clone(), datum, model_name.clone(), datum_output)
+            .map_err(|err| {
+                error!("Error while creating model: {}", err);
+                Status::unknown("Unknown error".to_string())
+            })?;
 
-        *self.model.lock().unwrap() = Some(model);
-
+        // Construct the return payload
         let mut payload = SendModelPayload::default();
-        // payload.model_id = "default".into();
         if sign {
-            payload.model_hash = digest::digest(&digest::SHA256, &model_bytes)
-                .as_ref()
-                .to_vec();
+            payload.model_hash = model_hash.as_ref().to_vec();
             payload.input_fact = input_fact.into_iter().map(|i| i as i32).collect();
         }
-
+        payload.model_id = model_id.to_string();
         let payload_with_header = Payload {
             header: Some(PayloadHeader {
                 issued_at: Some(SystemTime::now().into()),
@@ -155,6 +155,7 @@ impl Exchange for Exchanger {
                 .to_vec();
         }
 
+        // Logs and telemetry
         let elapsed = start_time.elapsed();
         info!(
             "[{} {}] SendModel successful in {}ms (model={}, size={}, sign={})",
@@ -195,9 +196,11 @@ impl Exchange for Exchanger {
         let mut input: Vec<u8> = Vec::new();
         let mut sign = false;
         let max_input_size = self.max_input_size;
+        let mut model_id = "".to_string();
 
         let mut client_info = None;
 
+        // Get all the data and put it in a Vec
         while let Some(data_stream) = stream.next().await {
             let mut data_proto = data_stream?;
 
@@ -210,33 +213,48 @@ impl Exchange for Exchanger {
             }
             if input.is_empty() {
                 sign = data_proto.sign;
+                model_id = data_proto.model_id;
             }
             input.append(&mut data_proto.input);
         }
 
-        let model_guard = self.model.lock().unwrap();
+        // Find the model with model_id
 
-        let model = if let Some(model) = &*model_guard {
-            model
-        } else {
-            return Err(Status::invalid_argument(
-                "Cannot find the model".to_string(),
-            ));
+        let uuid = match Uuid::from_str(&model_id) {
+            Ok(uuid) => uuid,
+            Err(_) => return Err(Status::invalid_argument("Model doesn't exist")),
         };
 
-        let result = model.run_inference(&input).map_err(|err| {
-            error!("Unknown error running inference: {}", err);
-            Status::unknown("Unknown error".to_string())
-        })?;
+        let res = self.model_store.use_model(uuid, |model| {
+            (
+                model.run_inference(&input),
+                model.model_name().map(|s| s.to_string()),
+                model.datum_output(),
+            )
+        });
+        let res = match res {
+            Some(res) => res,
+            None => return Err(Status::invalid_argument("Model doesn't exist")),
+        };
+
+        let (result, model_name, datum_output) = res;
+
+        let result = match result {
+            Ok(res) => res,
+            Err(err) => {
+                error!("Error while running inference: {}", err);
+                return Err(Status::unknown("Unknown error".to_string()));
+            }
+        };
 
         let mut payload = RunModelPayload {
             output: result,
-            datum_output: model.datum_output as i32,
+            datum_output: datum_output as i32,
             ..Default::default()
         };
-        // payload.model_id = "default".into();
         if sign {
             payload.input_hash = digest::digest(&digest::SHA256, &input).as_ref().to_vec();
+            payload.model_id = model_id;
         }
 
         let payload_with_header = Payload {
@@ -259,6 +277,7 @@ impl Exchange for Exchanger {
                 .to_vec();
         }
 
+        // Log and telemetry
         let elapsed = start_time.elapsed();
         info!(
             "[{} {}] RunModel successful in {}ms (model={}, sign={})",
@@ -271,18 +290,37 @@ impl Exchange for Exchanger {
                 .map(|c| c.user_agent_version.as_ref())
                 .unwrap_or("<unknown>"),
             elapsed.as_millis(),
-            model.model_name().unwrap_or("<unknown>"),
+            model_name.as_deref().unwrap_or("<unknown>"),
             sign
         );
         telemetry::add_event(
             TelemetryEventProps::RunModel {
-                model_name: model.model_name().map(|e| e.to_string()),
+                model_name: model_name.map(|e| e.to_string()),
                 sign,
                 time_taken: elapsed.as_secs_f64(),
             },
             client_info,
         );
 
+        Ok(Response::new(reply))
+    }
+
+    async fn delete_model(
+        &self,
+        request: Request<DeleteModelRequest>,
+    ) -> Result<Response<DeleteModelReply>, Status> {
+        let request = request.into_inner();
+        let model_id = Uuid::from_str(&request.model_id)
+            .map_err(|_| Status::invalid_argument("Model doesn't exist"))?;
+
+        // Delete the model
+        if self.model_store.delete_model(model_id).is_none() {
+            error!("Model doesn't exist");
+            return Err(Status::invalid_argument("Model doesn't exist"));
+        }
+
+        // Construct the payload
+        let reply = DeleteModelReply {};
         Ok(Response::new(reply))
     }
 }

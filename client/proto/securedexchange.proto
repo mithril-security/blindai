@@ -22,6 +22,7 @@ service Exchange {
     rpc SendModel (stream SendModelRequest) returns (SendModelReply);
     // Run an existing model to the server
     rpc RunModel (stream RunModelRequest) returns (RunModelReply);
+    rpc DeleteModel (DeleteModelRequest) returns (DeleteModelReply);
 }
 
 message ClientInfo {
@@ -83,7 +84,6 @@ message SendModelReply {
     // Signature of the payload
     // This field is not present when `sign` is `false` in the request
     bytes signature = 2;
-
 }
 
 message SendModelPayload {
@@ -93,6 +93,7 @@ message SendModelPayload {
     // Input fact
     // This field is empty when `sign` is `false` in the request
     repeated int32 input_fact = 2;
+    string model_id = 3;
 }
 
 /* RunModel */
@@ -103,6 +104,7 @@ message RunModelRequest {
     bool sign = 2;
     // this is optional
     ClientInfo client_info = 3;
+    string model_id = 4;
 }
 
 message RunModelReply {
@@ -119,4 +121,14 @@ message RunModelPayload {
     // Raw SHA-256 hash of the protobuf binary encoding of the repeated float input from RunModelRequest
     // This field is empty when `sign` is `false` in the request
     bytes input_hash = 3;
+    string model_id = 4;
+}
+
+/* DeleteModel */
+
+message DeleteModelRequest {
+    string model_id = 1;
+}
+
+message DeleteModelReply {
 }

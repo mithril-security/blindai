@@ -16,7 +16,9 @@ use std::vec::Vec;
 
 use anyhow::{anyhow, Result};
 use num_derive::FromPrimitive;
+use ring::digest::Digest;
 use tract_onnx::prelude::{tract_ndarray::IxDynImpl, *};
+use uuid::Uuid;
 
 pub type OnnxModel = SimplePlan<TypedFact, Box<dyn TypedOp>, Graph<TypedFact, Box<dyn TypedOp>>>;
 
@@ -80,11 +82,14 @@ fn convert_tensor<A: serde::ser::Serialize + tract_core::prelude::Datum>(
 
 #[derive(Debug)]
 pub struct InferenceModel {
-    onnx: OnnxModel,
+    pub onnx: Arc<OnnxModel>,
     datum_type: ModelDatumType,
     input_fact: Vec<usize>,
+    #[allow(unused)]
+    model_id: Uuid,
     model_name: Option<String>,
-    pub datum_output: ModelDatumType, // public because this will be sent back to the client to deserialize the data properly
+    model_hash: Digest,
+    datum_output: ModelDatumType,
 }
 
 impl InferenceModel {
@@ -92,7 +97,9 @@ impl InferenceModel {
         mut model_data: &[u8],
         input_fact: Vec<usize>,
         datum_type: ModelDatumType,
+        model_id: Uuid,
         model_name: Option<String>,
+        model_hash: Digest,
         datum_output: ModelDatumType,
     ) -> Result<Self> {
         let model_rec = tract_onnx::onnx()
@@ -108,12 +115,34 @@ impl InferenceModel {
             // make the model runnable and fix its inputs and outputs
             .into_runnable()?;
         Ok(InferenceModel {
-            onnx: model_rec,
+            onnx: model_rec.into(),
             datum_type,
             input_fact,
+            model_id,
             model_name,
+            model_hash,
             datum_output,
         })
+    }
+
+    pub fn from_onnx_loaded(
+        onnx: Arc<OnnxModel>,
+        input_fact: Vec<usize>,
+        datum_type: ModelDatumType,
+        model_id: Uuid,
+        model_name: Option<String>,
+        model_hash: Digest,
+        datum_output: ModelDatumType,
+    ) -> Self {
+        InferenceModel {
+            onnx,
+            datum_type,
+            input_fact,
+            model_id,
+            model_name,
+            model_hash,
+            datum_output,
+        }
     }
 
     pub fn run_inference(&self, input: &[u8]) -> Result<Vec<u8>> {
@@ -130,5 +159,13 @@ impl InferenceModel {
 
     pub fn model_name(&self) -> Option<&str> {
         self.model_name.as_deref()
+    }
+
+    pub fn model_hash(&self) -> Digest {
+        self.model_hash
+    }
+
+    pub fn datum_output(&self) -> ModelDatumType {
+        self.datum_output
     }
 }
