@@ -17,6 +17,7 @@ from blindai.utils.errors import SignatureError, AttestationError
 from unittest.mock import *
 from datetime import datetime, timedelta
 import time  # so we can override time.time
+import cbor2
 
 from .covidnet import get_input, get_model
 
@@ -100,13 +101,6 @@ class TestProof(unittest.TestCase):
         response.load_from_file(exec_run)
         policy = Policy.from_file(policy_file)
 
-        print('aaa')
-        print(response)
-        print(response.attestation)
-        print(response.payload)
-        print(response.signature)
-        print(response.output)
-
         response.validate(
             response.model_id,
             get_input(),
@@ -149,7 +143,7 @@ class TestProof(unittest.TestCase):
 
         response2 = deepcopy(response)
         payload = Payload.FromString(response2.payload)
-        payload.run_model_payload.output[0] += 0.1
+        payload.run_model_payload.output = cbor2.dumps([1, 2, 3])
         response2.payload = payload.SerializeToString()
         with self.assertRaises(SignatureError):
             response2.validate(
