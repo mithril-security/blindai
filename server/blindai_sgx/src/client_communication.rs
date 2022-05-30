@@ -211,7 +211,7 @@ impl Exchange for Exchanger {
         let mut client_info = None;
         let mut tensor_indexes: Vec<String> = Vec::new();
         let mut output_index: String = String::default();
-        let model_size: usize = 0usize;
+        let mut model_size: usize = 0usize;
 
         while let Some(data_stream) = stream.next().await {
             let mut data_proto = data_stream?;
@@ -233,6 +233,7 @@ impl Exchange for Exchanger {
                 sign = data_proto.sign;
             }
             input.append(&mut data_proto.input);
+            model_size += 1;
         }
         let model_guard = self.model.lock().unwrap();
         let model = if let Some(model) = &*model_guard {

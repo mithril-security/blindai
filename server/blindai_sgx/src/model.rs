@@ -97,6 +97,7 @@ pub struct InferenceModel {
     pub datum_inputs: HashMap<String, ModelDatumType>,
     input_facts: HashMap<String, Vec<usize>>,
     pub datum_outputs: HashMap<String, ModelDatumType>,
+    multiple_inputs: bool,
 }
 
 impl InferenceModel {
@@ -126,7 +127,11 @@ impl InferenceModel {
 
         let model_data_copy: &mut [u8] = &mut model_data;
         let mut model_rec = tract_onnx::onnx().model_for_read(&mut &model_data_copy[..])?;
-
+        let multiple_inputs = if tensor_inputs.clone().into_keys().len() > 1 {
+            true
+        } else {
+            false
+        };
         for it in tensor_inputs.clone().iter() {
             let (index, tensor_input): (&String, &TensorInfo) = it;
             let mut input_fact: Vec<usize> = vec![];
@@ -155,6 +160,7 @@ impl InferenceModel {
             input_facts: input_facts.clone(),
             model_name,
             datum_outputs: datum_outputs.clone(),
+            multiple_inputs,
         })
     }
 
@@ -170,36 +176,42 @@ impl InferenceModel {
         let mut __input_facts: Vec<usize> = vec![0];
         let mut __inputs: Vec<Vec<u8>> = Vec::new();
         let mut sum: usize = 0;
-        let input_vec: Vec<i32> = get_vec_from_cbor(input);
+        if self.multiple_inputs {
+            let input_vec: Vec<i32> = get_vec_from_cbor(input);
 
-        for fact in self
-            .input_facts
-            .clone()
-            .iter()
-            .filter(move |(k, _)| input_indexes.contains(k))
-            .collect::<HashMap<&String, &Vec<usize>>>()
-            .into_values()
-        {
-            let __value = fact.clone().into_iter().reduce(|a, b| (a * b)).unwrap();
-            sum += __value;
-            __input_facts.push(sum);
-        }
-
-        for window in __input_facts.windows(2) {
-            let a = window[0];
-            let b = window[1];
-            let tmp: Vec<i32> = input_vec
+            for fact in self
+                .input_facts
+                .clone()
                 .iter()
-                .enumerate()
-                .filter(move |(i, _)| i >= &a && i < &b)
-                .map(move |(_, v)| *v)
-                .collect::<Vec<i32>>();
+                .filter(move |(k, _)| input_indexes.contains(k))
+                .collect::<HashMap<&String, &Vec<usize>>>()
+                .into_values()
+            {
+                let __value = fact.clone().into_iter().reduce(|a, b| (a * b)).unwrap();
+                sum += __value;
+                __input_facts.push(sum);
+            }
 
-            __inputs.push(cbor_from_vec(tmp));
+            for window in __input_facts.windows(2) {
+                let a = window[0];
+                let b = window[1];
+                let tmp: Vec<i32> = input_vec
+                    .iter()
+                    .enumerate()
+                    .filter(move |(i, _)| i >= &a && i < &b)
+                    .map(move |(_, v)| *v)
+                    .collect::<Vec<i32>>();
+
+                __inputs.push(cbor_from_vec(tmp));
+            }
+        } else {
+            __inputs.push(input.to_owned());
         }
 
         let mut tensors: Vec<Tensor> = vec![];
+        println!("{}", input_indexes.len());
         for (i, tensor_index) in input_indexes.clone().iter().enumerate() {
+            println!("{}, {}", i, tensor_index);
             let datum_type = self.datum_inputs.get(tensor_index).unwrap();
             let input_fact = self.input_facts.get(tensor_index).unwrap();
             let tensor = dispatch_numbers!(create_tensor(datum_type.get_datum_type())(
@@ -211,6 +223,7 @@ impl InferenceModel {
 
         let result = self.onnx.run(TVec::from_vec(tensors.clone()))?;
         let datum_output = self.datum_outputs.get(output_index).unwrap();
+        println!("Result {}", result[0].len());
         let arr = dispatch_numbers!(convert_tensor(&datum_output.get_datum_type())(&result[0]))?;
         Ok(arr)
     }
