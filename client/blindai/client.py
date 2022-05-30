@@ -543,7 +543,6 @@ class BlindAiClient:
         try:
             data_list = [item for sublist in data_list for item in sublist]
             serialized_bytes = cbor2_dumps(data_list)
-            
             response = self._stub.RunModel(
                 iter(
                     [

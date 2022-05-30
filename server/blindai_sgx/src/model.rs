@@ -208,7 +208,7 @@ impl InferenceModel {
             __inputs.push(input.to_owned());
         }
 
-        let mut tensors: Vec<Tensor> = vec![];
+        let mut tensors: Vec<_> = vec![];
         println!("{}", input_indexes.len());
         for (i, tensor_index) in input_indexes.clone().iter().enumerate() {
             println!("{}, {}", i, tensor_index);
@@ -223,7 +223,8 @@ impl InferenceModel {
 
         let result = self.onnx.run(TVec::from_vec(tensors.clone()))?;
         let datum_output = self.datum_outputs.get(output_index).unwrap();
-        println!("Result {}", result[0].len());
+        println!("Result Length {}", result[0].len());
+        println!("Result {:?}", result[0]);
         let arr = dispatch_numbers!(convert_tensor(&datum_output.get_datum_type())(&result[0]))?;
         Ok(arr)
     }
