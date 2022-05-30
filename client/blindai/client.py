@@ -519,14 +519,14 @@ class BlindAiClient:
 
         return ret
 
-    def run_model(self, data_list: List[Any], tensor_index: str, sign: bool = False) -> RunModelResponse:
+    def run_model(self, data_list: List[List[Any]], input_indexes: List[str], output_index: str, sign: bool = False) -> RunModelResponse:
         """Send data to the server to make a secure inference.
 
         The data provided must be in a list, as the tensor will be rebuilt inside the server.
 
         Args:
             data_list (List[Any]): The input data. It must be an array of numbers of the same type dtype specified in `upload_model`.
-            tensor_index (str): The key of the tensor input in the `tensor_inputs` dictionary.
+            tensor_index (List[str]): The key of the tensor input in the `tensor_inputs` dictionary.
             sign (bool, optional): Get signed responses from the server or not. Defaults to False.
 
         Raises:
@@ -541,8 +541,9 @@ class BlindAiClient:
             raise ConnectionError("Not connected to the server")
 
         try:
+            data_list = [item for sublist in data_list for item in sublist]
             serialized_bytes = cbor2_dumps(data_list)
-
+            
             response = self._stub.RunModel(
                 iter(
                     [
@@ -550,7 +551,8 @@ class BlindAiClient:
                             client_info=self.client_info,
                             input=serialized_bytes_chunk,
                             sign=sign,
-                            tensor_index=tensor_index
+                            input_indexes=input_indexes,
+                            output_index=output_index
                         )
                         for serialized_bytes_chunk in create_byte_chunk(
                             serialized_bytes

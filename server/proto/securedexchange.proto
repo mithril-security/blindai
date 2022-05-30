@@ -113,7 +113,8 @@ message RunModelRequest {
     bool sign = 2;
     // this is optional
     ClientInfo client_info = 3;
-    string tensor_index = 4;
+    repeated string input_indexes = 4;
+    string output_index = 5;
 }
 
 message RunModelReply {
