@@ -16,6 +16,7 @@ import logging
 
 logging.basicConfig(level=logging.INFO)
 
+
 class TestCovidNetBase:
     def setUp(self):
         if not self.simulation and not has_hardware_support:

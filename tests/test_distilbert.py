@@ -63,15 +63,11 @@ class TestDistilBertBase:
         model_id = response.model_id
 
         print(response)
-        client.enclave_signing_key.verify(
-            response.signature, response.payload
-        )
+        client.enclave_signing_key.verify(response.signature, response.payload)
 
         response = client.run_model(model_id, run_inputs, sign=True)
 
-        client.enclave_signing_key.verify(
-            response.signature, response.payload
-        )
+        client.enclave_signing_key.verify(response.signature, response.payload)
 
         origin_pred = model(torch.tensor(run_inputs).unsqueeze(0)).logits.detach()
 

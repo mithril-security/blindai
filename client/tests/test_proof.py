@@ -14,7 +14,7 @@ from blindai.client import (
 )
 from blindai.dcap_attestation import Policy
 from blindai.utils.errors import SignatureError, AttestationError
-from unittest.mock import *
+from unittest.mock import Mock, patch
 from datetime import datetime, timedelta
 import time  # so we can override time.time
 import cbor2

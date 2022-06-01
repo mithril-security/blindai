@@ -53,10 +53,11 @@ ATTESTATION_BUILD_SCRIPT = {
         ],
         "postbuild": [],
     },
-
     "DARWIN": {
         "build": [
-            os.path.join(os.path.dirname(__file__), "scripts/buildAttestationLibDarwin.sh")
+            os.path.join(
+                os.path.dirname(__file__), "scripts/buildAttestationLibDarwin.sh"
+            )
         ],
         "postbuild": [],
     },
@@ -81,7 +82,7 @@ def find_version():
 
 def build_attestation_lib():
     subprocess.check_call(ATTESTATION_BUILD_SCRIPT[PLATFORM]["build"])
-    if PLATFORM not in  ["LINUX", "DARWIN"]:
+    if PLATFORM not in ["LINUX", "DARWIN"]:
         subprocess.check_call(ATTESTATION_BUILD_SCRIPT[PLATFORM]["postbuild"])
 
 
@@ -101,6 +102,7 @@ def generate_stub():
             ]
         )
 
+
 def get_libs():
     if PLATFORM == "LINUX":
         return "lib/*.so"
@@ -108,6 +110,7 @@ def get_libs():
         return "lib/*.dylib"
     if PLATFORM == "WINDOWS":
         return "lib/*.dll"
+
 
 # Build Classes
 class CMakeExtension(Extension):
@@ -165,7 +168,7 @@ class CMakeBuild(build_ext):
                 os.path.dirname(__file__), "scripts/postExtensionBuild.sh"
             )
             subprocess.check_call([edit_path])
-        
+
         if PLATFORM == "DARWIN":
             # Change the run path for the _quote_verification.dylib
             edit_path = os.path.join(
@@ -179,6 +182,7 @@ class BuildPackage(build_py):
         build_attestation_lib()
         generate_stub()
         super(BuildPackage, self).run()
+
 
 setuptools.setup(
     name="blindai",
@@ -221,6 +225,6 @@ setuptools.setup(
         "Programming Language :: C++",
         "Operating System :: Unix",
         "Operating System :: Microsoft :: Windows",
-        "Operating System :: MacOS :: MacOS X"
+        "Operating System :: MacOS :: MacOS X",
     ],
 )

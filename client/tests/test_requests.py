@@ -1,7 +1,6 @@
 from hashlib import sha256
 import os
 import pickle
-import time
 from typing import Iterator
 import unittest
 from unittest.mock import MagicMock, Mock, patch
@@ -193,7 +192,11 @@ class TestRequest(unittest.TestCase):
 
                 self.assertEqual(
                     response.output,
-                    cbor2.loads(Payload.FromString(real_response.payload).run_model_payload.output),
+                    cbor2.loads(
+                        Payload.FromString(
+                            real_response.payload
+                        ).run_model_payload.output
+                    ),
                 )
 
                 client.enclave_signing_key.verify(response.signature, response.payload)
@@ -239,10 +242,10 @@ class TestRequest(unittest.TestCase):
         cert = b"-----BEGIN CERTIFICATE-----\nMIICoTCCAkagAwIBAgIICPOHq4cyW9gwCgYIKoZIzj0EAwIwITEfMB0GA1UEAwwW\ncmNnZW4gc2VsZiBzaWduZWQgY2VydDAgFw03NTAxMDEwMDAwMDBaGA80MDk2MDEw\nMTAwMDAwMFowITEfMB0GA1UEAwwWcmNnZW4gc2VsZiBzaWduZWQgY2VydDBZMBMG\nByqGSM49AgEGCCqGSM49AwEHA0IABJcBq9016gGORpbhaaJyA9fhqVh2eypiefoA\ng/C/hn+VvTSkckm6EFZSuoV8lYQ4+zVTrPBhb1hB7uPQVIggnQSjggFkMIIBYDAW\nBgNVHREEDzANggtibGluZGFpLXNydjCCARkGBSsGAQMBBIIBDjCCAQoCggEBAMn1\n2jMlbFgPAFxtzKr93ZsUEfWN7dzrC698IyXFy71F9VZPxlSFTtPLX5huC9HPRtb4\ncMXDIoFhLGahDpjN4qUarczYbFGqALqrOS0R9vod28vwq/4Wh9pif0Bj3kkR/qGK\nlZbGpr8LXEYiM1U2d4r7HwQlj//KLXcvJXv75TR6Mo3IDZmA43mlQs6rdQCJEBoU\nmodYq506xsoXZ62/HhB4IM/yK/ZAfMG/FWgL9ZW8SZLRS0WYKq8jSeDYvJGWk7YT\nRdOK4qk+HzueP5/VTErUmFWOkoFgAqidSQqL4KzTGxzSXRIn3a+YQocdnKcFZspZ\nHynF6EZmh9D2dk5PxaMCAwEAATApBgUrBgEDAgQg88lQ7Z5k8IE41l9q+T5zDELZ\nENSSG3HAXXcBwlakpKAwCgYIKoZIzj0EAwIDSQAwRgIhAIpFE0AGf/gwi4dw2onq\nmhQSC3k266hjXhwl+kEUw8K9AiEAj40q1gMJUjLSOn76W/sOVskFene71pVMN/Gl\nF1X0vsg=\n-----END CERTIFICATE-----\n"
         get_server_certificate.return_value = cert.decode("ascii")
         response = Mock()
-        response.enclave_tls_certificate = (
-            cryptography.x509.load_pem_x509_certificate(cert).public_bytes(
-                encoding=serialization.Encoding.DER,
-            )
+        response.enclave_tls_certificate = cryptography.x509.load_pem_x509_certificate(
+            cert
+        ).public_bytes(
+            encoding=serialization.Encoding.DER,
         )
         AttestationStub().GetCertificate = Mock(return_value=response)
 

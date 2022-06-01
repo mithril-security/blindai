@@ -42,10 +42,7 @@ from blindai.pb.securedexchange_pb2 import (
     RunModelRequest,
     SendModelRequest,
     ClientInfo,
-    SendModelRequest,
-    RunModelRequest,
     DeleteModelRequest,
-    Payload,
 )
 from blindai.pb.proof_files_pb2 import ResponseProof
 from blindai.pb.securedexchange_pb2_grpc import ExchangeStub
@@ -288,7 +285,6 @@ class RunModelResponse(SignedResponse):
         self.model_id = payload.model_id
 
 
-
 class DeleteModelResponse:
     pass
 
@@ -305,7 +301,7 @@ class BlindAiClient:
     client_info: ClientInfo
 
     def __init__(self, debug_mode=False):
-        if debug_mode: # pragma: no cover
+        if debug_mode:  # pragma: no cover
             os.environ["GRPC_TRACE"] = "transport_security,tsi"
             os.environ["GRPC_VERBOSITY"] = "DEBUG"
 
@@ -538,7 +534,9 @@ class BlindAiClient:
 
         return ret
 
-    def run_model(self, model_id: str, data_list: List[Any], sign: bool = False) -> RunModelResponse:
+    def run_model(
+        self, model_id: str, data_list: List[Any], sign: bool = False
+    ) -> RunModelResponse:
         """Send data to the server to make a secure inference.
 
         The data provided must be in a list, as the tensor will be rebuilt inside the server.
@@ -617,9 +615,7 @@ class BlindAiClient:
             raise ConnectionError("Not connected to the server")
 
         try:
-            self._stub.DeleteModel(
-                DeleteModelRequest(model_id=model_id)
-            )
+            self._stub.DeleteModel(DeleteModelRequest(model_id=model_id))
 
         except RpcError as rpc_error:
             raise ConnectionError(check_rpc_exception(rpc_error))
