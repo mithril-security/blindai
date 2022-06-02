@@ -61,12 +61,18 @@ macro_rules! dispatch_numbers {
     } }
 }
 
-fn cbor_from_vec<A: serde::ser::Serialize>(input: Vec<A>) -> Vec<u8> {
-    serde_cbor::to_vec(&input).unwrap_or_default()
-}
-
-fn get_vec_from_cbor<'a, A: serde::de::DeserializeOwned>(input: &[u8]) -> Vec<Vec<A>> {
-    serde_cbor::from_slice::<Vec<Vec<A>>>(input).unwrap_or_default()
+fn create_inputs_for_tensor<
+    A: serde::ser::Serialize + tract_core::prelude::Datum + serde::de::DeserializeOwned,
+>(
+    input: &mut [u8],
+) -> Result<Vec<Vec<u8>>> {
+    let inputs_for_tensor: Vec<Vec<u8>>;
+    let input_vec: Vec<Vec<A>> = serde_cbor::from_slice::<Vec<Vec<A>>>(input).unwrap_or_default();
+    inputs_for_tensor = input_vec
+        .into_iter()
+        .map(|v| serde_cbor::to_vec(&v).unwrap_or_default())
+        .collect();
+    Ok(inputs_for_tensor)
 }
 
 fn create_tensor<A: serde::de::DeserializeOwned + tract_core::prelude::Datum>(
@@ -147,7 +153,6 @@ impl InferenceModel {
     }
 
     pub fn run_inference(&self, input: &mut [u8]) -> Result<Vec<u8>> {
-        let inputs_for_tensor: Vec<Vec<u8>>;
         let input_datum_type = self
             .datum_inputs
             .clone()
@@ -155,34 +160,8 @@ impl InferenceModel {
             .nth(0)
             .unwrap()
             .get_datum_type();
-
-        match input_datum_type {
-            DatumType::U32 => {
-                let input_vec: Vec<Vec<u32>> = get_vec_from_cbor::<u32>(input);
-                inputs_for_tensor = input_vec.into_iter().map(|v| cbor_from_vec(v)).collect();
-            }
-            DatumType::U64 => {
-                let input_vec: Vec<Vec<u64>> = get_vec_from_cbor::<u64>(input);
-                inputs_for_tensor = input_vec.into_iter().map(|v| cbor_from_vec(v)).collect();
-            }
-            DatumType::I32 => {
-                let input_vec: Vec<Vec<i32>> = get_vec_from_cbor::<i32>(input);
-                inputs_for_tensor = input_vec.into_iter().map(|v| cbor_from_vec(v)).collect();
-            }
-            DatumType::I64 => {
-                let input_vec: Vec<Vec<i64>> = get_vec_from_cbor::<i64>(input);
-                inputs_for_tensor = input_vec.into_iter().map(|v| cbor_from_vec(v)).collect();
-            }
-            DatumType::F32 => {
-                let input_vec: Vec<Vec<f32>> = get_vec_from_cbor::<f32>(input);
-                inputs_for_tensor = input_vec.into_iter().map(|v| cbor_from_vec(v)).collect();
-            }
-            DatumType::F64 => {
-                let input_vec: Vec<Vec<f64>> = get_vec_from_cbor::<f64>(input);
-                inputs_for_tensor = input_vec.into_iter().map(|v| cbor_from_vec(v)).collect();
-            }
-            _ => anyhow::bail!("{:?} is not a number", input_datum_type),
-        }
+        let inputs_for_tensor: Vec<Vec<u8>> =
+            dispatch_numbers!(create_inputs_for_tensor(input_datum_type)(input))?;
 
         let mut tensors: Vec<_> = vec![];
         for (i, (datum_type, input_fact)) in self
