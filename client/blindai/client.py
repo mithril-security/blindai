@@ -20,7 +20,7 @@ import ssl
 import platform
 from enum import IntEnum
 from hashlib import sha256
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 
 from cbor2 import dumps as cbor2_dumps
 from cbor2 import loads as cbor2_loads
@@ -443,8 +443,8 @@ class BlindAiClient:
     def upload_model(
         self,
         model: str,
-        tensor_inputs: Dict[str, TensorInfo],
-        tensor_outputs: Optional[Dict[str, ModelDatumType]] = {"index_0": ModelDatumType.F32},
+        tensor_inputs: List[List],
+        tensor_outputs: ModelDatumType,
         sign: bool = False,
     ) -> UploadModelResponse:
         """Upload an inference model to the server.
@@ -452,8 +452,8 @@ class BlindAiClient:
 
         Args:
             model (str): Path to Onnx model file.
-            tensor_inputs (Dict[str, TensorInfo]): A dictionary describing multiple inputs of the model.
-            tensor_outputs (Dict[str, ModelDatumType], optional):A dictionary describing multiple inputs of the model. Defaults to {"index_0": ModelDatumType.F32}.
+            tensor_inputs (List[List]): A dictionary describing multiple inputs of the model.
+            tensor_outputs (ModelDatumType): A dictionary describing multiple inputs of the model. Defaults to {"index_0": ModelDatumType.F32}.
             sign (bool, optional): Get signed responses from the server or not. Defaults to False.
 
         Raises:
@@ -474,13 +474,13 @@ class BlindAiClient:
                 data = f.read()
 
             inputs = []
-            for k, v in tensor_inputs.items():
-                inputs.append(Pair(index=k, info=v))
+            for id, input in enumerate(tensor_inputs):
+                tensor_info = TensorInfo(fact=input[0], datum_type=input[1])
 
-            outputs = []
-            for k, v in tensor_outputs.items():
-                tensor_info = TensorInfo(fact=[], datum_type=v)
-                outputs.append(Pair(index=k, info=tensor_info))
+                inputs.append(Pair(index="index_" + str(id), info=tensor_info))
+
+            if type(tensor_outputs) != list:
+                tensor_outputs = [tensor_outputs]
 
             response = self._stub.SendModel(
                 iter(
@@ -492,7 +492,7 @@ class BlindAiClient:
                             client_info=self.client_info,
                             model_name=os.path.basename(model),
                             tensor_inputs=inputs,
-                            tensor_outputs=outputs
+                            tensor_outputs=tensor_outputs
                         )
                         for chunk in create_byte_chunk(data)
                     ]
@@ -519,7 +519,7 @@ class BlindAiClient:
 
         return ret
 
-    def run_model(self, data_list: List[List[Any]], input_indexes: List[str], output_index: str, sign: bool = False) -> RunModelResponse:
+    def run_model(self, data_list: Union[List[List[Any]], List[Any]], sign: bool = False) -> RunModelResponse:
         """Send data to the server to make a secure inference.
 
         The data provided must be in a list, as the tensor will be rebuilt inside the server.
@@ -541,7 +541,9 @@ class BlindAiClient:
             raise ConnectionError("Not connected to the server")
 
         try:
-            data_list = [item for sublist in data_list for item in sublist]
+            if type(data_list[0]) != list:
+                data_list = [data_list]
+
             serialized_bytes = cbor2_dumps(data_list)
             response = self._stub.RunModel(
                 iter(
@@ -550,8 +552,6 @@ class BlindAiClient:
                             client_info=self.client_info,
                             input=serialized_bytes_chunk,
                             sign=sign,
-                            input_indexes=input_indexes,
-                            output_index=output_index
                         )
                         for serialized_bytes_chunk in create_byte_chunk(
                             serialized_bytes

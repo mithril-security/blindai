@@ -73,7 +73,7 @@ impl Exchange for Exchanger {
 
         let mut stream = request.into_inner();
         let mut tensor_inputs: HashMap<String, TensorInfo> = HashMap::new();
-        let mut tensor_outputs: HashMap<String, TensorInfo> = HashMap::new();
+        let mut tensor_outputs: Vec<i32> = Vec::new();
         let input_facts: Vec<Vec<usize>> = Vec::new();
         let mut model_bytes: Vec<u8> = Vec::new();
         let max_model_size = self.max_model_size;
@@ -103,10 +103,8 @@ impl Exchange for Exchanger {
                     tensor_inputs.insert(key.to_string(), value.clone());
                 }
 
-                for pair in &model_proto.tensor_outputs {
-                    let key = &pair.index;
-                    let value = pair.info.as_ref().unwrap();
-                    tensor_outputs.insert(key.to_string(), value.clone());
+                for output in &model_proto.tensor_outputs {
+                    tensor_outputs.push(*output);
                 }
 
                 sign = model_proto.sign;
@@ -217,12 +215,6 @@ impl Exchange for Exchanger {
             let mut data_proto = data_stream?;
 
             client_info = data_proto.client_info;
-            if model_size == 0 {
-                for tensor_index in &data_proto.input_indexes {
-                    tensor_indexes.push(tensor_index.clone());
-                }
-                output_index = data_proto.output_index;
-            }
 
             if data_proto.input.len() * size_of::<u8>() > max_input_size
                 || input.len() * size_of::<u8>() > max_input_size
@@ -233,7 +225,6 @@ impl Exchange for Exchanger {
                 sign = data_proto.sign;
             }
             input.append(&mut data_proto.input);
-            model_size += 1;
         }
         let model_guard = self.model.lock().unwrap();
         let model = if let Some(model) = &*model_guard {
@@ -243,14 +234,12 @@ impl Exchange for Exchanger {
                 "Cannot find the model".to_string(),
             ));
         };
-        let result = model
-            .run_inference(&mut input.clone()[..], &tensor_indexes, &output_index)
-            .map_err(|err| {
-                error!("Unknown error running inference: {}", err);
-                Status::unknown("Unknown error".to_string())
-            })?;
+        let result = model.run_inference(&mut input.clone()).map_err(|err| {
+            error!("Unknown error running inference: {}", err);
+            Status::unknown("Unknown error".to_string())
+        })?;
 
-        let datum_out: ModelDatumType = *model.datum_outputs.get(&output_index).unwrap();
+        let datum_out: ModelDatumType = model.datum_outputs[0];
         let mut payload = RunModelPayload {
             output: result,
             datum_output: datum_out as i32,

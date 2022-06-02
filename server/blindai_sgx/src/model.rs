@@ -20,7 +20,7 @@ use core::hash::Hash;
 use num_derive::FromPrimitive;
 use std::collections::HashMap;
 use tonic::Status;
-use tract_onnx::prelude::{tract_ndarray::IxDynImpl, TVec, *};
+use tract_onnx::prelude::{tract_ndarray::IxDynImpl, DatumType, TVec, *};
 
 pub type OnnxModel = SimplePlan<TypedFact, Box<dyn TypedOp>, Graph<TypedFact, Box<dyn TypedOp>>>;
 
@@ -62,14 +62,17 @@ macro_rules! dispatch_numbers {
     } }
 }
 
-fn cbor_from_vec(input: Vec<i32>) -> Vec<u8> {
+fn cbor_from_vec<A: serde::ser::Serialize>(input: Vec<A>) -> Vec<u8> {
     serde_cbor::to_vec(&input).unwrap_or_default()
 }
 
-fn get_vec_from_cbor(input: &[u8]) -> Vec<i32> {
-    serde_cbor::from_slice(input).unwrap_or_default()
+fn get_vec_from_cbor<'a, A: serde::de::DeserializeOwned>(input: &[u8]) -> Vec<Vec<A>> {
+    serde_cbor::from_slice::<Vec<Vec<A>>>(input).unwrap_or_default()
 }
 
+fn get_vec_from_cbor_u64<'a, A: serde::de::DeserializeOwned>(input: &[u8]) -> Vec<Vec<A>> {
+    serde_cbor::from_slice::<Vec<Vec<A>>>(input).unwrap_or_default()
+}
 fn create_tensor<A: serde::de::DeserializeOwned + tract_core::prelude::Datum>(
     input: &[u8],
     input_fact: &[usize],
@@ -96,7 +99,7 @@ pub struct InferenceModel {
     model_name: Option<String>,
     pub datum_inputs: HashMap<String, ModelDatumType>,
     input_facts: HashMap<String, Vec<usize>>,
-    pub datum_outputs: HashMap<String, ModelDatumType>,
+    pub datum_outputs: Vec<ModelDatumType>,
     multiple_inputs: bool,
 }
 
@@ -105,20 +108,14 @@ impl InferenceModel {
         mut model_data: Vec<u8>,
         model_name: Option<String>,
         tensor_inputs: HashMap<String, TensorInfo>,
-        tensor_outputs: HashMap<String, TensorInfo>,
+        tensor_outputs: Vec<i32>,
     ) -> Result<Self> {
         let convert_type = |t: i32| -> Result<_, Status> {
             num_traits::FromPrimitive::from_i32(t)
                 .ok_or_else(|| Status::invalid_argument("Unknown datum type".to_string()))
         };
 
-        // let get_index_from_string = |index: String| -> usize {
-        //     return index.split("_").collect::<Vec<&str>>()[1]
-        //         .parse::<usize>()
-        //         .unwrap();
-        // };
-
-        let mut datum_outputs: HashMap<String, ModelDatumType> = HashMap::new();
+        let mut datum_outputs: Vec<ModelDatumType> = Vec::new();
         let mut datum_inputs: HashMap<String, ModelDatumType> = HashMap::new();
         let mut input_facts: HashMap<String, Vec<usize>> = HashMap::new();
 
@@ -140,9 +137,10 @@ impl InferenceModel {
                 input_fact.push(*x as usize);
             }
             datum_input = convert_type(tensor_input.datum_type.clone())?;
-            datum_output = convert_type(tensor_outputs.get(index).unwrap().datum_type.clone())?;
-
-            datum_outputs.insert(index.clone(), datum_output.clone());
+            datum_outputs = tensor_outputs
+                .iter()
+                .map(|v| convert_type(*v).unwrap())
+                .collect();
             datum_inputs.insert(index.clone(), datum_input.clone());
             input_facts.insert(index.clone(), input_fact.clone());
             let _index: usize = index.split("_").collect::<Vec<&str>>()[1]
@@ -164,67 +162,63 @@ impl InferenceModel {
         })
     }
 
-    pub fn run_inference(
-        &self,
-        input: &mut [u8],
-        input_indexes: &Vec<String>,
-        output_index: &String,
-    ) -> Result<Vec<u8>> {
-        /*
-            Reconstruct multiple inputs
-        */
-        let mut __input_facts: Vec<usize> = vec![0];
-        let mut __inputs: Vec<Vec<u8>> = Vec::new();
+    pub fn run_inference(&self, input: &mut [u8]) -> Result<Vec<u8>> {
+        let mut inputs_for_tensor: Vec<Vec<u8>> = Vec::new();
         let mut sum: usize = 0;
-        if self.multiple_inputs {
-            let input_vec: Vec<i32> = get_vec_from_cbor(input);
+        let input_datum_type = self
+            .datum_inputs
+            .clone()
+            .values()
+            .next()
+            .unwrap()
+            .get_datum_type();
 
-            for fact in self
-                .input_facts
-                .clone()
-                .iter()
-                .filter(move |(k, _)| input_indexes.contains(k))
-                .collect::<HashMap<&String, &Vec<usize>>>()
-                .into_values()
-            {
-                let __value = fact.clone().into_iter().reduce(|a, b| (a * b)).unwrap();
-                sum += __value;
-                __input_facts.push(sum);
+        match input_datum_type {
+            DatumType::U32 => {
+                let input_vec: Vec<Vec<u32>> = get_vec_from_cbor::<u32>(input);
+                inputs_for_tensor = input_vec.into_iter().map(|v| cbor_from_vec(v)).collect();
             }
-
-            for window in __input_facts.windows(2) {
-                let a = window[0];
-                let b = window[1];
-                let tmp: Vec<i32> = input_vec
-                    .iter()
-                    .enumerate()
-                    .filter(move |(i, _)| i >= &a && i < &b)
-                    .map(move |(_, v)| *v)
-                    .collect::<Vec<i32>>();
-
-                __inputs.push(cbor_from_vec(tmp));
+            DatumType::U64 => {
+                let input_vec: Vec<Vec<u64>> = get_vec_from_cbor::<u64>(input);
+                inputs_for_tensor = input_vec.into_iter().map(|v| cbor_from_vec(v)).collect();
             }
-        } else {
-            __inputs.push(input.to_owned());
+            DatumType::I32 => {
+                let input_vec: Vec<Vec<i32>> = get_vec_from_cbor::<i32>(input);
+                inputs_for_tensor = input_vec.into_iter().map(|v| cbor_from_vec(v)).collect();
+            }
+            DatumType::I64 => {
+                let input_vec: Vec<Vec<i64>> = get_vec_from_cbor::<i64>(input);
+                inputs_for_tensor = input_vec.into_iter().map(|v| cbor_from_vec(v)).collect();
+            }
+            DatumType::F32 => {
+                let input_vec: Vec<Vec<f32>> = get_vec_from_cbor::<f32>(input);
+                inputs_for_tensor = input_vec.into_iter().map(|v| cbor_from_vec(v)).collect();
+            }
+            DatumType::F64 => {
+                let input_vec: Vec<Vec<f64>> = get_vec_from_cbor::<f64>(input);
+                inputs_for_tensor = input_vec.into_iter().map(|v| cbor_from_vec(v)).collect();
+            }
+            _ => anyhow::bail!("{:?} is not a number", input_datum_type),
         }
 
         let mut tensors: Vec<_> = vec![];
-        println!("{}", input_indexes.len());
-        for (i, tensor_index) in input_indexes.clone().iter().enumerate() {
-            println!("{}, {}", i, tensor_index);
-            let datum_type = self.datum_inputs.get(tensor_index).unwrap();
-            let input_fact = self.input_facts.get(tensor_index).unwrap();
+        for (i, (datum_type, input_fact)) in self
+            .datum_inputs
+            .clone()
+            .into_values()
+            .into_iter()
+            .zip(self.input_facts.clone().into_values())
+            .enumerate()
+        {
             let tensor = dispatch_numbers!(create_tensor(datum_type.get_datum_type())(
-                &__inputs[i],
+                &inputs_for_tensor[i],
                 &input_fact.clone()
             ))?;
             tensors.push(tensor);
         }
 
         let result = self.onnx.run(TVec::from_vec(tensors.clone()))?;
-        let datum_output = self.datum_outputs.get(output_index).unwrap();
-        println!("Result Length {}", result[0].len());
-        println!("Result {:?}", result[0]);
+        let datum_output = self.datum_outputs[0];
         let arr = dispatch_numbers!(convert_tensor(&datum_output.get_datum_type())(&result[0]))?;
         Ok(arr)
     }
