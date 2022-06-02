@@ -67,12 +67,6 @@ message TensorInfo {
     DatumTypeEnum datum_type = 2;
 }
 
-
-message Pair {
-    string index = 1;
-    TensorInfo info = 2;
-}
-
 /* SendModel */
 
 message SendModelRequest {

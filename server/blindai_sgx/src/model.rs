@@ -15,7 +15,7 @@
 use std::vec::Vec;
 
 use crate::client_communication::secured_exchange::TensorInfo;
-use anyhow::{anyhow, Result};
+use anyhow::{anyhow, Context, Result};
 use core::hash::Hash;
 use num_derive::FromPrimitive;
 use tonic::Status;
@@ -61,18 +61,18 @@ macro_rules! dispatch_numbers {
     } }
 }
 
+fn cbor_get_vec<A: serde::ser::Serialize>(v: Vec<A>) -> anyhow::Result<Vec<u8>> {
+    serde_cbor::to_vec(&v).context("Failed to serialize inference data")
+}
 fn create_inputs_for_tensor<
     A: serde::ser::Serialize + tract_core::prelude::Datum + serde::de::DeserializeOwned,
 >(
     input: &mut [u8],
-) -> Result<Vec<Vec<u8>>> {
-    let inputs_for_tensor: Vec<Vec<u8>>;
-    let input_vec: Vec<Vec<A>> = serde_cbor::from_slice::<Vec<Vec<A>>>(input).unwrap_or_default();
-    inputs_for_tensor = input_vec
-        .into_iter()
-        .map(|v| serde_cbor::to_vec(&v).unwrap_or_default())
-        .collect();
-    Ok(inputs_for_tensor)
+) -> anyhow::Result<Vec<Vec<u8>>> {
+    let inputs_for_tensor: Result<Vec<Vec<u8>>>;
+    let input_vec: Vec<Vec<A>> = serde_cbor::from_slice::<Vec<Vec<A>>>(input)?;
+    inputs_for_tensor = input_vec.into_iter().map(cbor_get_vec).collect();
+    inputs_for_tensor
 }
 
 fn create_tensor<A: serde::de::DeserializeOwned + tract_core::prelude::Datum>(
