@@ -30,7 +30,6 @@ use futures::StreamExt;
 use prost::Message;
 use ring_compat::signature::Signer;
 use secured_exchange::exchange_server::Exchange;
-use std::collections::HashMap;
 use tonic::{Request, Response, Status};
 
 use crate::{
@@ -72,7 +71,7 @@ impl Exchange for Exchanger {
         let start_time = Instant::now();
 
         let mut stream = request.into_inner();
-        let mut tensor_inputs: HashMap<String, TensorInfo> = HashMap::new();
+        let mut tensor_inputs: Vec<TensorInfo> = Vec::new();
         let mut tensor_outputs: Vec<i32> = Vec::new();
         let input_facts: Vec<Vec<usize>> = Vec::new();
         let mut model_bytes: Vec<u8> = Vec::new();
@@ -97,10 +96,8 @@ impl Exchange for Exchanger {
                 };
                 client_info = model_proto.client_info;
 
-                for pair in &model_proto.tensor_inputs {
-                    let key = &pair.index;
-                    let value = pair.info.as_ref().unwrap();
-                    tensor_inputs.insert(key.to_string(), value.clone());
+                for tensor_info in &model_proto.tensor_inputs {
+                    tensor_inputs.push(tensor_info.clone());
                 }
 
                 for output in &model_proto.tensor_outputs {
@@ -207,9 +204,6 @@ impl Exchange for Exchanger {
         let max_input_size = self.max_input_size;
 
         let mut client_info = None;
-        let mut tensor_indexes: Vec<String> = Vec::new();
-        let mut output_index: String = String::default();
-        let mut model_size: usize = 0usize;
 
         while let Some(data_stream) = stream.next().await {
             let mut data_proto = data_stream?;

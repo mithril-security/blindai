@@ -18,7 +18,6 @@ use crate::client_communication::secured_exchange::TensorInfo;
 use anyhow::{anyhow, Result};
 use core::hash::Hash;
 use num_derive::FromPrimitive;
-use std::collections::HashMap;
 use tonic::Status;
 use tract_onnx::prelude::{tract_ndarray::IxDynImpl, DatumType, TVec, *};
 
@@ -70,9 +69,6 @@ fn get_vec_from_cbor<'a, A: serde::de::DeserializeOwned>(input: &[u8]) -> Vec<Ve
     serde_cbor::from_slice::<Vec<Vec<A>>>(input).unwrap_or_default()
 }
 
-fn get_vec_from_cbor_u64<'a, A: serde::de::DeserializeOwned>(input: &[u8]) -> Vec<Vec<A>> {
-    serde_cbor::from_slice::<Vec<Vec<A>>>(input).unwrap_or_default()
-}
 fn create_tensor<A: serde::de::DeserializeOwned + tract_core::prelude::Datum>(
     input: &[u8],
     input_fact: &[usize],
@@ -97,17 +93,16 @@ fn convert_tensor<A: serde::ser::Serialize + tract_core::prelude::Datum>(
 pub struct InferenceModel {
     onnx: OnnxModel,
     model_name: Option<String>,
-    pub datum_inputs: HashMap<String, ModelDatumType>,
-    input_facts: HashMap<String, Vec<usize>>,
+    pub datum_inputs: Vec<ModelDatumType>,
+    input_facts: Vec<Vec<usize>>,
     pub datum_outputs: Vec<ModelDatumType>,
-    multiple_inputs: bool,
 }
 
 impl InferenceModel {
     pub fn load_model(
         mut model_data: Vec<u8>,
         model_name: Option<String>,
-        tensor_inputs: HashMap<String, TensorInfo>,
+        tensor_inputs: Vec<TensorInfo>,
         tensor_outputs: Vec<i32>,
     ) -> Result<Self> {
         let convert_type = |t: i32| -> Result<_, Status> {
@@ -116,21 +111,14 @@ impl InferenceModel {
         };
 
         let mut datum_outputs: Vec<ModelDatumType> = Vec::new();
-        let mut datum_inputs: HashMap<String, ModelDatumType> = HashMap::new();
-        let mut input_facts: HashMap<String, Vec<usize>> = HashMap::new();
+        let mut datum_inputs: Vec<ModelDatumType> = Vec::new();
+        let mut input_facts: Vec<Vec<usize>> = Vec::new();
 
         let mut datum_input: ModelDatumType; // dummy
-        let mut datum_output: ModelDatumType; // dummy
 
         let model_data_copy: &mut [u8] = &mut model_data;
         let mut model_rec = tract_onnx::onnx().model_for_read(&mut &model_data_copy[..])?;
-        let multiple_inputs = if tensor_inputs.clone().into_keys().len() > 1 {
-            true
-        } else {
-            false
-        };
-        for it in tensor_inputs.clone().iter() {
-            let (index, tensor_input): (&String, &TensorInfo) = it;
+        for (idx, tensor_input) in tensor_inputs.clone().iter().enumerate() {
             let mut input_fact: Vec<usize> = vec![];
 
             for x in &tensor_input.fact {
@@ -141,13 +129,10 @@ impl InferenceModel {
                 .iter()
                 .map(|v| convert_type(*v).unwrap())
                 .collect();
-            datum_inputs.insert(index.clone(), datum_input.clone());
-            input_facts.insert(index.clone(), input_fact.clone());
-            let _index: usize = index.split("_").collect::<Vec<&str>>()[1]
-                .parse::<usize>()
-                .unwrap();
+            datum_inputs.push(datum_input.clone());
+            input_facts.push(input_fact.clone());
             model_rec = model_rec.with_input_fact(
-                _index,
+                idx,
                 InferenceFact::dt_shape(datum_input.get_datum_type(), &input_fact),
             )?;
         }
@@ -158,18 +143,16 @@ impl InferenceModel {
             input_facts: input_facts.clone(),
             model_name,
             datum_outputs: datum_outputs.clone(),
-            multiple_inputs,
         })
     }
 
     pub fn run_inference(&self, input: &mut [u8]) -> Result<Vec<u8>> {
-        let mut inputs_for_tensor: Vec<Vec<u8>> = Vec::new();
-        let mut sum: usize = 0;
+        let inputs_for_tensor: Vec<Vec<u8>>;
         let input_datum_type = self
             .datum_inputs
             .clone()
-            .values()
-            .next()
+            .into_iter()
+            .nth(0)
             .unwrap()
             .get_datum_type();
 
@@ -205,9 +188,8 @@ impl InferenceModel {
         for (i, (datum_type, input_fact)) in self
             .datum_inputs
             .clone()
-            .into_values()
             .into_iter()
-            .zip(self.input_facts.clone().into_values())
+            .zip(self.input_facts.clone())
             .enumerate()
         {
             let tensor = dispatch_numbers!(create_tensor(datum_type.get_datum_type())(

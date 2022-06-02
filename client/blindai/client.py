@@ -444,7 +444,7 @@ class BlindAiClient:
         self,
         model: str,
         tensor_inputs: List[List],
-        tensor_outputs: ModelDatumType,
+        tensor_outputs: List[ModelDatumType],
         sign: bool = False,
     ) -> UploadModelResponse:
         """Upload an inference model to the server.
@@ -473,15 +473,16 @@ class BlindAiClient:
             with open(model, "rb") as f:
                 data = f.read()
 
-            inputs = []
-            for id, input in enumerate(tensor_inputs):
-                tensor_info = TensorInfo(fact=input[0], datum_type=input[1])
-
-                inputs.append(Pair(index="index_" + str(id), info=tensor_info))
+            if type(tensor_inputs[0]) != list:
+                tensor_inputs= [tensor_inputs]
 
             if type(tensor_outputs) != list:
                 tensor_outputs = [tensor_outputs]
 
+            inputs = []
+            for tensor_input in tensor_inputs:
+                inputs.append(TensorInfo(
+                    fact=tensor_input[0], datum_type=tensor_input[1]))
             response = self._stub.SendModel(
                 iter(
                     [
