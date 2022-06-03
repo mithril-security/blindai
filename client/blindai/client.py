@@ -20,7 +20,7 @@ import ssl
 import platform
 from enum import IntEnum
 from hashlib import sha256
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 from cbor2 import dumps as cbor2_dumps
 from cbor2 import loads as cbor2_loads
@@ -41,7 +41,6 @@ from blindai.pb.securedexchange_pb2 import (
     RunModelRequest,
     SendModelRequest,
     ClientInfo,
-    Pair,
     TensorInfo
 )
 from blindai.pb.proof_files_pb2 import ResponseProof
@@ -86,6 +85,29 @@ def _validate_quote(
     enclave_signing_key = get_enclave_signing_key(server_cert)
 
     return enclave_signing_key
+
+
+def _get_input_output_tensors(tensor_inputs: Optional[List[List[Any]]] = None,
+                              tensor_outputs: Optional[ModelDatumType] = None,
+                              shape: Tuple = None,
+                              dtype: ModelDatumType = ModelDatumType.F32,
+                              dtype_out: ModelDatumType = ModelDatumType.F32) -> Tuple[List[List[Any]], List[ModelDatumType]]:
+    if tensor_inputs is None or tensor_outputs is None:
+        tensor_inputs = [shape, dtype]
+        tensor_outputs = dtype_out
+
+    if type(tensor_inputs[0]) != list:
+        tensor_inputs = [tensor_inputs]
+
+    if type(tensor_outputs) != list:
+        tensor_outputs = [tensor_outputs]
+
+    inputs = []
+    for tensor_input in tensor_inputs:
+        inputs.append(TensorInfo(
+            fact=tensor_input[0], datum_type=tensor_input[1]))
+
+    return (inputs, tensor_outputs)
 
 
 class SignedResponse:
@@ -282,8 +304,8 @@ class BlindAiClient:
     attestation: Optional[GetSgxQuoteWithCollateralReply] = None
     server_version: Optional[str] = None
     client_info: ClientInfo
-    tensor_inputs: Dict
-    tensor_outputs: Dict
+    tensor_inputs: Optional[List[List[Any]]]
+    tensor_outputs: Optional[List[ModelDatumType]]
 
     def __init__(self, debug_mode=False):
         if debug_mode:
@@ -443,8 +465,11 @@ class BlindAiClient:
     def upload_model(
         self,
         model: str,
-        tensor_inputs: Union[List[Any], List[List]],
-        tensor_outputs: Union[ModelDatumType, List[ModelDatumType]],
+        tensor_inputs: Optional[List[List[Any]]] = None,
+        tensor_outputs: Optional[List[ModelDatumType]] = None,
+        shape: Tuple = None,
+        dtype: ModelDatumType = ModelDatumType.F32,
+        dtype_out: ModelDatumType = ModelDatumType.F32,
         sign: bool = False,
     ) -> UploadModelResponse:
         """Upload an inference model to the server.
@@ -454,6 +479,8 @@ class BlindAiClient:
             model (str): Path to Onnx model file.
             tensor_inputs (Union[List[Any], List[List]]): A list describing multiple inputs of the model.
             tensor_outputs (Union[ModelDatumType, List[ModelDatumType]): A list describing multiple inputs of the model. Defaults to {"index_0": ModelDatumType.F32}.
+            shape (Tuple, optional): The shape of the model input. Defaults to None.
+            dtype (ModelDatumType, optional): The type of the model input data (f32 by default). Defaults to ModelDatumType.F32.
             sign (bool, optional): Get signed responses from the server or not. Defaults to False.
 
         Raises:
@@ -473,16 +500,8 @@ class BlindAiClient:
             with open(model, "rb") as f:
                 data = f.read()
 
-            if type(tensor_inputs[0]) != list:
-                tensor_inputs = [tensor_inputs]
-
-            if type(tensor_outputs) != list:
-                tensor_outputs = [tensor_outputs]
-
-            inputs = []
-            for tensor_input in tensor_inputs:
-                inputs.append(TensorInfo(
-                    fact=tensor_input[0], datum_type=tensor_input[1]))
+            (inputs, outputs) = _get_input_output_tensors(
+                tensor_inputs, tensor_outputs, shape, dtype, dtype_out)
             response = self._stub.SendModel(
                 iter(
                     [
@@ -493,7 +512,7 @@ class BlindAiClient:
                             client_info=self.client_info,
                             model_name=os.path.basename(model),
                             tensor_inputs=inputs,
-                            tensor_outputs=tensor_outputs
+                            tensor_outputs=outputs
                         )
                         for chunk in create_byte_chunk(data)
                     ]

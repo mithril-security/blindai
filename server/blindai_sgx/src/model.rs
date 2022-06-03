@@ -153,13 +153,7 @@ impl InferenceModel {
     }
 
     pub fn run_inference(&self, input: &mut [u8]) -> Result<Vec<u8>> {
-        let input_datum_type = self
-            .datum_inputs
-            .clone()
-            .into_iter()
-            .nth(0)
-            .unwrap()
-            .get_datum_type();
+        let input_datum_type = self.datum_inputs[0].get_datum_type();
         let inputs_for_tensor: Vec<Vec<u8>> =
             dispatch_numbers!(create_inputs_for_tensor(input_datum_type)(input))?;
 
