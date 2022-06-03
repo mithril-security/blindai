@@ -443,8 +443,8 @@ class BlindAiClient:
     def upload_model(
         self,
         model: str,
-        tensor_inputs: List[List],
-        tensor_outputs: List[ModelDatumType],
+        tensor_inputs: Union[List[Any], List[List]],
+        tensor_outputs: Union[ModelDatumType, List[ModelDatumType]],
         sign: bool = False,
     ) -> UploadModelResponse:
         """Upload an inference model to the server.
@@ -452,8 +452,8 @@ class BlindAiClient:
 
         Args:
             model (str): Path to Onnx model file.
-            tensor_inputs (List[List]): A dictionary describing multiple inputs of the model.
-            tensor_outputs (ModelDatumType): A dictionary describing multiple inputs of the model. Defaults to {"index_0": ModelDatumType.F32}.
+            tensor_inputs (Union[List[Any], List[List]]): A list describing multiple inputs of the model.
+            tensor_outputs (Union[ModelDatumType, List[ModelDatumType]): A list describing multiple inputs of the model. Defaults to {"index_0": ModelDatumType.F32}.
             sign (bool, optional): Get signed responses from the server or not. Defaults to False.
 
         Raises:
@@ -474,7 +474,7 @@ class BlindAiClient:
                 data = f.read()
 
             if type(tensor_inputs[0]) != list:
-                tensor_inputs= [tensor_inputs]
+                tensor_inputs = [tensor_inputs]
 
             if type(tensor_outputs) != list:
                 tensor_outputs = [tensor_outputs]
@@ -526,8 +526,7 @@ class BlindAiClient:
         The data provided must be in a list, as the tensor will be rebuilt inside the server.
 
         Args:
-            data_list (List[Any]): The input data. It must be an array of numbers of the same type dtype specified in `upload_model`.
-            tensor_index (List[str]): The key of the tensor input in the `tensor_inputs` dictionary.
+            data_list (Union[List[Any], List[List[Any]]))): The input data. It must be an array of numbers or an array of arrays of numbers of the same type dtype specified in `upload_model`.
             sign (bool, optional): Get signed responses from the server or not. Defaults to False.
 
         Raises:
