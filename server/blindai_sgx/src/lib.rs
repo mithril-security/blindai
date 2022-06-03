@@ -44,8 +44,9 @@ use std::fs;
 
 use crate::client_communication::{secured_exchange::exchange_server::ExchangeServer, Exchanger};
 
-use crate::model_store::ModelStore;
-use crate::{dcap_quote_provider::DcapQuoteProvider, telemetry::TelemetryEventProps};
+use crate::{
+    dcap_quote_provider::DcapQuoteProvider, model_store::ModelStore, telemetry::TelemetryEventProps,
+};
 
 use untrusted::MyAttestation;
 

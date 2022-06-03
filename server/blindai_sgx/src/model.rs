@@ -71,14 +71,14 @@ fn create_tensor<A: serde::de::DeserializeOwned + tract_core::prelude::Datum>(
 }
 
 fn convert_tensor<A: serde::ser::Serialize + tract_core::prelude::Datum>(
-     input: &tract_onnx::prelude::Tensor,
+    input: &tract_onnx::prelude::Tensor,
 ) -> Result<Vec<u8>> {
     let arr = input.to_array_view::<A>()?;
     let slice = arr
-            .as_slice()
-            .ok_or_else(|| anyhow!("Failed to convert ArrayView to slice"))?;
+        .as_slice()
+        .ok_or_else(|| anyhow!("Failed to convert ArrayView to slice"))?;
     Ok(serde_cbor::to_vec(&slice)?)
-} 
+}
 
 #[derive(Debug)]
 pub struct InferenceModel {
@@ -154,7 +154,7 @@ impl InferenceModel {
         let arr = dispatch_numbers!(convert_tensor(&self.datum_output.get_datum_type())(
             &result[0]
         ))?;
-       Ok(arr)
+        Ok(arr)
     }
 
     pub fn model_name(&self) -> Option<&str> {
