@@ -481,6 +481,7 @@ class BlindAiClient:
             tensor_outputs (Union[ModelDatumType, List[ModelDatumType]): A list describing multiple inputs of the model. Defaults to {"index_0": ModelDatumType.F32}.
             shape (Tuple, optional): The shape of the model input. Defaults to None.
             dtype (ModelDatumType, optional): The type of the model input data (f32 by default). Defaults to ModelDatumType.F32.
+            dtype_out (ModelDatumType, optional): The type of the model output data (f32 by default). Defaults to ModelDatumType.F32.
             sign (bool, optional): Get signed responses from the server or not. Defaults to False.
 
         Raises:
