@@ -170,3 +170,10 @@ jobs:
           BLINDAI_TEST_NO_LAUNCH_SERVER: 'true'
           BLINDAI_TEST_NO_HW: 'true'
           BLINDAI_TEST_SKIP_COVIDNET: 'true'
+
+      - name: Install Jupyter and related test tools
+        run: pip install pytest nbmake 
+
+      - name: Test Jupyter notebooks
+        run: 
+          pytest --nbmake-timeout=30 --nbmake-kernel=python3 --nbmake examples/**/*.ipynb || (docker logs app; false) 
