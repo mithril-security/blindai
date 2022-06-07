@@ -1,0 +1,10 @@
+name: Ensure clean notebooks 
+on: push
+jobs:
+  notebook-clean: 
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-python@v3
+    - run: python3 -m pip install nb-clean
+    - run: nb-clean check --preserve-cell-metadata examples/**/*.ipynb

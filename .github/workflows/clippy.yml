@@ -1,9 +1,9 @@
 on: [push]
-name: Clippy
+name: Rust formatting and linting checks
 
 jobs:
-  clippy:
-    name: Clippy
+  fmt-lint:
+    name: cargo fmt and cargo clippy
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -20,7 +20,12 @@ jobs:
           override: true
           components: clippy, rustfmt
 
+      - name: Rust fmt check
+        run:
+          cargo fmt --check
+
       - uses: actions-rs/clippy-check@v1
         with:
           args: --all-features
           token: ${{ secrets.GITHUB_TOKEN }}
+      

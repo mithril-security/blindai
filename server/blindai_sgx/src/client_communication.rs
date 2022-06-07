@@ -32,7 +32,7 @@ use uuid::Uuid;
 
 use crate::{
     identity::MyIdentity,
-    model::{ModelDatumType},
+    model::ModelDatumType,
     model_store::ModelStore,
     telemetry::{self, TelemetryEventProps},
 };
@@ -122,7 +122,13 @@ impl Exchange for Exchanger {
 
         let (model_id, model_hash) = self
             .model_store
-            .add_model(&model_bytes, input_fact.clone(), datum, model_name.clone(), datum_output)
+            .add_model(
+                &model_bytes,
+                input_fact.clone(),
+                datum,
+                model_name.clone(),
+                datum_output,
+            )
             .map_err(|err| {
                 error!("Error while creating model: {}", err);
                 Status::unknown("Unknown error".to_string())
