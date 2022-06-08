@@ -1,5 +1,6 @@
 import pickle
-from blindai.client import BlindAiClient, ModelDatumType
+import blindai.client
+from blindai.client import BlindAiConnection, ModelDatumType
 import unittest
 from server import (
     launch_server,
@@ -26,32 +27,31 @@ class TestCovidNetBase:
         os.getenv("BLINDAI_TEST_SKIP_COVIDNET") is not None, "skipped by env var"
     )
     def test_base(self):
-        client = BlindAiClient()
-
-        client.connect_server(
+        with blindai.client.connect(
             addr="localhost",
             simulation=self.simulation,
             policy=policy_file,
             certificate=certificate_file,
-        )
+        ) as client:
+            model = os.path.join(
+                os.path.dirname(__file__), "assets/COVID-Net-CXR-2.onnx"
+            )
 
-        model = os.path.join(os.path.dirname(__file__), "assets/COVID-Net-CXR-2.onnx")
+            upload_response = client.upload_model(
+                model=model,
+                shape=(1, 480, 480, 3),
+                dtype=ModelDatumType.F32,
+                sign=True,
+            )
 
-        upload_response = client.upload_model(
-            model=model,
-            shape=(1, 480, 480, 3),
-            dtype=ModelDatumType.F32,
-            sign=True,
-        )
+            if not self.simulation and os.getenv("BLINDAI_DUMPRES") is not None:
+                upload_response.save_to_file("./client/tests/exec_upload.proof")
 
-        if not self.simulation and os.getenv("BLINDAI_DUMPRES") is not None:
-            upload_response.save_to_file("./client/tests/exec_upload.proof")
-
-        response = client.run_model(
-            upload_response.model_id,
-            flattened_img,
-            sign=True,
-        )
+            response = client.run_model(
+                upload_response.model_id,
+                flattened_img,
+                sign=True,
+            )
 
         if not self.simulation and os.getenv("BLINDAI_DUMPRES") is not None:
             response.save_to_file("./client/tests/exec_run.proof")
@@ -68,39 +68,39 @@ class TestCovidNetBase:
         os.getenv("BLINDAI_TEST_SKIP_COVIDNET") is not None, "skipped by env var"
     )
     def test_multiple(self):
-        client = BlindAiClient()
-
-        client.connect_server(
+        with blindai.client.connect(
             addr="localhost",
             simulation=self.simulation,
             policy=policy_file,
             certificate=certificate_file,
-        )
+        ) as client:
 
-        model = os.path.join(os.path.dirname(__file__), "assets/COVID-Net-CXR-2.onnx")
-
-        models = []
-        for _ in range(5):
-            upload_response = client.upload_model(
-                model=model,
-                shape=(1, 480, 480, 3),
-                dtype=ModelDatumType.F32,
-            )
-            models.append(upload_response.model_id)
-
-        for i in range(5):
-            response = client.run_model(
-                models[i],
-                flattened_img,
+            model = os.path.join(
+                os.path.dirname(__file__), "assets/COVID-Net-CXR-2.onnx"
             )
 
-            ort_session = onnxruntime.InferenceSession(model)
-            ort_inputs = {ort_session.get_inputs()[0].name: img}
+            models = []
+            for _ in range(5):
+                upload_response = client.upload_model(
+                    model=model,
+                    shape=(1, 480, 480, 3),
+                    dtype=ModelDatumType.F32,
+                )
+                models.append(upload_response.model_id)
 
-            ort_outs = ort_session.run(None, ort_inputs)
+            for i in range(5):
+                response = client.run_model(
+                    models[i],
+                    flattened_img,
+                )
 
-            diff = abs(sum(np.array([response.output]) - ort_outs))[0][0]
-            self.assertLess(diff, 0.001)  # difference is <0.1%
+                ort_session = onnxruntime.InferenceSession(model)
+                ort_inputs = {ort_session.get_inputs()[0].name: img}
+
+                ort_outs = ort_session.run(None, ort_inputs)
+
+                diff = abs(sum(np.array([response.output]) - ort_outs))[0][0]
+                self.assertLess(diff, 0.001)  # difference is <0.1%
 
 
 class TestCovidNetSW(TestCovidNetBase, unittest.TestCase):
