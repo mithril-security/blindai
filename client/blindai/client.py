@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import contextlib
+from functools import wraps
 import getpass
 import logging
 import os
@@ -289,7 +291,22 @@ class DeleteModelResponse:
     pass
 
 
-class BlindAiClient:
+def raise_exception_if_conn_closed(f):
+    """
+    Decorator which raises an exception if the BlindAiConnection is closed before calling
+    the decorated method
+    """
+
+    @wraps(f)
+    def wrapper(self, *args, **kwds):
+        if self.closed:
+            raise ValueError("Illegal operation on closed connection.")
+        return f(self, *args, **kwds)
+
+    return wrapper
+
+
+class BlindAiConnection(contextlib.AbstractContextManager):
     _channel: Optional[Channel] = None
     policy: Optional[Policy] = None
     _stub: Optional[ExchangeStub] = None
@@ -299,34 +316,9 @@ class BlindAiClient:
     attestation: Optional[GetSgxQuoteWithCollateralReply] = None
     server_version: Optional[str] = None
     client_info: ClientInfo
+    closed: bool = False
 
-    def __init__(self, debug_mode=False):
-        if debug_mode:  # pragma: no cover
-            os.environ["GRPC_TRACE"] = "transport_security,tsi"
-            os.environ["GRPC_VERBOSITY"] = "DEBUG"
-
-        uname = platform.uname()
-        self.client_info = ClientInfo(
-            uid=sha256((socket.gethostname() + "-" + getpass.getuser()).encode("utf-8"))
-            .digest()
-            .hex(),
-            platform_name=uname.system,
-            platform_arch=uname.machine,
-            platform_version=uname.version,
-            platform_release=uname.release,
-            user_agent="blindai_python",
-            user_agent_version=app_version,
-        )
-
-    def is_connected(self) -> bool:
-        return self._channel is not None
-
-    def _close_channel(self):
-        if self.is_connected():
-            self._channel.close()
-            self._channel = None
-
-    def connect_server(
+    def __init__(
         self,
         addr: str,
         server_name: str = "blindai-srv",
@@ -335,6 +327,7 @@ class BlindAiClient:
         simulation: bool = False,
         untrusted_port: int = 50052,
         attested_port: int = 50051,
+        debug_mode=False,
     ):
         """Connect to the server with the specified parameters.
         You will have to specify here the expected policy (server identity, configuration...)
@@ -364,6 +357,43 @@ class BlindAiClient:
             FileNotFoundError: will be raised if the policy file, or the certificate file is not
                 found (in Hardware mode).
         """
+        if debug_mode:  # pragma: no cover
+            os.environ["GRPC_TRACE"] = "transport_security,tsi"
+            os.environ["GRPC_VERBOSITY"] = "DEBUG"
+
+        uname = platform.uname()
+        self.client_info = ClientInfo(
+            uid=sha256((socket.gethostname() + "-" + getpass.getuser()).encode("utf-8"))
+            .digest()
+            .hex(),
+            platform_name=uname.system,
+            platform_arch=uname.machine,
+            platform_version=uname.version,
+            platform_release=uname.release,
+            user_agent="blindai_python",
+            user_agent_version=app_version,
+        )
+
+        self._connect_server(
+            addr,
+            server_name,
+            policy,
+            certificate,
+            simulation,
+            untrusted_port,
+            attested_port,
+        )
+
+    def _connect_server(
+        self,
+        addr: str,
+        server_name,
+        policy,
+        certificate,
+        simulation,
+        untrusted_port,
+        attested_port,
+    ):
         self.simulation_mode = simulation
         self._disable_untrusted_server_cert_check = simulation
 
@@ -455,6 +485,7 @@ class BlindAiClient:
             channel.close()
             raise ConnectionError(check_rpc_exception(rpc_error))
 
+    @raise_exception_if_conn_closed
     def upload_model(
         self,
         model: str,
@@ -479,14 +510,13 @@ class BlindAiClient:
             ConnectionError: Will be raised if the client is not connected.
             FileNotFoundError: Will be raised if the model file is not found.
             SignatureError: Will be raised if the response signature is invalid.
+            ValueError: Will be raised if the connection is closed.
 
         Returns:
             UploadModelResponse: The response object.
         """
 
         response = None
-        if not self.is_connected():
-            raise ConnectionError("Not connected to the server")
 
         if model_name is None:
             model_name = os.path.basename(model)
@@ -534,6 +564,7 @@ class BlindAiClient:
 
         return ret
 
+    @raise_exception_if_conn_closed
     def run_model(
         self, model_id: str, data_list: List[Any], sign: bool = False
     ) -> RunModelResponse:
@@ -549,13 +580,10 @@ class BlindAiClient:
         Raises:
             ConnectionError: Will be raised if the client is not connected.
             SignatureError: Will be raised if the response signature is invalid
-
+            ValueError: Will be raised if the connection is closed
         Returns:
             RunModelResponse: The response object.
         """
-
-        if not self.is_connected():
-            raise ConnectionError("Not connected to the server")
 
         try:
             serialized_bytes = cbor2_dumps(data_list)
@@ -597,6 +625,7 @@ class BlindAiClient:
 
         return ret
 
+    @raise_exception_if_conn_closed
     def delete_model(self, model_id: str) -> DeleteModelResponse:
         """Delete a model in the inference server.
         This may be used to free up some memory.
@@ -607,13 +636,10 @@ class BlindAiClient:
 
         Raises:
             ConnectionError: Will be raised if the client is not connected or if an happens.
-
+            ValueError: Will be raised if the connection is closed
         Returns:
             DeleteModelResponse: The response object.
         """
-        if not self.is_connected():
-            raise ConnectionError("Not connected to the server")
-
         try:
             self._stub.DeleteModel(DeleteModelRequest(model_id=model_id))
 
@@ -622,11 +648,25 @@ class BlindAiClient:
 
         return DeleteModelResponse()
 
-    def close_connection(self):
-        """Close the connection between the client and the inference server."""
-        if self.is_connected():
-            self._close_channel()
+    def close(self):
+        """Close the connection between the client and the inference server. This method has no effect if the file is already closed."""
+        if not self.closed:
+            self._channel.close()
+            self.closed = True
             self._channel = None
             self._stub = None
             self.policy = None
             self.server_version = None
+
+    def __enter__(self):
+        """Return the BlindAiConnection upon entering the runtime context."""
+        return self
+
+    def __exit__(self, *args):
+        """Close the connection to BlindAI server and raise any exception triggered within the runtime context."""
+        self.close()
+
+
+@wraps(BlindAiConnection.__init__, assigned=("__doc__", "__annotations__"))
+def connect(*args, **kwargs):
+    return BlindAiConnection(*args, **kwargs)

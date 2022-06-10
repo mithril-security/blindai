@@ -21,7 +21,6 @@ from blindai.pb.securedexchange_pb2 import (
 )
 
 from blindai.client import (
-    BlindAiClient,
     ModelDatumType,
     RunModelResponse,
     UploadModelResponse,
@@ -45,10 +44,9 @@ class TestRequest(unittest.TestCase):
         res = UploadModelResponse()
         res.load_from_file(os.path.join(os.path.dirname(__file__), "exec_upload.proof"))
 
-        client = BlindAiClient()
         attestation = res.attestation
         AttestationStub().GetSgxQuoteWithCollateral = Mock(return_value=attestation)
-        client.connect_server(
+        blindai.client.connect(
             "localhost",
             policy=os.path.join(os.path.dirname(__file__), "policy.toml"),
             certificate=os.path.join(os.path.dirname(__file__), "host_server.pem"),
@@ -73,10 +71,9 @@ class TestRequest(unittest.TestCase):
 
         # connect
 
-        client = BlindAiClient()
         attestation = res.attestation
         AttestationStub().GetSgxQuoteWithCollateral = Mock(return_value=attestation)
-        client.connect_server(
+        client = blindai.client.connect(
             "localhost",
             policy=os.path.join(os.path.dirname(__file__), "policy.toml"),
             certificate=os.path.join(os.path.dirname(__file__), "host_server.pem"),
@@ -151,10 +148,9 @@ class TestRequest(unittest.TestCase):
 
         # connect
 
-        client = BlindAiClient()
         attestation = res.attestation
         AttestationStub().GetSgxQuoteWithCollateral = Mock(return_value=attestation)
-        client.connect_server(
+        client = blindai.client.connect(
             "localhost",
             policy=os.path.join(os.path.dirname(__file__), "policy.toml"),
             certificate=os.path.join(os.path.dirname(__file__), "host_server.pem"),
@@ -212,11 +208,9 @@ class TestRequest(unittest.TestCase):
 
         # close server
 
-        self.assertTrue(client.is_connected())
-        client.close_connection()
-        self.assertFalse(client.is_connected())
-        client.close_connection()
-        self.assertFalse(client.is_connected())
+        self.assertFalse(client.closed)
+        client.close()
+        self.assertTrue(client.closed)
 
     @patch("blindai.client.ExchangeStub")
     @patch("blindai.client.AttestationStub")
@@ -249,8 +243,7 @@ class TestRequest(unittest.TestCase):
         )
         AttestationStub().GetCertificate = Mock(return_value=response)
 
-        client = blindai.client.BlindAiClient()
-        client.connect_server("localhost", simulation=True)
+        client = blindai.client.connect("localhost", simulation=True)
 
         # run_model
 
@@ -278,8 +271,6 @@ class TestRequest(unittest.TestCase):
 
         # close server
 
-        self.assertTrue(client.is_connected())
-        client.close_connection()
-        self.assertFalse(client.is_connected())
-        client.close_connection()
-        self.assertFalse(client.is_connected())
+        self.assertFalse(client.closed)
+        client.close()
+        self.assertTrue(client.closed)
