@@ -91,11 +91,13 @@ def _validate_quote(
     return enclave_signing_key
 
 
-def _get_input_output_tensors(tensor_inputs: Optional[List[List[Any]]] = None,
-                              tensor_outputs: Optional[ModelDatumType] = None,
-                              shape: Tuple = None,
-                              dtype: ModelDatumType = ModelDatumType.F32,
-                              dtype_out: ModelDatumType = ModelDatumType.F32) -> Tuple[List[List[Any]], List[ModelDatumType]]:
+def _get_input_output_tensors(
+    tensor_inputs: Optional[List[List[Any]]] = None,
+    tensor_outputs: Optional[ModelDatumType] = None,
+    shape: Tuple = None,
+    dtype: ModelDatumType = ModelDatumType.F32,
+    dtype_out: ModelDatumType = ModelDatumType.F32,
+) -> Tuple[List[List[Any]], List[ModelDatumType]]:
     if tensor_inputs is None or tensor_outputs is None:
         tensor_inputs = [shape, dtype]
         tensor_outputs = dtype_out
@@ -108,8 +110,7 @@ def _get_input_output_tensors(tensor_inputs: Optional[List[List[Any]]] = None,
 
     inputs = []
     for tensor_input in tensor_inputs:
-        inputs.append(TensorInfo(
-            fact=tensor_input[0], datum_type=tensor_input[1]))
+        inputs.append(TensorInfo(fact=tensor_input[0], datum_type=tensor_input[1]))
 
     return (inputs, tensor_outputs)
 
@@ -556,7 +557,8 @@ class BlindAiConnection(contextlib.AbstractContextManager):
                 data = f.read()
 
             (inputs, outputs) = _get_input_output_tensors(
-                tensor_inputs, tensor_outputs, shape, dtype, dtype_out)
+                tensor_inputs, tensor_outputs, shape, dtype, dtype_out
+            )
             response = self._stub.SendModel(
                 iter(
                     [
@@ -567,7 +569,7 @@ class BlindAiConnection(contextlib.AbstractContextManager):
                             model_name=model_name,
                             client_info=self.client_info,
                             tensor_inputs=inputs,
-                            tensor_outputs=outputs
+                            tensor_outputs=outputs,
                         )
                         for chunk in create_byte_chunk(data)
                     ]
@@ -597,7 +599,10 @@ class BlindAiConnection(contextlib.AbstractContextManager):
 
     @raise_exception_if_conn_closed
     def run_model(
-        self, model_id: str, data_list: Union[List[List[Any]], List[Any]], sign: bool = False
+        self,
+        model_id: str,
+        data_list: Union[List[List[Any]], List[Any]],
+        sign: bool = False,
     ) -> RunModelResponse:
         """Send data to the server to make a secure inference.
 
