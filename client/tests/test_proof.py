@@ -14,8 +14,16 @@ from blindai.client import (
 )
 from blindai.dcap_attestation import Policy
 from blindai.utils.errors import SignatureError, AttestationError
+from unittest.mock import Mock, patch
+from datetime import datetime, timedelta
+import time  # so we can override time.time
+import cbor2
 
 from .covidnet import get_input, get_model
+
+mock_time = Mock()
+mock_time.return_value = time.mktime(datetime(2022, 4, 15).timetuple())
+
 
 exec_run = os.path.join(os.path.dirname(__file__), "exec_run.proof")
 exec_upload = os.path.join(os.path.dirname(__file__), "exec_upload.proof")
@@ -24,6 +32,7 @@ policy_file = os.path.join(os.path.dirname(__file__), "policy.toml")
 
 
 class TestProof(unittest.TestCase):
+    @patch("time.time", mock_time)
     def test_parse_run(self):
         response = RunModelResponse()
         response.load_from_file(exec_run)
@@ -56,6 +65,7 @@ class TestProof(unittest.TestCase):
         self.assertEqual(response.attestation, response4.attestation)
         self.assertEqual(response.output, response4.output)
 
+    @patch("time.time", mock_time)
     def test_parse_upload(self):
         response = UploadModelResponse()
         response.load_from_file(exec_upload)
@@ -85,12 +95,14 @@ class TestProof(unittest.TestCase):
         self.assertEqual(response.signature, response4.signature)
         self.assertEqual(response.attestation, response4.attestation)
 
+    @patch("time.time", mock_time)
     def test_validate_run(self):
         response = RunModelResponse()
         response.load_from_file(exec_run)
         policy = Policy.from_file(policy_file)
 
         response.validate(
+            response.model_id,
             get_input(),
             policy=policy,
         )
@@ -102,6 +114,7 @@ class TestProof(unittest.TestCase):
         response2.attestation = None
         with self.assertRaises(SignatureError):
             response2.validate(
+                response.model_id,
                 get_input(),
                 policy=policy,
             )
@@ -112,6 +125,7 @@ class TestProof(unittest.TestCase):
         response2.attestation.quote += b"a"
         with self.assertRaises(AttestationError):
             response2.validate(
+                response.model_id,
                 get_input(),
                 policy=policy,
             )
@@ -120,17 +134,20 @@ class TestProof(unittest.TestCase):
         response2.attestation.enclave_held_data += b"a"
         with self.assertRaises(AttestationError):
             response2.validate(
+                response.model_id,
                 get_input(),
                 policy=policy,
             )
+
         # Payload validation
 
         response2 = deepcopy(response)
         payload = Payload.FromString(response2.payload)
-        payload.run_model_payload.output[0] += 0.1
+        payload.run_model_payload.output = cbor2.dumps([1, 2, 3])
         response2.payload = payload.SerializeToString()
         with self.assertRaises(SignatureError):
             response2.validate(
+                response.model_id,
                 get_input(),
                 policy=policy,
             )
@@ -142,6 +159,7 @@ class TestProof(unittest.TestCase):
         data[4] += 1
         with self.assertRaises(SignatureError):
             response2.validate(
+                response.model_id,
                 data,
                 policy=policy,
             )
@@ -149,10 +167,12 @@ class TestProof(unittest.TestCase):
         # Using file
 
         response.validate(
+            response.model_id,
             get_input(),
             policy_file=policy_file,
         )
 
+    @patch("time.time", mock_time)
     def test_validate_upload(self):
         response = UploadModelResponse()
         response.load_from_file(exec_upload)

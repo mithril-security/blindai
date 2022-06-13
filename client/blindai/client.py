@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import contextlib
+from functools import wraps
 import getpass
 import logging
 import os
@@ -26,6 +28,7 @@ from cbor2 import dumps as cbor2_dumps
 from cbor2 import loads as cbor2_loads
 from cryptography.exceptions import InvalidSignature
 from grpc import Channel, RpcError, secure_channel, ssl_channel_credentials
+from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
 
 from blindai.dcap_attestation import (
     Policy,
@@ -41,7 +44,8 @@ from blindai.pb.securedexchange_pb2 import (
     RunModelRequest,
     SendModelRequest,
     ClientInfo,
-    TensorInfo
+    TensorInfo,
+    DeleteModelRequest,
 )
 from blindai.pb.proof_files_pb2 import ResponseProof
 from blindai.pb.securedexchange_pb2_grpc import ExchangeStub
@@ -73,7 +77,7 @@ ModelDatumType = IntEnum("ModelDatumType", DatumTypeEnum.items())
 
 def _validate_quote(
     attestation: GetSgxQuoteWithCollateralReply, policy: Policy
-) -> bytes:
+) -> Ed25519PublicKey:
     """Returns the enclave signing key"""
 
     claims = verify_dcap_attestation(
@@ -178,6 +182,8 @@ class SignedResponse:
 
 
 class UploadModelResponse(SignedResponse):
+    model_id: str
+
     def validate(
         self,
         model_hash: bytes,
@@ -231,12 +237,18 @@ class UploadModelResponse(SignedResponse):
         if model_hash != payload.model_hash:
             raise SignatureError("Invalid returned model_hash")
 
+    def _load_payload(self):
+        payload = Payload.FromString(self.payload).send_model_payload
+        self.model_id = payload.model_id
+
 
 class RunModelResponse(SignedResponse):
     output: List[float]
+    model_id: str
 
     def validate(
         self,
+        model_id: str,
         data_list: List[Any],
         policy_file: Optional[str] = None,
         policy: Optional[Policy] = None,
@@ -248,6 +260,7 @@ class RunModelResponse(SignedResponse):
         This will raise an error if the response is not signed or if it is not valid.
 
         Args:
+            model_id (str): The model id to check against.
             data_list (List[Any]): Input used to run the model, to validate against.
             policy_file (Optional[str], optional): Path to the policy file. Defaults to None.
             policy (Optional[Policy], optional): Policy to use. Use `policy_file` to load from a file directly. Defaults to None.
@@ -289,12 +302,35 @@ class RunModelResponse(SignedResponse):
         if sha256(serialized_bytes).digest() != payload.input_hash:
             raise SignatureError("Invalid returned input_hash")
 
+        if model_id != payload.model_id:
+            raise SignatureError("Invalid returned model_id")
+
     def _load_payload(self):
         payload = Payload.FromString(self.payload).run_model_payload
         self.output = payload.output
+        self.model_id = payload.model_id
 
 
-class BlindAiClient:
+class DeleteModelResponse:
+    pass
+
+
+def raise_exception_if_conn_closed(f):
+    """
+    Decorator which raises an exception if the BlindAiConnection is closed before calling
+    the decorated method
+    """
+
+    @wraps(f)
+    def wrapper(self, *args, **kwds):
+        if self.closed:
+            raise ValueError("Illegal operation on closed connection.")
+        return f(self, *args, **kwds)
+
+    return wrapper
+
+
+class BlindAiConnection(contextlib.AbstractContextManager):
     _channel: Optional[Channel] = None
     policy: Optional[Policy] = None
     _stub: Optional[ExchangeStub] = None
@@ -306,34 +342,9 @@ class BlindAiClient:
     client_info: ClientInfo
     tensor_inputs: Optional[List[List[Any]]]
     tensor_outputs: Optional[List[ModelDatumType]]
+    closed: bool = False
 
-    def __init__(self, debug_mode=False):
-        if debug_mode:
-            os.environ["GRPC_TRACE"] = "transport_security,tsi"
-            os.environ["GRPC_VERBOSITY"] = "DEBUG"
-
-        uname = platform.uname()
-        self.client_info = ClientInfo(
-            uid=sha256((socket.gethostname() + "-" + getpass.getuser()).encode("utf-8"))
-            .digest()
-            .hex(),
-            platform_name=uname.system,
-            platform_arch=uname.machine,
-            platform_version=uname.version,
-            platform_release=uname.release,
-            user_agent="blindai_python",
-            user_agent_version=app_version,
-        )
-
-    def is_connected(self) -> bool:
-        return self._channel is not None
-
-    def _close_channel(self):
-        if self.is_connected():
-            self._channel.close()
-            self._channel = None
-
-    def connect_server(
+    def __init__(
         self,
         addr: str,
         server_name: str = "blindai-srv",
@@ -342,6 +353,7 @@ class BlindAiClient:
         simulation: bool = False,
         untrusted_port: int = 50052,
         attested_port: int = 50051,
+        debug_mode=False,
     ):
         """Connect to the server with the specified parameters.
         You will have to specify here the expected policy (server identity, configuration...)
@@ -371,6 +383,43 @@ class BlindAiClient:
             FileNotFoundError: will be raised if the policy file, or the certificate file is not
                 found (in Hardware mode).
         """
+        if debug_mode:  # pragma: no cover
+            os.environ["GRPC_TRACE"] = "transport_security,tsi"
+            os.environ["GRPC_VERBOSITY"] = "DEBUG"
+
+        uname = platform.uname()
+        self.client_info = ClientInfo(
+            uid=sha256((socket.gethostname() + "-" + getpass.getuser()).encode("utf-8"))
+            .digest()
+            .hex(),
+            platform_name=uname.system,
+            platform_arch=uname.machine,
+            platform_version=uname.version,
+            platform_release=uname.release,
+            user_agent="blindai_python",
+            user_agent_version=app_version,
+        )
+
+        self._connect_server(
+            addr,
+            server_name,
+            policy,
+            certificate,
+            simulation,
+            untrusted_port,
+            attested_port,
+        )
+
+    def _connect_server(
+        self,
+        addr: str,
+        server_name,
+        policy,
+        certificate,
+        simulation,
+        untrusted_port,
+        attested_port,
+    ):
         self.simulation_mode = simulation
         self._disable_untrusted_server_cert_check = simulation
 
@@ -462,6 +511,7 @@ class BlindAiClient:
             channel.close()
             raise ConnectionError(check_rpc_exception(rpc_error))
 
+    @raise_exception_if_conn_closed
     def upload_model(
         self,
         model: str,
@@ -471,6 +521,7 @@ class BlindAiClient:
         dtype: ModelDatumType = ModelDatumType.F32,
         dtype_out: ModelDatumType = ModelDatumType.F32,
         sign: bool = False,
+        model_name: Optional[str] = None,
     ) -> UploadModelResponse:
         """Upload an inference model to the server.
         The provided model needs to be in the Onnx format.
@@ -483,19 +534,22 @@ class BlindAiClient:
             dtype (ModelDatumType, optional): The type of the model input data (f32 by default). Defaults to ModelDatumType.F32.
             dtype_out (ModelDatumType, optional): The type of the model output data (f32 by default). Defaults to ModelDatumType.F32.
             sign (bool, optional): Get signed responses from the server or not. Defaults to False.
+            model_name (Optional[str], optional): Name of the model.
 
         Raises:
             ConnectionError: Will be raised if the client is not connected.
             FileNotFoundError: Will be raised if the model file is not found.
             SignatureError: Will be raised if the response signature is invalid.
+            ValueError: Will be raised if the connection is closed.
 
         Returns:
             UploadModelResponse: The response object.
         """
 
         response = None
-        if not self.is_connected():
-            raise ConnectionError("Not connected to the server")
+
+        if model_name is None:
+            model_name = os.path.basename(model)
 
         try:
             with open(model, "rb") as f:
@@ -510,8 +564,8 @@ class BlindAiClient:
                             length=len(data),
                             data=chunk,
                             sign=sign,
+                            model_name=model_name,
                             client_info=self.client_info,
-                            model_name=os.path.basename(model),
                             tensor_inputs=inputs,
                             tensor_outputs=outputs
                         )
@@ -524,8 +578,9 @@ class BlindAiClient:
             raise ConnectionError(check_rpc_exception(rpc_error))
 
         # Response Verification
-        # payload = Payload.FromString(response.payload).send_model_payload
+        payload = Payload.FromString(response.payload).send_model_payload
         ret = UploadModelResponse()
+        ret.model_id = payload.model_id
 
         if sign:
             ret.payload = response.payload
@@ -540,25 +595,26 @@ class BlindAiClient:
 
         return ret
 
-    def run_model(self, data_list: Union[List[List[Any]], List[Any]], sign: bool = False) -> RunModelResponse:
+    @raise_exception_if_conn_closed
+    def run_model(
+        self, model_id: str, data_list: Union[List[List[Any]], List[Any]], sign: bool = False
+    ) -> RunModelResponse:
         """Send data to the server to make a secure inference.
 
         The data provided must be in a list, as the tensor will be rebuilt inside the server.
 
         Args:
+            model_id (str): If set, will run a specific model.
             data_list (Union[List[Any], List[List[Any]]))): The input data. It must be an array of numbers or an array of arrays of numbers of the same type dtype specified in `upload_model`.
             sign (bool, optional): Get signed responses from the server or not. Defaults to False.
 
         Raises:
             ConnectionError: Will be raised if the client is not connected.
             SignatureError: Will be raised if the response signature is invalid
-
+            ValueError: Will be raised if the connection is closed
         Returns:
             RunModelResponse: The response object.
         """
-
-        if not self.is_connected():
-            raise ConnectionError("Not connected to the server")
 
         try:
             if type(data_list[0]) != list:
@@ -569,6 +625,7 @@ class BlindAiClient:
                 iter(
                     [
                         RunModelRequest(
+                            model_id=model_id,
                             client_info=self.client_info,
                             input=serialized_bytes_chunk,
                             sign=sign,
@@ -593,6 +650,7 @@ class BlindAiClient:
             ret.signature = response.signature
             ret.attestation = self.attestation
             ret.validate(
+                model_id,
                 data_list,
                 validate_quote=False,
                 enclave_signing_key=self.enclave_signing_key,
@@ -601,11 +659,48 @@ class BlindAiClient:
 
         return ret
 
-    def close_connection(self):
-        """Close the connection between the client and the inference server."""
-        if self.is_connected():
-            self._close_channel()
+    @raise_exception_if_conn_closed
+    def delete_model(self, model_id: str) -> DeleteModelResponse:
+        """Delete a model in the inference server.
+        This may be used to free up some memory.
+        Note that the model in currently stored in-memory, and you cannot keep it loaded across server restarts.
+
+        Args:
+            model_id (str): The id of the model to remove.
+
+        Raises:
+            ConnectionError: Will be raised if the client is not connected or if an happens.
+            ValueError: Will be raised if the connection is closed
+        Returns:
+            DeleteModelResponse: The response object.
+        """
+        try:
+            self._stub.DeleteModel(DeleteModelRequest(model_id=model_id))
+
+        except RpcError as rpc_error:
+            raise ConnectionError(check_rpc_exception(rpc_error))
+
+        return DeleteModelResponse()
+
+    def close(self):
+        """Close the connection between the client and the inference server. This method has no effect if the file is already closed."""
+        if not self.closed:
+            self._channel.close()
+            self.closed = True
             self._channel = None
             self._stub = None
             self.policy = None
             self.server_version = None
+
+    def __enter__(self):
+        """Return the BlindAiConnection upon entering the runtime context."""
+        return self
+
+    def __exit__(self, *args):
+        """Close the connection to BlindAI server and raise any exception triggered within the runtime context."""
+        self.close()
+
+
+@wraps(BlindAiConnection.__init__, assigned=("__doc__", "__annotations__"))
+def connect(*args, **kwargs):
+    return BlindAiConnection(*args, **kwargs)

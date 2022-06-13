@@ -14,12 +14,12 @@
 
 use std::vec::Vec;
 
-use crate::client_communication::secured_exchange::TensorInfo;
 use anyhow::{anyhow, Context, Result};
 use core::hash::Hash;
 use num_derive::FromPrimitive;
-use tonic::Status;
+use ring::digest::Digest;
 use tract_onnx::prelude::{tract_ndarray::IxDynImpl, DatumType, TVec, *};
+use uuid::Uuid;
 
 pub type OnnxModel = SimplePlan<TypedFact, Box<dyn TypedOp>, Graph<TypedFact, Box<dyn TypedOp>>>;
 
@@ -97,46 +97,33 @@ fn convert_tensor<A: serde::ser::Serialize + tract_core::prelude::Datum>(
 
 #[derive(Debug)]
 pub struct InferenceModel {
-    onnx: OnnxModel,
-    model_name: Option<String>,
     pub datum_inputs: Vec<ModelDatumType>,
     input_facts: Vec<Vec<usize>>,
     pub datum_outputs: Vec<ModelDatumType>,
+    pub onnx: Arc<OnnxModel>,
+    #[allow(unused)]
+    model_id: Uuid,
+    model_name: Option<String>,
+    model_hash: Digest,
 }
 
 impl InferenceModel {
     pub fn load_model(
-        mut model_data: Vec<u8>,
+        mut model_data: &[u8],
+        input_facts: Vec<Vec<usize>>,
+        model_id: Uuid,
         model_name: Option<String>,
-        tensor_inputs: Vec<TensorInfo>,
-        tensor_outputs: Vec<i32>,
+        model_hash: Digest,
+        datum_inputs: Vec<ModelDatumType>,
+        datum_outputs: Vec<ModelDatumType>,
     ) -> Result<Self> {
-        let convert_type = |t: i32| -> Result<_, Status> {
-            num_traits::FromPrimitive::from_i32(t)
-                .ok_or_else(|| Status::invalid_argument("Unknown datum type".to_string()))
-        };
-
-        let mut datum_outputs: Vec<ModelDatumType> = Vec::new();
-        let mut datum_inputs: Vec<ModelDatumType> = Vec::new();
-        let mut input_facts: Vec<Vec<usize>> = Vec::new();
-
-        let mut datum_input: ModelDatumType; // dummy
-
-        let model_data_copy: &mut [u8] = &mut model_data;
-        let mut model_rec = tract_onnx::onnx().model_for_read(&mut &model_data_copy[..])?;
-        for (idx, tensor_input) in tensor_inputs.clone().iter().enumerate() {
-            let mut input_fact: Vec<usize> = vec![];
-
-            for x in &tensor_input.fact {
-                input_fact.push(*x as usize);
-            }
-            datum_input = convert_type(tensor_input.datum_type.clone())?;
-            datum_outputs = tensor_outputs
-                .iter()
-                .map(|v| convert_type(*v).unwrap())
-                .collect();
-            datum_inputs.push(datum_input.clone());
-            input_facts.push(input_fact.clone());
+        let mut model_rec = tract_onnx::onnx().model_for_read(&mut model_data)?;
+        for (idx, (datum_input, input_fact)) in datum_inputs
+            .clone()
+            .iter()
+            .zip(input_facts.clone())
+            .enumerate()
+        {
             model_rec = model_rec.with_input_fact(
                 idx,
                 InferenceFact::dt_shape(datum_input.get_datum_type(), &input_fact),
@@ -144,10 +131,12 @@ impl InferenceModel {
         }
 
         Ok(InferenceModel {
-            onnx: model_rec.clone().into_optimized()?.into_runnable()?,
+            onnx: model_rec.clone().into_optimized()?.into_runnable()?.into(),
             datum_inputs: datum_inputs.clone(),
             input_facts: input_facts.clone(),
             model_name,
+            model_id,
+            model_hash,
             datum_outputs: datum_outputs.clone(),
         })
     }
@@ -178,7 +167,35 @@ impl InferenceModel {
         Ok(arr)
     }
 
+    pub fn from_onnx_loaded(
+        onnx: Arc<OnnxModel>,
+        input_facts: Vec<Vec<usize>>,
+        model_id: Uuid,
+        model_name: Option<String>,
+        model_hash: Digest,
+        datum_inputs: Vec<ModelDatumType>,
+        datum_outputs: Vec<ModelDatumType>,
+    ) -> Self {
+        InferenceModel {
+            onnx,
+            input_facts,
+            model_id,
+            model_name,
+            model_hash,
+            datum_inputs,
+            datum_outputs,
+        }
+    }
+
     pub fn model_name(&self) -> Option<&str> {
         self.model_name.as_deref()
+    }
+
+    pub fn model_hash(&self) -> Digest {
+        self.model_hash
+    }
+
+    pub fn datum_output(&self) -> ModelDatumType {
+        self.datum_outputs[0]
     }
 }

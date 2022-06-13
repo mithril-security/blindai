@@ -85,7 +85,10 @@ attributes_mask_xfrm_hex = get_hex_value(content, attributes_mask_xfrm)
 # # the remote service. ISV SVN is set in the enclave configuration file.
 # min_isv_svn = {isv_svn_hex}
 
-if os.getenv("POLICY_ALLOW_DEBUG") is None or os.getenv("POLICY_ALLOW_DEBUG") == "false":
+if (
+    os.getenv("POLICY_ALLOW_DEBUG") is None
+    or os.getenv("POLICY_ALLOW_DEBUG") == "false"
+):
     allow_debug = False
 else:
     allow_debug = True

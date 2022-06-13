@@ -51,28 +51,31 @@ jobs:
         with:
           submodules: true
 
-      # Setup
-
-      - uses: jwlawson/actions-setup-cmake@v1.12
-      - uses: actions/cache@v2
+      # Reuse previous wheels if the client is unchanged
+      - name: Cache wheels
+        id: cache-wheels
+        uses: actions/cache@v3
         with:
-          path: |
-            ${{ env.pythonLocation }}
-            ~/.cache/pip
-          key: ${{ env.pythonLocation }}-${{ hashFiles('client/setup.py') }}-${{ hashFiles('client/requirements.txt') }}
+          path: client/wheelhouse/*.whl
+          key:  wheels-${{ runner.os }}-${{ hashFiles('client/') }}
+
+      # Install cibuildwheel
       - uses: actions/setup-python@v3
+        if: ${{ steps.cache-wheels.outputs.cache-hit != 'true' }}
         with:
           python-version: '3.9'
 
-      - name: Install dependencies
-        run: |
-          pip install -r client/requirements.txt
+      - name: Install cibuildwheel
+        if: ${{ steps.cache-wheels.outputs.cache-hit != 'true' }}
+        run: python -m pip install cibuildwheel==2.6.0
 
       # Build client
 
       - run: rm -rf client/proto && cp -r server/proto client
+        if: ${{ steps.cache-wheels.outputs.cache-hit != 'true' }}
 
       - uses: actions/cache@v2
+        if: ${{ steps.cache-wheels.outputs.cache-hit != 'true' }}
         with:
           path: |
             ./client/build
@@ -81,15 +84,15 @@ jobs:
             ./client/third_party/attestationLib/build
             ./client/third_party/attestationLib/Build
           key: client/build-${{ env.pythonLocation }}-${{ hashFiles('client/setup.py') }}-${{ hashFiles('client/requirements.txt') }}
+
       - name: Building the client
+        if: ${{ steps.cache-wheels.outputs.cache-hit != 'true' }}
         run: |
           cd client
           python -m cibuildwheel --output-dir ./wheelhouse
         env:
           CIBW_BUILD: "cp39-manylinux_*" # force python 3.9 and manylinux for this build
           CIBW_ARCHS: x86_64 # ignore i686/x86 (32bit) for now, as well as arm and stuff
-
-      - run: unzip -l client/wheelhouse/*.whl
 
       # Outputs
 
@@ -115,15 +118,11 @@ jobs:
 
       # Setup
 
-      - uses: actions/cache@v2
-        with:
-          path: |
-            ${{ env.pythonLocation }}
-            ~/.cache/pip
-          key: ${{ env.pythonLocation }}-${{ hashFiles('client/setup.py') }}-${{ hashFiles('client/requirements.txt') }}
       - uses: actions/setup-python@v3
         with:
           python-version: '3.9'
+          cache: 'pip'
+
       - name: Install libGL
         run: sudo apt update -y && sudo apt install -y libgl1-mesa-glx
 
@@ -170,3 +169,10 @@ jobs:
           BLINDAI_TEST_NO_LAUNCH_SERVER: 'true'
           BLINDAI_TEST_NO_HW: 'true'
           BLINDAI_TEST_SKIP_COVIDNET: 'true'
+      
+      - name: Install Jupyter and related test tools
+        run: pip install pytest nbmake 
+    
+      - name: Test Jupyter notebooks
+        run: 
+          pytest --nbmake-timeout=30 --nbmake-kernel=python3 --nbmake examples/**/*.ipynb || (docker logs app; false)

@@ -114,9 +114,9 @@ pub(crate) fn create_certificate() -> Result<(Certificate, RsaKeyPair, Vec<u8>)>
 
     let subject_alt_names: &[_] = &["blindai-srv".to_string()];
 
-    let subject_alt_names = Vec::from(subject_alt_names)
+    let subject_alt_names = subject_alt_names
         .into_iter()
-        .map(SanType::DnsName)
+        .map(|s| SanType::DnsName(s.to_string()))
         .collect::<Vec<_>>();
 
     let payload_signing_key_oid: Vec<_> = oid!(1.3.6 .1 .3 .2)

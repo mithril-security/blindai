@@ -7,8 +7,3 @@ repos:
     rev: 3.9.2
     hooks:
     - id: flake8
--   repo: https://github.com/doublify/pre-commit-rust
-    rev: v1.0
-    hooks:
-    - id: fmt
-      args: ['--all','--manifest-path','server/Cargo.toml', '--verbose', '--'] 

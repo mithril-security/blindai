@@ -16,6 +16,7 @@ import ctypes
 import hashlib
 import pkgutil
 import struct
+import time
 from typing_extensions import Self
 from dataclasses import dataclass
 from blindai.pb.untrusted_pb2 import SgxCollateral
@@ -83,7 +84,7 @@ def verify_dcap_attestation(
     t.quote = quote
     t.qeIdentity = attestation_collateral.qe_identity
     t.qveIdentity = ""
-    # Default expiration date is current time (no need to set t.expirationDate)
+    t.expirationDate = int(time.time())
 
     ret = t.verify()
 
