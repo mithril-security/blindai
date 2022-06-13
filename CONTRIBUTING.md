@@ -149,6 +149,17 @@ This repository uses the following:
 - flake8 and black to lint/format python code.
 - Cargo formatter to format Rust code.
 
+### Clean notebooks 
+
+Install nb-clean : 
+```zsh
+pip install nb-clean
+```
+And run it before committing your changes : 
+```zsh
+nb-clean clean examples/**/*.ipynb
+```
+
 ### Pre-commit hook
 To ensure the style guidelines are maintained in the codebase, **pre-commit hook** is used.
 Once cloning the repository, make sure to follow the following steps:
