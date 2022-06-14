@@ -298,6 +298,8 @@ class RunModelResponse(SignedResponse):
                 raise SignatureError("Invalid signature")
 
         # Input validation
+        if type(data_list[0]) != list:
+            data_list = [data_list]
 
         serialized_bytes = cbor2_dumps(data_list)
         if sha256(serialized_bytes).digest() != payload.input_hash:
