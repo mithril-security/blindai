@@ -14,7 +14,6 @@
 
 use futures::StreamExt;
 use log::*;
-use num_traits::FromPrimitive;
 use prost::Message;
 use ring::digest;
 use ring_compat::signature::Signer;
@@ -31,11 +30,13 @@ use tonic::{Request, Response, Status};
 use uuid::Uuid;
 
 use crate::{
+    client_communication::secured_exchange::TensorInfo,
     identity::MyIdentity,
     model::ModelDatumType,
     model_store::ModelStore,
     telemetry::{self, TelemetryEventProps},
 };
+
 use secured_exchange::{exchange_server::Exchange, *};
 
 pub mod secured_exchange {
@@ -73,11 +74,18 @@ impl Exchange for Exchanger {
     ) -> Result<Response<SendModelReply>, Status> {
         let start_time = Instant::now();
 
-        let mut stream = request.into_inner();
-        let mut datum = ModelDatumType::I64; // dummy
-        let mut datum_output = ModelDatumType::I64; // dummy
+        let convert_type = |t: i32| -> Result<_, Status> {
+            num_traits::FromPrimitive::from_i32(t)
+                .ok_or_else(|| Status::invalid_argument("Unknown datum type".to_string()))
+        };
 
-        let mut input_fact: Vec<usize> = Vec::new();
+        let mut stream = request.into_inner();
+        let mut tensor_inputs: Vec<TensorInfo> = Vec::new();
+        let mut tensor_outputs: Vec<i32> = Vec::new();
+
+        let mut datum_outputs: Vec<ModelDatumType> = Vec::new();
+        let mut datum_inputs: Vec<ModelDatumType> = Vec::new();
+        let mut input_facts: Vec<Vec<usize>> = Vec::new();
         let mut model_bytes: Vec<u8> = Vec::new();
         let max_model_size = self.max_model_size;
         let mut model_size = 0usize;
@@ -100,14 +108,14 @@ impl Exchange for Exchanger {
                 };
                 client_info = model_proto.client_info;
 
-                for x in &model_proto.input_fact {
-                    input_fact.push(*x as usize);
+                for tensor_info in &model_proto.tensor_inputs {
+                    tensor_inputs.push(tensor_info.clone());
                 }
 
-                datum = FromPrimitive::from_i32(model_proto.datum)
-                    .ok_or_else(|| Status::invalid_argument("Unknown datum type".to_string()))?;
-                datum_output = FromPrimitive::from_i32(model_proto.datum_output)
-                    .ok_or_else(|| Status::invalid_argument("Unknown datum type".to_string()))?;
+                for output in &model_proto.tensor_outputs {
+                    tensor_outputs.push(*output);
+                }
+
                 sign = model_proto.sign;
             }
             if model_size > max_model_size || model_bytes.len() > max_model_size {
@@ -120,14 +128,31 @@ impl Exchange for Exchanger {
             return Err(Status::invalid_argument("Received no data".to_string()));
         }
 
+        // Create datum_inputs, datum_outputs, and input_facts vector from tensor_inputs
+        // and tensor_outputs
+        for (_, tensor_input) in tensor_inputs.clone().iter().enumerate() {
+            let mut input_fact: Vec<usize> = vec![];
+
+            for x in &tensor_input.fact {
+                input_fact.push(*x as usize);
+            }
+            let datum_input = convert_type(tensor_input.datum_type.clone())?;
+            datum_outputs = tensor_outputs
+                .iter()
+                .map(|v| convert_type(*v).unwrap())
+                .collect();
+            datum_inputs.push(datum_input.clone());
+            input_facts.push(input_fact.clone());
+        }
+
         let (model_id, model_hash) = self
             .model_store
             .add_model(
                 &model_bytes,
-                input_fact.clone(),
-                datum,
+                input_facts.clone(),
                 model_name.clone(),
-                datum_output,
+                datum_inputs.clone(),
+                datum_outputs.clone(),
             )
             .map_err(|err| {
                 error!("Error while creating model: {}", err);
@@ -138,7 +163,11 @@ impl Exchange for Exchanger {
         let mut payload = SendModelPayload::default();
         if sign {
             payload.model_hash = model_hash.as_ref().to_vec();
-            payload.input_fact = input_fact.into_iter().map(|i| i as i32).collect();
+            payload.input_fact = input_facts
+                .into_iter()
+                .flatten()
+                .map(|i| i as i32)
+                .collect();
         }
         payload.model_id = model_id.to_string();
         let payload_with_header = Payload {
@@ -233,7 +262,7 @@ impl Exchange for Exchanger {
 
         let res = self.model_store.use_model(uuid, |model| {
             (
-                model.run_inference(&input),
+                model.run_inference(&mut input.clone()[..]),
                 model.model_name().map(|s| s.to_string()),
                 model.datum_output(),
             )

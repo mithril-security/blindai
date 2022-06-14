@@ -1,6 +1,7 @@
 use anyhow::{anyhow, Result};
 use log::*;
 use ring::digest::{self, Digest};
+
 #[cfg(not(target_env = "sgx"))]
 use std::sync::RwLock;
 #[cfg(target_env = "sgx")]
@@ -36,10 +37,10 @@ impl ModelStore {
     pub fn add_model(
         &self,
         model_bytes: &[u8],
-        input_fact: Vec<usize>,
-        datum: ModelDatumType,
+        input_facts: Vec<Vec<usize>>,
         model_name: Option<String>,
-        datum_output: ModelDatumType,
+        datum_inputs: Vec<ModelDatumType>,
+        datum_outputs: Vec<ModelDatumType>,
     ) -> Result<(Uuid, Digest)> {
         let model_id = Uuid::new_v4();
         let model_hash = digest::digest(&digest::SHA256, &model_bytes);
@@ -62,12 +63,12 @@ impl ModelStore {
                     info!("Reusing an existing ONNX entry for model. (n = {})", *num);
                     InferenceModel::from_onnx_loaded(
                         onnx.clone(),
-                        input_fact,
-                        datum,
+                        input_facts.clone(),
                         model_id,
                         model_name,
                         model_hash,
-                        datum_output,
+                        datum_inputs,
+                        datum_outputs,
                     )
                 }
                 Entry::Vacant(entry) => {
@@ -76,12 +77,12 @@ impl ModelStore {
                     // this so that the lock  isn't taken here
                     let model = InferenceModel::load_model(
                         &model_bytes,
-                        input_fact,
-                        datum,
+                        input_facts.clone(),
                         model_id,
                         model_name,
                         model_hash,
-                        datum_output,
+                        datum_inputs,
+                        datum_outputs,
                     )?;
                     entry.insert((1, model.onnx.clone()));
                     model

@@ -22,7 +22,7 @@ import ssl
 import platform
 from enum import IntEnum
 from hashlib import sha256
-from typing import Any, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 from cbor2 import dumps as cbor2_dumps
 from cbor2 import loads as cbor2_loads
@@ -44,6 +44,7 @@ from blindai.pb.securedexchange_pb2 import (
     RunModelRequest,
     SendModelRequest,
     ClientInfo,
+    TensorInfo,
     DeleteModelRequest,
 )
 from blindai.pb.proof_files_pb2 import ResponseProof
@@ -88,6 +89,30 @@ def _validate_quote(
     enclave_signing_key = get_enclave_signing_key(server_cert)
 
     return enclave_signing_key
+
+
+def _get_input_output_tensors(
+    tensor_inputs: Optional[List[List[Any]]] = None,
+    tensor_outputs: Optional[ModelDatumType] = None,
+    shape: Tuple = None,
+    dtype: ModelDatumType = ModelDatumType.F32,
+    dtype_out: ModelDatumType = ModelDatumType.F32,
+) -> Tuple[List[List[Any]], List[ModelDatumType]]:
+    if tensor_inputs is None or tensor_outputs is None:
+        tensor_inputs = [shape, dtype]
+        tensor_outputs = dtype_out
+
+    if type(tensor_inputs[0]) != list:
+        tensor_inputs = [tensor_inputs]
+
+    if type(tensor_outputs) != list:
+        tensor_outputs = [tensor_outputs]
+
+    inputs = []
+    for tensor_input in tensor_inputs:
+        inputs.append(TensorInfo(fact=tensor_input[0], datum_type=tensor_input[1]))
+
+    return (inputs, tensor_outputs)
 
 
 class SignedResponse:
@@ -316,6 +341,8 @@ class BlindAiConnection(contextlib.AbstractContextManager):
     attestation: Optional[GetSgxQuoteWithCollateralReply] = None
     server_version: Optional[str] = None
     client_info: ClientInfo
+    tensor_inputs: Optional[List[List[Any]]]
+    tensor_outputs: Optional[List[ModelDatumType]]
     closed: bool = False
 
     def __init__(
@@ -489,6 +516,8 @@ class BlindAiConnection(contextlib.AbstractContextManager):
     def upload_model(
         self,
         model: str,
+        tensor_inputs: Optional[List[List[Any]]] = None,
+        tensor_outputs: Optional[List[ModelDatumType]] = None,
         shape: Tuple = None,
         dtype: ModelDatumType = ModelDatumType.F32,
         dtype_out: ModelDatumType = ModelDatumType.F32,
@@ -500,6 +529,8 @@ class BlindAiConnection(contextlib.AbstractContextManager):
 
         Args:
             model (str): Path to Onnx model file.
+            tensor_inputs (Union[List[Any], List[List]]): A list describing multiple inputs of the model.
+            tensor_outputs (Union[ModelDatumType, List[ModelDatumType]): A list describing multiple inputs of the model. Defaults to {"index_0": ModelDatumType.F32}.
             shape (Tuple, optional): The shape of the model input. Defaults to None.
             dtype (ModelDatumType, optional): The type of the model input data (f32 by default). Defaults to ModelDatumType.F32.
             dtype_out (ModelDatumType, optional): The type of the model output data (f32 by default). Defaults to ModelDatumType.F32.
@@ -524,19 +555,21 @@ class BlindAiConnection(contextlib.AbstractContextManager):
         try:
             with open(model, "rb") as f:
                 data = f.read()
-            input_fact = list(shape)
+
+            (inputs, outputs) = _get_input_output_tensors(
+                tensor_inputs, tensor_outputs, shape, dtype, dtype_out
+            )
             response = self._stub.SendModel(
                 iter(
                     [
                         SendModelRequest(
                             length=len(data),
-                            input_fact=input_fact,
                             data=chunk,
-                            datum=int(dtype),
                             sign=sign,
                             model_name=model_name,
                             client_info=self.client_info,
-                            datum_output=int(dtype_out),
+                            tensor_inputs=inputs,
+                            tensor_outputs=outputs,
                         )
                         for chunk in create_byte_chunk(data)
                     ]
@@ -566,7 +599,10 @@ class BlindAiConnection(contextlib.AbstractContextManager):
 
     @raise_exception_if_conn_closed
     def run_model(
-        self, model_id: str, data_list: List[Any], sign: bool = False
+        self,
+        model_id: str,
+        data_list: Union[List[List[Any]], List[Any]],
+        sign: bool = False,
     ) -> RunModelResponse:
         """Send data to the server to make a secure inference.
 
@@ -574,7 +610,7 @@ class BlindAiConnection(contextlib.AbstractContextManager):
 
         Args:
             model_id (str): If set, will run a specific model.
-            data_list (List[Any]): The input data. It must be an array of numbers of the same type dtype specified in `upload_model`.
+            data_list (Union[List[Any], List[List[Any]]))): The input data. It must be an array of numbers or an array of arrays of numbers of the same type dtype specified in `upload_model`.
             sign (bool, optional): Get signed responses from the server or not. Defaults to False.
 
         Raises:
@@ -586,6 +622,9 @@ class BlindAiConnection(contextlib.AbstractContextManager):
         """
 
         try:
+            if type(data_list[0]) != list:
+                data_list = [data_list]
+
             serialized_bytes = cbor2_dumps(data_list)
             response = self._stub.RunModel(
                 iter(
