@@ -8,6 +8,8 @@ import blindai.client
 import cbor2
 from unittest.mock import *
 from datetime import datetime, timedelta
+from typing import Any, Dict, List, Optional, Tuple, Union
+
 import time  # so we can override time.time
 
 from blindai.pb.securedexchange_pb2 import (
@@ -18,6 +20,7 @@ from blindai.pb.securedexchange_pb2 import (
     RunModelReply,
     PayloadHeader,
     RunModelPayload,
+    TensorInfo
 )
 
 from blindai.client import (
@@ -34,6 +37,17 @@ from .covidnet import get_input, model_path, get_model
 
 mock_time = Mock()
 mock_time.return_value = time.mktime(datetime(2022, 4, 15).timetuple())
+
+class TensorInfoMatcher:
+    facts: List[Tuple]
+    datum_types: List[ModelDatumType]
+
+    def __init__(self, tensor_info: List[TensorInfo]):
+        self.facts = [x.fact for x in tensor_info]
+        self.datum_types = [x.datum_type for x in tensor_info]
+    def __eq__(self, other):
+        return self.facts == other.facts and \
+               self.datum_types == other.datum_types
 
 
 class TestRequest(unittest.TestCase):
@@ -84,7 +98,9 @@ class TestRequest(unittest.TestCase):
         datum = ModelDatumType.F32
         datum_out = ModelDatumType.F32
         shape = (1, 480, 480, 3)
-
+        tensor_inputs = [TensorInfo(fact=(1,480,480,3), datum_type=ModelDatumType.F32)]
+        tensor_outputs = [ModelDatumType.F32]
+ 
         def send_model_util(sign):
             model_bytes = get_model()
 
@@ -94,9 +110,9 @@ class TestRequest(unittest.TestCase):
                 for el in reql:
                     self.assertLessEqual(len(el.data), 32 * 1024)
                     arr += el.data
-                    self.assertEqual(el.datum, datum)
                     self.assertEqual(el.sign, sign)
-                    self.assertEqual(el.input_fact, list(shape))
+                    self.assertEqual(TensorInfoMatcher(el.tensor_inputs), TensorInfoMatcher(tensor_inputs))
+                    self.assertEqual(el.tensor_outputs, tensor_outputs)
                     self.assertEqual(el.length, len(model_bytes))
 
                 self.assertEqual(arr, model_bytes)
@@ -169,7 +185,7 @@ class TestRequest(unittest.TestCase):
                     arr += el.input
                     self.assertEqual(el.sign, sign)
 
-                self.assertEqual(arr, cbor2.dumps(input))
+                self.assertEqual(arr, cbor2.dumps([input]))
 
                 return RunModelReply(
                     payload=real_response.payload,
@@ -257,7 +273,7 @@ class TestRequest(unittest.TestCase):
                 arr += el.input
                 self.assertEqual(el.sign, False)
 
-            self.assertEqual(arr, cbor2.dumps(input))
+            self.assertEqual(arr, cbor2.dumps([input]))
 
             return RunModelReply(
                 payload=real_response.payload,
