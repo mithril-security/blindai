@@ -17,7 +17,7 @@ from blindai.utils.errors import AttestationError
 import os
 
 policy = Policy(
-    mr_enclave="83efab03b904f491c237e0469ce71ab155d40f9512d37991a3bcb6da740c5bee",
+    mr_enclave="d4fe709c74220df4f1526bd6141ca4aa4f39fbf16a60b49f311a1ee486e51d0a",
     misc_select=0x0.to_bytes(4, byteorder="little"),
     misc_mask=0xFFFFFFFF.to_bytes(4, byteorder="little"),
     attributes_flags=0x4.to_bytes(8, byteorder="little"),
