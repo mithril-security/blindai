@@ -55,7 +55,7 @@ impl Attestation for MyAttestation {
         _request: Request<GetSgxQuoteWithCollateralRequest>,
     ) -> Result<Response<GetSgxQuoteWithCollateralReply>, Status> {
         if cfg!(SGX_MODE = "SW") {
-            return Err(Status::unimplemented(
+            return Err(Status::failed_precondition(
                 "Attestation is not available. Running in Simulation Mode",
             ));
         }
