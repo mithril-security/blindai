@@ -20,7 +20,7 @@ from blindai.pb.securedexchange_pb2 import (
     RunModelReply,
     PayloadHeader,
     RunModelPayload,
-    TensorInfo
+    TensorInfo,
 )
 
 from blindai.client import (
@@ -38,6 +38,7 @@ from .covidnet import get_input, model_path, get_model
 mock_time = Mock()
 mock_time.return_value = time.mktime(datetime(2022, 4, 15).timetuple())
 
+
 class TensorInfoMatcher:
     facts: List[Tuple]
     datum_types: List[ModelDatumType]
@@ -45,9 +46,9 @@ class TensorInfoMatcher:
     def __init__(self, tensor_info: List[TensorInfo]):
         self.facts = [x.fact for x in tensor_info]
         self.datum_types = [x.datum_type for x in tensor_info]
+
     def __eq__(self, other):
-        return self.facts == other.facts and \
-               self.datum_types == other.datum_types
+        return self.facts == other.facts and self.datum_types == other.datum_types
 
 
 class TestRequest(unittest.TestCase):
@@ -98,9 +99,11 @@ class TestRequest(unittest.TestCase):
         datum = ModelDatumType.F32
         datum_out = ModelDatumType.F32
         shape = (1, 480, 480, 3)
-        tensor_inputs = [TensorInfo(fact=(1,480,480,3), datum_type=ModelDatumType.F32)]
+        tensor_inputs = [
+            TensorInfo(fact=(1, 480, 480, 3), datum_type=ModelDatumType.F32)
+        ]
         tensor_outputs = [ModelDatumType.F32]
- 
+
         def send_model_util(sign):
             model_bytes = get_model()
 
@@ -111,7 +114,10 @@ class TestRequest(unittest.TestCase):
                     self.assertLessEqual(len(el.data), 32 * 1024)
                     arr += el.data
                     self.assertEqual(el.sign, sign)
-                    self.assertEqual(TensorInfoMatcher(el.tensor_inputs), TensorInfoMatcher(tensor_inputs))
+                    self.assertEqual(
+                        TensorInfoMatcher(el.tensor_inputs),
+                        TensorInfoMatcher(tensor_inputs),
+                    )
                     self.assertEqual(el.tensor_outputs, tensor_outputs)
                     self.assertEqual(el.length, len(model_bytes))
 
