@@ -518,7 +518,7 @@ class BlindAiConnection(contextlib.AbstractContextManager):
     def upload_model(
         self,
         model: str,
-        tensor_inputs: Optional[List[List[List[int], ModelDatumType]]] = None,
+        tensor_inputs: Optional[List[Tuple[List[int], ModelDatumType]]] = None,
         tensor_outputs: Optional[List[ModelDatumType]] = None,
         shape: Tuple = None,
         dtype: ModelDatumType = ModelDatumType.F32,
@@ -603,7 +603,7 @@ class BlindAiConnection(contextlib.AbstractContextManager):
     def run_model(
         self,
         model_id: str,
-        data_list: List[List[List[int], ModelDatumType]],
+        data_list: Union[List[Any], List[List[Any]]],
         sign: bool = False,
     ) -> RunModelResponse:
         """Send data to the server to make a secure inference.
