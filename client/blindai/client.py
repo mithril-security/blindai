@@ -531,7 +531,7 @@ class BlindAiConnection(contextlib.AbstractContextManager):
 
         Args:
             model (str): Path to Onnx model file.
-            tensor_inputs (Union[List[List[int], ModelDatumType], List[List[List[int], ModelDatumType]]): The list of input fact and datum types for each input grouped together in lists, describing the different inputs of the model.
+            tensor_inputs (Union[Tuple[List[int], ModelDatumType], List[Tuple[List[int], ModelDatumType]]): The list of input fact and datum types for each input grouped together in lists, describing the different inputs of the model.
             tensor_outputs (Union[ModelDatumType, List[ModelDatumType]): The list of datum types describing the different output types of the model. Defaults to ModelDatumType.F32.
             shape (Tuple, optional): The shape of the model input. Defaults to None.
             dtype (ModelDatumType, optional): The type of the model input data (f32 by default). Defaults to ModelDatumType.F32.
