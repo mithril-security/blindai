@@ -531,8 +531,8 @@ class BlindAiConnection(contextlib.AbstractContextManager):
 
         Args:
             model (str): Path to Onnx model file.
-            tensor_inputs (Union[List[Any], List[List]]): A list describing multiple inputs of the model.
-            tensor_outputs (Union[ModelDatumType, List[ModelDatumType]): A list describing multiple inputs of the model. Defaults to {"index_0": ModelDatumType.F32}.
+            tensor_inputs (Union[Tuple[List[int], ModelDatumType], List[Tuple[List[int], ModelDatumType]]): The list of input fact and datum types for each input grouped together in lists, describing the different inputs of the model.
+            tensor_outputs (Union[ModelDatumType, List[ModelDatumType]): The list of datum types describing the different output types of the model. Defaults to ModelDatumType.F32
             shape (Tuple, optional): The shape of the model input. Defaults to None.
             dtype (ModelDatumType, optional): The type of the model input data (f32 by default). Defaults to ModelDatumType.F32.
             dtype_out (ModelDatumType, optional): The type of the model output data (f32 by default). Defaults to ModelDatumType.F32.
@@ -608,19 +608,19 @@ class BlindAiConnection(contextlib.AbstractContextManager):
     ) -> RunModelResponse:
         """Send data to the server to make a secure inference.
 
-        The data provided must be in a list, as the tensor will be rebuilt inside the server.
+                The data provided must be in a list, as the tensor will be rebuilt inside the server.
 
-        Args:
-            model_id (str): If set, will run a specific model.
-            data_list (Union[List[Any], List[List[Any]]))): The input data. It must be an array of numbers or an array of arrays of numbers of the same type dtype specified in `upload_model`.
-            sign (bool, optional): Get signed responses from the server or not. Defaults to False.
+                Args:
+                    model_id (str): If set, will run a specific model.
+        data_list (Union[List[Any], List[List[Any]]))): The input data. It must be an array of numbers or an array of arrays of numbers of the same type dtype specified in `upload_model`.
+                    sign (bool, optional): Get signed responses from the server or not. Defaults to False.
 
-        Raises:
-            ConnectionError: Will be raised if the client is not connected.
-            SignatureError: Will be raised if the response signature is invalid
-            ValueError: Will be raised if the connection is closed
-        Returns:
-            RunModelResponse: The response object.
+                Raises:
+                    ConnectionError: Will be raised if the client is not connected.
+                    SignatureError: Will be raised if the response signature is invalid
+                    ValueError: Will be raised if the connection is closed
+                Returns:
+                    RunModelResponse: The response object.
         """
 
         try:
