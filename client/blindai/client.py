@@ -129,6 +129,7 @@ class SignedResponse:
     def save_to_file(self, path: str):
         """Save the response to a file.
         The response can later be loaded with:
+
         ```py
         res = SignedResponse()
         res.load_from_file(path)
@@ -143,6 +144,7 @@ class SignedResponse:
     def as_bytes(self) -> bytes:
         """Save the response as bytes.
         The response can later be loaded with:
+
         ```py
         res = SignedResponse()
         res.load_from_bytes(data)

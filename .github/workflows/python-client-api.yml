@@ -1,0 +1,48 @@
+name: generate and push doc to gitbook_public
+
+# build the documentation whenever there are new tags
+on:
+  push:
+    tags:
+      - '*'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: true
+
+      - name: Get the version
+        id: get_version
+        run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}
+
+      - uses: jwlawson/actions-setup-cmake@v1.12
+      - name: Install Python 3
+        uses: actions/setup-python@v3
+        with:
+          python-version: 3.9
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r client/requirements.txt
+
+      - name: Build BlindAI
+        run: |
+          cd client
+          python3 setup.py install
+          pip install .
+
+      - name: Install lazydocs
+        run: pip install lazydocs
+      
+      - name: Generate md file with lazydocs
+        run: lazydocs --src-base-url https://github.com/mithril-security/blindai/tree/${{ steps.get_version.outputs.VERSION }} client/blindai/client.py
+
+      - name: Push
+        env:
+          VERSION: ${{ steps.get_version.outputs.VERSION }}
+          API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
+        run: bash .github/scripts/update_gitbook_public.sh
