@@ -27,7 +27,7 @@ log = "0.4.14"
 prost = {version = "0.8", default-features = false, features = ["prost-derive"]}
 tokio = {version = "1.0", features = ["full"]}
 tokio-stream = {version = "0.1", features = ["net"]}
-tonic = {version = "0.5", features = ["tls"]}
+tonic = {version = "0.5.2", features = ["tls"]}
 tonic-rpc = {version = "0.1.1", features = ["json"]}
 x509-parser = "0.12.0"
 
