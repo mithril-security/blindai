@@ -19,17 +19,17 @@ Used to specify the type of the input and output data of a model before uploadin
 
 Supported types :
 
-    * F32 ---> float32
+    * ModelDatumType::F32 ---> float32
 
-    * F64 ---> float64
+    * ModelDatumType::F64 ---> float64
 
-    * I32 ---> int32
+    * ModelDatumType::I32 ---> int32
 
-    * I64 ---> int64
+    * ModelDatumType::I64 ---> int64
 
-    * U32 ---> unsigned int 32
+    * ModelDatumType::U32 ---> unsigned int 32
 
-    * U64 ---> unsinged int 64
+    * ModelDatumType::U64 ---> unsinged int 64
 """
 
 import contextlib
