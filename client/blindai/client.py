@@ -29,7 +29,7 @@ Supported types :
 
     * ModelDatumType::U32 ---> unsigned int 32
 
-    * ModelDatumType::U64 ---> unsinged int 64
+    * ModelDatumType::U64 ---> unsigned int 64
 """
 
 import contextlib
