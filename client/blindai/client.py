@@ -12,6 +12,26 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+## <kbd>Enum</kbd> `ModelDatumType` : An enumeration of the acceptable input data types.
+
+Used to specify the type of the input and output data of a model before uploading it to the server.
+
+Supported types :
+
+    * F32 ---> float32
+
+    * F64 ---> float64
+
+    * I32 ---> int32
+
+    * I64 ---> int64
+
+    * U32 ---> unsigned int 32
+
+    * U64 ---> unsinged int 64
+"""
+
 import contextlib
 from functools import wraps
 import getpass
