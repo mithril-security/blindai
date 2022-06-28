@@ -315,3 +315,19 @@ EXPOSE 50051
 
 CMD ./blindai_app
 
+### vscode-dev-env: This image is used for developers to work on blindai with vscode remote containers extension
+
+FROM base-build AS dev-env
+
+ENV SGX_MODE=SW
+ENV BLINDAI_DISABLE_TELEMETRY=1
+
+# install and configure python and pip
+RUN \
+    apt-get install -y software-properties-common && \
+    add-apt-repository ppa:deadsnakes/ppa  && \
+    apt-get update && \
+    apt-get install -y python3.9-dev python3.9-distutils libgl1-mesa-glx && \
+    curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py && python3.9 get-pip.py && rm get-pip.py && \
+    update-alternatives --install /usr/bin/python python /usr/bin/python3.9 1 && \
+    pip install virtualenv
