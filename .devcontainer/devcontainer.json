@@ -1,0 +1,11 @@
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the README at:
+// https://github.com/microsoft/vscode-dev-containers/tree/v0.238.0/containers/ubuntu
+{
+	"name": "blindai-dev-env",
+	"build": {
+		"dockerfile": "../server/docker/build.dockerfile",
+		"target": "dev-env"
+	},
+	"extensions": ["rust-lang.rust-analyzer", "ms-python.python", "ms-toolsai.jupyter"],
+	"postCreateCommand": "git config --global --add safe.directory /workspaces/blindai"
+}
