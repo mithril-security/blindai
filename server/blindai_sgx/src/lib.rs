@@ -57,6 +57,7 @@ mod dcap_quote_provider;
 mod identity;
 mod model;
 mod model_store;
+mod sealing;
 mod telemetry;
 mod untrusted;
 
@@ -145,6 +146,30 @@ async fn main(
         network_config.max_model_size,
         network_config.max_input_size,
     );
+
+    let mut models_path = std::env::current_dir()?;
+    models_path.push("models");
+    if let Ok(paths) = fs::read_dir(models_path.as_path()) {
+        for path in paths {
+            let path = path?;
+            if let Ok(model) = sealing::unseal(path.path().as_path()) {
+                exchanger.model_store.add_model(
+                    models_path.as_path(),
+                    &model.model_bytes,
+                    model.input_facts,
+                    model.model_name,
+                    model.uuid,
+                    model.datum_inputs,
+                    model.datum_outputs,
+                )?;
+                info!("Model {:?} loaded", model.uuid.to_string());
+            } else {
+                info!("Unsealing of model {:?} failed", path.file_name());
+            }
+        }
+    } else {
+        fs::create_dir(models_path)?;
+    }
 
     let server_future = Server::builder()
         .tls_config(ServerTlsConfig::new().identity((&enclave_identity).into()))?
