@@ -125,7 +125,6 @@ impl Exchange for Exchanger {
             }
             model_bytes.append(&mut model_proto.data)
         }
-
         if model_size == 0 {
             return Err(Status::invalid_argument("Received no data".to_string()));
         }
@@ -149,13 +148,13 @@ impl Exchange for Exchanger {
 
 
         // Optimize, save and seal
-        let model_id = Uuid::new_v4();
+        let mut model_id = Uuid::new_v4();
         let mut models_path = std::env::current_dir()?;
         models_path.push("models");
         models_path.push(model_id.to_string());
-        let model_hash: Digest =digest::digest(&digest::SHA256, &model_bytes);
+        let mut model_hash: Digest =digest::digest(&digest::SHA256, &model_bytes);
         if sealed {
-        let (model_id, model_hash) = self
+        let (model_id_new, model_hash_new) = self
             .model_store
             .add_model(
                 models_path.as_path(),
@@ -170,6 +169,8 @@ impl Exchange for Exchanger {
                 error!("Error while creating model: {}", err);
                 Status::unknown("Unknown error".to_string())
             })?;
+        model_id=model_id_new;
+        model_hash=model_hash_new
         }
         // Construct the return payload
         let mut payload = SendModelPayload::default();
@@ -236,6 +237,7 @@ impl Exchange for Exchanger {
         &self,
         request: Request<tonic::Streaming<RunModelRequest>>,
     ) -> Result<Response<RunModelReply>, Status> {
+
         let start_time = Instant::now();
 
         let mut stream = request.into_inner();
@@ -266,7 +268,6 @@ impl Exchange for Exchanger {
         }
 
         // Find the model with model_id
-
         let uuid = Uuid::from_str(&model_id).map_err(|_err| Status::invalid_argument("Model doesn't exist"))?;
 
         let res = self.model_store.use_model(uuid, |model| {
