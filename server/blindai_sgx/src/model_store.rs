@@ -1,6 +1,13 @@
+use tonic::{Status};
+use crate::{
+    sealing::{self},
+};
+use std::{path::Path};
+
 use anyhow::{anyhow, Result};
 use log::*;
 use ring::digest::{self, Digest};
+
 
 #[cfg(not(target_env = "sgx"))]
 use std::sync::RwLock;
@@ -36,12 +43,35 @@ impl ModelStore {
 
     pub fn add_model(
         &self,
+        model_path: &Path,
         model_bytes: &[u8],
         input_facts: Vec<Vec<usize>>,
         model_name: Option<String>,
+        model_id: Uuid,
         datum_inputs: Vec<ModelDatumType>,
         datum_outputs: Vec<ModelDatumType>,
     ) -> Result<(Uuid, Digest)> {
+
+        // Sealing/////////////////////////////////////////////////////
+        sealing::seal(
+            model_path,
+            &model_bytes,
+            &input_facts,
+            model_name.as_deref(),
+            &datum_inputs,
+            &datum_outputs,
+            model_id,
+        )
+        .map_err(|err| {
+            error!("Error while sealing model: {}", err);
+            Status::unknown("Unknown error".to_string())
+        })?;
+        info!("Model sealed");
+
+        //////////////////////////////////////////////////////////////////////////
+
+
+
         let model_id = Uuid::new_v4();
         let model_hash = digest::digest(&digest::SHA256, &model_bytes);
 

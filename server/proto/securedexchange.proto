@@ -81,6 +81,7 @@ message SendModelRequest {
     ClientInfo client_info = 6;
     // this is optional
     string model_name = 7;
+    bool sealed = 8;
 }
 
 message SendModelReply {
@@ -127,6 +128,7 @@ message RunModelPayload {
     // This field is empty when `sign` is `false` in the request
     bytes input_hash = 3;
     string model_id = 4;
+    repeated TensorInfo output_tensors = 5;
 }
 
 /* DeleteModel */

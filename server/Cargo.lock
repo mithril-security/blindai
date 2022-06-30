@@ -148,7 +148,7 @@ checksum = "bef38d45163c2f1dde094a7dfd33ccf595c92905c8f8f4fdc18d06fb1037718a"
 
 [[package]]
 name = "blindai_app"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "anyhow",
  "base16",
@@ -183,7 +183,7 @@ dependencies = [
 
 [[package]]
 name = "blindai_common"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "anyhow",
  "http",
@@ -196,7 +196,7 @@ dependencies = [
 
 [[package]]
 name = "blindai_rpc"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "tokio",
  "tokio-stream",
@@ -206,7 +206,7 @@ dependencies = [
 
 [[package]]
 name = "blindai_sgx"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "anyhow",
  "base64",
@@ -244,6 +244,7 @@ dependencies = [
  "tonic-build",
  "tonic-rpc",
  "tract-core",
+ "tract-hir",
  "tract-onnx",
  "uuid",
  "x509-parser",
@@ -251,7 +252,7 @@ dependencies = [
 
 [[package]]
 name = "blindai_sgx_attestation"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "log",
  "sgx_types",
@@ -2670,8 +2671,8 @@ dependencies = [
 
 [[package]]
 name = "tract-core"
-version = "0.16.6-pre"
-source = "git+https://github.com/mithril-security/tract-sgx-xargo.git?tag=0.16.6-pre-interpolation-nearest-bump-tar#ea0d7cc5a81f413250dbfca89d5d876e76746b89"
+version = "0.17.1-pre"
+source = "git+https://github.com/mithril-security/tract-sgx-xargo.git?tag=0.17.1-pre#b4fa070d029ce7bd0b4cd6537ef80eb028d47201"
 dependencies = [
  "anyhow",
  "bit-set",
@@ -2692,8 +2693,8 @@ dependencies = [
 
 [[package]]
 name = "tract-data"
-version = "0.16.6-pre"
-source = "git+https://github.com/mithril-security/tract-sgx-xargo.git?tag=0.16.6-pre-interpolation-nearest-bump-tar#ea0d7cc5a81f413250dbfca89d5d876e76746b89"
+version = "0.17.1-pre"
+source = "git+https://github.com/mithril-security/tract-sgx-xargo.git?tag=0.17.1-pre#b4fa070d029ce7bd0b4cd6537ef80eb028d47201"
 dependencies = [
  "anyhow",
  "educe",
@@ -2710,8 +2711,8 @@ dependencies = [
 
 [[package]]
 name = "tract-hir"
-version = "0.16.6-pre"
-source = "git+https://github.com/mithril-security/tract-sgx-xargo.git?tag=0.16.6-pre-interpolation-nearest-bump-tar#ea0d7cc5a81f413250dbfca89d5d876e76746b89"
+version = "0.17.1-pre"
+source = "git+https://github.com/mithril-security/tract-sgx-xargo.git?tag=0.17.1-pre#b4fa070d029ce7bd0b4cd6537ef80eb028d47201"
 dependencies = [
  "derive-new",
  "educe",
@@ -2721,8 +2722,8 @@ dependencies = [
 
 [[package]]
 name = "tract-linalg"
-version = "0.16.6-pre"
-source = "git+https://github.com/mithril-security/tract-sgx-xargo.git?tag=0.16.6-pre-interpolation-nearest-bump-tar#ea0d7cc5a81f413250dbfca89d5d876e76746b89"
+version = "0.17.1-pre"
+source = "git+https://github.com/mithril-security/tract-sgx-xargo.git?tag=0.17.1-pre#b4fa070d029ce7bd0b4cd6537ef80eb028d47201"
 dependencies = [
  "cc",
  "derive-new",
@@ -2743,8 +2744,8 @@ dependencies = [
 
 [[package]]
 name = "tract-nnef"
-version = "0.16.6-pre"
-source = "git+https://github.com/mithril-security/tract-sgx-xargo.git?tag=0.16.6-pre-interpolation-nearest-bump-tar#ea0d7cc5a81f413250dbfca89d5d876e76746b89"
+version = "0.17.1-pre"
+source = "git+https://github.com/mithril-security/tract-sgx-xargo.git?tag=0.17.1-pre#b4fa070d029ce7bd0b4cd6537ef80eb028d47201"
 dependencies = [
  "byteorder",
  "flate2",
@@ -2757,8 +2758,8 @@ dependencies = [
 
 [[package]]
 name = "tract-onnx"
-version = "0.16.6-pre"
-source = "git+https://github.com/mithril-security/tract-sgx-xargo.git?tag=0.16.6-pre-interpolation-nearest-bump-tar#ea0d7cc5a81f413250dbfca89d5d876e76746b89"
+version = "0.17.1-pre"
+source = "git+https://github.com/mithril-security/tract-sgx-xargo.git?tag=0.17.1-pre#b4fa070d029ce7bd0b4cd6537ef80eb028d47201"
 dependencies = [
  "bytes",
  "derive-new",
@@ -2776,8 +2777,8 @@ dependencies = [
 
 [[package]]
 name = "tract-onnx-opl"
-version = "0.16.6-pre"
-source = "git+https://github.com/mithril-security/tract-sgx-xargo.git?tag=0.16.6-pre-interpolation-nearest-bump-tar#ea0d7cc5a81f413250dbfca89d5d876e76746b89"
+version = "0.17.1-pre"
+source = "git+https://github.com/mithril-security/tract-sgx-xargo.git?tag=0.17.1-pre#b4fa070d029ce7bd0b4cd6537ef80eb028d47201"
 dependencies = [
  "educe",
  "tract-nnef",
@@ -2859,6 +2860,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bc5cf98d8186244414c848017f0e2676b3fcb46807f6668a97dfe67359a3c4b7"
 dependencies = [
  "getrandom",
+ "serde",
 ]
 
 [[package]]
