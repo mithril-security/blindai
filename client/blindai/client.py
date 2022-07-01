@@ -547,7 +547,7 @@ class BlindAiConnection(contextlib.AbstractContextManager):
         dtype_out: ModelDatumType = ModelDatumType.F32,
         sign: bool = False,
         model_name: Optional[str] = None,
-        sealed: bool = False,
+        save_model: bool = False,
     ) -> UploadModelResponse:
         """Upload an inference model to the server.
         The provided model needs to be in the Onnx format.
@@ -572,12 +572,16 @@ class BlindAiConnection(contextlib.AbstractContextManager):
         Returns:
             UploadModelResponse: The response object.
         """
-
+        #print(model_name)
         response = None
 
         if model_name is None:
             model_name = os.path.basename(model)
 
+
+        print(model_name)
+        print(sign)
+        print(save_model)
         try:
             with open(model, "rb") as f:
                 data = f.read()
@@ -596,7 +600,7 @@ class BlindAiConnection(contextlib.AbstractContextManager):
                             client_info=self.client_info,
                             tensor_inputs=inputs,
                             tensor_outputs=outputs,
-                            sealed=sealed,
+                            save_model=save_model,
                         )
                         for chunk in create_byte_chunk(data)
                     ]

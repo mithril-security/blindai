@@ -15,7 +15,7 @@
 use futures::StreamExt;
 use log::*;
 use prost::Message;
-use ring::digest::{self, Digest};
+use ring::digest;
 use ring_compat::signature::Signer;
 use std::{
     convert::TryInto,
@@ -44,7 +44,7 @@ pub mod secured_exchange {
 }
 
 pub(crate) struct Exchanger {
-    pub model_store: Arc<ModelStore>,
+    model_store: Arc<ModelStore>,
     identity: Arc<MyIdentity>,
     max_model_size: usize,
     max_input_size: usize,
@@ -90,7 +90,7 @@ impl Exchange for Exchanger {
         let max_model_size = self.max_model_size;
         let mut model_size = 0usize;
         let mut sign = false;
-        let mut sealed = false;
+        let mut save_model= false;
 
         let mut model_name = None;
         let mut client_info = None;
@@ -118,13 +118,14 @@ impl Exchange for Exchanger {
                 }
 
                 sign = model_proto.sign;
-                sealed = model_proto.sealed;
+                save_model= model_proto.save_model;
             }
             if model_size > max_model_size || model_bytes.len() > max_model_size {
                 return Err(Status::invalid_argument("Model is too big".to_string()));
             }
             model_bytes.append(&mut model_proto.data)
         }
+
         if model_size == 0 {
             return Err(Status::invalid_argument("Received no data".to_string()));
         }
@@ -146,32 +147,21 @@ impl Exchange for Exchanger {
             input_facts.push(input_fact.clone());
         }
 
-
-        // Optimize, save and seal
-        let mut model_id = Uuid::new_v4();
-        let mut models_path = std::env::current_dir()?;
-        models_path.push("models");
-        models_path.push(model_id.to_string());
-        let mut model_hash: Digest =digest::digest(&digest::SHA256, &model_bytes);
-        if sealed {
-        let (model_id_new, model_hash_new) = self
+        let (model_id, model_hash) = self
             .model_store
             .add_model(
-                models_path.as_path(),
                 &model_bytes,
                 input_facts.clone(),
                 model_name.clone(),
-                model_id,
                 datum_inputs.clone(),
                 datum_outputs.clone(),
+                save_model.clone()
             )
             .map_err(|err| {
                 error!("Error while creating model: {}", err);
                 Status::unknown("Unknown error".to_string())
             })?;
-        model_id=model_id_new;
-        model_hash=model_hash_new
-        }
+
         // Construct the return payload
         let mut payload = SendModelPayload::default();
         if sign {
@@ -237,7 +227,6 @@ impl Exchange for Exchanger {
         &self,
         request: Request<tonic::Streaming<RunModelRequest>>,
     ) -> Result<Response<RunModelReply>, Status> {
-
         let start_time = Instant::now();
 
         let mut stream = request.into_inner();
@@ -268,25 +257,37 @@ impl Exchange for Exchanger {
         }
 
         // Find the model with model_id
-        let uuid = Uuid::from_str(&model_id).map_err(|_err| Status::invalid_argument("Model doesn't exist"))?;
+
+        let uuid = match Uuid::from_str(&model_id) {
+            Ok(uuid) => uuid,
+            Err(_) => return Err(Status::invalid_argument("Model doesn't exist")),
+        };
 
         let res = self.model_store.use_model(uuid, |model| {
             (
-                model.run_inference(&input),
-                model.model_name().map(|e| e.to_string()),
-                model.datum_outputs().to_vec(),
+                model.run_inference(&mut input.clone()[..]),
+                model.model_name().map(|s| s.to_string()),
+                model.datum_output(),
             )
         });
-        let (results, model_name, datum_outputs) = res.ok_or_else(|| Status::invalid_argument("Model doesn't exist"))?;
+        let res = match res {
+            Some(res) => res,
+            None => return Err(Status::invalid_argument("Model doesn't exist")),
+        };
 
-        let results = results.map_err(|err| {
-            error!("Error while running inference: {}", err);
-            return Status::unknown("Unknown error".to_string());
-        })?;
+        let (result, model_name, datum_output) = res;
+
+        let result = match result {
+            Ok(res) => res,
+            Err(err) => {
+                error!("Error while running inference: {}", err);
+                return Err(Status::unknown("Unknown error".to_string()));
+            }
+        };
 
         let mut payload = RunModelPayload {
-            output: results,
-            output_tensors: datum_outputs.into_iter().map(|dt| TensorInfo { datum_type: dt as i32, fact: vec![] }).collect(),
+            output: result,
+            datum_output: datum_output as i32,
             ..Default::default()
         };
         if sign {

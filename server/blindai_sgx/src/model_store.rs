@@ -2,17 +2,26 @@ use tonic::{Status};
 use crate::{
     sealing::{self},
 };
-use std::{path::Path};
+use std::path::PathBuf;
 
 use anyhow::{anyhow, Result};
 use log::*;
 use ring::digest::{self, Digest};
 
+#[cfg(target_env = "sgx")]
+use std::untrusted::fs::File;
+
+#[cfg(target_env = "sgx")]
+use std::untrusted::fs;
+
+use std::io::Read;
 
 #[cfg(not(target_env = "sgx"))]
 use std::sync::RwLock;
+
 #[cfg(target_env = "sgx")]
 use std::sync::SgxRwLock as RwLock;
+
 use std::{
     collections::{hash_map::Entry, HashMap},
     sync::Arc,
@@ -43,18 +52,40 @@ impl ModelStore {
 
     pub fn add_model(
         &self,
-        model_path: &Path,
+        //model_path: &Path,
         model_bytes: &[u8],
         input_facts: Vec<Vec<usize>>,
         model_name: Option<String>,
-        model_id: Uuid,
+        //model_id: Uuid,
         datum_inputs: Vec<ModelDatumType>,
         datum_outputs: Vec<ModelDatumType>,
+        save_model: bool,
     ) -> Result<(Uuid, Digest)> {
+        let model_id = Uuid::new_v4();
+        let model_hash = digest::digest(&digest::SHA256, &model_bytes);
+
+        let model_hash_vec = model_hash.as_ref().to_vec();
+
+        
+     /*  let mut models_path = std::env::current_dir()?;
+        models_path.push("models");
+        models_path.push(model_id.to_string()); */
+
+        
+        // Read network config into network_config
+        let mut file = File::open("config.toml")?;
+        let mut contents = String::new();
+        file.read_to_string(&mut contents)?;
+        let network_config: blindai_common::NetworkConfig = toml::from_str(&contents)?;
+
+        let mut models_path = PathBuf::new();
+        models_path.push(network_config.models_path);
+        models_path.push(model_id.to_string());
 
         // Sealing/////////////////////////////////////////////////////
+        if save_model {
         sealing::seal(
-            model_path,
+            models_path.as_path(),
             &model_bytes,
             &input_facts,
             model_name.as_deref(),
@@ -67,15 +98,10 @@ impl ModelStore {
             Status::unknown("Unknown error".to_string())
         })?;
         info!("Model sealed");
+        }
 
         //////////////////////////////////////////////////////////////////////////
 
-
-
-        let model_id = Uuid::new_v4();
-        let model_hash = digest::digest(&digest::SHA256, &model_bytes);
-
-        let model_hash_vec = model_hash.as_ref().to_vec();
 
         // Create an entry in the hashmap and in the dedup map
         {
@@ -169,4 +195,42 @@ impl ModelStore {
 
         Some(model)
     }
+
+
+    pub fn startup_unseal(model_store: Arc<ModelStore>) -> Result<(), Box<dyn std::error::Error>>  {
+
+        // Read network config into network_config
+        let mut file = File::open("config.toml")?;
+        let mut contents = String::new();
+        file.read_to_string(&mut contents)?;
+        let network_config: blindai_common::NetworkConfig = toml::from_str(&contents)?;
+
+        let mut models_path = PathBuf::new();
+        models_path.push(network_config.models_path.clone());
+
+        if let Ok(paths) = fs::read_dir(models_path.as_path()) {
+            for path in paths {
+                let path = path?;
+                if let Ok(model) = sealing::unseal(path.path().as_path()) {
+                    model_store.add_model(
+                        &model.model_bytes,
+                        model.input_facts,
+                        model.model_name,
+                        model.datum_inputs,
+                        model.datum_outputs,
+                        model.save_model,
+                    )?;
+                    info!("Model {:?} loaded", model.uuid.to_string());
+                } else {
+                    info!("Unsealing of model {:?} failed", path.file_name());
+                }
+            }
+        } else {
+            fs::create_dir(network_config.models_path.clone())?;
+        }
+
+        Ok(())
+    }
+
+
 }

@@ -15,3 +15,6 @@ max_model_size = 524288000
 
 # Max input size in bytes (default value: 500mb)
 max_input_size = 524288000
+
+# Set the path
+models_path = "/workspaces/blindai/server/bin/models"

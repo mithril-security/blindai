@@ -32,6 +32,7 @@ pub struct DeserializableModel {
     pub datum_inputs: Vec<ModelDatumType>,
     pub datum_outputs: Vec<ModelDatumType>,
     pub uuid: Uuid,
+    pub save_model: bool,
 }
 
 fn create_sealeddata_for_serializable(model: SerializableModel) -> Result<Vec<u8>> {
@@ -138,3 +139,5 @@ pub fn unseal(path: &Path) -> anyhow::Result<DeserializableModel> {
     let buf = fs::read(path)?;
     recover_sealeddata_for_serializable(buf)
 }
+
+
