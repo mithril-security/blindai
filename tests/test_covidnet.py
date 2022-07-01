@@ -123,20 +123,14 @@ class TestCovidNetBase:
                 dtype=ModelDatumType.F32,
                 sign=True,
                 save_model=True,
-                model_name="Salut"
+                model_name="Hi"
             )
-
-            if not self.simulation and os.getenv("BLINDAI_DUMPRES") is not None:
-                upload_response.save_to_file("./client/tests/exec_upload.proof")
 
             response = client.run_model(
                 upload_response.model_id,
                 flattened_img,
                 sign=True,
             )
-
-        if not self.simulation and os.getenv("BLINDAI_DUMPRES") is not None:
-            response.save_to_file("./client/tests/exec_run.proof")
 
         ort_session = onnxruntime.InferenceSession(model)
         ort_inputs = {ort_session.get_inputs()[0].name: img}

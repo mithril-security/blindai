@@ -52,11 +52,9 @@ impl ModelStore {
 
     pub fn add_model(
         &self,
-        //model_path: &Path,
         model_bytes: &[u8],
         input_facts: Vec<Vec<usize>>,
         model_name: Option<String>,
-        //model_id: Uuid,
         datum_inputs: Vec<ModelDatumType>,
         datum_outputs: Vec<ModelDatumType>,
         save_model: bool,
@@ -65,11 +63,6 @@ impl ModelStore {
         let model_hash = digest::digest(&digest::SHA256, &model_bytes);
 
         let model_hash_vec = model_hash.as_ref().to_vec();
-
-        
-     /*  let mut models_path = std::env::current_dir()?;
-        models_path.push("models");
-        models_path.push(model_id.to_string()); */
 
         
         // Read network config into network_config

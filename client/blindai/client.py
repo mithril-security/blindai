@@ -561,7 +561,9 @@ class BlindAiConnection(contextlib.AbstractContextManager):
             dtype_out (ModelDatumType, optional): The type of the model output data (f32 by default). Defaults to ModelDatumType.F32.
             sign (bool, optional): Get signed responses from the server or not. Defaults to False.
             model_name (Optional[str], optional): Name of the model.
-            sealed (bool): If the model have to be sealed or not
+            save_model (bool, optional): Whether or not the model will be saved to disk in the server. 
+            The model will be saved encrypted (sealed) so that only the server enclave can load it afterwards. 
+            The server will load the model on startup. Defaults to False.
 
         Raises:
             ConnectionError: Will be raised if the client is not connected.
@@ -577,11 +579,7 @@ class BlindAiConnection(contextlib.AbstractContextManager):
 
         if model_name is None:
             model_name = os.path.basename(model)
-
-
-        print(model_name)
-        print(sign)
-        print(save_model)
+            
         try:
             with open(model, "rb") as f:
                 data = f.read()
