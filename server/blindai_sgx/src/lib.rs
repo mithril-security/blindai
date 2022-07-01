@@ -140,27 +140,30 @@ async fn main(
         }
     });
 
+    let model_store: Arc<ModelStore> = ModelStore::new().into();
+
     let exchanger = Exchanger::new(
-        ModelStore::new().into(),
+        model_store.clone(),
         my_identity.clone(),
         network_config.max_model_size,
         network_config.max_input_size,
     );
 
-    let mut models_path = std::env::current_dir()?;
+    ModelStore::startup_unseal(model_store.clone());
+
+    /*let mut models_path = std::env::current_dir()?;
     models_path.push("models");
     if let Ok(paths) = fs::read_dir(models_path.as_path()) {
         for path in paths {
             let path = path?;
             if let Ok(model) = sealing::unseal(path.path().as_path()) {
-                exchanger.model_store.add_model(
-                    models_path.as_path(),
+                model_store.add_model(
                     &model.model_bytes,
                     model.input_facts,
                     model.model_name,
-                    model.uuid,
                     model.datum_inputs,
                     model.datum_outputs,
+                    model.save_model,
                 )?;
                 info!("Model {:?} loaded", model.uuid.to_string());
             } else {
@@ -169,7 +172,7 @@ async fn main(
         }
     } else {
         fs::create_dir(models_path)?;
-    }
+    }*/
 
     let server_future = Server::builder()
         .tls_config(ServerTlsConfig::new().identity((&enclave_identity).into()))?
