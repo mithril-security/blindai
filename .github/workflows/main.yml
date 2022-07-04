@@ -1,8 +1,9 @@
 name: Run the tests
-on: push
-  paths:
-    - 'server/**'
-    - 'tests/**'
+on:
+  push:
+    paths:
+      - 'server/**'
+      - 'tests/**'
 jobs:
   build-server:
     strategy:
