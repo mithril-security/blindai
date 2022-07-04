@@ -24,7 +24,7 @@ use uuid::Uuid;
 
 pub type OnnxModel = SimplePlan<TypedFact, Box<dyn TypedOp>, Graph<TypedFact, Box<dyn TypedOp>>>;
 
-#[derive(Debug, FromPrimitive, PartialEq, Clone, Copy, Eq, Hash,Serialize, Deserialize)]
+#[derive(Debug, FromPrimitive, PartialEq, Clone, Copy, Eq, Hash, Serialize, Deserialize)]
 pub enum ModelDatumType {
     F32 = 0,
     F64 = 1,

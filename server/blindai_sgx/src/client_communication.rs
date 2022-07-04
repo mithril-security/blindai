@@ -90,7 +90,7 @@ impl Exchange for Exchanger {
         let max_model_size = self.max_model_size;
         let mut model_size = 0usize;
         let mut sign = false;
-        let mut save_model= false;
+        let mut save_model = false;
 
         let mut model_name = None;
         let mut client_info = None;
@@ -118,7 +118,7 @@ impl Exchange for Exchanger {
                 }
 
                 sign = model_proto.sign;
-                save_model= model_proto.save_model;
+                save_model = model_proto.save_model;
             }
             if model_size > max_model_size || model_bytes.len() > max_model_size {
                 return Err(Status::invalid_argument("Model is too big".to_string()));
@@ -155,7 +155,7 @@ impl Exchange for Exchanger {
                 model_name.clone(),
                 datum_inputs.clone(),
                 datum_outputs.clone(),
-                save_model.clone()
+                save_model.clone(),
             )
             .map_err(|err| {
                 error!("Error while creating model: {}", err);

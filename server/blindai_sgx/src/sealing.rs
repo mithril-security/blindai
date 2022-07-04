@@ -139,5 +139,3 @@ pub fn unseal(path: &Path) -> anyhow::Result<DeserializableModel> {
     let buf = fs::read(path)?;
     recover_sealeddata_for_serializable(buf)
 }
-
-

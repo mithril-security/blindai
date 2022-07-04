@@ -1,8 +1,6 @@
-use tonic::{Status};
-use crate::{
-    sealing::{self},
-};
+use crate::sealing::{self};
 use std::path::PathBuf;
+use tonic::Status;
 
 use anyhow::{anyhow, Result};
 use log::*;
@@ -64,7 +62,6 @@ impl ModelStore {
 
         let model_hash_vec = model_hash.as_ref().to_vec();
 
-        
         // Read network config into network_config
         let mut file = File::open("config.toml")?;
         let mut contents = String::new();
@@ -77,24 +74,23 @@ impl ModelStore {
 
         // Sealing/////////////////////////////////////////////////////
         if save_model {
-        sealing::seal(
-            models_path.as_path(),
-            &model_bytes,
-            &input_facts,
-            model_name.as_deref(),
-            &datum_inputs,
-            &datum_outputs,
-            model_id,
-        )
-        .map_err(|err| {
-            error!("Error while sealing model: {}", err);
-            Status::unknown("Unknown error".to_string())
-        })?;
-        info!("Model sealed");
+            sealing::seal(
+                models_path.as_path(),
+                &model_bytes,
+                &input_facts,
+                model_name.as_deref(),
+                &datum_inputs,
+                &datum_outputs,
+                model_id,
+            )
+            .map_err(|err| {
+                error!("Error while sealing model: {}", err);
+                Status::unknown("Unknown error".to_string())
+            })?;
+            info!("Model sealed");
         }
 
         //////////////////////////////////////////////////////////////////////////
-
 
         // Create an entry in the hashmap and in the dedup map
         {
@@ -189,9 +185,7 @@ impl ModelStore {
         Some(model)
     }
 
-
-    pub fn startup_unseal(model_store: Arc<ModelStore>) -> Result<(), Box<dyn std::error::Error>>  {
-
+    pub fn startup_unseal(model_store: Arc<ModelStore>) -> Result<(), Box<dyn std::error::Error>> {
         // Read network config into network_config
         let mut file = File::open("config.toml")?;
         let mut contents = String::new();
@@ -224,6 +218,4 @@ impl ModelStore {
 
         Ok(())
     }
-
-
 }
