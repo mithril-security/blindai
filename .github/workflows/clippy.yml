@@ -1,5 +1,6 @@
-on: [push]
-  paths: '**/*.rs'
+on:
+  push:
+    paths: '**/*.rs'
 
 name: Rust formatting and linting checks
 
