@@ -38,10 +38,7 @@ class TestCovidNetBase:
             )
 
             upload_response = client.upload_model(
-                model=model,
-                shape=(1, 480, 480, 3),
-                dtype=ModelDatumType.F32,
-                sign=True
+                model=model, shape=(1, 480, 480, 3), dtype=ModelDatumType.F32, sign=True
             )
 
             if not self.simulation and os.getenv("BLINDAI_DUMPRES") is not None:
@@ -102,7 +99,6 @@ class TestCovidNetBase:
                 diff = abs(sum(np.array([response.output]) - ort_outs))[0][0]
                 self.assertLess(diff, 0.001)  # difference is <0.1%
 
-
     @unittest.skipIf(
         os.getenv("BLINDAI_TEST_SKIP_COVIDNET") is not None, "skipped by env var"
     )
@@ -123,7 +119,7 @@ class TestCovidNetBase:
                 dtype=ModelDatumType.F32,
                 sign=True,
                 save_model=True,
-                model_name="Hi"
+                model_name="Hi",
             )
 
             response = client.run_model(
@@ -139,7 +135,6 @@ class TestCovidNetBase:
 
         diff = abs(sum(np.array([response.output]) - ort_outs))[0][0]
         self.assertLess(diff, 0.001)  # difference is <0.1%
-
 
 
 class TestCovidNetSW(TestCovidNetBase, unittest.TestCase):
