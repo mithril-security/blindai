@@ -12,17 +12,64 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::vec::Vec;
+use std::{borrow::Cow, convert::TryFrom, vec::Vec};
 
-use anyhow::{anyhow, Context, Result};
+use anyhow::{anyhow, bail, Error, Result};
 use core::hash::Hash;
+use log::*;
 use num_derive::FromPrimitive;
 use ring::digest::Digest;
 use serde::{Deserialize, Serialize};
-use tract_onnx::prelude::{tract_ndarray::IxDynImpl, DatumType, TVec, *};
+use tract_onnx::{prelude::*, tract_hir::infer::InferenceOp};
 use uuid::Uuid;
 
-pub type OnnxModel = SimplePlan<TypedFact, Box<dyn TypedOp>, Graph<TypedFact, Box<dyn TypedOp>>>;
+pub use tract_onnx::prelude::DatumType as TractDatumType;
+
+pub fn deserialize_tensor_bytes(
+    dt: ModelDatumType,
+    shape: &[usize],
+    data: &[u8],
+) -> Result<Tensor> {
+    unsafe {
+        match dt {
+            ModelDatumType::U8 => Tensor::from_raw::<u8>(shape, data),
+            ModelDatumType::U16 => Tensor::from_raw::<u16>(shape, data),
+            ModelDatumType::U32 => Tensor::from_raw::<u32>(shape, data),
+            ModelDatumType::U64 => Tensor::from_raw::<u64>(shape, data),
+            ModelDatumType::I8 => Tensor::from_raw::<i8>(shape, data),
+            ModelDatumType::I16 => Tensor::from_raw::<i16>(shape, data),
+            ModelDatumType::I32 => Tensor::from_raw::<i32>(shape, data),
+            ModelDatumType::I64 => Tensor::from_raw::<i64>(shape, data),
+            ModelDatumType::F32 => Tensor::from_raw::<f32>(shape, data),
+            ModelDatumType::F64 => Tensor::from_raw::<f64>(shape, data),
+            ModelDatumType::Bool => Ok(Tensor::from_raw::<u8>(shape, data)?
+                .into_array::<u8>()?
+                .mapv(|x| x != 0)
+                .into()),
+            // _ => bail!("Cannot parse tensor with datatype {:?} from bytes", dt),
+        }
+    }
+}
+
+pub fn serialize_tensor_bytes(tensor: &Tensor) -> Result<Cow<'_, [u8]>> {
+    Ok(match tensor.datum_type().try_into()? {
+        ModelDatumType::U8
+        | ModelDatumType::U16
+        | ModelDatumType::U32
+        | ModelDatumType::U64
+        | ModelDatumType::I8
+        | ModelDatumType::I16
+        | ModelDatumType::I32
+        | ModelDatumType::I64
+        | ModelDatumType::F32
+        | ModelDatumType::F64 => unsafe { tensor.as_bytes() }.into(),
+        ModelDatumType::Bool => tensor
+            .to_array_view::<bool>()?
+            .mapv(|x| x as u8)
+            .into_raw_vec()
+            .into(),
+    })
+}
 
 #[derive(Debug, FromPrimitive, PartialEq, Clone, Copy, Eq, Hash, Serialize, Deserialize)]
 pub enum ModelDatumType {
@@ -32,77 +79,106 @@ pub enum ModelDatumType {
     I64 = 3,
     U32 = 4,
     U64 = 5,
+    U8 = 6,
+    U16 = 7,
+    I8 = 8,
+    I16 = 9,
+    Bool = 10,
 }
 
-impl ModelDatumType {
-    fn get_datum_type(self) -> DatumType {
+impl TryFrom<TractDatumType> for ModelDatumType {
+    type Error = Error;
+
+    fn try_from(value: TractDatumType) -> Result<Self, Self::Error> {
+        Ok(match value {
+            TractDatumType::F32 => ModelDatumType::F32,
+            TractDatumType::F64 => ModelDatumType::F64,
+            TractDatumType::I32 => ModelDatumType::I32,
+            TractDatumType::I64 => ModelDatumType::I64,
+            TractDatumType::U32 => ModelDatumType::U32,
+            TractDatumType::U64 => ModelDatumType::U64,
+            TractDatumType::U8 => ModelDatumType::U8,
+            TractDatumType::U16 => ModelDatumType::U16,
+            TractDatumType::I8 => ModelDatumType::I8,
+            TractDatumType::I16 => ModelDatumType::I16,
+            TractDatumType::Bool => ModelDatumType::Bool,
+            _ => bail!("Unsupported datum type: {:?}", value),
+        })
+    }
+}
+
+impl Into<TractDatumType> for ModelDatumType {
+    fn into(self) -> TractDatumType {
         match self {
-            ModelDatumType::F32 => f32::datum_type(),
-            ModelDatumType::F64 => f64::datum_type(),
-            ModelDatumType::I32 => i32::datum_type(),
-            ModelDatumType::I64 => i64::datum_type(),
-            ModelDatumType::U32 => u32::datum_type(),
-            ModelDatumType::U64 => u64::datum_type(),
+            ModelDatumType::F32 => TractDatumType::F32,
+            ModelDatumType::F64 => TractDatumType::F64,
+            ModelDatumType::I32 => TractDatumType::I32,
+            ModelDatumType::I64 => TractDatumType::I64,
+            ModelDatumType::U32 => TractDatumType::U32,
+            ModelDatumType::U64 => TractDatumType::U64,
+            ModelDatumType::U8 => TractDatumType::U8,
+            ModelDatumType::U16 => TractDatumType::U16,
+            ModelDatumType::I8 => TractDatumType::I8,
+            ModelDatumType::I16 => TractDatumType::I16,
+            ModelDatumType::Bool => TractDatumType::Bool,
         }
     }
 }
 
-macro_rules! dispatch_numbers {
+#[allow(unused_macros)]
+/// This macro dispatches a generic function call from a ModelDatumType
+/// instance.
+///
+/// # Example
+/// ```rs
+/// fn generic_datum_fn<D: Datum>(_dummy_arg: i32) {
+///   // this function uses the datum type as a type parameter
+/// }
+///
+/// let dt = ModelDatumType::F32; // we have a ModelDatumType enum instance here
+/// dispatch_model_datum!(generic_datum_fn(dt)(0i32))
+/// ```
+macro_rules! dispatch_model_datum {
     ($($path:ident)::* ($dt:expr) ($($args:expr),*)) => { {
-        use tract_onnx::prelude::DatumType;
+        use $crate::model::ModelDatumType;
         match $dt {
-            DatumType::U32  => $($path)::*::<u32>($($args),*),
-            DatumType::U64  => $($path)::*::<u64>($($args),*),
-            DatumType::I32  => $($path)::*::<i32>($($args),*),
-            DatumType::I64  => $($path)::*::<i64>($($args),*),
-            DatumType::F32  => $($path)::*::<f32>($($args),*),
-            DatumType::F64  => $($path)::*::<f64>($($args),*),
-            _ => anyhow::bail!("{:?} is not a number", $dt)
+            ModelDatumType::F32 => $($path)::*::<f32>($($args),*),
+            ModelDatumType::F64 => $($path)::*::<f64>($($args),*),
+            ModelDatumType::I32 => $($path)::*::<i32>($($args),*),
+            ModelDatumType::I64 => $($path)::*::<i64>($($args),*),
+            ModelDatumType::U32 => $($path)::*::<u32>($($args),*),
+            ModelDatumType::U64 => $($path)::*::<u64>($($args),*),
+            ModelDatumType::U8 => $($path)::*::<u8>($($args),*),
+            ModelDatumType::U16 => $($path)::*::<u16>($($args),*),
+            ModelDatumType::I8 => $($path)::*::<i8>($($args),*),
+            ModelDatumType::I16 => $($path)::*::<i16>($($args),*),
+            ModelDatumType::Bool => $($path)::*::<bool>($($args),*),
         }
     } }
 }
 
-fn cbor_get_vec<A: serde::ser::Serialize>(v: Vec<A>) -> anyhow::Result<Vec<u8>> {
-    serde_cbor::to_vec(&v).context("Failed to serialize inference data")
-}
-fn create_inputs_for_tensor<
-    A: serde::ser::Serialize + tract_core::prelude::Datum + serde::de::DeserializeOwned,
->(
-    input: &mut [u8],
-) -> anyhow::Result<Vec<Vec<u8>>> {
-    let inputs_for_tensor: Result<Vec<Vec<u8>>>;
-    let input_vec: Vec<Vec<A>> = serde_cbor::from_slice::<Vec<Vec<A>>>(input)?;
-    inputs_for_tensor = input_vec.into_iter().map(cbor_get_vec).collect();
-    inputs_for_tensor
+#[derive(Debug, Hash, Clone, Serialize, Deserialize)]
+pub struct TensorFacts {
+    pub datum_type: Option<ModelDatumType>,
+    pub dims: Option<Vec<usize>>,
+    pub index: Option<usize>,
+    pub index_name: Option<String>,
 }
 
-fn create_tensor<A: serde::de::DeserializeOwned + tract_core::prelude::Datum>(
-    input: &[u8],
-    input_fact: &[usize],
-) -> Result<Tensor> {
-    let dim = IxDynImpl::from(input_fact);
-    let vec: Vec<A> = serde_cbor::from_slice(input).unwrap_or_default();
-    let tensor = tract_ndarray::ArrayD::from_shape_vec(dim, vec)?.into();
-    Ok(tensor)
-}
+pub type OptimizedOnnx =
+    SimplePlan<TypedFact, Box<dyn TypedOp>, Graph<TypedFact, Box<dyn TypedOp>>>;
+pub type UnoptimizedOnnx =
+    SimplePlan<InferenceFact, Box<dyn InferenceOp>, Graph<InferenceFact, Box<dyn InferenceOp>>>;
 
-fn convert_tensor<A: serde::ser::Serialize + tract_core::prelude::Datum>(
-    input: &tract_onnx::prelude::Tensor,
-) -> Result<Vec<u8>> {
-    let arr = input.to_array_view::<A>()?;
-    let slice = arr
-        .as_slice()
-        .ok_or_else(|| anyhow!("Failed to convert ArrayView to slice"))?;
-    Ok(serde_cbor::to_vec(&slice)?)
+#[derive(Debug, Hash, Clone)]
+pub enum TractModel {
+    OptimizedOnnx(OptimizedOnnx),
+    UnoptimizedOnnx(UnoptimizedOnnx),
 }
 
 #[derive(Debug)]
 pub struct InferenceModel {
-    pub datum_inputs: Vec<ModelDatumType>,
-    input_facts: Vec<Vec<usize>>,
-    pub datum_outputs: Vec<ModelDatumType>,
-    pub onnx: Arc<OnnxModel>,
-    #[allow(unused)]
+    pub model: Arc<TractModel>,
     model_id: Uuid,
     model_name: Option<String>,
     model_hash: Digest,
@@ -111,80 +187,98 @@ pub struct InferenceModel {
 impl InferenceModel {
     pub fn load_model(
         mut model_data: &[u8],
-        input_facts: Vec<Vec<usize>>,
         model_id: Uuid,
         model_name: Option<String>,
         model_hash: Digest,
-        datum_inputs: Vec<ModelDatumType>,
-        datum_outputs: Vec<ModelDatumType>,
+        input_facts: &[TensorFacts],
+        output_facts: &[TensorFacts],
+        optim: bool,
     ) -> Result<Self> {
-        let mut model_rec = tract_onnx::onnx().model_for_read(&mut model_data)?;
-        for (idx, (datum_input, input_fact)) in datum_inputs
-            .clone()
-            .iter()
-            .zip(input_facts.clone())
-            .enumerate()
-        {
-            model_rec = model_rec.with_input_fact(
-                idx,
-                InferenceFact::dt_shape(datum_input.get_datum_type(), &input_fact),
-            )?;
+        let mut graph = tract_onnx::onnx().model_for_read(&mut model_data)?;
+
+        trace!(
+            "Loading model with input_facts {:?} output_facts {:?} optim {:?}",
+            input_facts,
+            output_facts,
+            optim
+        );
+
+        // add facts
+        for (facts, is_input) in [(input_facts, true), (output_facts, false)].into_iter() {
+            for fact in facts {
+                let mut inference_fact = InferenceFact::new();
+                if let Some(datum_type) = fact.datum_type {
+                    inference_fact = inference_fact.with_datum_type(datum_type.into());
+                }
+                if let Some(dims) = fact.dims.as_ref() {
+                    inference_fact = inference_fact.with_shape(dims);
+                }
+
+                let index = if let Some(i) = fact.index {
+                    i
+                } else {
+                    // find output / input by outlet name
+
+                    let name = fact
+                        .index_name
+                        .as_ref()
+                        .ok_or_else(|| anyhow!("No index for fact {:?}", fact))?;
+                    let outlet = graph
+                        .find_outlet_label(name)
+                        .ok_or_else(|| anyhow!("Cannot find input/output named {}", name))?;
+
+                    let outlets = if is_input {
+                        graph.input_outlets()?
+                    } else {
+                        graph.output_outlets()?
+                    };
+                    outlets
+                        .into_iter()
+                        .position(|el| *el == outlet)
+                        .ok_or_else(|| anyhow!("Cannot find input/output named {}", name))?
+                };
+                if is_input {
+                    graph = graph.with_input_fact(index, inference_fact)?;
+                } else {
+                    graph = graph.with_output_fact(index, inference_fact)?;
+                }
+            }
         }
 
+        let model = if optim {
+            trace!("Optimizing model...");
+            TractModel::OptimizedOnnx(graph.into_optimized()?.into_runnable()?)
+        } else {
+            TractModel::UnoptimizedOnnx(graph.into_runnable()?)
+        };
+
         Ok(InferenceModel {
-            onnx: model_rec.clone().into_optimized()?.into_runnable()?.into(),
-            datum_inputs: datum_inputs.clone(),
-            input_facts: input_facts.clone(),
+            model: model.into(),
             model_name,
             model_id,
             model_hash,
-            datum_outputs: datum_outputs.clone(),
         })
     }
 
-    pub fn run_inference(&self, input: &mut [u8]) -> Result<Vec<u8>> {
-        let input_datum_type = self.datum_inputs[0].get_datum_type();
-        let inputs_for_tensor: Vec<Vec<u8>> =
-            dispatch_numbers!(create_inputs_for_tensor(input_datum_type)(input))?;
-
-        let mut tensors: Vec<_> = vec![];
-        for (i, (datum_type, input_fact)) in self
-            .datum_inputs
-            .clone()
-            .into_iter()
-            .zip(self.input_facts.clone())
-            .enumerate()
-        {
-            let tensor = dispatch_numbers!(create_tensor(datum_type.get_datum_type())(
-                &inputs_for_tensor[i],
-                &input_fact.clone()
-            ))?;
-            tensors.push(tensor);
+    pub fn run_inference(&self, inputs: TVec<Tensor>) -> Result<TVec<Arc<Tensor>>> {
+        trace!("Running inference for model {}: {:?}.", self.model_id, inputs);
+        match self.model.as_ref() {
+            TractModel::OptimizedOnnx(model) => model.run(inputs),
+            TractModel::UnoptimizedOnnx(model) => model.run(inputs),
         }
-
-        let result = self.onnx.run(TVec::from_vec(tensors.clone()))?;
-        let datum_output = self.datum_outputs[0];
-        let arr = dispatch_numbers!(convert_tensor(&datum_output.get_datum_type())(&result[0]))?;
-        Ok(arr)
     }
 
     pub fn from_onnx_loaded(
-        onnx: Arc<OnnxModel>,
-        input_facts: Vec<Vec<usize>>,
+        onnx: Arc<TractModel>,
         model_id: Uuid,
         model_name: Option<String>,
         model_hash: Digest,
-        datum_inputs: Vec<ModelDatumType>,
-        datum_outputs: Vec<ModelDatumType>,
     ) -> Self {
         InferenceModel {
-            onnx,
-            input_facts,
+            model: onnx,
             model_id,
             model_name,
             model_hash,
-            datum_inputs,
-            datum_outputs,
         }
     }
 
@@ -196,7 +290,32 @@ impl InferenceModel {
         self.model_hash
     }
 
-    pub fn datum_output(&self) -> ModelDatumType {
-        self.datum_outputs[0]
+    pub fn get_output_names(&self) -> Vec<String> {
+        match self.model.as_ref() {
+            TractModel::OptimizedOnnx(model) => model
+                .outputs
+                .iter()
+                .enumerate()
+                .map(|(i, outlet)| {
+                    model
+                        .model
+                        .outlet_label(*outlet)
+                        .map(|e| e.to_owned())
+                        .unwrap_or_else(|| format!("output_{}", i))
+                })
+                .collect(),
+            TractModel::UnoptimizedOnnx(model) => model
+                .outputs
+                .iter()
+                .enumerate()
+                .map(|(i, outlet)| {
+                    model
+                        .model
+                        .outlet_label(*outlet)
+                        .map(|e| e.to_owned())
+                        .unwrap_or_else(|| format!("output_{}", i))
+                })
+                .collect(),
+        }
     }
 }

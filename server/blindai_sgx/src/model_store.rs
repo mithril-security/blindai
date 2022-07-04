@@ -1,18 +1,13 @@
 use crate::sealing::{self};
 use std::path::PathBuf;
-use tonic::Status;
 
-use anyhow::{anyhow, Result};
+use anyhow::{anyhow, Context, Result};
+use blindai_common::NetworkConfig;
 use log::*;
 use ring::digest::{self, Digest};
 
 #[cfg(target_env = "sgx")]
-use std::untrusted::fs::File;
-
-#[cfg(target_env = "sgx")]
 use std::untrusted::fs;
-
-use std::io::Read;
 
 #[cfg(not(target_env = "sgx"))]
 use std::sync::RwLock;
@@ -26,71 +21,64 @@ use std::{
 };
 use uuid::Uuid;
 
-use crate::model::{InferenceModel, ModelDatumType, OnnxModel};
+use crate::model::{InferenceModel, TensorFacts, TractModel};
 
 struct InnerModelStore {
     models_by_id: HashMap<Uuid, InferenceModel>,
-    onnx_by_hash: HashMap<Vec<u8>, (usize, Arc<OnnxModel>)>,
+    onnx_by_hash: HashMap<Vec<u8>, (usize, Arc<TractModel>)>,
 }
 
 /// This is where model are stored.
 pub struct ModelStore {
     inner: RwLock<InnerModelStore>,
+    config: Arc<NetworkConfig>,
 }
 
 impl ModelStore {
-    pub fn new() -> Self {
+    pub fn new(config: Arc<NetworkConfig>) -> Self {
         ModelStore {
             inner: RwLock::new(InnerModelStore {
                 models_by_id: HashMap::new(),
                 onnx_by_hash: HashMap::new(),
             }),
+            config,
         }
     }
 
     pub fn add_model(
         &self,
         model_bytes: &[u8],
-        input_facts: Vec<Vec<usize>>,
         model_name: Option<String>,
-        datum_inputs: Vec<ModelDatumType>,
-        datum_outputs: Vec<ModelDatumType>,
+        model_id: Option<Uuid>,
+        input_facts: &[TensorFacts],
+        output_facts: &[TensorFacts],
         save_model: bool,
+        optim: bool,
     ) -> Result<(Uuid, Digest)> {
-        let model_id = Uuid::new_v4();
+        let model_id = model_id.unwrap_or_else(|| Uuid::new_v4());
         let model_hash = digest::digest(&digest::SHA256, &model_bytes);
+        info!("Model hash is {:?}", model_hash);
 
         let model_hash_vec = model_hash.as_ref().to_vec();
 
-        // Read network config into network_config
-        let mut file = File::open("config.toml")?;
-        let mut contents = String::new();
-        file.read_to_string(&mut contents)?;
-        let network_config: blindai_common::NetworkConfig = toml::from_str(&contents)?;
-
         let mut models_path = PathBuf::new();
-        models_path.push(network_config.models_path);
+        models_path.push(&self.config.models_path);
         models_path.push(model_id.to_string());
 
-        // Sealing/////////////////////////////////////////////////////
+        // Sealing
         if save_model {
             sealing::seal(
                 models_path.as_path(),
                 &model_bytes,
-                &input_facts,
-                model_name.as_deref(),
-                &datum_inputs,
-                &datum_outputs,
+                model_name.clone(),
                 model_id,
+                &input_facts,
+                &output_facts,
+                optim,
             )
-            .map_err(|err| {
-                error!("Error while sealing model: {}", err);
-                Status::unknown("Unknown error".to_string())
-            })?;
+            .context("Sealing the model")?;
             info!("Model sealed");
         }
-
-        //////////////////////////////////////////////////////////////////////////
 
         // Create an entry in the hashmap and in the dedup map
         {
@@ -103,34 +91,31 @@ impl ModelStore {
             // deduplication support
             let model = match models.onnx_by_hash.entry(model_hash_vec.clone()) {
                 Entry::Occupied(mut entry) => {
-                    let (num, onnx) = entry.get_mut();
+                    let (num, tract_model) = entry.get_mut();
                     *num += 1;
                     info!("Reusing an existing ONNX entry for model. (n = {})", *num);
                     InferenceModel::from_onnx_loaded(
-                        onnx.clone(),
-                        input_facts.clone(),
+                        tract_model.clone(),
                         model_id,
                         model_name,
                         model_hash,
-                        datum_inputs,
-                        datum_outputs,
                     )
                 }
                 Entry::Vacant(entry) => {
                     info!("Creating a new ONNX entry for model.");
                     // FIXME(cchudant): this call may take a while to run, we may want to refactor
-                    // this so that the lock  isn't taken here
-                    let model = InferenceModel::load_model(
+                    // this so that the lock isn't taken here
+                    let inference_model = InferenceModel::load_model(
                         &model_bytes,
-                        input_facts.clone(),
                         model_id,
                         model_name,
                         model_hash,
-                        datum_inputs,
-                        datum_outputs,
+                        input_facts,
+                        output_facts,
+                        optim,
                     )?;
-                    entry.insert((1, model.onnx.clone()));
-                    model
+                    entry.insert((1, inference_model.model.clone()));
+                    inference_model
                 }
             };
 
@@ -150,7 +135,11 @@ impl ModelStore {
         Ok((model_id, model_hash))
     }
 
-    pub fn use_model<U>(&self, model_id: Uuid, fun: impl Fn(&InferenceModel) -> U) -> Option<U> {
+    pub fn use_model<U>(
+        &self,
+        model_id: Uuid,
+        fun: impl FnOnce(&InferenceModel) -> U,
+    ) -> Option<U> {
         // take a read lock
         let read_guard = self.inner.read().unwrap();
 
@@ -185,35 +174,27 @@ impl ModelStore {
         Some(model)
     }
 
-    pub fn startup_unseal(model_store: Arc<ModelStore>) -> Result<(), Box<dyn std::error::Error>> {
-        // Read network config into network_config
-        let mut file = File::open("config.toml")?;
-        let mut contents = String::new();
-        file.read_to_string(&mut contents)?;
-        let network_config: blindai_common::NetworkConfig = toml::from_str(&contents)?;
-
-        let mut models_path = PathBuf::new();
-        models_path.push(network_config.models_path.clone());
-
-        if let Ok(paths) = fs::read_dir(models_path.as_path()) {
+    pub fn startup_unseal(&self, config: &blindai_common::NetworkConfig) -> Result<()> {
+        if let Ok(paths) = fs::read_dir(&config.models_path) {
             for path in paths {
                 let path = path?;
                 if let Ok(model) = sealing::unseal(path.path().as_path()) {
-                    model_store.add_model(
+                    self.add_model(
                         &model.model_bytes,
-                        model.input_facts,
                         model.model_name,
-                        model.datum_inputs,
-                        model.datum_outputs,
-                        model.save_model,
+                        Some(model.model_id),
+                        &model.input_facts,
+                        &model.output_facts,
+                        false,
+                        model.optim,
                     )?;
-                    info!("Model {:?} loaded", model.uuid.to_string());
+                    info!("Model {:?} loaded", model.model_id.to_string());
                 } else {
                     info!("Unsealing of model {:?} failed", path.file_name());
                 }
             }
         } else {
-            fs::create_dir(network_config.models_path.clone())?;
+            fs::create_dir(&config.models_path)?;
         }
 
         Ok(())

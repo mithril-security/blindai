@@ -9,7 +9,7 @@ use std::untrusted::fs;
 use std::{path::Path, str, vec::Vec};
 use uuid::Uuid;
 
-use crate::model::ModelDatumType;
+use crate::model::TensorFacts;
 
 extern crate sgx_tseal;
 extern crate sgx_types;
@@ -17,22 +17,21 @@ extern crate sgx_types;
 #[derive(Serialize, Debug)]
 pub struct SerializableModel<'a> {
     pub model_bytes: &'a [u8],
-    pub input_facts: &'a [Vec<usize>],
     pub model_name: Option<&'a str>,
-    pub datum_inputs: &'a [ModelDatumType],
-    pub datum_outputs: &'a [ModelDatumType],
-    pub uuid: Uuid,
+    pub model_id: Uuid,
+    pub input_facts: &'a [TensorFacts],
+    pub output_facts: &'a [TensorFacts],
+    pub optim: bool,
 }
 
 #[derive(Deserialize, Debug)]
 pub struct DeserializableModel {
     pub model_bytes: Vec<u8>,
-    pub input_facts: Vec<Vec<usize>>,
     pub model_name: Option<String>,
-    pub datum_inputs: Vec<ModelDatumType>,
-    pub datum_outputs: Vec<ModelDatumType>,
-    pub uuid: Uuid,
-    pub save_model: bool,
+    pub model_id: Uuid,
+    pub input_facts: Vec<TensorFacts>,
+    pub output_facts: Vec<TensorFacts>,
+    pub optim: bool,
 }
 
 fn create_sealeddata_for_serializable(model: SerializableModel) -> Result<Vec<u8>> {
@@ -115,20 +114,20 @@ fn from_sealed_log_for_slice<'a, T: Copy + ContiguousMemory>(
 pub fn seal(
     path: &Path,
     model_bytes: &[u8],
-    input_facts: &[Vec<usize>],
-    model_name: Option<&str>,
-    datum_inputs: &[ModelDatumType],
-    datum_outputs: &[ModelDatumType],
-    uuid: Uuid,
+    model_name: Option<String>,
+    model_id: Uuid,
+    input_facts: &[TensorFacts],
+    output_facts: &[TensorFacts],
+    optim: bool,
 ) -> anyhow::Result<()> {
     //seal data
     let sealed = create_sealeddata_for_serializable(SerializableModel {
         model_bytes,
+        model_name: model_name.as_deref(),
+        model_id,
         input_facts,
-        model_name,
-        datum_inputs,
-        datum_outputs,
-        uuid,
+        output_facts,
+        optim,
     })?;
 
     //write sealed data

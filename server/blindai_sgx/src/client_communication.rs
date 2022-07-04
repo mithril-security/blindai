@@ -12,27 +12,28 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use anyhow::{anyhow, Result};
 use futures::StreamExt;
 use log::*;
+use num_traits::FromPrimitive;
 use prost::Message;
 use ring::digest;
 use ring_compat::signature::Signer;
 use std::{
     convert::TryInto,
-    mem::size_of,
     str::FromStr,
     sync::Arc,
     time::{Instant, SystemTime},
     vec::Vec,
 };
+use tract_core::prelude::Tensor;
 
 use tonic::{Request, Response, Status};
 use uuid::Uuid;
 
 use crate::{
-    client_communication::secured_exchange::TensorInfo,
     identity::MyIdentity,
-    model::ModelDatumType,
+    model::{deserialize_tensor_bytes, serialize_tensor_bytes, ModelDatumType, TensorFacts},
     model_store::ModelStore,
     telemetry::{self, TelemetryEventProps},
 };
@@ -74,26 +75,18 @@ impl Exchange for Exchanger {
     ) -> Result<Response<SendModelReply>, Status> {
         let start_time = Instant::now();
 
-        let convert_type = |t: i32| -> Result<_, Status> {
-            num_traits::FromPrimitive::from_i32(t)
-                .ok_or_else(|| Status::invalid_argument("Unknown datum type".to_string()))
-        };
-
         let mut stream = request.into_inner();
-        let mut tensor_inputs: Vec<TensorInfo> = Vec::new();
-        let mut tensor_outputs: Vec<i32> = Vec::new();
 
-        let mut datum_outputs: Vec<ModelDatumType> = Vec::new();
-        let mut datum_inputs: Vec<ModelDatumType> = Vec::new();
-        let mut input_facts: Vec<Vec<usize>> = Vec::new();
         let mut model_bytes: Vec<u8> = Vec::new();
-        let max_model_size = self.max_model_size;
         let mut model_size = 0usize;
-        let mut sign = false;
-        let mut save_model = false;
 
+        let mut sign = false;
         let mut model_name = None;
         let mut client_info = None;
+        let mut save_model = false;
+
+        let mut input_info_req: Vec<TensorInfo> = Vec::new();
+        let mut output_info_req: Vec<TensorInfo> = Vec::new();
 
         // Get all model chunks from the client into a big Vec
         while let Some(model_stream) = stream.next().await {
@@ -108,19 +101,12 @@ impl Exchange for Exchanger {
                     None
                 };
                 client_info = model_proto.client_info;
-
-                for tensor_info in &model_proto.tensor_inputs {
-                    tensor_inputs.push(tensor_info.clone());
-                }
-
-                for output in &model_proto.tensor_outputs {
-                    tensor_outputs.push(*output);
-                }
-
+                input_info_req = model_proto.tensor_inputs;
+                output_info_req = model_proto.tensor_outputs;
                 sign = model_proto.sign;
                 save_model = model_proto.save_model;
             }
-            if model_size > max_model_size || model_bytes.len() > max_model_size {
+            if model_size > self.max_model_size || model_bytes.len() > self.max_model_size {
                 return Err(Status::invalid_argument("Model is too big".to_string()));
             }
             model_bytes.append(&mut model_proto.data)
@@ -130,35 +116,65 @@ impl Exchange for Exchanger {
             return Err(Status::invalid_argument("Received no data".to_string()));
         }
 
-        // Create datum_inputs, datum_outputs, and input_facts vector from tensor_inputs
-        // and tensor_outputs
-        for (_, tensor_input) in tensor_inputs.clone().iter().enumerate() {
-            let mut input_fact: Vec<usize> = vec![];
-
-            for x in &tensor_input.fact {
-                input_fact.push(*x as usize);
-            }
-            let datum_input = convert_type(tensor_input.datum_type.clone())?;
-            datum_outputs = tensor_outputs
-                .iter()
-                .map(|v| convert_type(*v).unwrap())
-                .collect();
-            datum_inputs.push(datum_input.clone());
-            input_facts.push(input_fact.clone());
-        }
+        let map_fn = |info: TensorInfo| {
+            Ok(TensorFacts {
+                datum_type: if info.datum_type >= 0 {
+                    Some(
+                        ModelDatumType::from_i32(info.datum_type)
+                            .ok_or_else(|| anyhow!("invalid datum type: {}", info.datum_type))?,
+                    )
+                } else {
+                    None
+                },
+                dims: if !info.dims.is_empty() {
+                    Some(info.dims.into_iter().map(|el| el as usize).collect())
+                } else {
+                    None
+                },
+                index: if info.index >= 0 {
+                    Some(info.index as usize)
+                } else {
+                    None
+                },
+                index_name: if !info.index_name.is_empty() {
+                    Some(info.index_name)
+                } else {
+                    None
+                },
+            })
+        };
+        let input_info = input_info_req
+            .iter()
+            .cloned()
+            .map(map_fn)
+            .collect::<Result<Vec<_>>>()
+            .map_err(|err| {
+                error!("Error while getting input info: {:?}", err);
+                Status::invalid_argument("Unknown error".to_string())
+            })?;
+        let output_info = output_info_req
+            .iter()
+            .cloned()
+            .map(map_fn)
+            .collect::<Result<Vec<_>>>()
+            .map_err(|err| {
+                error!("Error while getting output info: {:?}", err);
+                Status::invalid_argument("Unknown error".to_string())
+            })?;
 
         let (model_id, model_hash) = self
             .model_store
             .add_model(
                 &model_bytes,
-                input_facts.clone(),
                 model_name.clone(),
-                datum_inputs.clone(),
-                datum_outputs.clone(),
-                save_model.clone(),
+                None,
+                &input_info,
+                &output_info,
+                save_model,
+                true, // todo: make optim configurable
             )
             .map_err(|err| {
-                error!("Error while creating model: {}", err);
+                error!("Error while creating model: {:?}", err);
                 Status::unknown("Unknown error".to_string())
             })?;
 
@@ -166,11 +182,8 @@ impl Exchange for Exchanger {
         let mut payload = SendModelPayload::default();
         if sign {
             payload.model_hash = model_hash.as_ref().to_vec();
-            payload.input_fact = input_facts
-                .into_iter()
-                .flatten()
-                .map(|i| i as i32)
-                .collect();
+            payload.tensor_inputs = input_info_req;
+            payload.tensor_outputs = output_info_req;
         }
         payload.model_id = model_id.to_string();
         let payload_with_header = Payload {
@@ -229,69 +242,120 @@ impl Exchange for Exchanger {
     ) -> Result<Response<RunModelReply>, Status> {
         let start_time = Instant::now();
 
-        let mut stream = request.into_inner();
-
-        let mut input: Vec<u8> = Vec::new();
-        let mut sign = false;
-        let max_input_size = self.max_input_size;
-        let mut model_id = "".to_string();
+        let mut input_tensors: Vec<TensorData> = Vec::new();
 
         let mut client_info = None;
+        let mut sign = false;
+        let mut model_id = "".to_string();
 
-        // Get all the data and put it in a Vec
+        // Get all the data (in chunks)
+
+        let mut stream = request.into_inner();
         while let Some(data_stream) = stream.next().await {
-            let mut data_proto = data_stream?;
+            let data_proto = data_stream?;
 
             client_info = data_proto.client_info;
+            sign = data_proto.sign;
+            model_id = data_proto.model_id;
 
-            if data_proto.input.len() * size_of::<u8>() > max_input_size
-                || input.len() * size_of::<u8>() > max_input_size
-            {
-                return Err(Status::invalid_argument("Input too big".to_string()));
+            let mut message_size = 0;
+            for inp_tensor in data_proto.input_tensors {
+                message_size += inp_tensor.bytes_data.len();
+
+                if inp_tensor.info.is_none() {
+                    return Err(Status::invalid_argument("No tensor info"));
+                }
+                if message_size > self.max_input_size {
+                    return Err(Status::invalid_argument("Input too big"));
+                }
+
+                if let Some(tensor) = input_tensors.iter_mut().find(|el| {
+                    let info = el.info.as_ref().unwrap();
+                    let inp_tensor_info = inp_tensor.info.as_ref().unwrap();
+                    // index (numeric) is same
+                    info.index == inp_tensor_info.index
+                    // input name is present & same
+                        || (!inp_tensor_info.index_name.is_empty() && info.index_name == inp_tensor_info.index_name)
+                }) {
+                    tensor.bytes_data.extend(inp_tensor.bytes_data);
+                } else {
+                    input_tensors.push(inp_tensor);
+                }
             }
-            if input.is_empty() {
-                sign = data_proto.sign;
-                model_id = data_proto.model_id;
+        }
+
+        let mut input_hash = vec![];
+        if sign {
+            let mut hash = digest::Context::new(&digest::SHA256);
+            for tens in &input_tensors {
+                hash.update(&tens.bytes_data)
             }
-            input.append(&mut data_proto.input);
+            input_hash = hash.finish().as_ref().to_vec()
         }
 
         // Find the model with model_id
+        let uuid = Uuid::from_str(&model_id)
+            .map_err(|_err| Status::invalid_argument("Model doesn't exist"))?;
 
-        let uuid = match Uuid::from_str(&model_id) {
-            Ok(uuid) => uuid,
-            Err(_) => return Err(Status::invalid_argument("Model doesn't exist")),
-        };
+        let input_tensors = input_tensors
+            .into_iter()
+            .map(|ten| {
+                let info = ten.info.ok_or_else(|| anyhow!("no tensor info provided"))?;
+                deserialize_tensor_bytes(
+                    FromPrimitive::from_i32(info.datum_type)
+                        .ok_or_else(|| anyhow!("invalid datum type: {}", info.datum_type))?,
+                    &info.dims.into_iter().map(|el| el as usize).collect::<Vec<_>>(),
+                    &ten.bytes_data,
+                )
+            })
+            .collect::<Result<Vec<Tensor>>>()
+            .map_err(|err| {
+                error!("Error while deserializing input: {:?}", err);
+                Status::invalid_argument("Tensor serialization error")
+            })?;
 
         let res = self.model_store.use_model(uuid, |model| {
             (
-                model.run_inference(&mut input.clone()[..]),
-                model.model_name().map(|s| s.to_string()),
-                model.datum_output(),
+                model.run_inference(input_tensors.into()),
+                model.model_name().map(|e| e.to_string()),
+                model.get_output_names(),
             )
         });
-        let res = match res {
-            Some(res) => res,
-            None => return Err(Status::invalid_argument("Model doesn't exist")),
-        };
+        let (results, model_name, output_names) =
+            res.ok_or_else(|| Status::invalid_argument("Model doesn't exist"))?;
 
-        let (result, model_name, datum_output) = res;
+        let results = results.map_err(|err| {
+            error!("Error while running inference: {:?}", err);
+            Status::unknown("Unknown error".to_string())
+        })?;
 
-        let result = match result {
-            Ok(res) => res,
-            Err(err) => {
-                error!("Error while running inference: {}", err);
-                return Err(Status::unknown("Unknown error".to_string()));
-            }
-        };
+        let output_tensors = results
+            .into_iter()
+            .zip(output_names)
+            .enumerate()
+            .map(|(index, (ten, output_name))| {
+                Ok(TensorData {
+                    info: Some(TensorInfo {
+                        dims: ten.shape().into_iter().map(|el| *el as i32).collect(),
+                        datum_type: ModelDatumType::try_from(ten.datum_type())? as i32,
+                        index: index as i32,
+                        index_name: output_name,
+                    }),
+                    bytes_data: serialize_tensor_bytes(&ten)?.into(),
+                })
+            })
+            .collect::<Result<Vec<TensorData>>>()
+            .map_err(|err| {
+                error!("Error while serilizing output: {:?}", err);
+                Status::unknown("Unknown error".to_string())
+            })?;
 
         let mut payload = RunModelPayload {
-            output: result,
-            datum_output: datum_output as i32,
+            output_tensors,
             ..Default::default()
         };
         if sign {
-            payload.input_hash = digest::digest(&digest::SHA256, &input).as_ref().to_vec();
+            payload.input_hash = input_hash;
             payload.model_id = model_id;
         }
 

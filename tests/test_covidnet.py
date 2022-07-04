@@ -38,7 +38,10 @@ class TestCovidNetBase:
             )
 
             upload_response = client.upload_model(
-                model=model, shape=(1, 480, 480, 3), dtype=ModelDatumType.F32, sign=True
+                model=model,
+                shape=(1, 480, 480, 3),
+                datum_type=ModelDatumType.F32,
+                sign=True,
             )
 
             if not self.simulation and os.getenv("BLINDAI_DUMPRES") is not None:
@@ -47,6 +50,8 @@ class TestCovidNetBase:
             response = client.run_model(
                 upload_response.model_id,
                 flattened_img,
+                datum_type=ModelDatumType.F32,
+                shape=(1, 480, 480, 3),
                 sign=True,
             )
 
@@ -58,7 +63,7 @@ class TestCovidNetBase:
 
         ort_outs = ort_session.run(None, ort_inputs)
 
-        diff = abs(sum(np.array([response.output]) - ort_outs))[0][0]
+        diff = abs(sum(np.array([response.output_tensors[0].as_flat()]) - ort_outs))[0][0]
         self.assertLess(diff, 0.001)  # difference is <0.1%
 
     @unittest.skipIf(
@@ -81,7 +86,7 @@ class TestCovidNetBase:
                 upload_response = client.upload_model(
                     model=model,
                     shape=(1, 480, 480, 3),
-                    dtype=ModelDatumType.F32,
+                    datum_type=ModelDatumType.F32,
                 )
                 models.append(upload_response.model_id)
 
@@ -89,6 +94,8 @@ class TestCovidNetBase:
                 response = client.run_model(
                     models[i],
                     flattened_img,
+                    datum_type=ModelDatumType.F32,
+                    shape=(1, 480, 480, 3),
                 )
 
                 ort_session = onnxruntime.InferenceSession(model)
@@ -96,7 +103,7 @@ class TestCovidNetBase:
 
                 ort_outs = ort_session.run(None, ort_inputs)
 
-                diff = abs(sum(np.array([response.output]) - ort_outs))[0][0]
+                diff = abs(sum(np.array([response.output_tensors[0].as_flat()]) - ort_outs))[0][0]
                 self.assertLess(diff, 0.001)  # difference is <0.1%
 
     @unittest.skipIf(
@@ -116,7 +123,7 @@ class TestCovidNetBase:
             upload_response = client.upload_model(
                 model=model,
                 shape=(1, 480, 480, 3),
-                dtype=ModelDatumType.F32,
+                datum_type=ModelDatumType.F32,
                 sign=True,
                 save_model=True,
                 model_name="Hi",
@@ -125,6 +132,8 @@ class TestCovidNetBase:
             response = client.run_model(
                 upload_response.model_id,
                 flattened_img,
+                datum_type=ModelDatumType.F32,
+                shape=(1, 480, 480, 3),
                 sign=True,
             )
 
@@ -133,7 +142,7 @@ class TestCovidNetBase:
 
         ort_outs = ort_session.run(None, ort_inputs)
 
-        diff = abs(sum(np.array([response.output]) - ort_outs))[0][0]
+        diff = abs(sum(np.array([response.output_tensors[0].as_flat()]) - ort_outs))[0][0]
         self.assertLess(diff, 0.001)  # difference is <0.1%
 
 

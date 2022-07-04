@@ -31,44 +31,60 @@ class TestDistilBertBase:
             response = client.upload_model(
                 model=model_path,
                 shape=inputs.shape,
-                dtype=ModelDatumType.I64,
+                datum_type=ModelDatumType.I64,
                 model_name="test.onnx",
             )
             model_id = response.model_id
 
-            response = client.run_model(model_id, run_inputs)
+            response = client.run_model(
+                model_id, run_inputs, datum_type=ModelDatumType.I64, shape=inputs.shape
+            )
             origin_pred = model(torch.tensor(run_inputs).unsqueeze(0)).logits.detach()
 
-            diff = (torch.tensor([response.output]) - origin_pred).sum().abs()
+            diff = (
+                (torch.tensor([response.output_tensors[0].as_flat()]) - origin_pred)
+                .sum()
+                .abs()
+            )
             self.assertLess(diff, 0.001)  # difference is <0.1%
             client.delete_model(model_id)
 
-        def test_signed(self):
-            with blindai.client.connect(
-                addr="localhost",
-                simulation=self.simulation,
-                policy=policy_file,
-                certificate=certificate_file,
-            ) as client:
-                response = client.upload_model(
-                    model=model_path,
-                    shape=inputs.shape,
-                    dtype=ModelDatumType.I64,
-                    sign=True,
-                )
-                model_id = response.model_id
+    def test_signed(self):
+        with blindai.client.connect(
+            addr="localhost",
+            simulation=self.simulation,
+            policy=policy_file,
+            certificate=certificate_file,
+        ) as client:
+            response = client.upload_model(
+                model=model_path,
+                shape=inputs.shape,
+                datum_type=ModelDatumType.I64,
+                sign=True,
+            )
+            model_id = response.model_id
 
-                print(response)
-                client.enclave_signing_key.verify(response.signature, response.payload)
+            print(response)
+            client.enclave_signing_key.verify(response.signature, response.payload)
 
-                response = client.run_model(model_id, run_inputs, sign=True)
+            response = client.run_model(
+                model_id,
+                run_inputs,
+                datum_type=ModelDatumType.I64,
+                shape=inputs.shape,
+                sign=True,
+            )
 
-                client.enclave_signing_key.verify(response.signature, response.payload)
+            client.enclave_signing_key.verify(response.signature, response.payload)
 
-            origin_pred = model(torch.tensor(run_inputs).unsqueeze(0)).logits.detach()
+        origin_pred = model(torch.tensor(run_inputs).unsqueeze(0)).logits.detach()
 
-            diff = (torch.tensor([response.output]) - origin_pred).sum().abs()
-            self.assertLess(diff, 0.001)  # difference is <0.1%
+        diff = (
+            (torch.tensor([response.output_tensors[0].as_flat()]) - origin_pred)
+            .sum()
+            .abs()
+        )
+        self.assertLess(diff, 0.001)  # difference is <0.1%
 
 
 class TestDistilBertSW(TestDistilBertBase, unittest.TestCase):

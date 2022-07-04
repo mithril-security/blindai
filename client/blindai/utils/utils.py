@@ -19,8 +19,12 @@ from cryptography.hazmat.primitives.serialization import Encoding
 from cryptography.x509 import ObjectIdentifier, load_pem_x509_certificate
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
 import pkgutil
+from blindai.pb.securedexchange_pb2 import DatumTypeEnum
+from enum import IntEnum
 
 CHUNK_SIZE = 32 * 1024  # 32kb
+
+ModelDatumType = IntEnum("ModelDatumType", DatumTypeEnum.items())
 
 
 def strip_https(url: str) -> str:

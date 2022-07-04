@@ -42,6 +42,8 @@ use std::untrusted::fs;
 #[cfg(not(target_env = "sgx"))]
 use std::fs;
 
+use anyhow::{Context, Result, Error};
+
 use crate::client_communication::{secured_exchange::exchange_server::ExchangeServer, Exchanger};
 
 use crate::{
@@ -94,10 +96,7 @@ pub unsafe extern "C" fn start_server(
     sgx_status_t::SGX_SUCCESS
 }
 
-async fn main(
-    telemetry_platform: String,
-    telemetry_uid: String,
-) -> Result<(), Box<dyn std::error::Error>> {
+async fn main(telemetry_platform: String, telemetry_uid: String) -> Result<()> {
     #[cfg(target_env = "sgx")]
     let _ = backtrace::enable_backtrace("enclave.signed.so", PrintFormat::Full);
     let (certificate, storage_identity, signing_key_seed) = identity::create_certificate()?;
@@ -109,21 +108,25 @@ async fn main(
     let enclave_identity = my_identity.tls_identity.clone();
 
     // Read network config into network_config
-    let mut file = File::open("config.toml")?;
+    let mut config_file = File::open("config.toml").context("Opening config.toml file")?;
     let mut contents = String::new();
-    file.read_to_string(&mut contents)?;
-    let network_config: blindai_common::NetworkConfig = toml::from_str(&contents)?;
+    config_file.read_to_string(&mut contents)?;
+    let config: blindai_common::NetworkConfig =
+        toml::from_str(&contents).context("Parsing config.toml file")?;
+    let config = Arc::new(config);
 
     let dcap_quote_provider = DcapQuoteProvider::new(&enclave_identity.cert_der);
     let dcap_quote_provider: &'static DcapQuoteProvider = Box::leak(Box::new(dcap_quote_provider));
 
     // Identity for untrusted (non-attested) communication
-    let untrusted_cert = fs::read("tls/host_server.pem")?;
-    let untrusted_key = fs::read("tls/host_server.key")?;
+    let untrusted_cert =
+        fs::read("tls/host_server.pem").context("Opening tls/host_server.pem file")?;
+    let untrusted_key =
+        fs::read("tls/host_server.key").context("Opening tls/host_server.key file")?;
     let untrusted_identity = Identity::from_pem(&untrusted_cert, &untrusted_key);
 
     tokio::spawn({
-        let network_config = network_config.clone();
+        let network_config = config.clone();
         async move {
             info!(
                 "Starting server for User --> Enclave (unattested) untrusted communication at {}",
@@ -135,31 +138,34 @@ async fn main(
                     quote_provider: dcap_quote_provider,
                 }))
                 .serve(network_config.client_to_enclave_untrusted_socket()?)
-                .await?;
-            Ok::<(), Box<dyn std::error::Error + Sync + Send>>(())
+                .await
+                .context("Running the User --> Enclave (unattested) untrusted server")?;
+            Ok::<(), Error>(())
         }
     });
 
-    let model_store: Arc<ModelStore> = ModelStore::new().into();
+    let model_store: Arc<ModelStore> = ModelStore::new(config.clone()).into();
 
     let exchanger = Exchanger::new(
         model_store.clone(),
         my_identity.clone(),
-        network_config.max_model_size,
-        network_config.max_input_size,
+        config.max_model_size,
+        config.max_input_size,
     );
 
-    ModelStore::startup_unseal(model_store.clone());
+    model_store
+        .startup_unseal(&config)
+        .context("Unsealing models at startup")?;
 
     let server_future = Server::builder()
         .tls_config(ServerTlsConfig::new().identity((&enclave_identity).into()))?
         .max_frame_size(Some(65536))
         .add_service(ExchangeServer::new(exchanger))
-        .serve(network_config.client_to_enclave_attested_socket()?);
+        .serve(config.client_to_enclave_attested_socket()?);
 
     info!(
         "Starting server for User --> Enclave (attested TLS) trusted communication at {}",
-        network_config.client_to_enclave_attested_url
+        config.client_to_enclave_attested_url
     );
     println!("Server started, waiting for commands");
 
@@ -168,14 +174,16 @@ async fn main(
     }
 
     if std::env::var("BLINDAI_DISABLE_TELEMETRY").is_err() {
-        telemetry::setup(telemetry_platform, telemetry_uid)?;
+        telemetry::setup(telemetry_platform, telemetry_uid).context("Setting up telemetry")?;
         info!("Telemetry is enabled.")
     } else {
         info!("Telemetry is disabled.")
     }
     telemetry::add_event(TelemetryEventProps::Started {}, None);
 
-    server_future.await?;
+    server_future
+        .await
+        .context("Running User --> Enclave (attested TLS) server")?;
 
     Ok(())
 }
