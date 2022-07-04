@@ -557,12 +557,12 @@ class BlindAiConnection(contextlib.AbstractContextManager):
             tensor_inputs (List[Tuple[List[int], ModelDatumType]], optional): The list of input fact and datum types for each input grouped together in lists, describing the different inputs of the model. Defaults to None.
             tensor_outputs (List[ModelDatumType], optional): The list of datum types describing the different output types of the model. Defaults to ModelDatumType.F32
             shape (Tuple, optional): The shape of the model input. Defaults to None.
-            dtype (ModelDatumType, optional): The type of the model input data (f32 by default). Defaults to ModelDatumType.F32.
+            dtype (ModelDatumType, optional): The type of the Fmodel input data (f32 by default). Defaults to ModelDatumType.F32.
             dtype_out (ModelDatumType, optional): The type of the model output data (f32 by default). Defaults to ModelDatumType.F32.
             sign (bool, optional): Get signed responses from the server or not. Defaults to False.
             model_name (Optional[str], optional): Name of the model.
-            save_model (bool, optional): Whether or not the model will be saved to disk in the server. 
-            The model will be saved encrypted (sealed) so that only the server enclave can load it afterwards. 
+            save_model (bool, optional): Whether or not the model will be saved to disk in the server.
+            The model will be saved encrypted (sealed) so that only the server enclave can load it afterwards.
             The server will load the model on startup. Defaults to False.
 
         Raises:
@@ -574,12 +574,12 @@ class BlindAiConnection(contextlib.AbstractContextManager):
         Returns:
             UploadModelResponse: The response object.
         """
-        #print(model_name)
+        # print(model_name)
         response = None
 
         if model_name is None:
             model_name = os.path.basename(model)
-            
+
         try:
             with open(model, "rb") as f:
                 data = f.read()
