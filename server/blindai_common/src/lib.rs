@@ -37,6 +37,7 @@ pub struct NetworkConfig {
     pub max_model_size: usize,
     pub max_input_size: usize,
     pub models_path: String,
+    pub allow_sendmodel: bool,
 }
 
 fn uri_to_socket(uri: &Uri) -> Result<SocketAddr> {

@@ -5,6 +5,7 @@ use anyhow::{anyhow, Context, Result};
 use blindai_common::NetworkConfig;
 use log::*;
 use ring::digest::{self, Digest};
+use uuid::Uuid;
 
 #[cfg(target_env = "sgx")]
 use std::untrusted::fs;

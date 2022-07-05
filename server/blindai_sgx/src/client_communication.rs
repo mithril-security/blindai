@@ -28,7 +28,6 @@ use std::{
 use tract_core::prelude::Tensor;
 
 use tonic::{Request, Response, Status};
-use uuid::Uuid;
 
 use crate::{
     identity::MyIdentity,
@@ -321,12 +320,11 @@ impl Exchange for Exchanger {
                 Status::invalid_argument("Tensor serialization error")
             })?;
 
-        let idname = model_id.clone();
-        if idname.is_empty() {
+        if model_id.is_empty() {
             return Err(Status::invalid_argument("Model doesn't exist"));
         }
 
-        let res = self.model_store.use_model(Some(idname), |model| {
+        let res = self.model_store.use_model(model_id.clone(), |model| {
             (
                 model.run_inference(input_tensors.into()),
                 model.model_name().map(|e| e.to_string()),
@@ -426,13 +424,13 @@ impl Exchange for Exchanger {
     ) -> Result<Response<DeleteModelReply>, Status> {
         let request = request.into_inner();
         let model_id = request.model_id;
-        let idname = model_id.clone();
-        if idname.is_empty() {
+
+        if model_id.is_empty() {
             return Err(Status::invalid_argument("Model doesn't exist"));
         }
 
         // Delete the model
-        if self.model_store.delete_model(Some(idname)).is_none() {
+        if self.model_store.delete_model(model_id).is_none() {
             error!("Model doesn't exist");
             return Err(Status::invalid_argument("Model doesn't exist"));
         }
