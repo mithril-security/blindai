@@ -107,7 +107,7 @@ async fn main(telemetry_platform: String, telemetry_uid: String) -> Result<()> {
     ));
     let enclave_identity = my_identity.tls_identity.clone();
 
-    // Read network config into network_config
+    // Read the config
     let mut config_file = File::open("config.toml").context("Opening config.toml file")?;
     let mut contents = String::new();
     config_file.read_to_string(&mut contents)?;
@@ -151,6 +151,7 @@ async fn main(telemetry_platform: String, telemetry_uid: String) -> Result<()> {
         my_identity.clone(),
         config.max_model_size,
         config.max_input_size,
+        config.clone()
     );
 
     model_store

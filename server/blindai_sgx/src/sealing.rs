@@ -7,7 +7,6 @@ use std::fs;
 #[cfg(target_env = "sgx")]
 use std::untrusted::fs;
 use std::{path::Path, str, vec::Vec};
-use uuid::Uuid;
 
 use crate::model::TensorFacts;
 

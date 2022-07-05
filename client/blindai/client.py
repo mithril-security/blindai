@@ -351,7 +351,7 @@ class RunModelResponse(SignedResponse):
         self,
         model_id: str,
         tensors: Union[List[List[Any]], List[Any]],
-        datum_type: Union[List[ModelDatumType], ModelDatumType],
+        dtype: Union[List[ModelDatumType], ModelDatumType],
         shape: Union[List[List[int]], List[int]],
         policy_file: Optional[str] = None,
         policy: Optional[Policy] = None,
@@ -402,14 +402,14 @@ class RunModelResponse(SignedResponse):
         # Input validation
         if type(tensors[0]) != list:
             tensors = [tensors]
-        if type(datum_type) != list:
-            datum_type = [datum_type]
+        if type(dtype) != list:
+            dtype = [dtype]
         if type(shape[0]) != list:
             shape = [shape]
 
         hash = sha256()
         for i, tensor in enumerate(tensors):
-            for chunk in serialize_tensor(tensor, datum_type[i]):
+            for chunk in serialize_tensor(tensor, dtype[i]):
                 hash.update(chunk)
 
         if hash.digest() != payload.input_hash:
@@ -626,7 +626,7 @@ class BlindAiConnection(contextlib.AbstractContextManager):
         tensor_inputs: Optional[List[Tuple[List[int], ModelDatumType]]] = None,
         tensor_outputs: Optional[List[ModelDatumType]] = None,
         shape: Tuple = None,
-        datum_type: ModelDatumType = ModelDatumType.F32,
+        dtype: ModelDatumType = ModelDatumType.F32,
         dtype_out: ModelDatumType = ModelDatumType.F32,
         sign: bool = False,
         model_name: Optional[str] = None,
@@ -667,7 +667,7 @@ class BlindAiConnection(contextlib.AbstractContextManager):
                 data = f.read()
 
             (inputs, outputs) = _get_input_output_tensors(
-                tensor_inputs, tensor_outputs, shape, datum_type, dtype_out
+                tensor_inputs, tensor_outputs, shape, dtype, dtype_out
             )
             response = self._stub.SendModel(
                 iter(

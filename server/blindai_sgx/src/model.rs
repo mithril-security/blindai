@@ -20,8 +20,8 @@ use log::*;
 use num_derive::FromPrimitive;
 use ring::digest::Digest;
 use serde::{Deserialize, Serialize};
-use tract_onnx::prelude::{tract_ndarray::IxDynImpl, DatumType, TVec, *};
-use tract_onnx::{prelude::*, tract_hir::infer::InferenceOp};
+use tract_onnx::prelude::*;
+use tract_onnx::tract_hir::infer::InferenceOp;
 
 pub use tract_onnx::prelude::DatumType as TractDatumType;
 

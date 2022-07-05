@@ -40,7 +40,7 @@ class TestCovidNetBase:
             upload_response = client.upload_model(
                 model=model,
                 shape=(1, 480, 480, 3),
-                datum_type=ModelDatumType.F32,
+                dtype=ModelDatumType.F32,
                 sign=True,
             )
 
@@ -50,7 +50,7 @@ class TestCovidNetBase:
             response = client.run_model(
                 upload_response.model_id,
                 flattened_img,
-                datum_type=ModelDatumType.F32,
+                dtype=ModelDatumType.F32,
                 shape=(1, 480, 480, 3),
                 sign=True,
             )
@@ -86,7 +86,7 @@ class TestCovidNetBase:
                 upload_response = client.upload_model(
                     model=model,
                     shape=(1, 480, 480, 3),
-                    datum_type=ModelDatumType.F32,
+                    dtype=ModelDatumType.F32,
                 )
                 models.append(upload_response.model_id)
 
@@ -94,7 +94,7 @@ class TestCovidNetBase:
                 response = client.run_model(
                     models[i],
                     flattened_img,
-                    datum_type=ModelDatumType.F32,
+                    dtype=ModelDatumType.F32,
                     shape=(1, 480, 480, 3),
                 )
 
@@ -123,7 +123,7 @@ class TestCovidNetBase:
             upload_response = client.upload_model(
                 model=model,
                 shape=(1, 480, 480, 3),
-                datum_type=ModelDatumType.F32,
+                dtype=ModelDatumType.F32,
                 sign=True,
                 save_model=True,
                 model_name="Hi",
@@ -132,7 +132,7 @@ class TestCovidNetBase:
             response = client.run_model(
                 upload_response.model_id,
                 flattened_img,
-                datum_type=ModelDatumType.F32,
+                dtype=ModelDatumType.F32,
                 shape=(1, 480, 480, 3),
                 sign=True,
             )
@@ -170,7 +170,7 @@ class TestCovidNetBase:
             response = client.run_model(
                 upload_response.model_id,
                 flattened_img,
-                datum_type=ModelDatumType.F32,
+                dtype=ModelDatumType.F32,
                 shape=(1, 480, 480, 3),
                 sign=True,
             )

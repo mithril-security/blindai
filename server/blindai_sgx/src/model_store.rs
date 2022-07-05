@@ -49,13 +49,14 @@ impl ModelStore {
         &self,
         model_bytes: &[u8],
         model_name: Option<String>,
-        model_nmid: Option<String>,
+        model_id: Option<String>,
         input_facts: &[TensorFacts],
         output_facts: &[TensorFacts],
         save_model: bool,
         optim: bool,
-    ) -> Result<(Uuid, Digest)> {
-        let model_id = model_nmid.unwrap_or_else(|| Uuid::new_v4().to_string());
+    ) -> Result<(String, Digest)> {
+        let model_id = model_id.unwrap_or_else(|| Uuid::new_v4().to_string());
+
         let model_hash = digest::digest(&digest::SHA256, &model_bytes);
         info!("Model hash is {:?}", model_hash);
 
@@ -70,8 +71,8 @@ impl ModelStore {
             sealing::seal(
                 models_path.as_path(),
                 &model_bytes,
-                model_name,
-                model_id,
+                model_name.as_deref(),
+                &model_id,
                 &input_facts,
                 &output_facts,
                 optim,
@@ -96,7 +97,7 @@ impl ModelStore {
                     info!("Reusing an existing ONNX entry for model. (n = {})", *num);
                     InferenceModel::from_onnx_loaded(
                         tract_model.clone(),
-                        model_id,
+                        model_id.clone(),
                         model_name,
                         model_hash,
                     )
@@ -107,7 +108,7 @@ impl ModelStore {
                     // this so that the lock isn't taken here
                     let inference_model = InferenceModel::load_model(
                         &model_bytes,
-                        model_id,
+                        model_id.clone(),
                         model_name,
                         model_hash,
                         input_facts,
@@ -119,7 +120,7 @@ impl ModelStore {
                 }
             };
             // actual hashmap insertion
-            match models.models_by_id.entry(&model_id) {
+            match models.models_by_id.entry(model_id.clone()) {
                 Entry::Occupied(_) => {
                     error!(
                         "Name collision: model with name ({}) already exists.",
@@ -134,7 +135,7 @@ impl ModelStore {
         Ok((model_id, model_hash))
     }
 
-    pub fn use_model<U>(&self, model_id: &str, fun: impl Fn(&InferenceModel) -> U) -> Option<U> {
+    pub fn use_model<U>(&self, model_id: &str, fun: impl FnOnce(&InferenceModel) -> U) -> Option<U> {
         // take a read lock
         let read_guard = self.inner.read().unwrap();
 
@@ -144,10 +145,10 @@ impl ModelStore {
         }
     }
 
-    pub fn delete_model(&self, model_nmid: &str) -> Option<InferenceModel> {
+    pub fn delete_model(&self, model_id: &str) -> Option<InferenceModel> {
         let mut write_guard = self.inner.write().unwrap();
 
-        let model = match write_guard.models_by_id.entry(model_nmid) {
+        let model = match write_guard.models_by_id.entry(model_id.to_string()) {
             Entry::Occupied(entry) => entry.remove(),
             Entry::Vacant(_) => return None,
         };
@@ -177,13 +178,13 @@ impl ModelStore {
                     self.add_model(
                         &model.model_bytes,
                         model.model_name,
-                        Some(model.model_id),
+                        Some(model.model_id.clone()),
                         &model.input_facts,
                         &model.output_facts,
                         false,
                         model.optim,
                     )?;
-                    info!("Model {:?} loaded", model.model_id.to_string());
+                    info!("Model {:?} loaded", model.model_id);
                 } else {
                     info!("Unsealing of model {:?} failed", path.file_name());
                 }

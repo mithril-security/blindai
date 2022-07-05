@@ -13,6 +13,7 @@
 // limitations under the License.
 
 use anyhow::{anyhow, Result};
+use blindai_common::NetworkConfig;
 use futures::StreamExt;
 use log::*;
 use num_traits::FromPrimitive;
@@ -47,6 +48,7 @@ pub(crate) struct Exchanger {
     identity: Arc<MyIdentity>,
     max_model_size: usize,
     max_input_size: usize,
+    config: Arc<NetworkConfig>,
 }
 
 impl Exchanger {
@@ -55,12 +57,14 @@ impl Exchanger {
         identity: Arc<MyIdentity>,
         max_model_size: usize,
         max_input_size: usize,
+        config: Arc<NetworkConfig>,
     ) -> Self {
         Self {
             identity,
             model_store,
             max_model_size,
             max_input_size,
+            config,
         }
     }
 }
@@ -71,6 +75,10 @@ impl Exchange for Exchanger {
         &self,
         request: Request<tonic::Streaming<SendModelRequest>>,
     ) -> Result<Response<SendModelReply>, Status> {
+        if !self.config.allow_sendmodel {
+            return Err(Status::permission_denied("SendModel is disabled"))
+        }
+
         let start_time = Instant::now();
 
         let mut stream = request.into_inner();
@@ -170,9 +178,8 @@ impl Exchange for Exchanger {
             .model_store
             .add_model(
                 &model_bytes,
-                model_id.clone(),
                 model_name.clone(),
-                None,
+                model_id.clone(),
                 &input_info,
                 &output_info,
                 save_model,
@@ -324,7 +331,7 @@ impl Exchange for Exchanger {
             return Err(Status::invalid_argument("Model doesn't exist"));
         }
 
-        let res = self.model_store.use_model(model_id.clone(), |model| {
+        let res = self.model_store.use_model(&model_id, |model| {
             (
                 model.run_inference(input_tensors.into()),
                 model.model_name().map(|e| e.to_string()),
@@ -430,7 +437,7 @@ impl Exchange for Exchanger {
         }
 
         // Delete the model
-        if self.model_store.delete_model(model_id).is_none() {
+        if self.model_store.delete_model(&model_id).is_none() {
             error!("Model doesn't exist");
             return Err(Status::invalid_argument("Model doesn't exist"));
         }

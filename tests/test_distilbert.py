@@ -31,13 +31,13 @@ class TestDistilBertBase:
             response = client.upload_model(
                 model=model_path,
                 shape=inputs.shape,
-                datum_type=ModelDatumType.I64,
+                dtype=ModelDatumType.I64,
                 model_name="test.onnx",
             )
             model_id = response.model_id
 
             response = client.run_model(
-                model_id, run_inputs, datum_type=ModelDatumType.I64, shape=inputs.shape
+                model_id, run_inputs, dtype=ModelDatumType.I64, shape=inputs.shape
             )
             origin_pred = model(torch.tensor(run_inputs).unsqueeze(0)).logits.detach()
 
@@ -59,7 +59,7 @@ class TestDistilBertBase:
             response = client.upload_model(
                 model=model_path,
                 shape=inputs.shape,
-                datum_type=ModelDatumType.I64,
+                dtype=ModelDatumType.I64,
                 sign=True,
             )
             model_id = response.model_id
@@ -70,7 +70,7 @@ class TestDistilBertBase:
             response = client.run_model(
                 model_id,
                 run_inputs,
-                datum_type=ModelDatumType.I64,
+                dtype=ModelDatumType.I64,
                 shape=inputs.shape,
                 sign=True,
             )
