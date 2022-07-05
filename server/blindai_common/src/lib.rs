@@ -36,6 +36,7 @@ pub struct NetworkConfig {
     pub client_to_enclave_attested_url: Uri,
     pub max_model_size: usize,
     pub max_input_size: usize,
+    pub allow_sendmodel: bool,
 }
 
 fn uri_to_socket(uri: &Uri) -> Result<SocketAddr> {

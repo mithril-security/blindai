@@ -1,6 +1,7 @@
 use anyhow::{anyhow, Result};
 use log::*;
 use ring::digest::{self, Digest};
+use uuid::Uuid;
 
 #[cfg(not(target_env = "sgx"))]
 use std::sync::RwLock;
@@ -14,7 +15,7 @@ use std::{
 use crate::model::{InferenceModel, ModelDatumType, OnnxModel};
 
 struct InnerModelStore {
-    models_by_nmid: HashMap<Option<String>, InferenceModel>,
+    models_by_nmid: HashMap<String, InferenceModel>,
     onnx_by_hash: HashMap<Vec<u8>, (usize, Arc<OnnxModel>)>,
 }
 
@@ -37,11 +38,17 @@ impl ModelStore {
         &self,
         model_bytes: &[u8],
         input_facts: Vec<Vec<usize>>,
-        model_nmid: Option<String>,
+        mut model_nmid: Option<String>,
         model_name: Option<String>,
         datum_inputs: Vec<ModelDatumType>,
         datum_outputs: Vec<ModelDatumType>,
-    ) -> Result<(Option<String>, Digest)> {
+    ) -> Result<(String, Digest)> {
+        if model_nmid == None {
+            model_nmid = Some(Uuid::new_v4().to_string());
+        }
+
+        let model_nmid = model_nmid.as_deref().unwrap_or("<unknown>").to_string();
+
         let model_hash = digest::digest(&digest::SHA256, &model_bytes);
 
         let model_hash_vec = model_hash.as_ref().to_vec();
@@ -92,8 +99,7 @@ impl ModelStore {
                 Entry::Occupied(_) => {
                     error!(
                         "UUID collision: model with uuid ({}) already exists.",
-                        // model_nmid.as_deref().unwrap_or("<unknown>").to_string()
-                        model_nmid.as_ref().unwrap()
+                        model_nmid
                     );
                     return Err(anyhow!("UUID collision"));
                 }
@@ -106,7 +112,7 @@ impl ModelStore {
 
     pub fn use_model<U>(
         &self,
-        model_nmid: Option<String>,
+        model_nmid: String,
         fun: impl Fn(&InferenceModel) -> U,
     ) -> Option<U> {
         // take a read lock
@@ -118,7 +124,7 @@ impl ModelStore {
         }
     }
 
-    pub fn delete_model(&self, model_nmid: Option<String>) -> Option<InferenceModel> {
+    pub fn delete_model(&self, model_nmid: String) -> Option<InferenceModel> {
         let mut write_guard = self.inner.write().unwrap();
 
         let model = match write_guard.models_by_nmid.entry(model_nmid.clone()) {

@@ -26,7 +26,6 @@ use std::{
 };
 
 use tonic::{Request, Response, Status};
-use uuid::Uuid;
 
 use crate::{
     client_communication::secured_exchange::TensorInfo,
@@ -104,7 +103,7 @@ impl Exchange for Exchanger {
                 model_id = if !model_proto.model_id.is_empty() {
                     Some(model_proto.model_id)
                 } else {
-                    Some(Uuid::new_v4().to_string()) //None
+                    None
                 };
                 model_name = if !model_proto.model_name.is_empty() {
                     Some(model_proto.model_name)
@@ -155,7 +154,7 @@ impl Exchange for Exchanger {
             .add_model(
                 &model_bytes,
                 input_facts.clone(),
-                model_id.clone(),
+                model_id,
                 model_name.clone(),
                 datum_inputs.clone(),
                 datum_outputs.clone(),
@@ -175,7 +174,7 @@ impl Exchange for Exchanger {
                 .map(|i| i as i32)
                 .collect();
         }
-        payload.model_id = model_nmid.as_deref().unwrap_or("<unknown>").to_string();
+        payload.model_id = model_nmid;
 
         let payload_with_header = Payload {
             header: Some(PayloadHeader {
@@ -260,12 +259,11 @@ impl Exchange for Exchanger {
             input.append(&mut data_proto.input);
         }
 
-        let idname = model_id.clone();
-        if idname.is_empty() {
+        if model_id.is_empty() {
             return Err(Status::invalid_argument("Model doesn't exist"));
         }
 
-        let res = self.model_store.use_model(Some(idname), |model| {
+        let res = self.model_store.use_model(model_id.clone(), |model| {
             (
                 model.run_inference(&mut input.clone()[..]),
                 model.model_name().map(|s| s.to_string()),
@@ -352,13 +350,13 @@ impl Exchange for Exchanger {
     ) -> Result<Response<DeleteModelReply>, Status> {
         let request = request.into_inner();
         let model_id = request.model_id;
-        let idname = model_id.clone();
-        if idname.is_empty() {
+
+        if model_id.is_empty() {
             return Err(Status::invalid_argument("Model doesn't exist"));
         }
 
         // Delete the model
-        if self.model_store.delete_model(Some(idname)).is_none() {
+        if self.model_store.delete_model(model_id).is_none() {
             error!("Model doesn't exist");
             return Err(Status::invalid_argument("Model doesn't exist"));
         }
