@@ -47,7 +47,7 @@ impl ModelStore {
             model_nmid = Some(Uuid::new_v4().to_string());
         }
 
-        let model_nmid = model_nmid.as_deref().unwrap_or("<unknown>").to_string();
+        let model_nmid = model_nmid.as_deref().unwrap().to_string();
 
         let model_hash = digest::digest(&digest::SHA256, &model_bytes);
 
