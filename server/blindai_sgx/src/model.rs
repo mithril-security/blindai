@@ -20,8 +20,8 @@ use log::*;
 use num_derive::FromPrimitive;
 use ring::digest::Digest;
 use serde::{Deserialize, Serialize};
+use tract_onnx::prelude::{tract_ndarray::IxDynImpl, DatumType, TVec, *};
 use tract_onnx::{prelude::*, tract_hir::infer::InferenceOp};
-use uuid::Uuid;
 
 pub use tract_onnx::prelude::DatumType as TractDatumType;
 
@@ -179,7 +179,8 @@ pub enum TractModel {
 #[derive(Debug)]
 pub struct InferenceModel {
     pub model: Arc<TractModel>,
-    model_id: Uuid,
+    #[allow(unused)]
+    model_id: String,
     model_name: Option<String>,
     model_hash: Digest,
 }
@@ -187,7 +188,7 @@ pub struct InferenceModel {
 impl InferenceModel {
     pub fn load_model(
         mut model_data: &[u8],
-        model_id: Uuid,
+        model_id: String,
         model_name: Option<String>,
         model_hash: Digest,
         input_facts: &[TensorFacts],
@@ -261,7 +262,11 @@ impl InferenceModel {
     }
 
     pub fn run_inference(&self, inputs: TVec<Tensor>) -> Result<TVec<Arc<Tensor>>> {
-        trace!("Running inference for model {}: {:?}.", self.model_id, inputs);
+        trace!(
+            "Running inference for model {}: {:?}.",
+            self.model_id,
+            inputs
+        );
         match self.model.as_ref() {
             TractModel::OptimizedOnnx(model) => model.run(inputs),
             TractModel::UnoptimizedOnnx(model) => model.run(inputs),
@@ -270,7 +275,7 @@ impl InferenceModel {
 
     pub fn from_onnx_loaded(
         onnx: Arc<TractModel>,
-        model_id: Uuid,
+        model_id: String,
         model_name: Option<String>,
         model_hash: Digest,
     ) -> Self {

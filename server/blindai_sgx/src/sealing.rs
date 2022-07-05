@@ -18,7 +18,7 @@ extern crate sgx_types;
 pub struct SerializableModel<'a> {
     pub model_bytes: &'a [u8],
     pub model_name: Option<&'a str>,
-    pub model_id: Uuid,
+    pub model_id: &'a str,
     pub input_facts: &'a [TensorFacts],
     pub output_facts: &'a [TensorFacts],
     pub optim: bool,
@@ -28,7 +28,7 @@ pub struct SerializableModel<'a> {
 pub struct DeserializableModel {
     pub model_bytes: Vec<u8>,
     pub model_name: Option<String>,
-    pub model_id: Uuid,
+    pub model_id: String,
     pub input_facts: Vec<TensorFacts>,
     pub output_facts: Vec<TensorFacts>,
     pub optim: bool,
@@ -114,8 +114,8 @@ fn from_sealed_log_for_slice<'a, T: Copy + ContiguousMemory>(
 pub fn seal(
     path: &Path,
     model_bytes: &[u8],
-    model_name: Option<String>,
-    model_id: Uuid,
+    model_name: Option<&str>,
+    model_id: &str,
     input_facts: &[TensorFacts],
     output_facts: &[TensorFacts],
     optim: bool,
@@ -123,7 +123,7 @@ pub fn seal(
     //seal data
     let sealed = create_sealeddata_for_serializable(SerializableModel {
         model_bytes,
-        model_name: model_name.as_deref(),
+        model_name,
         model_id,
         input_facts,
         output_facts,

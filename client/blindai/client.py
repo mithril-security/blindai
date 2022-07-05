@@ -631,6 +631,7 @@ class BlindAiConnection(contextlib.AbstractContextManager):
         sign: bool = False,
         model_name: Optional[str] = None,
         save_model: bool = False,
+        model_id: Optional[str] = None,
     ) -> UploadModelResponse:
         """Upload an inference model to the server.
         The provided model needs to be in the Onnx format.
@@ -644,9 +645,8 @@ class BlindAiConnection(contextlib.AbstractContextManager):
             dtype_out (ModelDatumType, optional): The type of the model output data (f32 by default). Defaults to ModelDatumType.F32.
             sign (bool, optional): Get signed responses from the server or not. Defaults to False.
             model_name (Optional[str], optional): Name of the model.
-            save_model (bool, optional): Whether or not the model will be saved to disk in the server.
-            The model will be saved encrypted (sealed) so that only the server enclave can load it afterwards.
-            The server will load the model on startup. Defaults to False.
+            save_model (bool, optional): Whether or not the model will be saved to disk in the server. The model will be saved encrypted (sealed) so that only the server enclave can load it afterwards. The server will load the model on startup. Defaults to False.
+            model_id (Optional[str], optional): Id of the model. By default, the server will assign a random UUID.
 
         Raises:
             ConnectionError: Will be raised if the client is not connected.
@@ -676,6 +676,7 @@ class BlindAiConnection(contextlib.AbstractContextManager):
                             length=len(data),
                             data=chunk,
                             sign=sign,
+                            model_id=model_id,
                             model_name=model_name,
                             client_info=self.client_info,
                             tensor_inputs=inputs,

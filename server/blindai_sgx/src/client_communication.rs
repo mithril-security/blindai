@@ -21,7 +21,6 @@ use ring::digest;
 use ring_compat::signature::Signer;
 use std::{
     convert::TryInto,
-    str::FromStr,
     sync::Arc,
     time::{Instant, SystemTime},
     vec::Vec,
@@ -81,6 +80,7 @@ impl Exchange for Exchanger {
         let mut model_size = 0usize;
 
         let mut sign = false;
+        let mut model_id = None;
         let mut model_name = None;
         let mut client_info = None;
         let mut save_model = false;
@@ -95,6 +95,11 @@ impl Exchange for Exchanger {
                 model_size = model_proto.length.try_into().unwrap();
                 model_bytes.reserve_exact(model_size);
 
+                model_id = if !model_proto.model_id.is_empty() {
+                    Some(model_proto.model_id)
+                } else {
+                    None
+                };
                 model_name = if !model_proto.model_name.is_empty() {
                     Some(model_proto.model_name)
                 } else {
@@ -166,6 +171,7 @@ impl Exchange for Exchanger {
             .model_store
             .add_model(
                 &model_bytes,
+                model_id.clone(),
                 model_name.clone(),
                 None,
                 &input_info,
@@ -185,7 +191,8 @@ impl Exchange for Exchanger {
             payload.tensor_inputs = input_info_req;
             payload.tensor_outputs = output_info_req;
         }
-        payload.model_id = model_id.to_string();
+        payload.model_id = model_id;
+
         let payload_with_header = Payload {
             header: Some(PayloadHeader {
                 issued_at: Some(SystemTime::now().into()),
@@ -293,10 +300,6 @@ impl Exchange for Exchanger {
             input_hash = hash.finish().as_ref().to_vec()
         }
 
-        // Find the model with model_id
-        let uuid = Uuid::from_str(&model_id)
-            .map_err(|_err| Status::invalid_argument("Model doesn't exist"))?;
-
         let input_tensors = input_tensors
             .into_iter()
             .map(|ten| {
@@ -304,7 +307,11 @@ impl Exchange for Exchanger {
                 deserialize_tensor_bytes(
                     FromPrimitive::from_i32(info.datum_type)
                         .ok_or_else(|| anyhow!("invalid datum type: {}", info.datum_type))?,
-                    &info.dims.into_iter().map(|el| el as usize).collect::<Vec<_>>(),
+                    &info
+                        .dims
+                        .into_iter()
+                        .map(|el| el as usize)
+                        .collect::<Vec<_>>(),
                     &ten.bytes_data,
                 )
             })
@@ -314,13 +321,19 @@ impl Exchange for Exchanger {
                 Status::invalid_argument("Tensor serialization error")
             })?;
 
-        let res = self.model_store.use_model(uuid, |model| {
+        let idname = model_id.clone();
+        if idname.is_empty() {
+            return Err(Status::invalid_argument("Model doesn't exist"));
+        }
+
+        let res = self.model_store.use_model(Some(idname), |model| {
             (
                 model.run_inference(input_tensors.into()),
                 model.model_name().map(|e| e.to_string()),
                 model.get_output_names(),
             )
         });
+
         let (results, model_name, output_names) =
             res.ok_or_else(|| Status::invalid_argument("Model doesn't exist"))?;
 
@@ -412,15 +425,17 @@ impl Exchange for Exchanger {
         request: Request<DeleteModelRequest>,
     ) -> Result<Response<DeleteModelReply>, Status> {
         let request = request.into_inner();
-        let model_id = Uuid::from_str(&request.model_id)
-            .map_err(|_| Status::invalid_argument("Model doesn't exist"))?;
-
-        // Delete the model
-        if self.model_store.delete_model(model_id).is_none() {
-            error!("Model doesn't exist");
+        let model_id = request.model_id;
+        let idname = model_id.clone();
+        if idname.is_empty() {
             return Err(Status::invalid_argument("Model doesn't exist"));
         }
 
+        // Delete the model
+        if self.model_store.delete_model(Some(idname)).is_none() {
+            error!("Model doesn't exist");
+            return Err(Status::invalid_argument("Model doesn't exist"));
+        }
         // Construct the payload
         let reply = DeleteModelReply {};
         Ok(Response::new(reply))

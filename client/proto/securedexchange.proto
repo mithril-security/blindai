@@ -97,6 +97,8 @@ message SendModelRequest {
     // this is optional
     string model_name = 7;
     bool save_model = 8;
+    // this is optional, by default, generate a model uuid
+    string model_id = 9;
 }
 
 message SendModelReply {

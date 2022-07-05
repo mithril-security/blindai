@@ -19,12 +19,11 @@ use std::{
     collections::{hash_map::Entry, HashMap},
     sync::Arc,
 };
-use uuid::Uuid;
 
 use crate::model::{InferenceModel, TensorFacts, TractModel};
 
 struct InnerModelStore {
-    models_by_id: HashMap<Uuid, InferenceModel>,
+    models_by_id: HashMap<String, InferenceModel>,
     onnx_by_hash: HashMap<Vec<u8>, (usize, Arc<TractModel>)>,
 }
 
@@ -49,13 +48,13 @@ impl ModelStore {
         &self,
         model_bytes: &[u8],
         model_name: Option<String>,
-        model_id: Option<Uuid>,
+        model_nmid: Option<String>,
         input_facts: &[TensorFacts],
         output_facts: &[TensorFacts],
         save_model: bool,
         optim: bool,
     ) -> Result<(Uuid, Digest)> {
-        let model_id = model_id.unwrap_or_else(|| Uuid::new_v4());
+        let model_id = model_nmid.unwrap_or_else(|| Uuid::new_v4().to_string());
         let model_hash = digest::digest(&digest::SHA256, &model_bytes);
         info!("Model hash is {:?}", model_hash);
 
@@ -63,14 +62,14 @@ impl ModelStore {
 
         let mut models_path = PathBuf::new();
         models_path.push(&self.config.models_path);
-        models_path.push(model_id.to_string());
+        models_path.push(&model_id);
 
         // Sealing
         if save_model {
             sealing::seal(
                 models_path.as_path(),
                 &model_bytes,
-                model_name.clone(),
+                model_name,
                 model_id,
                 &input_facts,
                 &output_facts,
@@ -118,15 +117,14 @@ impl ModelStore {
                     inference_model
                 }
             };
-
             // actual hashmap insertion
-            match models.models_by_id.entry(model_id) {
+            match models.models_by_id.entry(&model_id) {
                 Entry::Occupied(_) => {
                     error!(
-                        "UUID collision: model with uuid ({}) already exists.",
+                        "Name collision: model with name ({}) already exists.",
                         model_id
                     );
-                    return Err(anyhow!("UUID collision"));
+                    return Err(anyhow!("Name collision"));
                 }
                 Entry::Vacant(entry) => entry.insert(model),
             };
@@ -135,24 +133,20 @@ impl ModelStore {
         Ok((model_id, model_hash))
     }
 
-    pub fn use_model<U>(
-        &self,
-        model_id: Uuid,
-        fun: impl FnOnce(&InferenceModel) -> U,
-    ) -> Option<U> {
+    pub fn use_model<U>(&self, model_id: &str, fun: impl Fn(&InferenceModel) -> U) -> Option<U> {
         // take a read lock
         let read_guard = self.inner.read().unwrap();
 
-        match read_guard.models_by_id.get(&model_id) {
+        match read_guard.models_by_id.get(model_id) {
             Some(model) => Some(fun(model)),
             None => None,
         }
     }
 
-    pub fn delete_model(&self, model_id: Uuid) -> Option<InferenceModel> {
+    pub fn delete_model(&self, model_nmid: &str) -> Option<InferenceModel> {
         let mut write_guard = self.inner.write().unwrap();
 
-        let model = match write_guard.models_by_id.entry(model_id) {
+        let model = match write_guard.models_by_id.entry(model_nmid) {
             Entry::Occupied(entry) => entry.remove(),
             Entry::Vacant(_) => return None,
         };
