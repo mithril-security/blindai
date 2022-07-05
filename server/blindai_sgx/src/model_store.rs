@@ -10,12 +10,11 @@ use std::{
     collections::{hash_map::Entry, HashMap},
     sync::Arc,
 };
-use uuid::Uuid;
 
 use crate::model::{InferenceModel, ModelDatumType, OnnxModel};
 
 struct InnerModelStore {
-    models_by_id: HashMap<Uuid, InferenceModel>,
+    models_by_nmid: HashMap<Option<String>, InferenceModel>,
     onnx_by_hash: HashMap<Vec<u8>, (usize, Arc<OnnxModel>)>,
 }
 
@@ -28,7 +27,7 @@ impl ModelStore {
     pub fn new() -> Self {
         ModelStore {
             inner: RwLock::new(InnerModelStore {
-                models_by_id: HashMap::new(),
+                models_by_nmid: HashMap::new(),
                 onnx_by_hash: HashMap::new(),
             }),
         }
@@ -38,11 +37,11 @@ impl ModelStore {
         &self,
         model_bytes: &[u8],
         input_facts: Vec<Vec<usize>>,
+        model_nmid: Option<String>,
         model_name: Option<String>,
         datum_inputs: Vec<ModelDatumType>,
         datum_outputs: Vec<ModelDatumType>,
-    ) -> Result<(Uuid, Digest)> {
-        let model_id = Uuid::new_v4();
+    ) -> Result<(Option<String>, Digest)> {
         let model_hash = digest::digest(&digest::SHA256, &model_bytes);
 
         let model_hash_vec = model_hash.as_ref().to_vec();
@@ -64,7 +63,7 @@ impl ModelStore {
                     InferenceModel::from_onnx_loaded(
                         onnx.clone(),
                         input_facts.clone(),
-                        model_id,
+                        model_nmid.clone(),
                         model_name,
                         model_hash,
                         datum_inputs,
@@ -78,7 +77,7 @@ impl ModelStore {
                     let model = InferenceModel::load_model(
                         &model_bytes,
                         input_facts.clone(),
-                        model_id,
+                        model_nmid.clone(),
                         model_name,
                         model_hash,
                         datum_inputs,
@@ -88,13 +87,13 @@ impl ModelStore {
                     model
                 }
             };
-
             // actual hashmap insertion
-            match models.models_by_id.entry(model_id) {
+            match models.models_by_nmid.entry(model_nmid.clone()) {
                 Entry::Occupied(_) => {
                     error!(
                         "UUID collision: model with uuid ({}) already exists.",
-                        model_id
+                        // model_nmid.as_deref().unwrap_or("<unknown>").to_string()
+                        model_nmid.as_ref().unwrap()
                     );
                     return Err(anyhow!("UUID collision"));
                 }
@@ -102,23 +101,27 @@ impl ModelStore {
             };
         }
 
-        Ok((model_id, model_hash))
+        Ok((model_nmid, model_hash))
     }
 
-    pub fn use_model<U>(&self, model_id: Uuid, fun: impl Fn(&InferenceModel) -> U) -> Option<U> {
+    pub fn use_model<U>(
+        &self,
+        model_nmid: Option<String>,
+        fun: impl Fn(&InferenceModel) -> U,
+    ) -> Option<U> {
         // take a read lock
         let read_guard = self.inner.read().unwrap();
 
-        match read_guard.models_by_id.get(&model_id) {
+        match read_guard.models_by_nmid.get(&model_nmid.clone()) {
             Some(model) => Some(fun(model)),
             None => None,
         }
     }
 
-    pub fn delete_model(&self, model_id: Uuid) -> Option<InferenceModel> {
+    pub fn delete_model(&self, model_nmid: Option<String>) -> Option<InferenceModel> {
         let mut write_guard = self.inner.write().unwrap();
 
-        let model = match write_guard.models_by_id.entry(model_id) {
+        let model = match write_guard.models_by_nmid.entry(model_nmid.clone()) {
             Entry::Occupied(entry) => entry.remove(),
             Entry::Vacant(_) => return None,
         };

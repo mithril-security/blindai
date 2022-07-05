@@ -102,6 +102,42 @@ class TestCovidNetBase:
                 diff = abs(sum(np.array([response.output]) - ort_outs))[0][0]
                 self.assertLess(diff, 0.001)  # difference is <0.1%
 
+    @unittest.skipIf(
+        os.getenv("BLINDAI_TEST_SKIP_COVIDNET") is not None, "skipped by env var"
+    )
+    def test_feat(self):
+        with blindai.client.connect(
+            addr="localhost",
+            simulation=self.simulation,
+            policy=policy_file,
+            certificate=certificate_file,
+        ) as client:
+            model = os.path.join(
+                os.path.dirname(__file__), "assets/COVID-Net-CXR-2.onnx"
+            )
+
+            upload_response = client.upload_model(
+                model=model,
+                shape=(1, 480, 480, 3),
+                dtype=ModelDatumType.F32,
+                sign=True,
+                model_id="Salut",
+            )
+
+            response = client.run_model(
+                upload_response.model_id,
+                flattened_img,
+                sign=True,
+            )
+
+        ort_session = onnxruntime.InferenceSession(model)
+        ort_inputs = {ort_session.get_inputs()[0].name: img}
+
+        ort_outs = ort_session.run(None, ort_inputs)
+
+        diff = abs(sum(np.array([response.output]) - ort_outs))[0][0]
+        self.assertLess(diff, 0.001)  # difference is <0.1%
+
 
 class TestCovidNetSW(TestCovidNetBase, unittest.TestCase):
     simulation = True

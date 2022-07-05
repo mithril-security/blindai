@@ -20,7 +20,6 @@ use ring_compat::signature::Signer;
 use std::{
     convert::TryInto,
     mem::size_of,
-    str::FromStr,
     sync::Arc,
     time::{Instant, SystemTime},
     vec::Vec,
@@ -91,6 +90,7 @@ impl Exchange for Exchanger {
         let mut model_size = 0usize;
         let mut sign = false;
 
+        let mut model_id = None;
         let mut model_name = None;
         let mut client_info = None;
 
@@ -101,6 +101,11 @@ impl Exchange for Exchanger {
                 model_size = model_proto.length.try_into().unwrap();
                 model_bytes.reserve_exact(model_size);
 
+                model_id = if !model_proto.model_id.is_empty() {
+                    Some(model_proto.model_id)
+                } else {
+                    Some(Uuid::new_v4().to_string()) //None
+                };
                 model_name = if !model_proto.model_name.is_empty() {
                     Some(model_proto.model_name)
                 } else {
@@ -145,11 +150,12 @@ impl Exchange for Exchanger {
             input_facts.push(input_fact.clone());
         }
 
-        let (model_id, model_hash) = self
+        let (model_nmid, model_hash) = self
             .model_store
             .add_model(
                 &model_bytes,
                 input_facts.clone(),
+                model_id.clone(),
                 model_name.clone(),
                 datum_inputs.clone(),
                 datum_outputs.clone(),
@@ -169,7 +175,8 @@ impl Exchange for Exchanger {
                 .map(|i| i as i32)
                 .collect();
         }
-        payload.model_id = model_id.to_string();
+        payload.model_id = model_nmid.as_deref().unwrap_or("<unknown>").to_string();
+
         let payload_with_header = Payload {
             header: Some(PayloadHeader {
                 issued_at: Some(SystemTime::now().into()),
@@ -253,20 +260,19 @@ impl Exchange for Exchanger {
             input.append(&mut data_proto.input);
         }
 
-        // Find the model with model_id
+        let idname = model_id.clone();
+        if idname.is_empty() {
+            return Err(Status::invalid_argument("Model doesn't exist"));
+        }
 
-        let uuid = match Uuid::from_str(&model_id) {
-            Ok(uuid) => uuid,
-            Err(_) => return Err(Status::invalid_argument("Model doesn't exist")),
-        };
-
-        let res = self.model_store.use_model(uuid, |model| {
+        let res = self.model_store.use_model(Some(idname), |model| {
             (
                 model.run_inference(&mut input.clone()[..]),
                 model.model_name().map(|s| s.to_string()),
                 model.datum_output(),
             )
         });
+
         let res = match res {
             Some(res) => res,
             None => return Err(Status::invalid_argument("Model doesn't exist")),
@@ -345,15 +351,17 @@ impl Exchange for Exchanger {
         request: Request<DeleteModelRequest>,
     ) -> Result<Response<DeleteModelReply>, Status> {
         let request = request.into_inner();
-        let model_id = Uuid::from_str(&request.model_id)
-            .map_err(|_| Status::invalid_argument("Model doesn't exist"))?;
-
-        // Delete the model
-        if self.model_store.delete_model(model_id).is_none() {
-            error!("Model doesn't exist");
+        let model_id = request.model_id;
+        let idname = model_id.clone();
+        if idname.is_empty() {
             return Err(Status::invalid_argument("Model doesn't exist"));
         }
 
+        // Delete the model
+        if self.model_store.delete_model(Some(idname)).is_none() {
+            error!("Model doesn't exist");
+            return Err(Status::invalid_argument("Model doesn't exist"));
+        }
         // Construct the payload
         let reply = DeleteModelReply {};
         Ok(Response::new(reply))

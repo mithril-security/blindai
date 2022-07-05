@@ -19,7 +19,6 @@ use core::hash::Hash;
 use num_derive::FromPrimitive;
 use ring::digest::Digest;
 use tract_onnx::prelude::{tract_ndarray::IxDynImpl, DatumType, TVec, *};
-use uuid::Uuid;
 
 pub type OnnxModel = SimplePlan<TypedFact, Box<dyn TypedOp>, Graph<TypedFact, Box<dyn TypedOp>>>;
 
@@ -102,7 +101,7 @@ pub struct InferenceModel {
     pub datum_outputs: Vec<ModelDatumType>,
     pub onnx: Arc<OnnxModel>,
     #[allow(unused)]
-    model_id: Uuid,
+    model_id: Option<String>,
     model_name: Option<String>,
     model_hash: Digest,
 }
@@ -111,7 +110,7 @@ impl InferenceModel {
     pub fn load_model(
         mut model_data: &[u8],
         input_facts: Vec<Vec<usize>>,
-        model_id: Uuid,
+        model_id: Option<String>,
         model_name: Option<String>,
         model_hash: Digest,
         datum_inputs: Vec<ModelDatumType>,
@@ -170,7 +169,7 @@ impl InferenceModel {
     pub fn from_onnx_loaded(
         onnx: Arc<OnnxModel>,
         input_facts: Vec<Vec<usize>>,
-        model_id: Uuid,
+        model_id: Option<String>,
         model_name: Option<String>,
         model_hash: Digest,
         datum_inputs: Vec<ModelDatumType>,
