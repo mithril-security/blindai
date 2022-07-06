@@ -208,6 +208,7 @@ setuptools.setup(
         "grpcio-tools==1.44",
         "bitstring",
         "cbor2",
+        "typing-extensions",
     ],
     extras_require={
         "dev": [
