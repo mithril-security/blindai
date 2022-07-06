@@ -111,11 +111,11 @@ def _validate_quote(
 
 
 def _get_input_output_tensors(
-    tensor_inputs: Optional[List[List[Any]]] = None,
-    tensor_outputs: Optional[ModelDatumType] = None,
-    shape: Tuple = None,
-    datum_type: ModelDatumType = ModelDatumType.F32,
-    dtype_out: ModelDatumType = ModelDatumType.F32,
+    tensor_inputs: Optional[List[List[Any]]],
+    tensor_outputs: Optional[ModelDatumType],
+    shape: Tuple,
+    datum_type: ModelDatumType,
+    dtype_out: ModelDatumType,
 ) -> Tuple[List[List[Any]], List[ModelDatumType]]:
     if tensor_inputs is None or tensor_outputs is None:
         tensor_inputs = [shape, datum_type]
@@ -626,8 +626,8 @@ class BlindAiConnection(contextlib.AbstractContextManager):
         tensor_inputs: Optional[List[Tuple[List[int], ModelDatumType]]] = None,
         tensor_outputs: Optional[List[ModelDatumType]] = None,
         shape: Tuple = None,
-        dtype: ModelDatumType = ModelDatumType.F32,
-        dtype_out: ModelDatumType = ModelDatumType.F32,
+        dtype: ModelDatumType = None,
+        dtype_out: ModelDatumType = None,
         sign: bool = False,
         model_name: Optional[str] = None,
         save_model: bool = False,
@@ -714,7 +714,7 @@ class BlindAiConnection(contextlib.AbstractContextManager):
         self,
         model_id: str,
         tensors: Union[List[List[Any]], List[Any]],
-        datum_type: Union[List[ModelDatumType], ModelDatumType],
+        dtype: Union[List[ModelDatumType], ModelDatumType],
         shape: Union[List[List[int]], List[int]],
         sign: bool = False,
     ) -> RunModelResponse:
@@ -736,8 +736,8 @@ class BlindAiConnection(contextlib.AbstractContextManager):
         try:
             if type(tensors[0]) != list:
                 tensors = [tensors]
-            if type(datum_type) != list:
-                datum_type = [datum_type]
+            if type(dtype) != list:
+                dtype = [dtype]
             if type(shape[0]) != list:
                 shape = [shape]
 
@@ -752,7 +752,7 @@ class BlindAiConnection(contextlib.AbstractContextManager):
                             PbTensorData(
                                 info=PbTensorInfo(
                                     dims=shape[i],
-                                    datum_type=datum_type[i],
+                                    datum_type=dtype[i],
                                     index=i,  # only send the ith tensor for this call
                                 ),
                                 bytes_data=chunk,
@@ -761,7 +761,7 @@ class BlindAiConnection(contextlib.AbstractContextManager):
                         sign=sign,
                     )
                     for i, tensor in enumerate(tensors)
-                    for chunk in serialize_tensor(tensor, datum_type[i])
+                    for chunk in serialize_tensor(tensor, dtype[i])
                 )
             )
 
@@ -770,7 +770,7 @@ class BlindAiConnection(contextlib.AbstractContextManager):
 
         return RunModelResponse(
             tensors,
-            datum_type,
+            dtype,
             shape,
             response,
             sign,
