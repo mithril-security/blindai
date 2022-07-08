@@ -94,6 +94,22 @@ from blindai.utils.serialize import deserialize_tensor, serialize_tensor
 CONNECTION_TIMEOUT = 10
 
 
+def is_torch_installed():
+    try:
+        import torch
+
+        return True
+    except:
+        return False
+
+
+def convert_dt(tensor):
+    import torch
+
+    if tensor[0][0].dtype == torch.float32:
+        return ModelDatumType.F32
+
+
 def _validate_quote(
     attestation: GetSgxQuoteWithCollateralReply, policy: Policy
 ) -> Ed25519PublicKey:
@@ -714,8 +730,8 @@ class BlindAiConnection(contextlib.AbstractContextManager):
         self,
         model_id: str,
         tensors: Union[List[List[Any]], List[Any]],
-        dtype: Union[List[ModelDatumType], ModelDatumType],
-        shape: Union[List[List[int]], List[int]],
+        dtype: Optional[Union[List[ModelDatumType], ModelDatumType]] = None,
+        shape: Optional[Union[List[List[int]], List[int]]] = None,
         sign: bool = False,
     ) -> RunModelResponse:
         """Send data to the server to make a secure inference.
@@ -732,9 +748,16 @@ class BlindAiConnection(contextlib.AbstractContextManager):
         Returns:
             RunModelResponse: The response object.
         """
+        if is_torch_installed():
+            import torch
+
+            if isinstance(tensors, torch.Tensor):
+                dtype = convert_dt(tensors)
+                shape = tensors.shape
+                tensors = torch.flatten(tensors, start_dim=1)
 
         try:
-            if type(tensors[0]) != list:
+            if type(tensors[0]) != list and isinstance(tensors, torch.Tensor) == False:
                 tensors = [tensors]
             if type(dtype) != list:
                 dtype = [dtype]
