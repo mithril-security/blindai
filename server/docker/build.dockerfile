@@ -322,6 +322,13 @@ FROM base-build AS dev-env
 ENV SGX_MODE=SW
 ENV BLINDAI_DISABLE_TELEMETRY=1
 
+
+# Install zsh
+## Copy script to install zsh
+COPY install-zsh.sh /tmp/library-scripts/
+RUN bash /tmp/library-scripts/install-zsh.sh \
+    && apt-get clean -y && rm -rf /var/lib/apt/lists/*
+
 # install and configure python and pip
 RUN \
     apt-get install -y software-properties-common && \
