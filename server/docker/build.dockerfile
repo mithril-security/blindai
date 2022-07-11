@@ -330,10 +330,27 @@ ARG USER_GID=$USER_UID
 ENV SGX_MODE=SW
 ENV BLINDAI_DISABLE_TELEMETRY=1
 
-# Run VS Code dev container setup script
+# run VS Code dev container setup script
 COPY common-dev.sh /tmp/library-scripts/
 RUN bash /tmp/library-scripts/common-dev.sh "${INSTALL_ZSH}" "${USERNAME}" "${USER_UID}" "${USER_GID}" "${UPGRADE_PACKAGES}" "true" "false" \
     && apt-get clean -y && rm -rf /var/lib/apt/lists/*  /tmp/library-scripts
+
+USER $USERNAME
+
+# install rustup and cargo for vscode user
+RUN cd ~ && \
+    curl 'https://static.rust-lang.org/rustup/dist/x86_64-unknown-linux-gnu/rustup-init' --output ~/rustup-init && \
+    chmod +x ~/rustup-init && \
+    echo '1' | ~/rustup-init --default-toolchain $RUST_TOOLCHAIN && \
+    . ~/.cargo/env && \
+    echo 'source ~/.cargo/env' >> ~/.bashrc && \
+    rustup toolchain install $RUST_UNTRUSTED_TOOLCHAIN && \
+    rustup component add cargo clippy rust-docs rust-src rust-std rustc rustfmt && \
+    rustup component add --toolchain $RUST_UNTRUSTED_TOOLCHAIN cargo clippy rust-docs rust-src rust-std rustc rustfmt && \
+    cargo install xargo && \
+    rm ~/rustup-init
+
+USER root
 
 # install and configure python and pip
 RUN \
