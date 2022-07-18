@@ -43,6 +43,7 @@ def serialize_tensor(tensor: Iterable[T], type: ModelDatumType) -> Iterator[byte
     it = iter(tensor)
     while True:
         items = list(itertools.islice(it, num_items_per_chunk))
+        # print(items)
         if len(items) == 0:
             break
         yield struct.pack(f"<{len(items)}{fmt}", *items)

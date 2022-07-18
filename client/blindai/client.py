@@ -90,6 +90,19 @@ from blindai.version import __version__ as app_version
 
 from blindai.utils.serialize import deserialize_tensor, serialize_tensor
 
+dt_per_type = {
+    ModelDatumType.F32: 4,
+    ModelDatumType.F64: 8,
+    ModelDatumType.I32: 4,
+    ModelDatumType.I64: 8,
+    ModelDatumType.U32: 4,
+    ModelDatumType.U64: 8,
+    ModelDatumType.U8: 1,
+    ModelDatumType.U16: 2,
+    ModelDatumType.I8: 1,
+    ModelDatumType.I16: 2,
+    ModelDatumType.Bool: 1,
+}
 
 CONNECTION_TIMEOUT = 10
 
@@ -106,8 +119,18 @@ def is_torch_installed():
 def convert_dt(tensor):
     import torch
 
-    if tensor[0][0].dtype == torch.float32:
+    if isinstance(tensor[0], float) or tensor[0][0].dtype == torch.float32:
         return ModelDatumType.F32
+    elif tensor[0][0].dtype == torch.float64:
+        return ModelDatumType.F64
+    if isinstance(tensor[0], int) or tensor[0][0].dtype == torch.int32:
+        return ModelDatumType.I32
+    if tensor[0][0].dtype == torch.int64:
+        return ModelDatumType.I64
+    if tensor[0][0].dtype == torch.uint8:
+        return ModelDatumType.U8
+    if tensor[0][0].dtype == torch.int16:
+        return ModelDatumType.I16
 
 
 def _validate_quote(
@@ -751,18 +774,34 @@ class BlindAiConnection(contextlib.AbstractContextManager):
         if is_torch_installed():
             import torch
 
-            if isinstance(tensors, torch.Tensor):
-                dtype = convert_dt(tensors)
-                shape = tensors.shape
+        try:
+            if (
+                type(tensors[0]) != list
+                and isinstance(tensors[0], torch.Tensor) == False
+            ):
+                tensors = [tensors]
+                if type(dtype) != list:
+                    dtype = [dtype]
+                if type(shape[0]) != list:
+                    shape = [shape]
+
+            elif isinstance(tensors, torch.Tensor):
+                dtype = [convert_dt(tensors)]
+                shape = [tensors.shape]
                 tensors = torch.flatten(tensors, start_dim=1)
 
-        try:
-            if type(tensors[0]) != list and isinstance(tensors, torch.Tensor) == False:
-                tensors = [tensors]
-            if type(dtype) != list:
-                dtype = [dtype]
-            if type(shape[0]) != list:
-                shape = [shape]
+            elif isinstance(tensors, list) and isinstance(tensors[0], torch.Tensor):
+                dtype = []
+                shape = []
+                for i in range(len(tensors)):
+                    dtype.append(convert_dt(tensors[i]))
+                    shape.append(tensors[i].shape)
+                    tensors[i] = torch.flatten(tensors[i], start_dim=1)[0]
+
+            """
+            for i, tensor in enumerate(tensors):
+                print(len(tensor))
+                print(tensor) """
 
             response = self._stub.RunModel(
                 (
