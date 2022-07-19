@@ -11,12 +11,11 @@ build:
   - cmake
   jobs:
     post_install:
-    - pip install pdoc
-    - pdoc -o tmp client/blindai/client.py
-    - mv tmp/blindai/client.html docs/resources/api.html
+    - bash docs/generate_api_reference.sh
 
 mkdocs:
   configuration: mkdocs.yml
+  fail_on_warning: true
 
 python:
     install:
