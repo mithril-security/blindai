@@ -34,15 +34,15 @@ docker create -it \
 
 You can then use Visual Studio Code to directly work in that container using the [Remote - Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) extension. Once installed, you wil have acces to this Remote tab. Use it to launch vscode in the `blindai-dev-env` container you just created.
 
-![](../../assets/Screenshot_20220408_131048.png)
+![](../assets/Screenshot_20220408_131048.png)
 
 Then open the `/root/blindai` folder, and you're good to go!
 
-![](../../assets/Screenshot_20220408_131940.png)
+![](../assets/Screenshot_20220408_131940.png)
 
 You probably also want to install the Rust Analyzer extension in the docker container. To do that, use the extensions menu, find Rust Analyzer and click "Install in container".
 
-![](../../assets/Screenshot_20220408_131810.png)
+![](../assets/Screenshot_20220408_131810.png)
 
 ## Without Docker
 

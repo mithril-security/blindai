@@ -23,10 +23,10 @@ nav:
   - 'getting-started/deploy-on-hardware.md'
   - 'getting-started/telemetry.md'
 - 'Resources':
-  - 'Client API reference': 'resources/api.html'
+  - 'Client API reference': 'resources/blindai/index.html'
   - 'resources/examples.md'
 - 'Advanced':
   - 'advanced/certificate-and-policy.md'
   - 'advanced/setting-up-your-dev-environment.md'
-  - 'advanced/client_side/client_side.md'
+  - 'advanced/client_side.md'
   - 'advanced/blindai-project-structure.md'
