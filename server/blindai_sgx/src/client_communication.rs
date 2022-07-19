@@ -13,7 +13,7 @@
 // limitations under the License.
 
 use anyhow::{anyhow, Result};
-use blindai_common::NetworkConfig;
+use blindai_common::BlindAIConfig;
 use futures::StreamExt;
 use log::*;
 use num_traits::FromPrimitive;
@@ -31,8 +31,9 @@ use tract_core::prelude::Tensor;
 use tonic::{Request, Response, Status};
 
 use crate::{
+    auth::AuthExtension,
     identity::MyIdentity,
-    model::{deserialize_tensor_bytes, serialize_tensor_bytes, ModelDatumType, TensorFacts},
+    model::{deserialize_tensor_bytes, serialize_tensor_bytes, ModelDatumType, TensorFacts, ModelLoadContext},
     model_store::ModelStore,
     telemetry::{self, TelemetryEventProps},
 };
@@ -48,7 +49,7 @@ pub(crate) struct Exchanger {
     identity: Arc<MyIdentity>,
     max_model_size: usize,
     max_input_size: usize,
-    config: Arc<NetworkConfig>,
+    config: Arc<BlindAIConfig>,
 }
 
 impl Exchanger {
@@ -57,7 +58,7 @@ impl Exchanger {
         identity: Arc<MyIdentity>,
         max_model_size: usize,
         max_input_size: usize,
-        config: Arc<NetworkConfig>,
+        config: Arc<BlindAIConfig>,
     ) -> Self {
         Self {
             identity,
@@ -76,8 +77,10 @@ impl Exchange for Exchanger {
         request: Request<tonic::Streaming<SendModelRequest>>,
     ) -> Result<Response<SendModelReply>, Status> {
         if !self.config.allow_sendmodel {
-            return Err(Status::permission_denied("SendModel is disabled"))
+            return Err(Status::permission_denied("SendModel is disabled"));
         }
+
+        let auth_ext = request.extensions().get::<AuthExtension>().cloned();
 
         let start_time = Instant::now();
 
@@ -184,6 +187,8 @@ impl Exchange for Exchanger {
                 &output_info,
                 save_model,
                 true, // todo: make optim configurable
+                ModelLoadContext::FromSendModel,
+                auth_ext.as_ref().and_then(|ext| ext.userid()),
             )
             .map_err(|err| {
                 error!("Error while creating model: {:?}", err);
@@ -221,8 +226,9 @@ impl Exchange for Exchanger {
 
         // Logs and telemetry
         let elapsed = start_time.elapsed();
+        let userid = auth_ext.as_ref().and_then(|e| e.userid()).map(|id| format!("{}", id));
         info!(
-            "[{} {}] SendModel successful in {}ms (model={}, size={}, sign={})",
+            "[{} {}] SendModel successful in {}ms (model={}, size={}, sign={}, userid={})",
             client_info
                 .as_ref()
                 .map(|c| c.user_agent.as_ref())
@@ -234,7 +240,8 @@ impl Exchange for Exchanger {
             elapsed.as_millis(),
             model_name.as_deref().unwrap_or("<unknown>"),
             model_size,
-            sign
+            sign,
+            userid.as_deref().unwrap_or("<none>"),
         );
         telemetry::add_event(
             TelemetryEventProps::SendModel {
@@ -253,6 +260,8 @@ impl Exchange for Exchanger {
         &self,
         request: Request<tonic::Streaming<RunModelRequest>>,
     ) -> Result<Response<RunModelReply>, Status> {
+        let auth_ext = request.extensions().get::<AuthExtension>().cloned();
+
         let start_time = Instant::now();
 
         let mut input_tensors: Vec<TensorData> = Vec::new();
@@ -399,8 +408,9 @@ impl Exchange for Exchanger {
 
         // Log and telemetry
         let elapsed = start_time.elapsed();
+        let userid = auth_ext.and_then(|e| e.userid()).map(|id| format!("{}", id));
         info!(
-            "[{} {}] RunModel successful in {}ms (model={}, sign={})",
+            "[{} {}] RunModel successful in {}ms (model={}, sign={}, userid={})",
             client_info
                 .as_ref()
                 .map(|c| c.user_agent.as_ref())
@@ -411,7 +421,8 @@ impl Exchange for Exchanger {
                 .unwrap_or("<unknown>"),
             elapsed.as_millis(),
             model_name.as_deref().unwrap_or("<unknown>"),
-            sign
+            sign,
+            userid.as_deref().unwrap_or("<none>"),
         );
         telemetry::add_event(
             TelemetryEventProps::RunModel {

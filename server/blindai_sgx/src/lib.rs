@@ -62,6 +62,7 @@ mod model_store;
 mod sealing;
 mod telemetry;
 mod untrusted;
+mod auth;
 
 extern crate sgx_types;
 
@@ -111,12 +112,14 @@ async fn main(telemetry_platform: String, telemetry_uid: String) -> Result<()> {
     let mut config_file = File::open("config.toml").context("Opening config.toml file")?;
     let mut contents = String::new();
     config_file.read_to_string(&mut contents)?;
-    let config: blindai_common::NetworkConfig =
+    let config: blindai_common::BlindAIConfig =
         toml::from_str(&contents).context("Parsing config.toml file")?;
     let config = Arc::new(config);
 
     let dcap_quote_provider = DcapQuoteProvider::new(&enclave_identity.cert_der);
     let dcap_quote_provider: &'static DcapQuoteProvider = Box::leak(Box::new(dcap_quote_provider));
+
+    auth::setup().context("Setting up auth")?;
 
     // Identity for untrusted (non-attested) communication
     let untrusted_cert =
@@ -146,6 +149,13 @@ async fn main(telemetry_platform: String, telemetry_uid: String) -> Result<()> {
 
     let model_store: Arc<ModelStore> = ModelStore::new(config.clone()).into();
 
+    model_store
+        .startup_unseal()
+        .context("Unsealing models at startup")?;
+    model_store
+        .load_config_models()
+        .context("Loading models from config.toml file at startup")?;
+
     let exchanger = Exchanger::new(
         model_store.clone(),
         my_identity.clone(),
@@ -154,14 +164,10 @@ async fn main(telemetry_platform: String, telemetry_uid: String) -> Result<()> {
         config.clone()
     );
 
-    model_store
-        .startup_unseal(&config)
-        .context("Unsealing models at startup")?;
-
     let server_future = Server::builder()
         .tls_config(ServerTlsConfig::new().identity((&enclave_identity).into()))?
         .max_frame_size(Some(65536))
-        .add_service(ExchangeServer::new(exchanger))
+        .add_service(ExchangeServer::with_interceptor(exchanger, auth::auth_interceptor))
         .serve(config.client_to_enclave_attested_socket()?);
 
     info!(

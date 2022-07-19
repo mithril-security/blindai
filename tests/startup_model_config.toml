@@ -20,15 +20,11 @@ max_input_size = 524288000
 models_path = "./models"
 
 # Allow user to send a model, or only use the models already uploaded.
-allow_sendmodel = true
+allow_sendmodel = false
 
 # Models to load on startup
-# [[load_models]]
-# model_id = "gpt-neox-2.7b"
-# path = "./gpt-neox-2.7b/gpt-neox-2.7b.onnx"
-# input_facts = [{ datum_type = "I64", dims = [1, 7] }]
-# no_optim = false
-# 
-# [[load_models]]
-# model_id = "facenet"
-# path = "./facenet.onnx"
+[[load_models]]
+model_id = "covidnet"
+# input_facts = [{ datum_type = "F32", dims = [1, 480, 480, 3] }]
+input_facts = [{}]
+path = "./covidnet.onnx"

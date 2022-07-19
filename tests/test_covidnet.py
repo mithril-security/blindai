@@ -3,6 +3,7 @@ import blindai.client
 from blindai.client import BlindAiConnection, ModelDatumType
 import unittest
 from server import (
+    close_server,
     launch_server,
     policy_file,
     certificate_file,
@@ -12,10 +13,6 @@ import os
 import onnxruntime
 import cv2
 import numpy as np
-import logging
-
-
-logging.basicConfig(level=logging.INFO)
 
 
 class TestCovidNetBase:
@@ -133,6 +130,16 @@ class TestCovidNetBase:
                 model_name="Hi",
             )
 
+        # restart server :)
+        close_server()
+        launch_server()
+
+        with blindai.client.connect(
+            addr="localhost",
+            simulation=self.simulation,
+            policy=policy_file,
+            certificate=certificate_file,
+        ) as client:
             response = client.run_model(
                 upload_response.model_id,
                 flattened_img,
@@ -165,7 +172,7 @@ class TestCovidNetBase:
                 os.path.dirname(__file__), "assets/COVID-Net-CXR-2.onnx"
             )
 
-            upload_response = client.upload_model(
+            client.upload_model(
                 model=model,
                 shape=(1, 480, 480, 3),
                 dtype=ModelDatumType.F32,
@@ -174,7 +181,7 @@ class TestCovidNetBase:
             )
 
             response = client.run_model(
-                upload_response.model_id,
+                "Salut",
                 flattened_img,
                 dtype=ModelDatumType.F32,
                 shape=(1, 480, 480, 3),
@@ -317,6 +324,7 @@ def setUpModule():
     img = img[np.newaxis, :, :, :]
 
     flattened_img = img.flatten().tolist()
+    return flattened_img
 
 
 if __name__ == "__main__":

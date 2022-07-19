@@ -1,3 +1,4 @@
+import shutil
 from transformers import DistilBertForSequenceClassification
 from transformers import DistilBertTokenizer
 import torch
@@ -10,6 +11,9 @@ from server import (
     policy_file,
     certificate_file,
     has_hardware_support,
+    close_server,
+    bin_dir,
+    with_server_config,
 )
 
 model_path = os.path.join(os.path.dirname(__file__), "distilbert-base-uncased.onnx")
@@ -64,7 +68,6 @@ class TestDistilBertBase:
             )
             model_id = response.model_id
 
-            print(response)
             client.enclave_signing_key.verify(response.signature, response.payload)
 
             response = client.run_model(

@@ -709,21 +709,19 @@ class BlindAiConnection(contextlib.AbstractContextManager):
                 tensor_inputs, tensor_outputs, shape, dtype, dtype_out
             )
             response = self._stub.SendModel(
-                iter(
-                    [
-                        PbSendModelRequest(
-                            length=len(data),
-                            data=chunk,
-                            sign=sign,
-                            model_id=model_id,
-                            model_name=model_name,
-                            client_info=self.client_info,
-                            tensor_inputs=inputs,
-                            tensor_outputs=outputs,
-                            save_model=save_model,
-                        )
-                        for chunk in create_byte_chunk(data)
-                    ]
+                (
+                    PbSendModelRequest(
+                        length=len(data),
+                        data=chunk,
+                        sign=sign,
+                        model_id=model_id,
+                        model_name=model_name,
+                        client_info=self.client_info,
+                        tensor_inputs=inputs,
+                        tensor_outputs=outputs,
+                        save_model=save_model,
+                    )
+                    for chunk in create_byte_chunk(data)
                 )
             )
 

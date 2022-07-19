@@ -12,6 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use std::ops::RangeBounds;
+use std::path::Path;
+use std::str::FromStr;
 use std::{borrow::Cow, convert::TryFrom, vec::Vec};
 
 use anyhow::{anyhow, bail, Error, Result};
@@ -125,6 +128,26 @@ impl Into<TractDatumType> for ModelDatumType {
     }
 }
 
+impl FromStr for ModelDatumType {
+    type Err = Error;
+    fn from_str(s: &str) -> Result<Self> {
+        Ok(match s {
+            "F32" | "f32" => ModelDatumType::F32,
+            "F64" | "f64" => ModelDatumType::F64,
+            "I32" | "i32" => ModelDatumType::I32,
+            "I64" | "i64" => ModelDatumType::I64,
+            "U32" | "u32" => ModelDatumType::U32,
+            "U64" | "u64" => ModelDatumType::U64,
+            "U8" | "u8" => ModelDatumType::U8,
+            "U16" | "u16" => ModelDatumType::U16,
+            "I8" | "i8" => ModelDatumType::I8,
+            "I16" | "i16" => ModelDatumType::I16,
+            "Bool" | "bool" => ModelDatumType::Bool,
+            s => bail!("invalid model datum type: {:?}", s),
+        })
+    }
+}
+
 #[allow(unused_macros)]
 /// This macro dispatches a generic function call from a ModelDatumType
 /// instance.
@@ -170,81 +193,100 @@ pub type OptimizedOnnx =
 pub type UnoptimizedOnnx =
     SimplePlan<InferenceFact, Box<dyn InferenceOp>, Graph<InferenceFact, Box<dyn InferenceOp>>>;
 
+fn add_model_facts(
+    graph: &mut Graph<InferenceFact, Box<dyn InferenceOp>>,
+    input_facts: &[TensorFacts],
+    output_facts: &[TensorFacts],
+) -> Result<()> {
+    // add facts
+    for (facts, is_input) in [(input_facts, true), (output_facts, false)].into_iter() {
+        for (index, fact) in facts.into_iter().enumerate() {
+            let mut inference_fact = InferenceFact::new();
+            if let Some(datum_type) = fact.datum_type {
+                inference_fact = inference_fact.with_datum_type(datum_type.into());
+            }
+            if let Some(dims) = fact.dims.as_ref() {
+                inference_fact = inference_fact.with_shape(dims);
+            }
+
+            let index = if let Some(i) = fact.index {
+                i
+            } else if let Some(name) = fact.index_name.as_ref() {
+                // find output / input by outlet name
+
+                let outlet = graph
+                    .find_outlet_label(name)
+                    .ok_or_else(|| anyhow!("Cannot find input/output named {}", name))?;
+
+                let outlets = if is_input {
+                    graph.input_outlets()?
+                } else {
+                    graph.output_outlets()?
+                };
+                outlets
+                    .into_iter()
+                    .position(|el| *el == outlet)
+                    .ok_or_else(|| anyhow!("Cannot find input/output named {}", name))?
+            } else {
+                index // default to using the index of the fact in the array
+            };
+
+            if is_input {
+                graph.set_input_fact(index, inference_fact)?;
+            } else {
+                graph.set_output_fact(index, inference_fact)?;
+            }
+        }
+    }
+
+    Ok(())
+}
+
 #[derive(Debug, Hash, Clone)]
 pub enum TractModel {
     OptimizedOnnx(OptimizedOnnx),
     UnoptimizedOnnx(UnoptimizedOnnx),
 }
 
+#[derive(Debug, Hash, Clone, Serialize, Deserialize)]
+pub enum ModelLoadContext {
+    FromSendModel,
+    FromStartupConfig,
+}
+
 #[derive(Debug)]
-pub struct InferenceModel {
+pub struct InferModel {
     pub model: Arc<TractModel>,
-    #[allow(unused)]
     model_id: String,
     model_name: Option<String>,
     model_hash: Digest,
+    #[allow(unused)]
+    load_context: ModelLoadContext,
+    owner_id: Option<usize>,
 }
 
-impl InferenceModel {
-    pub fn load_model(
-        mut model_data: &[u8],
+impl InferModel {
+    pub fn load_model_path(
+        model_path: &Path,
         model_id: String,
         model_name: Option<String>,
         model_hash: Digest,
         input_facts: &[TensorFacts],
         output_facts: &[TensorFacts],
         optim: bool,
+        load_context: ModelLoadContext,
+        owner_id: Option<usize>,
     ) -> Result<Self> {
-        let mut graph = tract_onnx::onnx().model_for_read(&mut model_data)?;
+        let mut graph = tract_onnx::onnx().model_for_path(model_path)?;
 
         trace!(
-            "Loading model with input_facts {:?} output_facts {:?} optim {:?}",
+            "Loading model from path with input_facts {:?} output_facts {:?} optim {:?}",
             input_facts,
             output_facts,
             optim
         );
 
-        // add facts
-        for (facts, is_input) in [(input_facts, true), (output_facts, false)].into_iter() {
-            for fact in facts {
-                let mut inference_fact = InferenceFact::new();
-                if let Some(datum_type) = fact.datum_type {
-                    inference_fact = inference_fact.with_datum_type(datum_type.into());
-                }
-                if let Some(dims) = fact.dims.as_ref() {
-                    inference_fact = inference_fact.with_shape(dims);
-                }
-
-                let index = if let Some(i) = fact.index {
-                    i
-                } else {
-                    // find output / input by outlet name
-
-                    let name = fact
-                        .index_name
-                        .as_ref()
-                        .ok_or_else(|| anyhow!("No index for fact {:?}", fact))?;
-                    let outlet = graph
-                        .find_outlet_label(name)
-                        .ok_or_else(|| anyhow!("Cannot find input/output named {}", name))?;
-
-                    let outlets = if is_input {
-                        graph.input_outlets()?
-                    } else {
-                        graph.output_outlets()?
-                    };
-                    outlets
-                        .into_iter()
-                        .position(|el| *el == outlet)
-                        .ok_or_else(|| anyhow!("Cannot find input/output named {}", name))?
-                };
-                if is_input {
-                    graph = graph.with_input_fact(index, inference_fact)?;
-                } else {
-                    graph = graph.with_output_fact(index, inference_fact)?;
-                }
-            }
-        }
+        add_model_facts(&mut graph, input_facts, output_facts)?;
 
         let model = if optim {
             trace!("Optimizing model...");
@@ -253,11 +295,52 @@ impl InferenceModel {
             TractModel::UnoptimizedOnnx(graph.into_runnable()?)
         };
 
-        Ok(InferenceModel {
+        Ok(InferModel {
             model: model.into(),
             model_name,
             model_id,
             model_hash,
+            load_context,
+            owner_id,
+        })
+    }
+
+    pub fn load_model(
+        mut model_data: &[u8],
+        model_id: String,
+        model_name: Option<String>,
+        model_hash: Digest,
+        input_facts: &[TensorFacts],
+        output_facts: &[TensorFacts],
+        optim: bool,
+        load_context: ModelLoadContext,
+        owner_id: Option<usize>,
+    ) -> Result<Self> {
+        let mut graph = tract_onnx::onnx().model_for_read(&mut model_data)?;
+
+        trace!(
+            "Loading model from bytes with input_facts {:?} output_facts {:?} optim {:?}",
+            input_facts,
+            output_facts,
+            optim
+        );
+
+        add_model_facts(&mut graph, input_facts, output_facts)?;
+
+        let model = if optim {
+            trace!("Optimizing model...");
+            TractModel::OptimizedOnnx(graph.into_optimized()?.into_runnable()?)
+        } else {
+            TractModel::UnoptimizedOnnx(graph.into_runnable()?)
+        };
+
+        Ok(InferModel {
+            model: model.into(),
+            model_name,
+            model_id,
+            model_hash,
+            load_context,
+            owner_id,
         })
     }
 
@@ -278,17 +361,28 @@ impl InferenceModel {
         model_id: String,
         model_name: Option<String>,
         model_hash: Digest,
+        owner_id: Option<usize>,
     ) -> Self {
-        InferenceModel {
+        InferModel {
             model: onnx,
             model_id,
             model_name,
             model_hash,
+            load_context: ModelLoadContext::FromSendModel,
+            owner_id,
         }
     }
 
     pub fn model_name(&self) -> Option<&str> {
         self.model_name.as_deref()
+    }
+
+    pub fn model_id(&self) -> &str {
+        &self.model_id
+    }
+
+    pub fn owner_id(&self) -> Option<usize> {
+        self.owner_id
     }
 
     pub fn model_hash(&self) -> Digest {
