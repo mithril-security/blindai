@@ -25,5 +25,5 @@ allow_sendmodel = false
 # Models to load on startup
 [[load_models]]
 model_id = "gpt-neo-2.7b"
-input_facts = [{ datum_type = "I64", dims = [1, 7] }]
+no_optim = true # disable optimization, since the input shape is not fixed
 path = "./gpt-neo-2.7b/gpt-neo-2.7b.onnx"

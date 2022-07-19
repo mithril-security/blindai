@@ -25,6 +25,5 @@ allow_sendmodel = false
 # Models to load on startup
 [[load_models]]
 model_id = "covidnet"
-# input_facts = [{ datum_type = "F32", dims = [1, 480, 480, 3] }]
-input_facts = [{}]
+input_facts = [{ datum_type = "F32", dims = [1, 480, 480, 3] }]
 path = "./covidnet.onnx"

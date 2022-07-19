@@ -44,9 +44,9 @@ toml = "*"
 tonic = {version = "0.5.2", features = ["tls"]}
 tonic-rpc = {version = "0.1.1", features = ["json"]}
 uuid = {version="0.8.2", features=["v4", "serde"]}
-tract-core = {version = "0.17.1-pre", features=["untrusted_fs"]}
-tract-onnx = {version = "0.17.1-pre"}
-tract-hir = {version = "0.17.1-pre"}
+tract-core = {version = "0.17.2-pre", features=["untrusted_fs"]}
+tract-onnx = {version = "0.17.2-pre", features=["untrusted_fs"]}
+tract-hir = {version = "0.17.2-pre"}
 x509-parser = "*"
 h2 = "=0.3.4"
 prost-types = "=0.8"
