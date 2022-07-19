@@ -12,26 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""
-## <kbd>Enum</kbd> `ModelDatumType` : An enumeration of the acceptable input data types.
-
-Used to specify the type of the input and output data of a model before uploading it to the server.
-
-Supported types :
-
-    * ModelDatumType::F32 ---> float32
-
-    * ModelDatumType::F64 ---> float64
-
-    * ModelDatumType::I32 ---> int32
-
-    * ModelDatumType::I64 ---> int64
-
-    * ModelDatumType::U32 ---> unsigned int 32
-
-    * ModelDatumType::U64 ---> unsigned int 64
-"""
-
 import contextlib
 from functools import wraps
 import getpass
@@ -628,7 +608,8 @@ class BlindAiConnection(contextlib.AbstractContextManager):
         data_list: Union[List[List[Any]], List[Any]],
         sign: bool = False,
     ) -> RunModelResponse:
-        """Send data to the server to make a secure inference.
+        """
+        Send data to the server to make a secure inference.
 
                 The data provided must be in a list, as the tensor will be rebuilt inside the server.
 
