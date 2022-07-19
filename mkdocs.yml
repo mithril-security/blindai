@@ -1,0 +1,32 @@
+site_name: blindai
+
+site_url: https://www.mithrilsecurity.io/
+
+repo_url: https://github.com/mithril-security/blindai
+
+theme:
+  name: "readthedocs"
+
+plugins:
+- search
+
+nav:
+- Home: 'index.md'
+- 'Getting started': 
+  - 'Quick start':
+    - 'getting-started/quick-start/run-the-blindai-server.md'
+    - 'getting-started/quick-start/prepare-the-model.md'
+    - 'getting-started/quick-start/send-and-run-the-model.md'
+  - 'Cloud deployment':
+    - 'getting-started/cloud-deployment/azure-dcsv2.md'
+    - 'getting-started/cloud-deployment/azure-dcsv3.md'
+  - 'getting-started/deploy-on-hardware.md'
+  - 'getting-started/telemetry.md'
+- 'Resources':
+  - 'Client API reference': 'resources/api.html'
+  - 'resources/examples.md'
+- 'Advanced':
+  - 'advanced/certificate-and-policy.md'
+  - 'advanced/setting-up-your-dev-environment.md'
+  - 'advanced/client_side/client_side.md'
+  - 'advanced/blindai-project-structure.md'

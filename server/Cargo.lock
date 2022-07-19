@@ -148,7 +148,7 @@ checksum = "bef38d45163c2f1dde094a7dfd33ccf595c92905c8f8f4fdc18d06fb1037718a"
 
 [[package]]
 name = "blindai_app"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "anyhow",
  "base16",
@@ -183,7 +183,7 @@ dependencies = [
 
 [[package]]
 name = "blindai_common"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "anyhow",
  "http",
@@ -196,7 +196,7 @@ dependencies = [
 
 [[package]]
 name = "blindai_rpc"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "tokio",
  "tokio-stream",
@@ -206,7 +206,7 @@ dependencies = [
 
 [[package]]
 name = "blindai_sgx"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "anyhow",
  "base64",
@@ -251,7 +251,7 @@ dependencies = [
 
 [[package]]
 name = "blindai_sgx_attestation"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "log",
  "sgx_types",
@@ -3125,6 +3125,11 @@ dependencies = [
 ]
 
 [[patch.unused]]
+name = "futures-test"
+version = "0.3.21"
+source = "git+https://github.com/mithril-security/futures-sgx?tag=0.3.21-sgx#147db1fd9d7005685ac86626ca9077a6f531cbc2"
+
+[[patch.unused]]
 name = "sgx_alloc"
 version = "1.1.4"
 
@@ -3191,8 +3196,3 @@ version = "1.1.4"
 [[patch.unused]]
 name = "sgx_unwind"
 version = "1.1.4"
-
-[[patch.unused]]
-name = "futures-test"
-version = "0.3.21"
-source = "git+https://github.com/mithril-security/futures-sgx?tag=0.3.21-sgx#147db1fd9d7005685ac86626ca9077a6f531cbc2"
