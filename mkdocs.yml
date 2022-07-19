@@ -6,20 +6,16 @@ repo_url: https://github.com/mithril-security/blindai
 
 theme:
   name: "readthedocs"
+  prev_next_buttons_location: both
 
 plugins:
 - search
 
 nav:
 - Home: 'index.md'
-- 'Getting started': 
-  - 'Quick start':
-    - 'getting-started/quick-start/run-the-blindai-server.md'
-    - 'getting-started/quick-start/prepare-the-model.md'
-    - 'getting-started/quick-start/send-and-run-the-model.md'
-  - 'Cloud deployment':
-    - 'getting-started/cloud-deployment/azure-dcsv2.md'
-    - 'getting-started/cloud-deployment/azure-dcsv3.md'
+- 'Getting started':
+  - 'getting-started/quick-start.md'
+  - 'getting-started/cloud-deployment.md'
   - 'getting-started/deploy-on-hardware.md'
   - 'getting-started/telemetry.md'
 - 'Resources':
