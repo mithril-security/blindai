@@ -1,10 +1,8 @@
 # Build the BlindAI Client SDK from source
 
-## Build the client SDK from source&#x20;
-
 **BlindAI Client SDK** can currently be built from source on **Linux** and **Windows** platforms.&#x20;
 
-### Requirements
+## Requirements
 
 Before proceeding to build the client, make sure the following requirements are installed in your environment.&#x20;
 
@@ -25,23 +23,23 @@ Before proceeding to build the client, make sure the following requirements are 
 
 
 
-### Building and installing the package
+## Building and installing the package
 
-#### **Clone the repository**
+### **Clone the repository**
 
 ```bash
 git clone https://github.com/mithril-security/blindai
 cd blindai/client
 ```
 
-#### Install third party libraries
+### Install third party libraries
 
 ```bash
 git submodule init
 git submodule update
 ```
 
-#### Create and activate a virtual environment
+### Create and activate a virtual environment
 
 
 
@@ -59,7 +57,7 @@ python -m venv env
 
 
 
-#### Check pip version
+### Check pip version
 
 
 **pip >= 21** is needed, so make sure to check your pip version,**i**s and to update it in case a prior version was installed.
@@ -77,13 +75,13 @@ $ pip --version
 $ pip install -U pip
 ```
 
-#### Install development dependencies
+### Install development dependencies
 
 ```bash
 $ pip install -r requirements.txt
 ```
 
-#### Trigger the Build process
+### Trigger the Build process
 
 ```bash
 pip install . --use-feature=in-tree-build

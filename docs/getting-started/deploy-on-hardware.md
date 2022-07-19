@@ -61,7 +61,7 @@ docker run -it \
 
 
 
-### Get the policy and TLS Certificate
+## Get the policy and TLS Certificate
 
 In hardware mode, we are required to pass two files that were generated previously by the server to the client: `policy.toml` and `host_server.pem`. Read more about what these files are used for here: [certificate-and-policy.md](../advanced/certificate-and-policy.md "mention")
 
