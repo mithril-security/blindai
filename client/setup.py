@@ -74,7 +74,7 @@ def read(filename):
 
 
 def find_version():
-    version_file = read("blindai/version.py")
+    version_file = read("blindai/version.txt")
     version_re = r"__version__ = \"(?P<version>.+)\""
     version = re.match(version_re, version_file).group("version")
     return version

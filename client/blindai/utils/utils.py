@@ -55,7 +55,7 @@ def get_enclave_signing_key(server_cert: bytes) -> bytes:
 
 def supported_server_version(version: str) -> bool:
     supported_versions_file = pkgutil.get_data(
-        __name__, "../supported_server_versions.py"
+        __name__, "../supported_server_versions.txt"
     ).decode("utf-8")
     versions_re = r"__version__ = \"(?P<version>.+)\""
     supported_versions = (
