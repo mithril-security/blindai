@@ -61,6 +61,7 @@ pub struct BlindAIConfig {
     pub allow_sendmodel: bool,
     #[serde(default)]
     pub load_models: Vec<LoadModelConfig>,
+    pub max_model_store: usize,
 }
 
 fn uri_to_socket(uri: &Uri) -> Result<SocketAddr> {

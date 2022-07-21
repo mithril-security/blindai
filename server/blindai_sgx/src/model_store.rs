@@ -5,7 +5,7 @@ use crate::{
 use std::path::{Path, PathBuf};
 
 use anyhow::{bail, Context, Result};
-use blindai_common::{BlindAIConfig, ModelFactsConfig, LoadModelConfig};
+use blindai_common::{BlindAIConfig, LoadModelConfig, ModelFactsConfig};
 use log::*;
 use ring::digest::{self, Digest};
 use uuid::Uuid;
@@ -94,6 +94,39 @@ impl ModelStore {
             // take the write lock
             let mut write_guard = self.inner.write().unwrap();
 
+            // remove a model store if the store is full (FIFO)
+            let model_id_currently_store = write_guard.models_by_id.len();
+            info!(
+                "Max of model allow: {:?}, Current model store by id: {:?}",
+                self.config.max_model_store, model_id_currently_store
+            );
+
+            // We check if the model store is full regarding the hashmap for the model
+            // and we release space if necessary
+            if self.config.max_model_store != 0
+                && model_id_currently_store >= self.config.max_model_store
+            {
+                let mut first_hash: Vec<u8> = Vec::new();
+                let mut first_id: String = String::new();
+                for key in write_guard.models_by_id.keys().cloned().take(1) {
+                    first_id = key;
+                }
+                for key in write_guard.onnx_by_hash.keys().cloned().take(1) {
+                    first_hash = key;
+                }
+                write_guard.models_by_id.remove(&first_id);
+                match write_guard.onnx_by_hash.entry(first_hash) {
+                    Entry::Occupied(mut entry) => {
+                        let (i, _) = entry.get_mut();
+                        *i -= 1;
+                        if *i == 0 {
+                            entry.remove();
+                        }
+                    }
+                    _ => {}
+                }
+            }
+
             // HashMap entry api requires only one lookup and should be prefered than .get()
             // followed with .insert()
 
@@ -164,7 +197,15 @@ impl ModelStore {
                             }
                             _ => {}
                         }
-                        write_guard.models_by_id.remove(old_model.model_id());
+                        match write_guard
+                            .models_by_id
+                            .entry(old_model.model_id().to_string())
+                        {
+                            Entry::Occupied(entry) => {
+                                entry.remove();
+                            }
+                            _ => {}
+                        }
                     }
                     Entry::Vacant(entry) => {
                         entry.insert(model);
@@ -292,7 +333,10 @@ impl ModelStore {
         for model in &self.config.load_models {
             match load_model(model) {
                 Ok(()) => info!("Loaded startup model {}.", model.model_id),
-                Err(err) => error!("Loading of startup model {} failed! {:?}", model.model_id, err),
+                Err(err) => error!(
+                    "Loading of startup model {} failed! {:?}",
+                    model.model_id, err
+                ),
             }
         }
 
