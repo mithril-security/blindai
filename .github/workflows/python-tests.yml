@@ -1,9 +1,6 @@
 name: Run Python Tests
 on:
-  pull_request:
-    branches:
-      - master
-      - main
+  push:
     paths: 'client/**'
 
 jobs:
