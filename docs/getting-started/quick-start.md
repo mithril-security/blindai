@@ -41,6 +41,8 @@ torch.onnx.export(
 	input_names = ['input'], output_names = ['output'],
 	dynamic_axes={'input' : {0 : 'batch_size'},
 	'output' : {0 : 'batch_size'}})
+
+print(inputs.shape) # We print inputs.shape because we will need it to upload the model to the server
 ```
 
 ## Run the BlindAI server
@@ -85,17 +87,18 @@ For now, the library is only compatible with Linux. We are working on a native W
 You can run the following script in order to send the model to the server:
 
 ```python
-from blindai.client import BlindAiClient, ModelDatumType
+from blindai.client import BlindAiConnection, ModelDatumType
+import torch
 
-client = BlindAiClient()
+client = BlindAiConnection(addr="localhost", simulation=True)
 
-client.connect_server(addr="localhost", simulation=True)
-
-client.upload_model(
+response = client.upload_model(
     model="./distilbert-base-uncased.onnx", 
-    shape=inputs.shape, 
+    shape=torch.Size([1, 8]), # replace by the previously printed values if necessary
     dtype=ModelDatumType.I64
     )
+
+print(response.model_id) # we need the model_id to run the inference
 ```
 
 The client is straightforward, we require an address, so if you have loaded the inference server on the same machine, simply mention "localhost" as we did. For simplicity, in the simulation mode, `connect_server` simply creates an insecure channel with the server. This is meant as a quick way to test without requiring specific hardware, so **do not use the simulation mode in production**.
@@ -120,14 +123,15 @@ inputs = tokenizer(sentence, padding = "max_length", max_length = 8)["input_ids"
 Now we simply have to create our client, connect and send data to be analyzed. In the same fashion as before, we will create a client in simulation, and simply send data to be analyzed with the proper communication channel.
 
 ```python
-from blindai.client import BlindAiClient
+from blindai.client import BlindAiConnection
 
 # Load the client
-client = BlindAiClient()
-client.connect_server("localhost", simulation=True)
+client = BlindAiConnection("localhost", simulation=True)
 
 # Get prediction
-response = client.run_model(inputs)
+response = client.run_model(model_id, inputs) # replace model_id by its previously printed value.
+
+print(response.output)
 ```
 
 For more details about the client API, check the [API reference](../resources/blindai/index.html).
