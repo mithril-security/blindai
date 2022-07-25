@@ -65,6 +65,9 @@ from blindai.pb.securedexchange_pb2 import (
     DeleteModelRequest as PbDeleteModelRequest,
     TensorData as PbTensorData,
 )
+import grpc
+import blindai.pb.data_pb2 as data_pb2
+import blindai.pb.data_pb2_grpc as data_pb2_grpc
 from blindai.pb.proof_files_pb2 import ResponseProof
 from blindai.pb.securedexchange_pb2_grpc import ExchangeStub
 from blindai.pb.untrusted_pb2 import GetCertificateRequest as certificate_request
@@ -533,6 +536,32 @@ class BlindAiConnection(contextlib.AbstractContextManager):
         if debug_mode:  # pragma: no cover
             os.environ["GRPC_TRACE"] = "transport_security,tsi"
             os.environ["GRPC_VERBOSITY"] = "DEBUG"
+
+        """
+/*****************************************************************************************************
+ * ***************************************************************************************************
+ * BEGINNING gRPC part
+ *****************************************************************************************************
+ * I didn't know where to put it because, you change the code since this last day.
+ *  But it's work just move it where you need it
+ *****************************************************************************************************
+******************************************************************************************************/
+
+        #open and connect to the gRPC channel we just created
+        channel = grpc.insecure_channel('localhost:8080')
+        #create a stub (client)
+        stub = data_pb2_grpc.DataServiceStub(channel)
+        #make the call
+        response = stub.GetData(data_pb2.Empty())
+        #print the results
+        print(response)
+
+/*****************************************************************************************************
+ *****************************************************************************************************
+ * END gRPC part
+ *****************************************************************************************************
+******************************************************************************************************/
+    """        
 
         uname = platform.uname()
         self.client_info = ClientInfo(

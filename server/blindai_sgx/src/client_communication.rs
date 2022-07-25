@@ -33,7 +33,10 @@ use tonic::{Request, Response, Status};
 use crate::{
     auth::AuthExtension,
     identity::MyIdentity,
-    model::{deserialize_tensor_bytes, serialize_tensor_bytes, ModelDatumType, TensorFacts, ModelLoadContext},
+    model::{
+        deserialize_tensor_bytes, serialize_tensor_bytes, ModelDatumType, ModelLoadContext,
+        TensorFacts,
+    },
     model_store::ModelStore,
     telemetry::{self, TelemetryEventProps},
 };
@@ -226,7 +229,10 @@ impl Exchange for Exchanger {
 
         // Logs and telemetry
         let elapsed = start_time.elapsed();
-        let userid = auth_ext.as_ref().and_then(|e| e.userid()).map(|id| format!("{}", id));
+        let userid = auth_ext
+            .as_ref()
+            .and_then(|e| e.userid())
+            .map(|id| format!("{}", id));
         info!(
             "[{} {}] SendModel successful in {}ms (model={}, size={}, sign={}, userid={})",
             client_info
@@ -408,7 +414,9 @@ impl Exchange for Exchanger {
 
         // Log and telemetry
         let elapsed = start_time.elapsed();
-        let userid = auth_ext.and_then(|e| e.userid()).map(|id| format!("{}", id));
+        let userid = auth_ext
+            .and_then(|e| e.userid())
+            .map(|id| format!("{}", id));
         info!(
             "[{} {}] RunModel successful in {}ms (model={}, sign={}, userid={})",
             client_info

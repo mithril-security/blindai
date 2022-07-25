@@ -20,6 +20,7 @@ class TestCovidNetBase:
         if not self.simulation and not has_hardware_support:
             self.skipTest("no hardware support")
 
+
     @unittest.skipIf(
         os.getenv("BLINDAI_TEST_SKIP_COVIDNET") is not None, "skipped by env var"
     )
@@ -106,7 +107,7 @@ class TestCovidNetBase:
                     sum(np.array([response.output_tensors[0].as_flat()]) - ort_outs)
                 )[0][0]
                 self.assertLess(diff, 0.001)  # difference is <0.1%
-
+   
     @unittest.skipIf(
         os.getenv("BLINDAI_TEST_SKIP_COVIDNET") is not None, "skipped by env var"
     )
@@ -157,7 +158,7 @@ class TestCovidNetBase:
             0
         ]
         self.assertLess(diff, 0.001)  # difference is <0.1%
-
+    
     @unittest.skipIf(
         os.getenv("BLINDAI_TEST_SKIP_COVIDNET") is not None, "skipped by env var"
     )

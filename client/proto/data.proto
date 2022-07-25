@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+message Data {
+    String jwt = 1;
+    string enclave_url = 2;
+    string api_key = 3;
+}
+
+service DataService {
+    rpc GetData (Empty) returns (Data) {}
+}
+
+message Empty {}
