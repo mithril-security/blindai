@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+message GetEnclaveReply {
+    string jwt = 1;
+    string enclave_url = 2;
+}
+
+service LicensingService {
+    rpc GetEnclave (GetEnclaveRequest) returns (GetEnclaveReply) {}
+}
+
+message GetEnclaveRequest {
+    string api_key = 1;
+}

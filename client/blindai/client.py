@@ -66,8 +66,8 @@ from blindai.pb.securedexchange_pb2 import (
     TensorData as PbTensorData,
 )
 import grpc
-import blindai.pb.data_pb2 as data_pb2
-import blindai.pb.data_pb2_grpc as data_pb2_grpc
+import blindai.pb.licensing_pb2 as licensing_pb2
+import blindai.pb.licensing_pb2_grpc as licensing_pb2_grpc
 from blindai.pb.proof_files_pb2 import ResponseProof
 from blindai.pb.securedexchange_pb2_grpc import ExchangeStub
 from blindai.pb.untrusted_pb2 import GetCertificateRequest as certificate_request
@@ -108,6 +108,9 @@ dt_per_type = {
 }
 
 CONNECTION_TIMEOUT = 10
+
+JWT="not yet defined"
+URL="not yet defined"
 
 
 def is_torch_installed():
@@ -504,6 +507,7 @@ class BlindAiConnection(contextlib.AbstractContextManager):
         untrusted_port: int = 50052,
         attested_port: int = 50051,
         debug_mode=False,
+        #api_key: str = None
     ):
         """Connect to the server with the specified parameters.
         You will have to specify here the expected policy (server identity, configuration...)
@@ -542,19 +546,20 @@ class BlindAiConnection(contextlib.AbstractContextManager):
  * ***************************************************************************************************
  * BEGINNING gRPC part
  *****************************************************************************************************
- * I didn't know where to put it because, you change the code since this last day.
- *  But it's work just move it where you need it
- *****************************************************************************************************
 ******************************************************************************************************/
 
         #open and connect to the gRPC channel we just created
         channel = grpc.insecure_channel('localhost:8080')
         #create a stub (client)
-        stub = data_pb2_grpc.DataServiceStub(channel)
+        stub = licensing_pb2_grpc.LicensingServiceStub(channel)
+        api_key_pb = licensing_pb2.GetEnclaveRequest(api_key=api_key)
         #make the call
-        response = stub.GetData(data_pb2.Empty())
-        #print the results
-        print(response)
+        # response = stub.GetEnclave(api_key_pb)
+        # #print the results
+        # print(response)
+        variable=globals()
+        variable["JWT"]=response.jwt
+        variable["URL"]=response.enclave_url
 
 /*****************************************************************************************************
  *****************************************************************************************************
@@ -562,6 +567,9 @@ class BlindAiConnection(contextlib.AbstractContextManager):
  *****************************************************************************************************
 ******************************************************************************************************/
     """        
+        variable=globals()
+        variable["JWT"]="JWT"
+        variable["URL"]="URL"
 
         uname = platform.uname()
         self.client_info = ClientInfo(
@@ -729,7 +737,6 @@ class BlindAiConnection(contextlib.AbstractContextManager):
 
         if model_name is None:
             model_name = os.path.basename(model)
-
         try:
             with open(model, "rb") as f:
                 data = f.read()
@@ -749,6 +756,7 @@ class BlindAiConnection(contextlib.AbstractContextManager):
                         tensor_inputs=inputs,
                         tensor_outputs=outputs,
                         save_model=save_model,
+                        jwt=JWT
                     )
                     for chunk in create_byte_chunk(data)
                 )
