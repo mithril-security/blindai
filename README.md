@@ -6,7 +6,7 @@
 
 <h4 align="center">
   <a href="https://www.mithrilsecurity.io">Website</a> |
-  <a href="https://docs.mithrilsecurity.io/">Documentation</a> |
+  <a href="https://blindai.mithrilsecurity.io/">Documentation</a> |
   <a href="https://blog.mithrilsecurity.io/">Blog</a> |
   <a href="https://hub.docker.com/u/mithrilsecuritysas">Docker Hub</a> |
   <a href="https://www.linkedin.com/company/mithril-security-company">LinkedIn</a> | 
@@ -57,7 +57,7 @@ By using BlindAI, data remains always protected as it is only decrypted inside a
 
 ## :rocket: Getting started
 
-We provide a [Getting started](https://docs.mithrilsecurity.io/getting-started/quick-start) example on our docs, with the deployment of DistilBERT with BlindAI, to make it possible to analyze confidential text with privacy guarantees.
+We provide a [Getting started](https://blindai.mithrilsecurity.io/en/latest/getting-started/quick-start/) example on our docs, with the deployment of DistilBERT with BlindAI, to make it possible to analyze confidential text with privacy guarantees.
 
 We have also articles and corresponding notebooks to deploy COVID-Net and Wav2vec2 with BlindAI, to enable respectively analysis of Chest X-Rays and speech with end-to-end protection. You can find them just [below](#sunny-models-covered-by-blindai) in our full table of use cases and models covered.
 
@@ -108,7 +108,7 @@ We will publish soon the scripts to run the benchmarks.
 
 ## :page_facing_up: Documentation
 
-To learn more about our project, do not hesitate to read our [documentation](https://docs.mithrilsecurity.io/).
+To learn more about our project, do not hesitate to read our [documentation](https://blindai.mithrilsecurity.io/).
 
 ## :white_check_mark: What you can do with BlindAI
 
@@ -128,7 +128,7 @@ Our solution currently leverages Intel SGX enclaves to protect data.
 
 If you want to deploy our solution with real hardware protection and not only simulation, you can either deploy it on premise with the right hardware specs, or rent a machine adapted for Confidential Computing in the Cloud.
 
-You can go to [Azure Confidential Computing VMs to try](https://docs.microsoft.com/en-us/azure/confidential-computing/confidential-computing-enclaves), with our [guides available here](https://docs.mithrilsecurity.io/getting-started/cloud-deployment) for deployment on DCsv2 and DCsv3.
+You can go to [Azure Confidential Computing VMs to try](https://docs.microsoft.com/en-us/azure/confidential-computing/confidential-computing-enclaves), with our [guides available here](https://blindai.mithrilsecurity.io/en/latest/getting-started/cloud-deployment/) for deployment on DCsv2 and DCsv3.
 
 ## :satellite: What next
 
@@ -172,7 +172,7 @@ BlindAI collects anonymous data regarding general usage, this allows us to under
 
 This feature can be easily disabled, by settin up the environment variable `BLINDAI_DISABLE_TELEMETRY` to 1.
 
-You can find more information about the telemetry in our [**documentation**](https://docs.mithrilsecurity.io/telemetry/).
+You can find more information about the telemetry in our [**documentation**](https://blindai.mithrilsecurity.io/en/latest/getting-started/telemetry/).
 
 ## Disclaimer
 
