@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Bump grpcio version to 1.47
 - Wheel compilation now uses manylinux2014 instead of manylinux2010 as grpcio compilation now fails in manylinux2010.
+- Bump pybind11 commit
 
 ## [0.3.0] ## 2022-03-25
 ### Added
