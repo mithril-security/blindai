@@ -10,8 +10,8 @@ client_to_enclave_untrusted_url = "https://0.0.0.0:50052"
 # Attested connection for Client -> Enclave communication
 client_to_enclave_attested_url = "https://0.0.0.0:50051"
 
-# Max model size in bytes (default value: 500mb)
-max_model_size = 524288000
+# Max model size in bytes (default value: 900mb)
+max_model_size = 924288000
 
-# Max input size in bytes (default value: 500mb)
-max_input_size = 524288000
+# Max input size in bytes (default value: 900mb)
+max_input_size = 924288000
