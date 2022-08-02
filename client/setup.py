@@ -204,8 +204,8 @@ setuptools.setup(
     install_requires=[
         "cryptography>=35.0.0",
         "toml",
-        "grpcio==1.44",
-        "grpcio-tools==1.44",
+        "grpcio==1.47",
+        "grpcio-tools==1.47",
         "bitstring",
         "cbor2",
         "typing-extensions",
