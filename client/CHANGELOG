@@ -6,6 +6,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0] ## 2022-08-02
+### Added
+- Multiple models support. The server can now have in memory more than one model at a time. 
+- Multiple inputs supports. The user is now able to give multiple inputs to the models.
+- Now support Python statement.
+- Python documentation now generated automatically at each new release.
+
+### Changed
+- Bump grpcio version to 1.47
+- Wheel compilation now uses manylinux2014 instead of manylinux2010 as grpcio compilation now fails in manylinux2010.
+- Bump pybind11 commit
+
 ## [0.3.0] ## 2022-03-25
 ### Added
 - Windows support.

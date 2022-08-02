@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+## [0.4.0] ## 2022-08-02
+### Added
+- Multiple models support. The server can now have in memory more than one model at a time. 
+- Multiple inputs supports. The user is now able to give multiple inputs to the models.
+
+### Changed
+- Increase enclave max memory to 2.4gb
+
 ## [0.3.0] ## 2022-03-25
 ### Added
 - Now support sending signed responses to the client.
