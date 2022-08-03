@@ -117,7 +117,7 @@ impl InferenceModel {
         datum_inputs: Vec<ModelDatumType>,
         datum_outputs: Vec<ModelDatumType>,
     ) -> Result<Self> {
-        let mut model_rec = tract_onnx::onnx().model_for_read(&mut model_data)?;
+        let mut model_rec = tract_onnx::onnx().with_ignore_output_shapes(true).model_for_read(&mut model_data)?;
         for (idx, (datum_input, input_fact)) in datum_inputs
             .clone()
             .iter()
@@ -160,8 +160,14 @@ impl InferenceModel {
             ))?;
             tensors.push(tensor);
         }
-
-        let result = self.onnx.run(TVec::from_vec(tensors.clone()))?;
+        let mut result = self.onnx.run(TVec::from_vec(tensors.clone()))?;
+        result = result.into_iter().map(|tensor| {
+            if tensor.datum_type() == DatumType::TDim {
+              Ok(tensor.cast_to::<i64>()?.into_owned().into())
+            } else {
+              Ok(tensor)
+            }
+        }).collect::<TractResult<_>>()?; 
         let datum_output = self.datum_outputs[0];
         let arr = dispatch_numbers!(convert_tensor(&datum_output.get_datum_type())(&result[0]))?;
         Ok(arr)
