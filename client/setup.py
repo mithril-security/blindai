@@ -205,6 +205,7 @@ setuptools.setup(
         "cryptography==37.0.4",
         "toml==0.10.2",
         "grpcio==1.47",
+        "grpcio-tools==1.47",
         "bitstring==3.1.9",
         "cbor2==5.4.3",
         "typing-extensions==4.3.0",
