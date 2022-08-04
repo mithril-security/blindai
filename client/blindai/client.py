@@ -549,7 +549,7 @@ class BlindAiConnection(contextlib.AbstractContextManager):
         ***Security & confidentiality warnings:***<br>
         *`model`: The model sent on a Onnx format is encrypted in transit via TLS (as all connections). It may be subject to inference Attacks if an adversary is able to query the trained model repeatedly to determine whether or not a particular example is part of the trained dataset model.<br>
         `sign` : by enabling sign, DCAP attestation is verified by the SGX attestation model. This attestation model relies on Elliptic Curve Digital Signature algorithm (ECDSA).*
-            
+
 
         Args:
             model (str): Path to Onnx model file.
@@ -630,7 +630,7 @@ class BlindAiConnection(contextlib.AbstractContextManager):
     ) -> RunModelResponse:
         """
         Send data to the server to make a secure inference.
-    
+
         The data provided must be in a list, as the tensor will be rebuilt inside the server.
 
         ***Security & confidentiality warnings:***<br>
@@ -704,7 +704,6 @@ class BlindAiConnection(contextlib.AbstractContextManager):
         ***Security & confidentiality warnings:***<br>
             *model_id : The deletion of a model only relies on the `model_id`. It doesn't relies on a session token or anything, hence if the `model_id` is known, it's deletion is possible.*
 
-
         Args:
             model_id (str): The id of the model to remove.
 
@@ -713,7 +712,7 @@ class BlindAiConnection(contextlib.AbstractContextManager):
             ValueError: Will be raised if the connection is closed
         Returns:
             DeleteModelResponse: The response object.
-         """
+        """
         try:
             self._stub.DeleteModel(DeleteModelRequest(model_id=model_id))
 
