@@ -285,7 +285,6 @@ class RunModelResponse(SignedResponse):
             AttestationError: Attestation is invalid.
             SignatureError: Signed response is invalid.
             FileNotFoundError: Will be raised if the policy file is not found.
-
         """
         if not self.is_signed():
             raise SignatureError("Response is not signed")
@@ -403,7 +402,6 @@ class BlindAiConnection(contextlib.AbstractContextManager):
             VersionError: Will be raised if the version of the server is not supported by the client.
             FileNotFoundError: will be raised if the policy file, or the certificate file is not
                 found (in Hardware mode).
-
         """
         if debug_mode:  # pragma: no cover
             os.environ["GRPC_TRACE"] = "transport_security,tsi"
