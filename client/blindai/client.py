@@ -286,9 +286,6 @@ class RunModelResponse(SignedResponse):
             SignatureError: Signed response is invalid.
             FileNotFoundError: Will be raised if the policy file is not found.
 
-        Security: 
-            model_id (str): 256-bit hash representing the model. 
-
         """
         if not self.is_signed():
             raise SignatureError("Response is not signed")
@@ -718,7 +715,6 @@ class BlindAiConnection(contextlib.AbstractContextManager):
             ValueError: Will be raised if the connection is closed
         Returns:
             DeleteModelResponse: The response object.
-
          """
         try:
             self._stub.DeleteModel(DeleteModelRequest(model_id=model_id))
