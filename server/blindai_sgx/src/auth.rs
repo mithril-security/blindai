@@ -30,7 +30,7 @@ pub fn setup() -> Result<()> {
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct JwtClaims {
-    pub login: String,
+    // pub login: String,
     pub userid: usize,
 
     // Expiration time (as UTC timestamp)
@@ -68,7 +68,7 @@ pub fn auth_interceptor(mut req: Request<()>) -> Result<Request<()>, Status> {
         return Ok(req);
     };
 
-    let t = if let Some(t) = req.metadata().get("authorization") {
+    let t = if let Some(t) = req.metadata().get("accesstoken") {
         t
     } else {
         req.extensions_mut().insert(AuthExtension::default());
@@ -77,10 +77,10 @@ pub fn auth_interceptor(mut req: Request<()>) -> Result<Request<()>, Status> {
 
     let t = t
         .to_str()
-        .map_err(|_| Status::invalid_argument("Invalid Authorization header"))?;
+        .map_err(|_| Status::invalid_argument("Invalid AccessToken header"))?;
 
     let token = jsonwebtoken::decode::<JwtClaims>(t, key, policy)
-        .map_err(|_| Status::invalid_argument("Invalid Authorization header"))?;
+        .map_err(|_| Status::invalid_argument("Invalid AccessToken header"))?;
 
     req.extensions_mut().insert(AuthExtension {
         claims: Some(token.claims),

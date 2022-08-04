@@ -60,7 +60,10 @@ pub struct BlindAIConfig {
     pub models_path: String,
     pub allow_sendmodel: bool,
     #[serde(default)]
+    pub send_model_requires_auth: bool,
+    #[serde(default)]
     pub load_models: Vec<LoadModelConfig>,
+    #[serde(default)]
     pub max_model_store: usize,
 }
 

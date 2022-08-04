@@ -258,6 +258,7 @@ pub struct InferModel {
     pub model: Arc<TractModel>,
     model_id: String,
     model_name: Option<String>,
+    #[allow(unused)]
     model_hash: Digest,
     #[allow(unused)]
     load_context: ModelLoadContext,
@@ -384,6 +385,7 @@ impl InferModel {
         self.owner_id
     }
 
+    #[allow(unused)]
     pub fn model_hash(&self) -> Digest {
         self.model_hash
     }

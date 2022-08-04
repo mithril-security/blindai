@@ -64,7 +64,7 @@ ATTESTATION_BUILD_SCRIPT = {
 }
 
 # Proto Files
-PROTO_FILES = ["securedexchange.proto", "untrusted.proto", "proof_files.proto"]
+PROTO_FILES = ["securedexchange.proto", "untrusted.proto", "proof_files.proto", "licensing.proto"]
 PROTO_PATH = os.path.join(os.path.dirname(__file__), "proto")
 
 

@@ -22,9 +22,6 @@ models_path = "./models"
 # Allow user to send a model, or only use the models already uploaded.
 allow_sendmodel = true
 
-# Number max of model that can be store in the enclave.
-max_model_store = 15
-
 # Models to load on startup
 # [[load_models]]
 # model_id = "gpt-neox-2.7b"

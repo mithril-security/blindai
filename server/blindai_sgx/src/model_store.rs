@@ -2,20 +2,25 @@ use crate::{
     model::ModelLoadContext,
     sealing::{self},
 };
-use std::path::{Path, PathBuf};
+use std::{
+    path::{Path, PathBuf},
+    sync::Weak,
+};
 
-use anyhow::{bail, Context, Result};
+use anyhow::{anyhow, Context, Result};
 use blindai_common::{BlindAIConfig, LoadModelConfig, ModelFactsConfig};
 use log::*;
 use ring::digest::{self, Digest};
 use uuid::Uuid;
+use weak_table::{weak_value_hash_map, WeakValueHashMap};
 
+#[cfg(not(target_env = "sgx"))]
+use std::fs;
 #[cfg(target_env = "sgx")]
 use std::untrusted::fs;
 
 #[cfg(not(target_env = "sgx"))]
 use std::sync::RwLock;
-
 #[cfg(target_env = "sgx")]
 use std::sync::SgxRwLock as RwLock;
 
@@ -26,10 +31,23 @@ use std::{
 
 use crate::model::{InferModel, TensorFacts, TractModel};
 
+#[derive(Debug)]
+pub enum ModelStoreError {
+    NameCollision,
+    Other(anyhow::Error),
+}
+
+impl From<anyhow::Error> for ModelStoreError {
+    fn from(e: anyhow::Error) -> Self {
+        ModelStoreError::Other(e)
+    }
+}
+
+#[derive(Default)]
 struct InnerModelStore {
     models_by_id: HashMap<String, Arc<InferModel>>,
     models_by_user: HashMap<usize, Arc<InferModel>>, // this should be a multimap
-    onnx_by_hash: HashMap<Vec<u8>, (usize, Arc<TractModel>)>, // this should be a weak map
+    onnx_by_hash: WeakValueHashMap<Vec<u8>, Weak<TractModel>>,
 }
 
 /// This is where model are stored.
@@ -41,11 +59,7 @@ pub struct ModelStore {
 impl ModelStore {
     pub fn new(config: Arc<BlindAIConfig>) -> Self {
         ModelStore {
-            inner: RwLock::new(InnerModelStore {
-                models_by_id: HashMap::new(),
-                models_by_user: HashMap::new(),
-                onnx_by_hash: HashMap::new(),
-            }),
+            inner: RwLock::new(Default::default()),
             config,
         }
     }
@@ -61,7 +75,7 @@ impl ModelStore {
         optim: bool,
         load_context: ModelLoadContext,
         owner_id: Option<usize>,
-    ) -> Result<(String, Digest)> {
+    ) -> Result<(String, Digest), ModelStoreError> {
         let model_id = model_id.unwrap_or_else(|| Uuid::new_v4().to_string());
 
         let model_hash = digest::digest(&digest::SHA256, &model_bytes);
@@ -106,25 +120,11 @@ impl ModelStore {
             if self.config.max_model_store != 0
                 && model_id_currently_store >= self.config.max_model_store
             {
-                let mut first_hash: Vec<u8> = Vec::new();
                 let mut first_id: String = String::new();
                 for key in write_guard.models_by_id.keys().cloned().take(1) {
                     first_id = key;
                 }
-                for key in write_guard.onnx_by_hash.keys().cloned().take(1) {
-                    first_hash = key;
-                }
                 write_guard.models_by_id.remove(&first_id);
-                match write_guard.onnx_by_hash.entry(first_hash) {
-                    Entry::Occupied(mut entry) => {
-                        let (i, _) = entry.get_mut();
-                        *i -= 1;
-                        if *i == 0 {
-                            entry.remove();
-                        }
-                    }
-                    _ => {}
-                }
             }
 
             // HashMap entry api requires only one lookup and should be prefered than .get()
@@ -132,10 +132,9 @@ impl ModelStore {
 
             // deduplication support
             let model = match write_guard.onnx_by_hash.entry(model_hash_vec.clone()) {
-                Entry::Occupied(mut entry) => {
-                    let (num, tract_model) = entry.get_mut();
-                    *num += 1;
-                    info!("Reusing an existing ONNX entry for model. (n = {})", *num);
+                weak_value_hash_map::Entry::Occupied(entry) => {
+                    let tract_model = entry.get_strong();
+                    info!("Reusing an existing ONNX entry for model.");
                     InferModel::from_onnx_loaded(
                         tract_model.clone(),
                         model_id.clone(),
@@ -144,7 +143,7 @@ impl ModelStore {
                         owner_id,
                     )
                 }
-                Entry::Vacant(entry) => {
+                weak_value_hash_map::Entry::Vacant(entry) => {
                     info!("Creating a new ONNX entry for model.");
                     // FIXME(cchudant): this call may take a while to run, we may want to refactor
                     // this so that the lock isn't taken here
@@ -159,7 +158,7 @@ impl ModelStore {
                         load_context,
                         owner_id,
                     )?;
-                    entry.insert((1, inference_model.model.clone()));
+                    entry.insert(inference_model.model.clone());
                     inference_model
                 }
             };
@@ -172,7 +171,7 @@ impl ModelStore {
                         "Name collision: model with name ({}) already exists.",
                         model_id
                     );
-                    bail!("Name collision");
+                    return Err(ModelStoreError::NameCollision)?
                 }
                 Entry::Vacant(entry) => entry.insert(model.clone()),
             };
@@ -183,20 +182,6 @@ impl ModelStore {
                     Entry::Occupied(mut entry) => {
                         let old_model = entry.insert(model);
 
-                        // remove old model!
-                        match write_guard
-                            .onnx_by_hash
-                            .entry(old_model.model_hash().as_ref().to_vec())
-                        {
-                            Entry::Occupied(mut entry) => {
-                                let (i, _) = entry.get_mut();
-                                *i -= 1;
-                                if *i == 0 {
-                                    entry.remove();
-                                }
-                            }
-                            _ => {}
-                        }
                         match write_guard
                             .models_by_id
                             .entry(old_model.model_id().to_string())
@@ -244,20 +229,6 @@ impl ModelStore {
             }
         }
 
-        match write_guard
-            .onnx_by_hash
-            .entry(model.model_hash().as_ref().to_vec())
-        {
-            Entry::Occupied(mut entry) => {
-                let (i, _) = entry.get_mut();
-                *i -= 1;
-                if *i == 0 {
-                    entry.remove();
-                }
-            }
-            _ => {}
-        }
-
         Some(model)
     }
 
@@ -276,7 +247,7 @@ impl ModelStore {
                         model.optim,
                         ModelLoadContext::FromSendModel,
                         model.owner_id,
-                    )?;
+                    ).map_err(|err| anyhow!("Adding model failed: {:?}", err))?;
                     info!("Model {:?} loaded", model.model_id);
                 } else {
                     info!("Unsealing of model {:?} failed", path.file_name());

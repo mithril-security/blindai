@@ -84,6 +84,11 @@ impl Exchange for Exchanger {
         }
 
         let auth_ext = request.extensions().get::<AuthExtension>().cloned();
+        if self.config.send_model_requires_auth
+            && (auth_ext.is_none() || !auth_ext.as_ref().unwrap().is_logged())
+        {
+            return Err(Status::permission_denied("You must be logged"));
+        }
 
         let start_time = Instant::now();
 
@@ -95,7 +100,6 @@ impl Exchange for Exchanger {
         let mut sign = false;
         let mut model_id = None;
         let mut model_name = None;
-        let mut jwt = None;
         let mut client_info = None;
         let mut save_model = false;
 
@@ -116,11 +120,6 @@ impl Exchange for Exchanger {
                 };
                 model_name = if !model_proto.model_name.is_empty() {
                     Some(model_proto.model_name)
-                } else {
-                    None
-                };
-                jwt = if !model_proto.jwt.is_empty() {
-                    Some(model_proto.jwt)
                 } else {
                     None
                 };
@@ -185,7 +184,6 @@ impl Exchange for Exchanger {
                 error!("Error while getting output info: {:?}", err);
                 Status::invalid_argument("Unknown error".to_string())
             })?;
-        info!("{:?}", jwt);
         let (model_id, model_hash) = self
             .model_store
             .add_model(

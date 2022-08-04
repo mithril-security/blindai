@@ -13,6 +13,7 @@ name = "blindai_sgx"
 default = []
 
 [dependencies]
+weak-table = "0.3.2"
 anyhow = "=1.0.45"
 base64 = "0.13.0"
 blindai_common = {path = "../blindai_common"}

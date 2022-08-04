@@ -37,6 +37,7 @@ from functools import wraps
 import getpass
 import logging
 import os
+import pkgutil
 import socket
 import ssl
 import platform
@@ -93,50 +94,185 @@ from blindai.version import __version__ as app_version
 
 from blindai.utils.serialize import deserialize_tensor, serialize_tensor
 
-dt_per_type = {
-    ModelDatumType.F32: 4,
-    ModelDatumType.F64: 8,
-    ModelDatumType.I32: 4,
-    ModelDatumType.I64: 8,
-    ModelDatumType.U32: 4,
-    ModelDatumType.U64: 8,
-    ModelDatumType.U8: 1,
-    ModelDatumType.U16: 2,
-    ModelDatumType.I8: 1,
-    ModelDatumType.I16: 2,
-    ModelDatumType.Bool: 1,
-}
+MITHRIL_SERVICES_URL = os.getenv(
+    "MITHRIL_SERVICES_URL", "api.cloud.mithrilsecurity.io:4000"
+)
+MITHRIL_SERVICES_INSECURE = os.getenv("MITHRIL_SERVICES_INSECURE") == "true"
+if not MITHRIL_SERVICES_INSECURE:
+    MITHRIL_SERVICES_CA = False
+else:
+    MITHRIL_SERVICES_CA = (
+        os.getenv("MITHRIL_SERVICES_CA")
+        if "MITHRIL_SERVICES_CA" in os.environ
+        else pkgutil.get_data(__name__, "tls/mithril_services_ca.pem")
+    )
 
 CONNECTION_TIMEOUT = 10
 
-JWT="not yet defined"
-URL="not yet defined"
+
+def dtype_to_numpy(dtype: ModelDatumType) -> str:
+    translation_map = {
+        ModelDatumType.F32: "float32",
+        ModelDatumType.F64: "float64",
+        ModelDatumType.I32: "int32",
+        ModelDatumType.I64: "int64",
+        ModelDatumType.U32: "uint32",
+        ModelDatumType.U64: "uint64",
+        ModelDatumType.U8: "uint8",
+        ModelDatumType.U16: "uint16",
+        ModelDatumType.I8: "int8",
+        ModelDatumType.I16: "int16",
+        ModelDatumType.Bool: "bool",
+    }
+    if str(dtype) not in translation_map:
+        raise ValueError(f"Numpy does not support datum type {str(dtype)}.")
+    return translation_map[str(dtype)]
 
 
-def is_torch_installed():
-    try:
-        import torch
+def dtype_to_torch(dtype: ModelDatumType) -> str:
+    translation_map = {
+        ModelDatumType.F32: "float32",
+        ModelDatumType.F64: "float64",
+        ModelDatumType.I32: "int32",
+        ModelDatumType.I64: "int64",
+        # ModelDatumType.U32: "uint32",
+        # ModelDatumType.U64: "uint64",
+        ModelDatumType.U8: "uint8",
+        # ModelDatumType.U16: "uint16",
+        ModelDatumType.I8: "int8",
+        ModelDatumType.I16: "int16",
+        ModelDatumType.Bool: "bool",
+    }
+    if str(dtype) not in translation_map:
+        raise ValueError(f"Torch does not support datum type {str(dtype)}.")
+    return translation_map[str(dtype)]
 
-        return True
-    except:
-        return False
+
+def translate_dtype(dtype):
+    if isinstance(dtype, ModelDatumType):
+        return dtype
+
+    elif type(dtype).__module__ == "numpy" and type(dtype).__name__.startswith("dtype"):
+        numpy_dtype_translation = {
+            "float32": ModelDatumType.F32,
+            "float64": ModelDatumType.F64,
+            "int32": ModelDatumType.I32,
+            "int64": ModelDatumType.I64,
+            "uint32": ModelDatumType.U32,
+            "uint64": ModelDatumType.U64,
+            "uint8": ModelDatumType.U8,
+            "uint16": ModelDatumType.U16,
+            "int8": ModelDatumType.I8,
+            "int16": ModelDatumType.I16,
+            "bool": ModelDatumType.Bool,
+        }
+        if str(dtype) not in numpy_dtype_translation:
+            raise ValueError(f"Numpy dtype {str(dtype)} is not supported.")
+        return numpy_dtype_translation[str(dtype)]
+
+    if type(dtype).__module__ == "torch" and type(dtype).__name__ == "dtype":
+        # Torch does not support unsigned ints except u8.
+        torch_dtype_translation = {
+            "torch.float32": ModelDatumType.F32,
+            "torch.float64": ModelDatumType.F64,
+            "torch.int32": ModelDatumType.I32,
+            "torch.int64": ModelDatumType.I64,
+            # "torch.uint32": ModelDatumType.U32,
+            # "torch.uint64": ModelDatumType.U64,
+            "torch.uint8": ModelDatumType.U8,
+            # "torch.uint16": ModelDatumType.U16,
+            "torch.int8": ModelDatumType.I8,
+            "torch.int16": ModelDatumType.I16,
+            "torch.bool": ModelDatumType.Bool,
+        }
+        if str(dtype) not in torch_dtype_translation:
+            raise ValueError(f"Torch dtype {str(dtype)} is not supported.")
+        return torch_dtype_translation[str(dtype)]
+
+    if isinstance(dtype, str):
+        str_dtype_translation = {
+            "float32": ModelDatumType.F32,
+            "f32": ModelDatumType.F32,
+            "float64": ModelDatumType.F64,
+            "f64": ModelDatumType.F64,
+            "int32": ModelDatumType.I32,
+            "i32": ModelDatumType.I32,
+            "int64": ModelDatumType.I64,
+            "i64": ModelDatumType.I64,
+            "uint32": ModelDatumType.U32,
+            "u32": ModelDatumType.U32,
+            "uint64": ModelDatumType.U64,
+            "u64": ModelDatumType.U64,
+            "uint8": ModelDatumType.U8,
+            "u8": ModelDatumType.U8,
+            "uint16": ModelDatumType.U16,
+            "u16": ModelDatumType.U16,
+            "int8": ModelDatumType.I8,
+            "i8": ModelDatumType.I8,
+            "int16": ModelDatumType.I16,
+            "i16": ModelDatumType.I16,
+            "bool": ModelDatumType.Bool,
+        }
+        if dtype.lower() not in str_dtype_translation:
+            raise ValueError(f"Datum type {dtype} is not understood.")
+        return str_dtype_translation[dtype.lower()]
+
+    raise ValueError(
+        f"DatumType instance {type(dtype).__module__}.{type(dtype).__name__} not supported"
+    )
 
 
-def convert_dt(tensor):
-    import torch
+def translate_tensors(tensors, dtypes, shapes):
+    ret = []
 
-    if isinstance(tensor[0], float) or tensor[0][0].dtype == torch.float32:
-        return ModelDatumType.F32
-    elif tensor[0][0].dtype == torch.float64:
-        return ModelDatumType.F64
-    if isinstance(tensor[0], int) or tensor[0][0].dtype == torch.int32:
-        return ModelDatumType.I32
-    if tensor[0][0].dtype == torch.int64:
-        return ModelDatumType.I64
-    if tensor[0][0].dtype == torch.uint8:
-        return ModelDatumType.U8
-    if tensor[0][0].dtype == torch.int16:
-        return ModelDatumType.I16
+    if not isinstance(tensors, list) and not isinstance(tensors[0], list):
+        tensors = [tensors]
+    if dtypes is not None and isinstance(dtypes, list):
+        dtypes = [dtypes]
+    if shapes is not None and isinstance(shapes[0], list):
+        shapes = [shapes]
+
+    for i, tensor in enumerate(tensors):
+        or_dtype = dtypes[i] if dtypes is not None and len(dtypes) > i else None
+        or_shape = shapes[i] if shapes is not None and len(shapes) > i else None
+
+        if type(tensor).__module__ == "torch" and type(tensor).__name__ == "Tensor":
+            dtype = translate_dtype(tensor.dtype)
+            shape = list(tensor.shape)
+            iterable = tensor.flatten()
+
+        elif type(tensor).__module__ == "numpy" and type(tensor).__name__ == "ndarray":
+            dtype = translate_dtype(tensor.dtype)
+            shape = list(tensor.shape)
+            iterable = tensor.flatten()
+
+        else:
+            # Input is flat list.
+            if not isinstance(tensor, list):
+                raise ValueError(
+                    f"Input tensor has an unsupported type: {type(tensor).__module__}.{type(tensor).__name__}"
+                )
+
+            dtype = translate_dtype(or_dtype)
+            shape = list(or_shape)
+            iterable = tensor
+
+        if or_dtype is not None and or_dtype != dtypes:
+            raise ValueError(
+                f"Given tensor has dtype {str(tensor.dtype)}, but {or_dtype} was expected."
+            )
+        if or_shape is not None and not all(
+            (s is None or s == shapes[i] for i, s in enumerate(or_shape))
+        ):
+            raise ValueError(
+                f"Given tensor has shape {list(tensor.shape)}, but {or_shape} was expected."
+            )
+
+        # todo validate tensor content, dtype and shape
+
+        ret.append((iterable, dtype, shape))
+
+    return ret
 
 
 def _validate_quote(
@@ -173,13 +309,23 @@ def _get_input_output_tensors(
 
     inputs = []
     for i, tensor_input in enumerate(tensor_inputs):
+        dtype = (
+            translate_dtype(tensor_input[1]) if tensor_input[1] is not None else None
+        )
         inputs.append(
-            PbTensorInfo(dims=tensor_input[0], datum_type=tensor_input[1], index=i)
+            PbTensorInfo(
+                dims=tensor_input[0],
+                datum_type=translate_dtype(tensor_input[1]),
+                index=i,
+            )
         )
 
     outputs = []
     for i, tensor_output in enumerate(tensor_outputs):
-        outputs.append(PbTensorInfo(datum_type=tensor_output[0], index=i))
+        dtype = (
+            translate_dtype(tensor_output[0]) if tensor_output[0] is not None else None
+        )
+        outputs.append(PbTensorInfo(datum_type=dtype, index=i))
 
     return (inputs, outputs)
 
@@ -307,7 +453,7 @@ class UploadModelResponse(SignedResponse):
         # Input validation
 
         if model_hash != payload.model_hash:
-            raise SignatureError("Invalid returned model_hash")
+            raise SignatureError("Invalid response model_hash")
 
     def _load_payload(self):
         payload = PbPayload.FromString(self.payload).send_model_payload
@@ -337,6 +483,23 @@ class Tensor:
 
     def as_flat(self) -> list:
         return list(deserialize_tensor(self.bytes_data, self.info.datum_type))
+
+    def as_numpy(self):
+        import numpy
+
+        arr = numpy.array([*self.as_flat()], dtype=dtype_to_numpy(self.info.datum_type))
+        arr.shape = self.shape
+        return arr
+
+    def as_torch(self):
+        import torch
+
+        arr = torch.asarray(
+            [*self.as_flat()],
+            dtype=getattr(torch, dtype_to_torch(self.info.datum_type)),
+        )
+        arr.view(self.shape)
+        return arr
 
     @property
     def shape(self) -> tuple:
@@ -444,24 +607,18 @@ class RunModelResponse(SignedResponse):
             except InvalidSignature:
                 raise SignatureError("Invalid signature")
 
-        # Input validation
-        if type(tensors[0]) != list:
-            tensors = [tensors]
-        if type(dtype) != list:
-            dtype = [dtype]
-        if type(shape[0]) != list:
-            shape = [shape]
-
         hash = sha256()
-        for i, tensor in enumerate(tensors):
-            for chunk in serialize_tensor(tensor, dtype[i]):
+        for tensor_iterable, tensor_dtype, _tensor_shape in translate_tensors(
+            tensors, dtype, shape
+        ):
+            for chunk in serialize_tensor(tensor_iterable, tensor_dtype):
                 hash.update(chunk)
 
         if hash.digest() != payload.input_hash:
-            raise SignatureError("Invalid returned input_hash")
+            raise SignatureError("Invalid response input_hash")
 
         if model_id != payload.model_id:
-            raise SignatureError("Invalid returned model_id")
+            raise SignatureError("Invalid response model_id")
 
 
 class DeleteModelResponse:
@@ -496,10 +653,17 @@ class BlindAiConnection(contextlib.AbstractContextManager):
     tensor_inputs: Optional[List[List[Any]]]
     tensor_outputs: Optional[List[ModelDatumType]]
     closed: bool = False
+    _jwt: Optional[str] = None
+
+    def _grpc_call_metadata(self):
+        if self._jwt is not None:
+            return (("accesstoken", self._jwt),)
+        else:
+            return ()
 
     def __init__(
         self,
-        addr: str,
+        addr: Optional[str] = None,
         server_name: str = "blindai-srv",
         policy: Optional[str] = None,
         certificate: Optional[str] = None,
@@ -507,7 +671,7 @@ class BlindAiConnection(contextlib.AbstractContextManager):
         untrusted_port: int = 50052,
         attested_port: int = 50051,
         debug_mode=False,
-        #api_key: str = None
+        api_key: Optional[str] = None,
     ):
         """Connect to the server with the specified parameters.
         You will have to specify here the expected policy (server identity, configuration...)
@@ -541,35 +705,28 @@ class BlindAiConnection(contextlib.AbstractContextManager):
             os.environ["GRPC_TRACE"] = "transport_security,tsi"
             os.environ["GRPC_VERBOSITY"] = "DEBUG"
 
-        """
-/*****************************************************************************************************
- * ***************************************************************************************************
- * BEGINNING gRPC part
- *****************************************************************************************************
-******************************************************************************************************/
+        if addr is None:
+            # Use Mithril Cloud services.
+            if MITHRIL_SERVICES_INSECURE:
+                channel = grpc.insecure_channel(MITHRIL_SERVICES_URL)
+            else:
+                channel = grpc.secure_channel(
+                    MITHRIL_SERVICES_URL,
+                    ssl_channel_credentials(root_certificates=MITHRIL_SERVICES_CA),
+                )
 
-        #open and connect to the gRPC channel we just created
-        channel = grpc.insecure_channel('localhost:8080')
-        #create a stub (client)
-        stub = licensing_pb2_grpc.LicensingServiceStub(channel)
-        api_key_pb = licensing_pb2.GetEnclaveRequest(api_key=api_key)
-        #make the call
-        # response = stub.GetEnclave(api_key_pb)
-        # #print the results
-        # print(response)
-        variable=globals()
-        variable["JWT"]=response.jwt
-        variable["URL"]=response.enclave_url
+            stub = licensing_pb2_grpc.LicensingServiceStub(channel)
+            enclave_request = licensing_pb2.GetEnclaveRequest(api_key=api_key)
 
-/*****************************************************************************************************
- *****************************************************************************************************
- * END gRPC part
- *****************************************************************************************************
-******************************************************************************************************/
-    """        
-        variable=globals()
-        variable["JWT"]="JWT"
-        variable["URL"]="URL"
+            response = stub.GetEnclave(enclave_request)
+            host_ports = response.enclave_url.split(":")
+            ports = host_ports[1].split("/")
+
+            addr = host_ports[0]
+            attested_port = ports[0]
+            untrusted_port = ports[1]
+
+            self._jwt = response.jwt if len(response.jwt) > 0 else None
 
         uname = platform.uname()
         self.client_info = ClientInfo(
@@ -584,7 +741,7 @@ class BlindAiConnection(contextlib.AbstractContextManager):
             user_agent_version=app_version,
         )
 
-        self._connect_server(
+        self._connect_enclave(
             addr,
             server_name,
             policy,
@@ -594,7 +751,7 @@ class BlindAiConnection(contextlib.AbstractContextManager):
             attested_port,
         )
 
-    def _connect_server(
+    def _connect_enclave(
         self,
         addr: str,
         server_name,
@@ -649,7 +806,9 @@ class BlindAiConnection(contextlib.AbstractContextManager):
             )
             stub = AttestationStub(channel)
 
-            response = stub.GetServerInfo(server_info_request())
+            response = stub.GetServerInfo(
+                server_info_request(), metadata=self._grpc_call_metadata()
+            )
             self.server_version = response.version
             if not supported_server_version(response.version):
                 raise VersionError(
@@ -660,11 +819,15 @@ class BlindAiConnection(contextlib.AbstractContextManager):
                 logging.warning(
                     "Attestation process is bypassed: running without requesting and checking attestation"
                 )
-                response = stub.GetCertificate(certificate_request())
+                response = stub.GetCertificate(
+                    certificate_request(), metadata=self._grpc_call_metadata()
+                )
                 server_cert = encode_certificate(response.enclave_tls_certificate)
 
             else:
-                self.attestation = stub.GetSgxQuoteWithCollateral(quote_request())
+                self.attestation = stub.GetSgxQuoteWithCollateral(
+                    quote_request(), metadata=self._grpc_call_metadata()
+                )
                 claims = verify_dcap_attestation(
                     self.attestation.quote,
                     self.attestation.collateral,
@@ -756,10 +919,10 @@ class BlindAiConnection(contextlib.AbstractContextManager):
                         tensor_inputs=inputs,
                         tensor_outputs=outputs,
                         save_model=save_model,
-                        jwt=JWT
                     )
                     for chunk in create_byte_chunk(data)
-                )
+                ),
+                metadata=self._grpc_call_metadata(),
             )
 
         except RpcError as rpc_error:
@@ -806,38 +969,8 @@ class BlindAiConnection(contextlib.AbstractContextManager):
         Returns:
             RunModelResponse: The response object.
         """
-        if is_torch_installed():
-            import torch
 
         try:
-            if (
-                type(tensors[0]) != list
-                and isinstance(tensors[0], torch.Tensor) == False
-            ):
-                tensors = [tensors]
-                if type(dtype) != list:
-                    dtype = [dtype]
-                if type(shape[0]) != list:
-                    shape = [shape]
-
-            elif isinstance(tensors, torch.Tensor):
-                dtype = [convert_dt(tensors)]
-                shape = [tensors.shape]
-                tensors = torch.flatten(tensors, start_dim=1)
-
-            elif isinstance(tensors, list) and isinstance(tensors[0], torch.Tensor):
-                dtype = []
-                shape = []
-                for i in range(len(tensors)):
-                    dtype.append(convert_dt(tensors[i]))
-                    shape.append(tensors[i].shape)
-                    tensors[i] = torch.flatten(tensors[i], start_dim=1)[0]
-
-            """
-            for i, tensor in enumerate(tensors):
-                print(len(tensor))
-                print(tensor) """
-
             response = self._stub.RunModel(
                 (
                     # this will create an iterator of PbRunModelRequest, that will return
@@ -848,8 +981,8 @@ class BlindAiConnection(contextlib.AbstractContextManager):
                         input_tensors=[
                             PbTensorData(
                                 info=PbTensorInfo(
-                                    dims=shape[i],
-                                    datum_type=dtype[i],
+                                    dims=tensor_shape,
+                                    datum_type=tensor_dtype,
                                     index=i,  # only send the ith tensor for this call
                                 ),
                                 bytes_data=chunk,
@@ -857,9 +990,12 @@ class BlindAiConnection(contextlib.AbstractContextManager):
                         ],
                         sign=sign,
                     )
-                    for i, tensor in enumerate(tensors)
-                    for chunk in serialize_tensor(tensor, dtype[i])
-                )
+                    for i, (tensor_iterable, tensor_dtype, tensor_shape) in enumerate(
+                        translate_tensors(tensors, dtype, shape)
+                    )
+                    for chunk in serialize_tensor(tensor_iterable, tensor_dtype)
+                ),
+                metadata=self._grpc_call_metadata(),
             )
 
         except RpcError as rpc_error:
@@ -892,7 +1028,10 @@ class BlindAiConnection(contextlib.AbstractContextManager):
             DeleteModelResponse: The response object.
         """
         try:
-            self._stub.DeleteModel(PbDeleteModelRequest(model_id=model_id))
+            self._stub.DeleteModel(
+                PbDeleteModelRequest(model_id=model_id),
+                metadata=self._grpc_call_metadata(),
+            )
 
         except RpcError as rpc_error:
             raise ConnectionError(check_rpc_exception(rpc_error))

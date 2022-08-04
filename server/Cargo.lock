@@ -148,7 +148,7 @@ checksum = "bef38d45163c2f1dde094a7dfd33ccf595c92905c8f8f4fdc18d06fb1037718a"
 
 [[package]]
 name = "blindai_app"
-version = "0.4.0"
+version = "0.5.0"
 dependencies = [
  "anyhow",
  "base16",
@@ -183,7 +183,7 @@ dependencies = [
 
 [[package]]
 name = "blindai_common"
-version = "0.4.0"
+version = "0.5.0"
 dependencies = [
  "anyhow",
  "http",
@@ -196,7 +196,7 @@ dependencies = [
 
 [[package]]
 name = "blindai_rpc"
-version = "0.4.0"
+version = "0.5.0"
 dependencies = [
  "tokio",
  "tokio-stream",
@@ -206,7 +206,7 @@ dependencies = [
 
 [[package]]
 name = "blindai_sgx"
-version = "0.4.0"
+version = "0.5.0"
 dependencies = [
  "anyhow",
  "base64",
@@ -248,12 +248,13 @@ dependencies = [
  "tract-hir",
  "tract-onnx",
  "uuid",
+ "weak-table",
  "x509-parser",
 ]
 
 [[package]]
 name = "blindai_sgx_attestation"
-version = "0.4.0"
+version = "0.5.0"
 dependencies = [
  "log",
  "sgx_types",
@@ -3031,6 +3032,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0237232789cf037d5480773fe568aac745bfe2afbc11a863e97901780a6b47cc"
 
 [[package]]
+name = "weak-table"
+version = "0.3.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "323f4da9523e9a669e1eaf9c6e763892769b1d38c623913647bfdc1532fe4549"
+
+[[package]]
 name = "web-sys"
 version = "0.3.55"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3187,6 +3194,11 @@ dependencies = [
 ]
 
 [[patch.unused]]
+name = "futures-test"
+version = "0.3.21"
+source = "git+https://github.com/mithril-security/futures-sgx?tag=0.3.21-sgx#147db1fd9d7005685ac86626ca9077a6f531cbc2"
+
+[[patch.unused]]
 name = "sgx_alloc"
 version = "1.1.4"
 
@@ -3253,8 +3265,3 @@ version = "1.1.4"
 [[patch.unused]]
 name = "sgx_unwind"
 version = "1.1.4"
-
-[[patch.unused]]
-name = "futures-test"
-version = "0.3.21"
-source = "git+https://github.com/mithril-security/futures-sgx?tag=0.3.21-sgx#147db1fd9d7005685ac86626ca9077a6f531cbc2"
