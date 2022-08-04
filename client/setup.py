@@ -202,23 +202,22 @@ setuptools.setup(
     zip_safe=False,
     python_requires=">=3.6.8",
     install_requires=[
-        "cryptography>=35.0.0",
-        "toml",
+        "cryptography==37.0.4",
+        "toml==0.10.2",
         "grpcio==1.47",
-        "grpcio-tools==1.47",
-        "bitstring",
-        "cbor2",
-        "typing-extensions",
+        "bitstring==3.1.9",
+        "cbor2==5.4.3",
+        "typing-extensions==4.3.0",
     ],
     extras_require={
         "dev": [
-            "pybind11",
+            "pybind11==2.10.0",
             "setuptools",
             "wheel",
             "check-wheel-contents",
             "auditwheel",
-            "grpcio-tools==1.44",
-            "grpcio==1.44",
+            "grpcio-tools==1.47",
+            "grpcio==1.47",
         ]
     },
     classifiers=[
