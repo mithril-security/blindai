@@ -1,1 +1,80 @@
-../../server/proto/untrusted.proto
+/* Copyright 2022 Mithril Security. All rights reserved.
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*   http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License. */
+
+syntax = "proto3";
+package untrusted;
+
+service Attestation {
+    // Get JWT Token from Azure Attestation
+    rpc GetCertificate(GetCertificateRequest) returns (GetCertificateReply);
+    rpc GetToken (GetTokenRequest) returns (GetTokenReply);
+    rpc GetSgxQuoteWithCollateral(GetSgxQuoteWithCollateralRequest) returns (GetSgxQuoteWithCollateralReply);
+    rpc GetServerInfo(GetServerInfoRequest) returns (GetServerInfoReply);
+}
+
+message GetCertificateRequest {
+}
+
+message GetCertificateReply {
+    // Enclave certificate in DER format
+    bytes enclave_tls_certificate = 1;
+}
+
+message GetTokenRequest {
+}
+
+message GetSgxQuoteWithCollateralRequest {
+}
+
+message GetTokenReply {
+    // JTW token
+    string token = 1;
+}
+
+message GetSgxQuoteWithCollateralReply {
+    // Raw binary SGX Quote as described in https://download.01.org/intel-sgx/latest/dcap-latest/linux/docs/Intel_SGX_ECDSA_QuoteLibReference_DCAP_API.pdf
+    bytes quote = 1;
+    SgxCollateral collateral = 2;
+    // Enclave certificate in DER format
+    bytes enclave_held_data = 3;
+}
+
+message SgxCollateral{
+    uint32 version = 1;
+    // pck_crl_issuer_chain is currently unused by the client
+    // Intel sgx_qve_verify_quote function also doesn't use it for anything besides 
+    // some check on issuing/expiration dates
+    string pck_crl_issuer_chain = 2;
+    string root_ca_crl = 3;
+    string pck_crl = 4; 
+    string tcb_info_issuer_chain = 5;
+    string tcb_info = 6;
+    // qe_identity_issuer_chain is unused by the client
+    // Intel sgx_qve_verify_quote function uses it 
+    // but the C++ verification app use the tcbSigningCert (tcb_info_issuer_chain) 
+    // for both TCB verification and QE identity check
+    // This might be because Intel use the same certificate chain for both
+    string qe_identity_issuer_chain = 7;
+    string qe_identity = 8;
+    string pck_certificate = 9;
+    string pck_signing_chain = 10;
+}
+
+message GetServerInfoRequest {
+
+}
+
+message GetServerInfoReply {
+    string version = 1;
+} 
