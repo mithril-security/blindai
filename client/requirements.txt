@@ -13,5 +13,4 @@ check-wheel-contents
 auditwheel
 cibuildwheel
 pre-commit
-patchelf
 coverage
