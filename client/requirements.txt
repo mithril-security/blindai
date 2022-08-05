@@ -9,6 +9,7 @@ cbor2==5.4.3
 pybind11==2.10.0
 setuptools
 wheel
+patchelf
 check-wheel-contents
 auditwheel
 cibuildwheel
