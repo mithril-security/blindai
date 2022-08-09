@@ -14,4 +14,3 @@ cibuildwheel
 pre-commit
 patchelf
 coverage
-grpcio-tools
