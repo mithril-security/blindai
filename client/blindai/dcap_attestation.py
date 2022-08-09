@@ -135,6 +135,17 @@ class Policy:
     attributes_mask_xfrm: bytes
     allow_debug: bool
 
+    def from_str(s: str) -> Self:
+        """Load a policy from a file.
+
+        Args:
+            s (str): The content of the policy.
+
+        Returns:
+            Policy: The policy.
+        """
+        return Policy.from_dict(toml.loads(s))
+
     def from_file(path: str) -> Self:
         """Load a policy from a file.
 
@@ -144,26 +155,34 @@ class Policy:
         Returns:
             Policy: The policy.
         """
-        policy = toml.load(path)
+        return Policy.from_dict(toml.load(path))
+
+    def from_dict(obj: dict) -> Self:
+        """Load a policy from a dict.
+
+        Args:
+            obj (dict): The dict.
+
+        Returns:
+            Policy: The policy.
+        """
         return Policy(
-            mr_enclave=policy["mr_enclave"],
-            misc_mask=int(policy["misc_mask_hex"], 16).to_bytes(4, byteorder="little"),
-            misc_select=int(policy["misc_select_hex"], 16).to_bytes(
-                4, byteorder="little"
-            ),
-            attributes_flags=int(policy["attributes_flags_hex"], 16).to_bytes(
+            mr_enclave=obj["mr_enclave"],
+            misc_mask=int(obj["misc_mask_hex"], 16).to_bytes(4, byteorder="little"),
+            misc_select=int(obj["misc_select_hex"], 16).to_bytes(4, byteorder="little"),
+            attributes_flags=int(obj["attributes_flags_hex"], 16).to_bytes(
                 8, byteorder="little"
             ),
-            attributes_xfrm=int(policy["attributes_xfrm_hex"], 16).to_bytes(
+            attributes_xfrm=int(obj["attributes_xfrm_hex"], 16).to_bytes(
                 8, byteorder="little"
             ),
-            attributes_mask_flags=int(policy["attributes_mask_flags_hex"], 16).to_bytes(
+            attributes_mask_flags=int(obj["attributes_mask_flags_hex"], 16).to_bytes(
                 8, byteorder="little"
             ),
-            attributes_mask_xfrm=int(policy["attributes_mask_xfrm_hex"], 16).to_bytes(
+            attributes_mask_xfrm=int(obj["attributes_mask_xfrm_hex"], 16).to_bytes(
                 8, byteorder="little"
             ),
-            allow_debug=policy["allow_debug"],
+            allow_debug=obj["allow_debug"],
         )
 
 

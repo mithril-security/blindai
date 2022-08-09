@@ -99,13 +99,24 @@ MITHRIL_SERVICES_URL = os.getenv(
 )
 MITHRIL_SERVICES_INSECURE = os.getenv("MITHRIL_SERVICES_INSECURE") == "true"
 if not MITHRIL_SERVICES_INSECURE:
-    MITHRIL_SERVICES_CA = False
+    if "MITHRIL_SERVICES_CA" in os.environ:
+        with os.open(os.getenv("MITHRIL_SERVICES_CA")) as f:
+            MITHRIL_SERVICES_CA = f.read()
+    else:
+        MITHRIL_SERVICES_CA = pkgutil.get_data(__name__, "tls/mithril_services_ca.pem")
 else:
-    MITHRIL_SERVICES_CA = (
-        os.getenv("MITHRIL_SERVICES_CA")
-        if "MITHRIL_SERVICES_CA" in os.environ
-        else pkgutil.get_data(__name__, "tls/mithril_services_ca.pem")
-    )
+    MITHRIL_SERVICES_CA = False
+
+if not MITHRIL_SERVICES_INSECURE:
+    if "MITHRIL_SERVICES_POLICY" in os.environ:
+        with os.open(os.getenv("MITHRIL_SERVICES_POLICY")) as f:
+            MITHRIL_SERVICES_POLICY = f.read()
+    else:
+        MITHRIL_SERVICES_POLICY = pkgutil.get_data(
+            __name__, "tls/mithril_services_policy.toml"
+        ).decode("utf-8")
+else:
+    MITHRIL_SERVICES_POLICY = False
 
 CONNECTION_TIMEOUT = 10
 
@@ -124,9 +135,9 @@ def dtype_to_numpy(dtype: ModelDatumType) -> str:
         ModelDatumType.I16: "int16",
         ModelDatumType.Bool: "bool",
     }
-    if str(dtype) not in translation_map:
-        raise ValueError(f"Numpy does not support datum type {str(dtype)}.")
-    return translation_map[str(dtype)]
+    if dtype not in translation_map:
+        raise ValueError(f"Numpy does not support datum type {dtype}.")
+    return translation_map[dtype]
 
 
 def dtype_to_torch(dtype: ModelDatumType) -> str:
@@ -143,9 +154,9 @@ def dtype_to_torch(dtype: ModelDatumType) -> str:
         ModelDatumType.I16: "int16",
         ModelDatumType.Bool: "bool",
     }
-    if str(dtype) not in translation_map:
-        raise ValueError(f"Torch does not support datum type {str(dtype)}.")
-    return translation_map[str(dtype)]
+    if dtype not in translation_map:
+        raise ValueError(f"Torch does not support datum type {dtype}.")
+    return translation_map[dtype]
 
 
 def translate_dtype(dtype):
@@ -229,7 +240,9 @@ def translate_tensors(tensors, dtypes, shapes):
         tensors = [tensors]
     if dtypes is not None and isinstance(dtypes, list):
         dtypes = [dtypes]
-    if shapes is not None and isinstance(shapes[0], list):
+    if shapes is not None and (
+        not isinstance(shapes, list) or not isinstance(shapes[0], list)
+    ):
         shapes = [shapes]
 
     for i, tensor in enumerate(tensors):
@@ -646,7 +659,6 @@ class BlindAiConnection(contextlib.AbstractContextManager):
     _stub: Optional[ExchangeStub] = None
     enclave_signing_key: Optional[bytes] = None
     simulation_mode: bool = False
-    _disable_untrusted_server_cert_check: bool = False
     attestation: Optional[GetSgxQuoteWithCollateralReply] = None
     server_version: Optional[str] = None
     client_info: ClientInfo
@@ -722,11 +734,18 @@ class BlindAiConnection(contextlib.AbstractContextManager):
             host_ports = response.enclave_url.split(":")
             ports = host_ports[1].split("/")
 
+            policy = Policy.from_str(MITHRIL_SERVICES_POLICY)
+
             addr = host_ports[0]
             attested_port = ports[0]
             untrusted_port = ports[1]
 
             self._jwt = response.jwt if len(response.jwt) > 0 else None
+
+            logging.info("Successfully connected to Mithril Security Cloud")
+            logging.debug(
+                f"Selected enclave {response.enclave_url} & has jwt? {len(response.jwt) > 0}"
+            )
 
         uname = platform.uname()
         self.client_info = ClientInfo(
@@ -749,6 +768,7 @@ class BlindAiConnection(contextlib.AbstractContextManager):
             simulation,
             untrusted_port,
             attested_port,
+            use_mithril_services=True,
         )
 
     def _connect_enclave(
@@ -760,9 +780,9 @@ class BlindAiConnection(contextlib.AbstractContextManager):
         simulation,
         untrusted_port,
         attested_port,
+        use_mithril_services: bool = False,
     ):
         self.simulation_mode = simulation
-        self._disable_untrusted_server_cert_check = simulation
 
         addr = strip_https(addr)
 
@@ -770,11 +790,14 @@ class BlindAiConnection(contextlib.AbstractContextManager):
         attested_client_to_enclave = addr + ":" + str(attested_port)
 
         if not self.simulation_mode:
-            self.policy = Policy.from_file(policy)
+            self.policy = (
+                policy if isinstance(policy, Policy) else Policy.from_file(policy)
+            )
 
-        if self._disable_untrusted_server_cert_check:
+        if simulation:
             logging.warning("Untrusted server certificate check bypassed")
 
+        if simulation or use_mithril_services:
             try:
                 socket.setdefaulttimeout(CONNECTION_TIMEOUT)
                 untrusted_server_cert = ssl.get_server_certificate(
@@ -838,10 +861,8 @@ class BlindAiConnection(contextlib.AbstractContextManager):
                 server_cert = claims.get_server_cert()
 
                 logging.info("Quote verification passed")
-                logging.info(
-                    f"Certificate from attestation process\n {server_cert.decode('ascii')}"
-                )
-                logging.info("MREnclave\n" + claims.sgx_mrenclave)
+                logging.info(f"Certificate from attestation process")
+                logging.info("MREnclave " + claims.sgx_mrenclave)
 
             channel.close()
             self.enclave_signing_key = get_enclave_signing_key(server_cert)
