@@ -890,7 +890,7 @@ class BlindAiConnection(contextlib.AbstractContextManager):
         dtype_out: ModelDatumType = None,
         sign: bool = False,
         model_name: Optional[str] = None,
-        save_model: bool = False,
+        save_model: bool = True,
         model_id: Optional[str] = None,
     ) -> UploadModelResponse:
         """Upload an inference model to the server.

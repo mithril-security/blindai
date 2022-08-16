@@ -150,7 +150,7 @@ async fn main(telemetry_platform: String, telemetry_uid: String) -> Result<()> {
     let model_store: Arc<ModelStore> = ModelStore::new(config.clone()).into();
 
     model_store
-        .startup_unseal()
+        .check_seal_file_exist()
         .context("Unsealing models at startup")?;
     model_store
         .load_config_models()

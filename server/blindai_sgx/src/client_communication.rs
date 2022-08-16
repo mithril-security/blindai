@@ -350,6 +350,11 @@ impl Exchange for Exchanger {
             return Err(Status::invalid_argument("Model doesn't exist"));
         }
 
+        //if the model isn't on the server we try to load it from the disk
+        if !self.model_store.in_the_server(model_id.clone()){
+            let _saved = self.model_store.unseal(model_id.clone());
+        }
+
         let res = self.model_store.use_model(&model_id, |model| {
             (
                 model.run_inference(input_tensors.into()),
