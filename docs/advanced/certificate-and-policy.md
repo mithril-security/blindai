@@ -1,6 +1,6 @@
 # Certificate and policy
 
-### What are host\_server.pem and policy.toml?
+### What are host_server.pem and policy.toml?
 
 The `host_server.pem` file is the https certificate for the attestation server. This is used to securely communicate with the untrusted attestation server, which is used to get the SGX quote. In production, you should generate this certificate yourself and put it in inference server. To do this, read the next sections.
 

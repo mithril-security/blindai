@@ -1,13 +1,40 @@
-site_name: blindai
+site_name: BlindAI
 
 site_url: https://www.mithrilsecurity.io/
 
 repo_url: https://github.com/mithril-security/blindai
 
 theme:
-  name: "readthedocs"
-  prev_next_buttons_location: both
-  custom_dir: docs/theme_customization/
+  name: material
+  custom_dir: docs/material_theme_customization
+  features:
+    - navigation.instant
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.top
+    - search.highlight
+  logo: assets/logo.png
+  favicon: assets/logo.png
+  palette:
+    - scheme: slate
+      toggle:
+        icon: material/weather-sunny
+    - scheme: default
+      toggle:
+        icon: material/weather-night
+
+extra:
+  homepage: https://mithrilsecurity.io
+
+extra_css:
+  - stylesheets/extra.css
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
 
 plugins:
 - search
@@ -19,9 +46,7 @@ nav:
   - 'getting-started/cloud-deployment.md'
   - 'getting-started/deploy-on-hardware.md'
   - 'getting-started/telemetry.md'
-- 'Resources':
-  - 'Client API reference': 'resources/blindai/index.html'
-  - 'resources/examples.md'
+- 'Client API reference': 'resources/blindai/client.html'
 - 'Advanced':
   - 'advanced/certificate-and-policy.md'
   - 'advanced/hardware_server.md'
