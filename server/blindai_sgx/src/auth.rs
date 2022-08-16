@@ -50,7 +50,8 @@ impl AuthExtension {
 
     #[allow(unused)]
     pub fn require_logged(&self) -> Result<&JwtClaims, Status> {
-        self.claims.as_ref()
+        self.claims
+            .as_ref()
             .ok_or_else(|| Status::unauthenticated("You are not authenticated"))
     }
 
@@ -59,7 +60,8 @@ impl AuthExtension {
     }
 }
 
-/// This tonic interceptor will extend the request with `AuthExtension` as an extension.
+/// This tonic interceptor will extend the request with `AuthExtension` as an
+/// extension.
 pub fn auth_interceptor(mut req: Request<()>) -> Result<Request<()>, Status> {
     let (policy, key) = if let Some(p) = JWT_POLICY.get() {
         p

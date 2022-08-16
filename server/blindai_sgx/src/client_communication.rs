@@ -351,7 +351,7 @@ impl Exchange for Exchanger {
         }
 
         //if the model isn't on the server we try to load it from the disk
-        if !self.model_store.in_the_server(model_id.clone()){
+        if !self.model_store.in_the_server(model_id.clone()) {
             let _saved = self.model_store.unseal(model_id.clone());
         }
 

@@ -171,7 +171,7 @@ impl ModelStore {
                         "Name collision: model with name ({}) already exists.",
                         model_id
                     );
-                    return Err(ModelStoreError::NameCollision)?
+                    return Err(ModelStoreError::NameCollision)?;
                 }
                 Entry::Vacant(entry) => entry.insert(model.clone()),
             };
@@ -202,47 +202,46 @@ impl ModelStore {
         Ok((model_id, model_hash))
     }
 
-        // Check if model is in the already in the server or no
-        pub fn in_the_server(&self, id_to_fetch: String) -> bool
-        {
-            let read_guard = self.inner.read().unwrap();
-    
-            let find =match read_guard.models_by_id.get(&id_to_fetch.to_string()) {
-                Some(_model) => true,
-                None => false,
-            };
-    
-            find
-        }
-    
-    
-           //Unseal function that unseal the model if we find it in the seal model, and return true or false if
-        //we find it.
-        pub fn unseal(&self, id_to_fetch: String) -> Result<()> {
-            // take a read lock
-                    if let Ok(paths) = fs::read_dir(&self.config.models_path) {
-                        for path in paths {
-                            let path = path?;
-                            if let Ok(model) = sealing::unseal(path.path().as_path()) {
-                                if id_to_fetch == model.model_id.clone() {
-                                        self.add_model(
-                                        &model.model_bytes,
-                                        model.model_name,
-                                        Some(model.model_id.clone()),
-                                        &model.input_facts,
-                                        &model.output_facts,
-                                        false,
-                                        model.optim,
-                                        ModelLoadContext::FromSendModel,
-                                        model.owner_id,
-                                    ).map_err(|err| anyhow!("Adding model failed: {:?}", err))?;
-                                    info!("Model {:?} loaded", model.model_id);
-                                }
-                            }
-                        }
+    // Check if model is in the already in the server or no
+    pub fn in_the_server(&self, id_to_fetch: String) -> bool {
+        let read_guard = self.inner.read().unwrap();
+
+        let find = match read_guard.models_by_id.get(&id_to_fetch.to_string()) {
+            Some(_model) => true,
+            None => false,
+        };
+
+        find
+    }
+
+    //Unseal function that unseal the model if we find it in the seal model, and
+    // return true or false if we find it.
+    pub fn unseal(&self, id_to_fetch: String) -> Result<()> {
+        // take a read lock
+        if let Ok(paths) = fs::read_dir(&self.config.models_path) {
+            for path in paths {
+                let path = path?;
+                if let Ok(model) = sealing::unseal(path.path().as_path()) {
+                    if id_to_fetch == model.model_id.clone() {
+                        self.add_model(
+                            &model.model_bytes,
+                            model.model_name,
+                            Some(model.model_id.clone()),
+                            &model.input_facts,
+                            &model.output_facts,
+                            false,
+                            model.optim,
+                            ModelLoadContext::FromSendModel,
+                            model.owner_id,
+                        )
+                        .map_err(|err| anyhow!("Adding model failed: {:?}", err))?;
+                        info!("Model {:?} loaded", model.model_id);
                     }
-                Ok(())
+                }
             }
+        }
+        Ok(())
+    }
 
     pub fn use_model<U>(&self, model_id: &str, fun: impl FnOnce(&InferModel) -> U) -> Option<U> {
         // take a read lock

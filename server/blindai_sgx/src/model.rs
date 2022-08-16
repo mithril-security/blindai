@@ -12,9 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::path::Path;
-use std::str::FromStr;
-use std::{borrow::Cow, convert::TryFrom, vec::Vec};
+use std::{borrow::Cow, convert::TryFrom, path::Path, str::FromStr, vec::Vec};
 
 use anyhow::{anyhow, bail, Error, Result};
 use core::hash::Hash;
@@ -22,8 +20,7 @@ use log::*;
 use num_derive::FromPrimitive;
 use ring::digest::Digest;
 use serde::{Deserialize, Serialize};
-use tract_onnx::prelude::*;
-use tract_onnx::tract_hir::infer::InferenceOp;
+use tract_onnx::{prelude::*, tract_hir::infer::InferenceOp};
 
 pub use tract_onnx::prelude::DatumType as TractDatumType;
 

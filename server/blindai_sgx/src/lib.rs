@@ -42,7 +42,7 @@ use std::untrusted::fs;
 #[cfg(not(target_env = "sgx"))]
 use std::fs;
 
-use anyhow::{Context, Result, Error};
+use anyhow::{Context, Error, Result};
 
 use crate::client_communication::{secured_exchange::exchange_server::ExchangeServer, Exchanger};
 
@@ -54,6 +54,7 @@ use untrusted::MyAttestation;
 
 use identity::MyIdentity;
 
+mod auth;
 mod client_communication;
 mod dcap_quote_provider;
 mod identity;
@@ -62,7 +63,6 @@ mod model_store;
 mod sealing;
 mod telemetry;
 mod untrusted;
-mod auth;
 
 extern crate sgx_types;
 
@@ -161,13 +161,16 @@ async fn main(telemetry_platform: String, telemetry_uid: String) -> Result<()> {
         my_identity.clone(),
         config.max_model_size,
         config.max_input_size,
-        config.clone()
+        config.clone(),
     );
 
     let server_future = Server::builder()
         .tls_config(ServerTlsConfig::new().identity((&enclave_identity).into()))?
         .max_frame_size(Some(65536))
-        .add_service(ExchangeServer::with_interceptor(exchanger, auth::auth_interceptor))
+        .add_service(ExchangeServer::with_interceptor(
+            exchanger,
+            auth::auth_interceptor,
+        ))
         .serve(config.client_to_enclave_attested_socket()?);
 
     info!(
