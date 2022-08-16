@@ -1,48 +1,35 @@
----
-description: >-
-  Setup build dependencies and dev environment for building and working on
-  BlindAI
----
-
 # Setting up your dev environment
 
-## Using Docker 🐳
+## Using remote container extension on vs-code 🐳
 
-This is by far the **easiest** method to get started, since you don't have to deal with installing the Intel drivers. Also, the Intel SGX drivers and SGX SDK are not officially supported in some distributions. The Docker image provides a clean and easy way to have a working development environment for any OS that supports Docker.
+Clone the repo and open it in vs-code. If you do not have the remote container extension, vs-code should prompt you to install it. 
 
-We directly provide a docker image that has everything you need to build and work on BlindAI server. To use it, clone the repository and run:
+Open the green menu at the bottom-left of the vs-code 
 
-```bash
-DOCKER_BUILDKIT=1 docker build \
-  -f ./server/docker/build.dockerfile \
-  -t blindai-dev-env \
-  --target base-build \
-  ./server
+![](../assets/Screenshot-vscode.png)
+
+Choose: "Open folder in container". It will build for you the image described in [this Dockerfile](https://github.com/mithril-security/blindai/blob/master/server/docker/build.dockerfile) with the dev-env target. It installs Ubuntu18-04 and all the dependencies and drivers the project needs as well as the Rust analyzer, python-intellisense and jupyter-notebook vs-code extensions.
+
+To get started on the project you should create a python virtual environment like this :
+```
+virtualenv ~/python3.9-dev-env
+source ~/python3.9-dev-env/bin/activate
 ```
 
-Then, to start it:
-
-```bash
-docker create -it \
-  --name blindai-dev-env \
-  -p 50051:50051 \
-  -p 50052:50052 \
-  --volume $(pwd):/root/blindai \
-  blindai-dev-env \
-  /bin/bash
+Then you can install the python client sdk in editable mode with :
+```
+cd client
+python setup.py install
+pip install -e .
 ```
 
-You can then use Visual Studio Code to directly work in that container using the [Remote - Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) extension. Once installed, you wil have acces to this Remote tab. Use it to launch vscode in the `blindai-dev-env` container you just created.
-
-![](../assets/Screenshot_20220408_131048.png)
-
-Then open the `/root/blindai` folder, and you're good to go!
-
-![](../assets/Screenshot_20220408_131940.png)
-
-You probably also want to install the Rust Analyzer extension in the docker container. To do that, use the extensions menu, find Rust Analyzer and click "Install in container".
-
-![](../assets/Screenshot_20220408_131810.png)
+And check that everything is working fine by running the integration tests :
+```
+export BLINDAI_TEST_NO_HW=1
+cd ../tests
+pip install -r requirements.txt
+python -m unittest .
+```
 
 ## Without Docker
 
@@ -55,6 +42,4 @@ If you don't want to use docker, you will need to install the following:
 
 You can find the [installation guides](https://download.01.org/intel-sgx/sgx-linux/2.9/docs/) for Intel SGX software on the 01.org website.
 
-
 Note: if you are running on a machine without SGX support, you will need the simulation versions of the Intel PSW and SDK.
-
