@@ -47,9 +47,7 @@ class TestCovidNetBase:
 
             response = client.run_model(
                 upload_response.model_id,
-                flattened_img,
-                dtype=ModelDatumType.F32,
-                shape=(1, 480, 480, 3),
+                img,
                 sign=True,
             )
 
@@ -93,7 +91,7 @@ class TestCovidNetBase:
             for i in range(5):
                 response = client.run_model(
                     models[i],
-                    flattened_img,
+                    img,
                     dtype=ModelDatumType.F32,
                     shape=(1, 480, 480, 3),
                 )
@@ -143,7 +141,7 @@ class TestCovidNetBase:
         ) as client:
             response = client.run_model(
                 upload_response.model_id,
-                flattened_img,
+                img,
                 dtype=ModelDatumType.F32,
                 shape=(1, 480, 480, 3),
                 sign=True,
@@ -183,7 +181,7 @@ class TestCovidNetBase:
 
             response = client.run_model(
                 "Salut",
-                flattened_img,
+                img,
                 dtype=ModelDatumType.F32,
                 shape=(1, 480, 480, 3),
                 sign=True,
@@ -220,7 +218,7 @@ class TestCovidNetBase:
                 sign=True,
             )
 
-            inputs = flattened_img
+            inputs = img
 
             if blindai.client.is_torch_installed():
                 import torch
@@ -261,7 +259,7 @@ class TestCovidNetBase:
                 sign=True,
             )
 
-            inputs = flattened_img
+            inputs = img
             test = []
 
             if blindai.client.is_torch_installed():
@@ -293,11 +291,11 @@ class TestCovidNetHW(TestCovidNetBase, unittest.TestCase):
     simulation = False
 
 
-img, flattened_img = None, None
+img = None
 
 
 def setUpModule():
-    global flattened_img, img
+    global img
     if os.getenv("BLINDAI_TEST_SKIP_COVIDNET") is not None:
         return
     launch_server()
@@ -326,8 +324,7 @@ def setUpModule():
     img = img.astype("float32") / 255.0
     img = img[np.newaxis, :, :, :]
 
-    flattened_img = img.flatten().tolist()
-    return flattened_img
+    return img
 
 
 if __name__ == "__main__":

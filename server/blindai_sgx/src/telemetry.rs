@@ -193,7 +193,7 @@ pub fn setup(platform: String, uid: String) -> anyhow::Result<()> {
                     events: &events,
                 };
 
-                if !events.is_empty() {
+                /*if !events.is_empty() {
                     let response = reqwest::Client::new()
                         .post("https://api2.amplitude.com/2/httpapi")
                         .timeout(Duration::from_secs(60))
@@ -204,9 +204,22 @@ pub fn setup(platform: String, uid: String) -> anyhow::Result<()> {
                         debug!("Cannot contact telemetry server: {}", e);
                     }
                 }
-            }
+            }*/
+            //We send using the server, the differents event in the db
+            if !events.is_empty() {
+                let response = reqwest::Client::new()
+                    .post("http://telemetry.mithrilsecurity.io:80")
+                    .timeout(Duration::from_secs(60))
+                    .json(&events)
+                    .send()
+                    .await;
+                if let Err(e) = response {
+                    debug!("Cannot contact telemetry server: {}", e);
+                }
+            };
+        }
 
-            tokio::time::sleep(Duration::from_secs(2)).await;
+            tokio::time::sleep(Duration::from_secs(1)).await;
         }
     });
 

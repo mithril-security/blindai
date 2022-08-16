@@ -40,10 +40,8 @@ class TestDistilBertBase:
             )
             model_id = response.model_id
 
-            response = client.run_model(
-                model_id, run_inputs, dtype=ModelDatumType.I64, shape=inputs.shape
-            )
-            origin_pred = model(torch.tensor(run_inputs).unsqueeze(0)).logits.detach()
+            response = client.run_model(model_id, inputs)
+            origin_pred = model(inputs).logits.detach()
 
             diff = (
                 (torch.tensor([response.output_tensors[0].as_flat()]) - origin_pred)
@@ -70,17 +68,11 @@ class TestDistilBertBase:
 
             client.enclave_signing_key.verify(response.signature, response.payload)
 
-            response = client.run_model(
-                model_id,
-                run_inputs,
-                dtype=ModelDatumType.I64,
-                shape=inputs.shape,
-                sign=True,
-            )
+            response = client.run_model(model_id, inputs, sign=True)
 
             client.enclave_signing_key.verify(response.signature, response.payload)
 
-        origin_pred = model(torch.tensor(run_inputs).unsqueeze(0)).logits.detach()
+        origin_pred = model(inputs).logits.detach()
 
         diff = (
             (torch.tensor([response.output_tensors[0].as_flat()]) - origin_pred)
@@ -98,11 +90,11 @@ class TestDistilBertHW(TestDistilBertBase, unittest.TestCase):
     simulation = False
 
 
-model, inputs, run_inputs = None, None, None
+model, inputs = None, None
 
 
 def setUpModule():
-    global model, inputs, run_inputs
+    global model, inputs
     launch_server()
 
     # Setup the distilbert model
@@ -128,8 +120,6 @@ def setUpModule():
         output_names=["output"],
         dynamic_axes={"input": {0: "batch_size"}, "output": {0: "batch_size"}},
     )
-
-    run_inputs = tokenizer(sentence, padding="max_length", max_length=8)["input_ids"]
 
 
 if __name__ == "__main__":
