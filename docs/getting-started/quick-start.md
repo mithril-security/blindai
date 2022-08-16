@@ -105,7 +105,7 @@ The client is straightforward, we require an address, so if you have loaded the 
 
 For the `upload_model` method, we need to specify the ONNX file, the shape of the inputs, and the type of data. Here because we run a BERT model, the inputs would be integers to represent the different tokens sent to the model.
 
-For more details about the client API, check the [API reference](../resources/blindai/index.html).
+For more details about the client API, check the [API reference](../resources/blindai/client.html).
 
 ### Step 3: Run the inference
 
@@ -134,5 +134,5 @@ response = client.run_model(model_id, inputs) # replace model_id by its previous
 print(response.output)
 ```
 
-For more details about the client API, check the [API reference](../resources/blindai/index.html).
+For more details about the client API, check the [API reference](../resources/blindai/client.html).
 

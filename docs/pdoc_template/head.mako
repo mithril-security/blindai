@@ -1,6 +1,29 @@
-{% extends "base.html" %}
+<link rel="icon" href="/assets/logo.png">
 
-{%- block analytics %}
+<%!
+    from pdoc.html_helpers import minify_css
+%>
+<%def name="homelink()" filter="minify_css">
+    .homelink {
+        display: block;
+        font-size: 2em;
+        font-weight: bold;
+        padding-bottom: .5em;
+        border-bottom: 1px solid silver;
+    }
+    .homelink:hover {
+        color: f0ba2d;
+    }
+    .homelink img {
+        max-width:20%;
+        max-height: 5em;
+        margin: auto;
+        margin-bottom: .3em;
+    }
+</%def>
+
+<style>${homelink()}</style>
+
 <script type="text/javascript">
   (function(window, document, dataLayerName, id) {
   window[dataLayerName]=window[dataLayerName]||[],window[dataLayerName].push({start:(new Date).getTime(),event:"stg.start"});var scripts=document.getElementsByTagName('script')[0],tags=document.createElement('script');
@@ -11,4 +34,3 @@
   !function(a,n,i){a[n]=a[n]||{};for(var c=0;c<i.length;c++)!function(i){a[n][i]=a[n][i]||{},a[n][i].api=a[n][i].api||function(){var a=[].slice.call(arguments,0);"string"==typeof a[0]&&window[dataLayerName].push({event:n+"."+i+":"+a[0],parameters:[].slice.call(arguments,1)})}}(i[c])}(window,"ppms",["tm","cm"]);
   })(window, document, 'dataLayer', '82244d82-e27f-4f0e-bb2f-c94a190fd5ab');
 </script>
-{%- endblock %}
