@@ -689,12 +689,14 @@ class BlindAiConnection(contextlib.AbstractContextManager):
         You will have to specify here the expected policy (server identity, configuration...)
         and the server TLS certificate, if you are using the hardware mode.
 
+        You don't need to specify an address if you want to reach the Mithril Cloud server.
+
         If you're using the simulation mode, you don't need to provide a policy and certificate,
         but please keep in mind that this mode should NEVER be used in production as it doesn't
         have most of the security provided by the hardware mode.
 
         Args:
-            addr (str): The address of BlindAI server you want to reach.
+            addr (str): The address of BlindAI server you want to reach. If you don't specify anything, you will be automatically connected to Mithril Cloud.
             server_name (str, optional): Contains the CN expected by the server TLS certificate. Defaults to "blindai-srv".
             policy (Optional[str], optional): Path to the toml file describing the policy of the server.
                 Generated in the server side. Defaults to None.
@@ -704,6 +706,7 @@ class BlindAiConnection(contextlib.AbstractContextManager):
                 If set to True, the args policy and certificate will be ignored. Defaults to False.
             untrusted_port (int, optional): Untrusted connection server port. Defaults to 50052.
             attested_port (int, optional): Attested connection server port. Defaults to 50051.
+            debug_mode (bool, optional): Prints debug message, will also turn on GRPC log messages. 
 
         Raises:
             AttestationError: Will be raised in case the policy doesn't match the

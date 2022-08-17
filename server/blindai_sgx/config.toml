@@ -19,6 +19,9 @@ max_input_size = 524288000
 # Set the path for model saving
 models_path = "./models"
 
+# Set the maximal amount of model allowed in memory. Attempting to cross this limit will, if the model exists, unload an unused model in memory and unseal the requested model, if available.
+max_model_store = 3
+
 # Allow user to send a model, or only use the models already uploaded.
 allow_sendmodel = true
 

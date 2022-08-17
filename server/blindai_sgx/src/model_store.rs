@@ -89,6 +89,7 @@ impl ModelStore {
 
         // Sealing
         if save_model {
+            info!("Sealing model...");
             sealing::seal(
                 models_path.as_path(),
                 &model_bytes,

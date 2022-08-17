@@ -31,7 +31,7 @@ img = img[np.newaxis, :, :, :]
 model_path = "../../tests/assets/COVID-Net-CXR-2.onnx"
 
 with blindai.client.connect(addr="localhost", simulation=True) as client:
-    client.upload_model(model_path, shape=(1, 480, 480, 3), dtype='float32', model_id="covidnet")
+    client.upload_model(model_path, shape=(1, 480, 480, 3), dtype='float32', model_id="covidnet", save_model="covidnet")
     for i in range(30):
         ret = client.run_model("covidnet", img)
         print(ret.output_tensors[0].as_torch())

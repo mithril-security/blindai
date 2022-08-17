@@ -63,6 +63,7 @@ class TestDistilBertBase:
                 shape=inputs.shape,
                 dtype=ModelDatumType.I64,
                 sign=True,
+                model_name="test.onnx",
             )
             model_id = response.model_id
 
