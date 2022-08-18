@@ -12,26 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""
-## <kbd>Enum</kbd> `ModelDatumType` : An enumeration of the acceptable input data types.
-
-Used to specify the type of the input and output data of a model before uploading it to the server.
-
-Supported types :
-
-    * ModelDatumType::F32 ---> float32
-
-    * ModelDatumType::F64 ---> float64
-
-    * ModelDatumType::I32 ---> int32
-
-    * ModelDatumType::I64 ---> int64
-
-    * ModelDatumType::U32 ---> unsigned int 32
-
-    * ModelDatumType::U64 ---> unsigned int 64
-"""
-
 import contextlib
 from functools import wraps
 import getpass
@@ -427,6 +407,10 @@ class UploadModelResponse(SignedResponse):
         """Validates whether this response is valid. This is used for responses you have saved as bytes or in a file.
         This will raise an error if the response is not signed or if it is not valid.
 
+        ***Security & confidentiality warnings:***<br>
+        *`validate_quote` and `enclave_signing_key` : in case where the quote validation is set, the `enclave_signing_key` is generated directly using the certificate and the policy file and assigned otherwise.
+        The hash of the `enclave_signing_key` is then represented as the MRSIGNER hash.*
+
         Args:
             model_hash (bytes): Hash of the model to verify against.
             policy_file (Optional[str], optional): Path to the policy file. Defaults to None.
@@ -583,6 +567,11 @@ class RunModelResponse(SignedResponse):
         """Validates whether this response is valid. This is used for responses you have saved as bytes or in a file.
         This will raise an error if the response is not signed or if it is not valid.
 
+        ***Security & confidentiality warnings:***<br>
+            *`validate_quote` and `enclave_signing_key` : in case where the quote validation is set, the `enclave_signing_key` is generated directly using the certificate and the policy file and assigned otherwise.
+            The hash of the `enclave_signing_key` is then represented as the MRSIGNER hash.<br>
+            When the simulation mode is off, the attestation is verified, and only in that case, the data is processed while assigning `data_list`*
+
         Args:
             model_id (str): The model id to check against.
             tensors (List[Any]): Input used to run the model, to validate against.
@@ -694,6 +683,11 @@ class BlindAiConnection(contextlib.AbstractContextManager):
         If you're using the simulation mode, you don't need to provide a policy and certificate,
         but please keep in mind that this mode should NEVER be used in production as it doesn't
         have most of the security provided by the hardware mode.
+
+        ***Security & confidentiality warnings:***<br>
+           *policy: Defines the rules upon which enclaves are accepted (after quote data verification). Contains the hash of MRENCLAVE which helps identify code and data of an enclave. In the case of leakeage of this file, data & model confidentiality would not be affected as the information just serves as a verification check.
+           For more details, the attestation info is verified against the policy for the quote. In case of a leakage of the information of this file, code and data inside the secure enclave will remain inaccessible.<br>
+           certificate:  The certificate file, which is also generated server side, is used to assigned the claims the policy is checked against. It serves to identify the server for creating a secure channel and begin the attestation process.*
 
         Args:
             addr (str): The address of BlindAI server you want to reach. If you don't specify anything, you will be automatically connected to Mithril Cloud.
@@ -899,6 +893,11 @@ class BlindAiConnection(contextlib.AbstractContextManager):
         """Upload an inference model to the server.
         The provided model needs to be in the Onnx format.
 
+        ***Security & confidentiality warnings:***<br>
+        *`model`: The model sent on a Onnx format is encrypted in transit via TLS (as all connections). It may be subject to inference Attacks if an adversary is able to query the trained model repeatedly to determine whether or not a particular example is part of the trained dataset model.<br>
+        `sign` : by enabling sign, DCAP attestation is verified by the SGX attestation model. This attestation model relies on Elliptic Curve Digital Signature algorithm (ECDSA).*
+
+
         Args:
             model (str): Path to Onnx model file.
             tensor_inputs (List[Tuple[List[int], ModelDatumType]], optional): The list of input fact and datum types for each input grouped together in lists, describing the different inputs of the model. Defaults to None.
@@ -979,8 +978,15 @@ class BlindAiConnection(contextlib.AbstractContextManager):
         shape: Optional[Union[List[List[int]], List[int]]] = None,
         sign: bool = False,
     ) -> RunModelResponse:
-        """Send data to the server to make a secure inference.
+        """
+        Send data to the server to make a secure inference.
+        
         The data provided must be in a list, as the tensor will be rebuilt inside the server.
+        
+        ***Security & confidentiality warnings:***<br>
+        *`model_id` : hash of the Onnx model uploaded. the given hash is return via gRPC through the proto files. It's a SHA-256 hash that is generated each time a model is uploaded.<br>
+        `data_list`: protected in transit and protected when running it on the secure enclave. In the case of a compromised OS, the data is isolated and confidential by SGX design.<br>
+        `sign`: by enabling sign, DCAP attestation is enabled to verify the SGX attestation model. This attestation model relies on Elliptic Curve Digital Signature algorithm (ECDSA).*
 
         Args:
             model_id (str): If set, will run a specific model.
@@ -1041,6 +1047,8 @@ class BlindAiConnection(contextlib.AbstractContextManager):
         """Delete a model in the inference server.
         This may be used to free up some memory.
         Note that the model in currently stored in-memory, and you cannot keep it loaded across server restarts.
+        ***Security & confidentiality warnings:***<br>
+            *model_id : The deletion of a model only relies on the `model_id`. It doesn't relies on a session token or anything, hence if the `model_id` is known, it's deletion is possible.*
 
         Args:
             model_id (str): The id of the model to remove.
