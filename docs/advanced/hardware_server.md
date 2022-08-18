@@ -4,7 +4,7 @@
 
 You can build the whole project by using our Docker image. We have set up the Docker image to have a reproducible build no matter the environment. You can start the process with those commands:
 
-
+=== "Simulation"
 
 ```bash
 cd server
@@ -16,7 +16,7 @@ DOCKER_BUILDKIT=1 docker build \
     .
 ```
 
-
+=== "Hardware"
 
 ```bash
 cd server
@@ -31,8 +31,7 @@ DOCKER_BUILDKIT=1 docker build \
 
 This will create a policy file with `allow_debug = false`. To change that, use `-e POLICY_ALLOW_DEBUG=true` when bulding.
 
-
-
+=== "Azure DCSv3"
 
 ```bash
 cd server
@@ -45,7 +44,7 @@ DOCKER_BUILDKIT=1 docker build \
 ```
 
 
-This will create a policy file with `allow_debug = false`. To change that, use `-e POLICY_ALLOW_DEBUG=true` when bulding.
+This will create a policy file with `allow_debug = false`. To change that, use `-e POLICY_ALLOW_DEBUG=true` when building.
 
 
 

@@ -13,6 +13,7 @@ theme:
     - navigation.tabs.sticky
     - navigation.top
     - search.highlight
+    - content.tabs.link
   logo: assets/logo.png
   favicon: assets/logo.png
   palette:
@@ -38,6 +39,8 @@ markdown_extensions:
   - pymdownx.inlinehilite
   - pymdownx.snippets
   - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true 
 
 plugins:
 - search
