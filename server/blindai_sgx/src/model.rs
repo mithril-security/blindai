@@ -192,10 +192,9 @@ pub type UnoptimizedOnnx =
 fn add_model_facts(
     graph: &mut Graph<InferenceFact, Box<dyn InferenceOp>>,
     input_facts: &[TensorFacts],
-    output_facts: &[TensorFacts],
 ) -> Result<()> {
     // add facts
-    for (facts, is_input) in [(input_facts, true), (output_facts, false)].into_iter() {
+    for facts in [input_facts].into_iter() {
         for (index, fact) in facts.into_iter().enumerate() {
             let mut inference_fact = InferenceFact::new();
             if let Some(datum_type) = fact.datum_type {
@@ -214,24 +213,15 @@ fn add_model_facts(
                     .find_outlet_label(name)
                     .ok_or_else(|| anyhow!("Cannot find input/output named {}", name))?;
 
-                let outlets = if is_input {
-                    graph.input_outlets()?
-                } else {
-                    graph.output_outlets()?
-                };
+                let outlets = graph.input_outlets()?;
                 outlets
                     .into_iter()
                     .position(|el| *el == outlet)
-                    .ok_or_else(|| anyhow!("Cannot find input/output named {}", name))?
+                    .ok_or_else(|| anyhow!("Cannot find input named {}", name))?
             } else {
                 index // default to using the index of the fact in the array
             };
-
-            if is_input {
-                graph.set_input_fact(index, inference_fact)?;
-            } else {
-                graph.set_output_fact(index, inference_fact)?;
-            }
+            graph.set_input_fact(index, inference_fact)?;
         }
     }
 
@@ -274,7 +264,7 @@ impl InferModel {
         load_context: ModelLoadContext,
         owner_id: Option<usize>,
     ) -> Result<Self> {
-        let mut graph = tract_onnx::onnx().model_for_path(model_path)?;
+        let mut graph = tract_onnx::onnx().with_ignore_output_shapes(true).model_for_path(model_path)?;
 
         trace!(
             "Loading model from path with input_facts {:?} output_facts {:?} optim {:?}",
@@ -283,7 +273,7 @@ impl InferModel {
             optim
         );
 
-        add_model_facts(&mut graph, input_facts, output_facts)?;
+        add_model_facts(&mut graph, input_facts)?;
 
         let model = if optim {
             trace!("Optimizing model...");
@@ -313,7 +303,7 @@ impl InferModel {
         load_context: ModelLoadContext,
         owner_id: Option<usize>,
     ) -> Result<Self> {
-        let mut graph = tract_onnx::onnx().model_for_read(&mut model_data)?;
+        let mut graph = tract_onnx::onnx().with_ignore_output_shapes(true).model_for_read(&mut model_data)?;
 
         trace!(
             "Loading model from bytes with input_facts {:?} output_facts {:?} optim {:?}",
@@ -322,7 +312,7 @@ impl InferModel {
             optim
         );
 
-        add_model_facts(&mut graph, input_facts, output_facts)?;
+        add_model_facts(&mut graph, input_facts)?;
 
         let model = if optim {
             trace!("Optimizing model...");

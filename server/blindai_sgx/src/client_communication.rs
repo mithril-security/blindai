@@ -27,6 +27,7 @@ use std::{
     vec::Vec,
 };
 use tract_core::prelude::Tensor;
+use tract_onnx::prelude::DatumType;
 
 use tonic::{Request, Response, Status};
 
@@ -130,13 +131,13 @@ impl Exchange for Exchanger {
                 save_model = model_proto.save_model;
             }
             if model_size > self.max_model_size || model_bytes.len() > self.max_model_size {
-                return Err(Status::invalid_argument("Model is too big".to_string()));
+                return Err(Status::invalid_argument("Model is too big"));
             }
             model_bytes.append(&mut model_proto.data)
         }
 
         if model_size == 0 {
-            return Err(Status::invalid_argument("Received no data".to_string()));
+            return Err(Status::invalid_argument("Received no data"));
         }
 
         let map_fn = |info: TensorInfo| {
@@ -375,7 +376,10 @@ impl Exchange for Exchanger {
             .into_iter()
             .zip(output_names)
             .enumerate()
-            .map(|(index, (ten, output_name))| {
+            .map(|(index, (mut ten, output_name))| {
+                if ten.datum_type() == DatumType::TDim {
+                    ten = ten.cast_to::<i64>()?.into_owned().into();
+                }
                 Ok(TensorData {
                     info: Some(TensorInfo {
                         dims: ten.shape().into_iter().map(|el| *el as i32).collect(),
