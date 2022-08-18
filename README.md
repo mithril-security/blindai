@@ -55,11 +55,89 @@ Currently, even though data can be sent securely with TLS, some stakeholders in 
 
 By using BlindAI, data remains always protected as it is only decrypted inside a Trusted Execution Environment, called an enclave, whose contents are protected by hardware. While data is in clear inside the enclave, it is inaccessible to the outside thanks to isolation and memory encryption. This way, data can be processed, enriched, and analysed by AI, without exposing it to external parties.
 
-## :rocket: Getting started
+## Gradio Demo
 
-We provide a [Getting started](https://blindai.mithrilsecurity.io/en/latest/getting-started/quick-start/) example on our docs, with the deployment of DistilBERT with BlindAI, to make it possible to analyze confidential text with privacy guarantees.
+You can test and see how BlindAI secures AI application through our [hosted demo of GPT2](INSERT LINK GPT2 DEMO), built using Gradio.
 
-We have also articles and corresponding notebooks to deploy COVID-Net and Wav2vec2 with BlindAI, to enable respectively analysis of Chest X-Rays and speech with end-to-end protection. You can find them just [below](#sunny-models-covered-by-blindai) in our full table of use cases and models covered.
+In this demo, you can see how BlindAI works and make sure that your data is protected. Thanks to the attestation mechanism, even before sending data, our Python client will check that:
+- We are talking to a secure enclave with the hardware protection enabled.
+- The right code is loaded inside the enclave, and not a malicious one.
+
+You can find more on [secure enclaves attestation here](INSERT LINK TO ATTESTATION EXPLAINED).
+
+![GPT2 demo](INSERT DEMO GIF.gif)
+
+## Quick tour
+
+BlindAI allows you to easily and quickly **deploy your AI models with privacy, all in Python**. 
+To interact with an AI model hosted on a remote secure enclave, we provide the `blindai.client` API. This client will:
+- check that we are talking to a genuine secure enclave with the right security features
+- upload an AI model that was previously converted to ONNX
+- query the model securely
+
+BlindAI is configured by default to connect to our managed Cloud backend to make it easy for users to upload and query models inside our secure enclaves. Even though we managed users AI models, thanks to the protection provided by the use of secure enclaves, data and models sent to our Cloud remain private and never. You can also deploy BlindAI on [your own infra](#on-premise-deployment).
+
+### Querying a GPT2 model
+
+We can see how it works with our GPT2 model for text generation. It is already loaded inside our managed Cloud, so we will simply need to query it. We will be using the `transformers` library for tokenizing.
+
+```python
+import blindai
+from transformers import GPT2Tokenizer
+
+tokenizer = GPT2Tokenizer.from_pretrained('gpt2')
+example = "I like the Rust programming language because"
+
+# Here we will use a preprocessing step. More details can be found on INSERT CODE SNIPPET
+input_list = get_example_inputs(example, tokenizer)
+
+# Connect to a remote model. If security checks fail, an exception is raised
+with blindai.client.connect() as client:
+  # Send data to the GPT2 model
+  response = client.run_model("gpt2", input_list)
+
+example = tokenizer.decode(response.output, skip_special_tokens=True)
+
+# We can check that our sentence was completed by GPT2 🦀
+>>> example
+"I like the Rust programming language because it's easy to write and maintain."
+```
+
+### Uploading a ResNet
+
+The model in the GPT2 example had already been loaded by us, but BlindAI also allows you to upload your own models to our managed Cloud solution. 
+
+To be able to upload your model to our Cloud, you will need to first register here to get an API key.
+
+Once you have it, you just have to provide it to our backend. 
+
+```python
+import torch
+import blindai
+model = torch.hub.load('pytorch/vision:v0.10.0', 'resnet18', pretrained=True)
+
+dummy_inputs = torch.zeros(1,3,224,224)
+torch.onnx.export(model, dummy_inputs, "resnet18.onnx")
+
+tensor_inputs = [
+    [dummy_inputs.shape, blindai.client.ModelDatumType.F32]
+]
+tensor_outputs = blindai.client.ModelDatumType.F32
+
+with blindai.client.connect() as client:
+    upload_response = client.upload_model(
+      model="resnet18.onnx", 
+      tensor_inputs=tensor_inputs, tensor_outputs=tensor_outputs
+    )
+```
+
+### On-premise deployment
+
+If you do not wish to use our managed Cloud, it is possible to deploy BlindAI yourself. We provide Docker images to help you with the deployment.
+
+To run our solution with the full security features, you will need access to the [proper hardware](#computer-current-hardware-support).
+
+You can still try our solution without the right hardware through our simulation version. *Be careful*, as the simulation provides no added security guarantees, and is meant for tests only.
 
 ## :book: Which part of the AI workflow do we cover?
 
