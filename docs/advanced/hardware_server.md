@@ -4,6 +4,8 @@
 
 You can build the whole project by using our Docker image. We have set up the Docker image to have a reproducible build no matter the environment. You can start the process with those commands:
 
+<div class="result" markdown>
+
 === "Simulation"
 
 ```bash
@@ -28,8 +30,7 @@ DOCKER_BUILDKIT=1 docker build \
     .
 ```
 
-
-This will create a policy file with `allow_debug = false`. To change that, use `-e POLICY_ALLOW_DEBUG=true` when bulding.
+This will create a policy file with `allow_debug = false`. To change that, use `-e POLICY_ALLOW_DEBUG=true` when building.
 
 === "Azure DCSv3"
 
@@ -43,11 +44,9 @@ DOCKER_BUILDKIT=1 docker build \
     .
 ```
 
-
 This will create a policy file with `allow_debug = false`. To change that, use `-e POLICY_ALLOW_DEBUG=true` when building.
 
-
-
+</div>
 
 To run the client, you will want to get the `policy.toml` file from the server using:
 
@@ -68,8 +67,6 @@ docker run -it \
     -p 50052:50052 \
     mithrilsecuritysas/blindai-server-sim:latest
 ```
-
-
 
 Make sure you have the correct hardware and drivers (see [#hardware-requirements](../getting-started/deploy-on-hardware.md#hardware-requirements "mention")), and run:
 
