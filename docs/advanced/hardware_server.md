@@ -4,9 +4,9 @@
 
 You can build the whole project by using our Docker image. We have set up the Docker image to have a reproducible build no matter the environment. You can start the process with those commands:
 
-=== "blindai-server-sim"
-
+=== "Simulation mode"
 ```bash
+# Will build the server in Simulation mode
 cd server
 make init # create the TLS certificates
 DOCKER_BUILDKIT=1 docker build \
@@ -15,10 +15,9 @@ DOCKER_BUILDKIT=1 docker build \
     -f ./docker/build.dockerfile \
     .
 ```
-
-=== "blindai-server"
-
+=== "Hardware mode"
 ```bash
+# Will build the server in Hardware mode
 cd server
 make init # create the TLS certificates
 DOCKER_BUILDKIT=1 docker build \
@@ -27,10 +26,9 @@ DOCKER_BUILDKIT=1 docker build \
     -f ./docker/build.dockerfile \
     .
 ```
-
-=== "blindai-server-dcsv3"
-
+=== "Hardware mode (Azure DCsv3 VMs)"
 ```bash
+# Will build the server in Hardware mode (Azure DCsv3 VMs)
 cd server
 make init # create the TLS certificates
 DOCKER_BUILDKIT=1 docker build \
