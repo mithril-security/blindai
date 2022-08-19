@@ -62,13 +62,14 @@ docker run -it \
     mithrilsecuritysas/blindai-server-sim:latest
 ```
 
-Please make sure the ports 50051 and 50052 are available :)
+!!! info
+    Please make sure the ports 50051 and 50052 are available.
 
 **Please keep in mind that this image is not secure, since it simulates Intel SGX in software. It is lighter than hardware mode, and should not be used in production.**
 
 ## Send and run the model
 
-Now that the model is prepared and exported in **ONNX Format.** We will see how to use **BlindAI** to **deploy** and **run** DistilBERT.&#x20;
+Now that the model is prepared and exported in **ONNX Format.** We will see how to use **BlindAI** to **deploy** and **run** DistilBERT.
 
 ### Step 1: Install the client SDK
 

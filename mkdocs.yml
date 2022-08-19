@@ -33,7 +33,12 @@ extra_javascript:
   - 'https://code.jquery.com/jquery-3.3.1.min.js'
 
 markdown_extensions:
+  - abbr
   - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
   - pymdownx.details
   - pymdownx.highlight:
       anchor_linenums: true
