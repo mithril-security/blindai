@@ -10,7 +10,6 @@ theme:
   features:
     - navigation.instant
     - navigation.tabs
-    - navigation.tabs.sticky
     - navigation.top
     - search.highlight
     - content.tabs.link
@@ -36,9 +35,15 @@ extra_javascript:
 markdown_extensions:
   - pymdownx.highlight:
       anchor_linenums: true
+  - pymdownx.betterem:
+      smart_enable: all
   - pymdownx.inlinehilite
   - pymdownx.snippets
   - pymdownx.superfences
+    custom_fences:
+      - name: mermaid
+        class: mermaid
+        format: !!python/name:pymdownx.superfences.fence_code_format
   - pymdownx.tabbed:
       alternate_style: true 
 
