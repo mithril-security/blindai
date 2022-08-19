@@ -19,7 +19,7 @@ Our solution comes in two parts:
 
 ### Latest versions
 
-* **BlindAI server:** _0.4.0_
+* **BlindAI server:** _0.4.1_
 * **BlindAI client:** _0.4.1_
 
 ### Features

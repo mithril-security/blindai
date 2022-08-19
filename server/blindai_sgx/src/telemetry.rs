@@ -9,8 +9,6 @@ use log::debug;
 use serde::Serialize;
 use tokio::sync::mpsc::{self, UnboundedSender};
 
-const AMPLITUDE_API_KEY: &str = "33888bd644f1dc39f72f2963c944c94c";
-
 static TELEMETRY_CHANNEL: SyncOnceCell<UnboundedSender<TelemetryEvent>> = SyncOnceCell::new();
 
 #[derive(Debug, Clone, Serialize)]
@@ -188,22 +186,18 @@ pub fn setup(platform: String, uid: String) -> anyhow::Result<()> {
                     events.push(event);
                 }
 
-                let request = AmplitudeRequest {
-                    api_key: AMPLITUDE_API_KEY,
-                    events: &events,
-                };
-
+                //We send using the server, the differents event in the db
                 if !events.is_empty() {
                     let response = reqwest::Client::new()
-                        .post("https://api2.amplitude.com/2/httpapi")
+                        .post("https://telemetry.mithrilsecurity.io/blindai/")
                         .timeout(Duration::from_secs(60))
-                        .json(&request)
+                        .json(&events)
                         .send()
                         .await;
                     if let Err(e) = response {
                         debug!("Cannot contact telemetry server: {}", e);
                     }
-                }
+                };
             }
 
             tokio::time::sleep(Duration::from_secs(2)).await;

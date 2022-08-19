@@ -87,8 +87,7 @@ $ pip install -r requirements.txt
 pip install . --use-feature=in-tree-build
 ```
 
+!!! info
+    If you are building on windows, administrator access will be needed at a certain point of the build process.
 
-If you are building on windows, administrator access will be needed at a certain point of the build process.
-
-
-BlindAI Client SDK will be then built and installed in the virtual environment.&#x20;
+BlindAI Client SDK will be then built and installed in the virtual environment.
