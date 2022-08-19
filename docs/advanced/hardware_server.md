@@ -4,41 +4,45 @@
 
 You can build the whole project by using our Docker image. We have set up the Docker image to have a reproducible build no matter the environment. You can start the process with those commands:
 
-=== "Simulation mode"
-```bash
-# Will build the server in Simulation mode
-cd server
-make init # create the TLS certificates
-DOCKER_BUILDKIT=1 docker build \
-    --target software \
-    -t mithrilsecuritysas/blindai-server-sim:latest \
-    -f ./docker/build.dockerfile \
-    .
-```
-=== "Hardware mode"
-```bash
-# Will build the server in Hardware mode
-cd server
-make init # create the TLS certificates
-DOCKER_BUILDKIT=1 docker build \
-    --target hardware \
-    -t mithrilsecuritysas/blindai-server:latest \
-    -f ./docker/build.dockerfile \
-    .
-```
-=== "Hardware mode (Azure DCsv3 VMs)"
-```bash
-# Will build the server in Hardware mode (Azure DCsv3 VMs)
-cd server
-make init # create the TLS certificates
-DOCKER_BUILDKIT=1 docker build \
-    --target hardware-dcsv3 \
-    -t mithrilsecuritysas/blindai-server-dcsv3:latest \
-    -f ./docker/build.dockerfile \
-    .
-```
+!!! Build process
 
-This will create a policy file with `allow_debug = false`. To change that, use `-e POLICY_ALLOW_DEBUG=true` when building.
+    === "Simulation mode"
+    ```bash
+    # Will build the server in Simulation mode
+    cd server
+    make init # create the TLS certificates
+    DOCKER_BUILDKIT=1 docker build \
+        --target software \
+        -t mithrilsecuritysas/blindai-server-sim:latest \
+        -f ./docker/build.dockerfile \
+        .
+    ```
+
+    === "Hardware mode"
+    ```bash
+    # Will build the server in Hardware mode
+    cd server
+    make init # create the TLS certificates
+    DOCKER_BUILDKIT=1 docker build \
+        --target hardware \
+        -t mithrilsecuritysas/blindai-server:latest \
+        -f ./docker/build.dockerfile \
+        .
+    ```
+    This will create a policy file with `allow_debug = false`. To change that, use `-e POLICY_ALLOW_DEBUG=true` when building.
+
+    === "Hardware mode (Azure DCsv3 VMs)"
+    ```bash
+    # Will build the server in Hardware mode (Azure DCsv3 VMs)
+    cd server
+    make init # create the TLS certificates
+    DOCKER_BUILDKIT=1 docker build \
+        --target hardware-dcsv3 \
+        -t mithrilsecuritysas/blindai-server-dcsv3:latest \
+        -f ./docker/build.dockerfile \
+        .
+    ```
+    This will create a policy file with `allow_debug = false`. To change that, use `-e POLICY_ALLOW_DEBUG=true` when building.
 
 To run the client, you will want to get the `policy.toml` file from the server using:
 
