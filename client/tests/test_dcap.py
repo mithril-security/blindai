@@ -13,11 +13,11 @@ from blindai.dcap_attestation import (
     DcapClaims,
     verify_dcap_attestation,
 )
-from blindai.utils.errors import AttestationError
+from blindai.utils.errors import AttestationError, IdentityError, NotAnEnclaveError, DebugNotAllowedError
 import os
 
 policy = Policy(
-    mr_enclave="d4fe709c74220df4f1526bd6141ca4aa4f39fbf16a60b49f311a1ee486e51d0a",
+    mr_enclave="56964b3ed1e5533db08200a9fc8085e1baa60d5d9baa27b793792bc74b4c760f",
     misc_select=0x0.to_bytes(4, byteorder="little"),
     misc_mask=0xFFFFFFFF.to_bytes(4, byteorder="little"),
     attributes_flags=0x4.to_bytes(8, byteorder="little"),
@@ -67,7 +67,7 @@ class TestDCAP(unittest.TestCase):
         policy_bis.mr_enclave = (
             policy_bis.mr_enclave[:5] + "1" + policy_bis.mr_enclave[6:]
         )
-        with self.assertRaises(AttestationError):
+        with self.assertRaises(IdentityError):
             verify_claims(
                 claims_bis,
                 policy_bis,
@@ -77,7 +77,7 @@ class TestDCAP(unittest.TestCase):
         claims_bis = deepcopy(claims)
         claims_bis.sgx_is_debuggable = True
         policy_bis.allow_debug = False
-        with self.assertRaises(AttestationError):
+        with self.assertRaises(DebugNotAllowedError):
             verify_claims(
                 claims_bis,
                 policy_bis,
@@ -130,7 +130,7 @@ class TestDCAP(unittest.TestCase):
         ret.attributes = 0xFFFFFFFFFFFFFF1B.to_bytes(8, byteorder="little")
         ret.miscSelect = 0xFFFFFFFFFFFFFF1B.to_bytes(8, byteorder="little")
         Verification.verify.return_value = ret
-        with self.assertRaises(AttestationError):
+        with self.assertRaises(NotAnEnclaveError):
             verify_dcap_attestation(
                 attestation.quote, attestation.collateral, attestation.enclave_held_data
             )

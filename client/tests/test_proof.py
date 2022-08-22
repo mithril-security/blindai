@@ -9,7 +9,7 @@ from blindai.pb.securedexchange_pb2 import (
 )
 
 from blindai.client import (
-    RunModelResponse,
+    PredictResponse,
     UploadModelResponse,
 )
 from blindai.dcap_attestation import Policy
@@ -34,36 +34,36 @@ policy_file = os.path.join(os.path.dirname(__file__), "policy.toml")
 class TestProof(unittest.TestCase):
     @patch("time.time", mock_time)
     def test_parse_run(self):
-        response = RunModelResponse()
+        response = PredictResponse()
         response.load_from_file(exec_run)
 
         self.assertTrue(response.is_signed())
 
-        response2 = RunModelResponse()
+        response2 = PredictResponse()
         with open(exec_run, "rb") as file:
             response2.load_from_bytes(file.read())
 
         self.assertEqual(response.payload, response2.payload)
         self.assertEqual(response.signature, response2.signature)
         self.assertEqual(response.attestation, response2.attestation)
-        self.assertEqual(response.output, response2.output)
+        self.assertTrue([(t1.as_numpy() == t2.as_numpy()).all() for t1, t2 in zip(response.output_tensors, response2.output_tensors)])
 
-        response3 = RunModelResponse()
+        response3 = PredictResponse()
         response3.load_from_bytes(response.as_bytes())
 
         self.assertEqual(response.payload, response3.payload)
         self.assertEqual(response.signature, response3.signature)
         self.assertEqual(response.attestation, response3.attestation)
-        self.assertEqual(response.output, response3.output)
+        self.assertTrue([(t1.as_numpy() == t2.as_numpy()).all() for t1, t2 in zip(response.output_tensors, response2.output_tensors)])
 
         response3.save_to_file(tmp_path)
-        response4 = RunModelResponse()
+        response4 = PredictResponse()
         response4.load_from_file(tmp_path)
 
         self.assertEqual(response.payload, response4.payload)
         self.assertEqual(response.signature, response4.signature)
         self.assertEqual(response.attestation, response4.attestation)
-        self.assertEqual(response.output, response4.output)
+        self.assertTrue([(t1.as_numpy() == t2.as_numpy()).all() for t1, t2 in zip(response.output_tensors, response4.output_tensors)])
 
     @patch("time.time", mock_time)
     def test_parse_upload(self):
@@ -97,7 +97,7 @@ class TestProof(unittest.TestCase):
 
     @patch("time.time", mock_time)
     def test_validate_run(self):
-        response = RunModelResponse()
+        response = PredictResponse()
         response.load_from_file(exec_run)
         policy = Policy.from_file(policy_file)
 
@@ -143,7 +143,7 @@ class TestProof(unittest.TestCase):
 
         response2 = deepcopy(response)
         payload = Payload.FromString(response2.payload)
-        payload.run_model_payload.output = cbor2.dumps([1, 2, 3])
+        payload.run_model_payload.output_tensors[0].bytes_data = b"asdsd"
         response2.payload = payload.SerializeToString()
         with self.assertRaises(SignatureError):
             response2.validate(
@@ -156,7 +156,7 @@ class TestProof(unittest.TestCase):
 
         response2 = deepcopy(response)
         data = deepcopy(get_input())
-        data[4] += 1
+        data[0,4,0] += 1
         with self.assertRaises(SignatureError):
             response2.validate(
                 response.model_id,

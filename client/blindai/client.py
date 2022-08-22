@@ -216,12 +216,28 @@ def translate_dtype(dtype):
 def translate_tensors(tensors, dtypes, shapes):
     ret = []
 
-    if not isinstance(tensors, list) and not isinstance(tensors[0], list):
+    # list of {numpy/torch/flat} tensors are valid inputs, and are treated as multiple inputs
+    # direct numpy/torch/flat tensors are valid inputs, and are treated as a single input, which
+    #  will be wrapped into a 1-el list on the folowing statement
+    #
+    # flat list means list[int], and is the flattened tensor
+    #  this means that you must specify dtype/shape for this tensor! on the other cases, it's redundant
+    # (todo: accept iterables instead of flat list only)
+    #
+    # mental note
+    # - anything not list should be wrapped into [X]
+    # - list[int] should be wrapped into [X]
+    # - but! list[list[int]] is should be unchanged
+    if not isinstance(tensors, list) or (
+        len(tensors) > 0 and not isinstance(tensors[0], list)
+    ):
         tensors = [tensors]
-    if dtypes is not None and isinstance(dtypes, list):
+
+    # same logic applies for dtypes/shapes
+    if dtypes is not None and not isinstance(dtypes, list):
         dtypes = [dtypes]
-    if shapes is not None and (
-        not isinstance(shapes, list) or not isinstance(shapes[0], list)
+    if not isinstance(shapes, list) or (
+        len(shapes) > 0 and not isinstance(shapes[0], list)
     ):
         shapes = [shapes]
 
@@ -240,7 +256,7 @@ def translate_tensors(tensors, dtypes, shapes):
             iterable = tensor.flatten()
 
         else:
-            # Input is flat list.
+            # Input is flatten tensor.
             if not isinstance(tensor, list):
                 raise ValueError(
                     f"Input tensor has an unsupported type: {type(tensor).__module__}.{type(tensor).__name__}"
@@ -250,13 +266,11 @@ def translate_tensors(tensors, dtypes, shapes):
             shape = list(or_shape)
             iterable = tensor
 
-        if or_dtype is not None and or_dtype != dtypes:
+        if or_dtype is not None and or_dtype != dtype:
             raise ValueError(
                 f"Given tensor has dtype {str(tensor.dtype)}, but {or_dtype} was expected."
             )
-        if or_shape is not None and not all(
-            (s is None or s == shapes[i] for i, s in enumerate(or_shape))
-        ):
+        if or_shape is not None and list(or_shape) != list(shape):
             raise ValueError(
                 f"Given tensor has shape {list(tensor.shape)}, but {or_shape} was expected."
             )
@@ -508,20 +522,23 @@ class Tensor:
 
 
 class PredictResponse(SignedResponse):
-    output_tensors: List[Tensor]
-    model_id: str
+    output_tensors: List[Tensor] = None
+    model_id: str = None
 
     def __init__(
         self,
-        input_tensors: Union[List[List[Any]], List[Any]],
-        input_datum_type: Union[List[ModelDatumType], ModelDatumType],
-        input_shape: Union[List[List[int]], List[int]],
-        response: PbRunModelReply,
-        sign: bool,
+        input_tensors: Union[List[List[Any]], List[Any]] = None,
+        input_datum_type: Union[List[ModelDatumType], ModelDatumType] = None,
+        input_shape: Union[List[List[int]], List[int]] = None,
+        response: PbRunModelReply = None,
+        sign: bool = True,
         attestation: Optional[GetSgxQuoteWithCollateralReply] = None,
         enclave_signing_key: Optional[bytes] = None,
         allow_simulation_mode: bool = False,
     ):
+        if response is None:
+            return
+
         payload = PbPayload.FromString(response.payload).run_model_payload
         self.output_tensors = [
             Tensor(
@@ -556,8 +573,8 @@ class PredictResponse(SignedResponse):
         self,
         model_id: str,
         tensors: Union[List[List[Any]], List[Any]],
-        dtype: Union[List[ModelDatumType], ModelDatumType],
-        shape: Union[List[List[int]], List[int]],
+        dtype: Union[List[ModelDatumType], ModelDatumType] = None,
+        shape: Union[List[List[int]], List[int]] = None,
         policy_file: Optional[str] = None,
         policy: Optional[Policy] = None,
         validate_quote: bool = True,
@@ -622,6 +639,22 @@ class PredictResponse(SignedResponse):
         if model_id != payload.model_id:
             raise SignatureError("Invalid response model_id")
 
+
+    def _load_payload(self):
+        payload = PbPayload.FromString(self.payload).run_model_payload
+        self.output_tensors = [
+            Tensor(
+                info=TensorInfo(
+                    tensor.info.dims,
+                    tensor.info.datum_type,
+                    tensor.info.index,
+                    tensor.info.index_name,
+                ),
+                bytes_data=tensor.bytes_data,
+            )
+            for tensor in payload.output_tensors
+        ]
+        self.model_id = payload.model_id
 
 class DeleteModelResponse:
     pass
@@ -765,7 +798,7 @@ class BlindAiConnection(contextlib.AbstractContextManager):
             simulation,
             untrusted_port,
             attested_port,
-            use_mithril_services=True,
+            use_mithril_services=addr is None,
         )
 
     def _connect_enclave(
@@ -816,7 +849,10 @@ class BlindAiConnection(contextlib.AbstractContextManager):
                     root_certificates=f.read()
                 )
 
-        connection_options = (("grpc.ssl_target_name_override", server_name),)
+        connection_options = (
+            ("grpc.ssl_target_name_override", server_name),
+            ("grpc.max_receive_message_length", 2**23),
+        )
 
         try:
             channel = secure_channel(
