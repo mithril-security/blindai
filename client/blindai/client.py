@@ -700,7 +700,7 @@ class BlindAiConnection(contextlib.AbstractContextManager):
                 If set to True, the args policy and certificate will be ignored. Defaults to False.
             untrusted_port (int, optional): Untrusted connection server port. Defaults to 50052.
             attested_port (int, optional): Attested connection server port. Defaults to 50051.
-            debug_mode (bool, optional): Prints debug message, will also turn on GRPC log messages. 
+            debug_mode (bool, optional): Prints debug message, will also turn on GRPC log messages.
 
         Raises:
             AttestationError: Will be raised in case the policy doesn't match the
@@ -858,7 +858,7 @@ class BlindAiConnection(contextlib.AbstractContextManager):
                 server_cert = claims.get_server_cert()
 
                 logging.info("Quote verification passed")
-                logging.info(f"Certificate from attestation process")
+                logging.info("Certificate from attestation process")
                 logging.info("MREnclave " + claims.sgx_mrenclave)
 
             channel.close()
@@ -980,9 +980,9 @@ class BlindAiConnection(contextlib.AbstractContextManager):
     ) -> PredictResponse:
         """
         Send data to the server to make a secure inference.
-        
+
         The data provided must be in a list, as the tensor will be rebuilt inside the server.
-        
+
         ***Security & confidentiality warnings:***<br>
         *`model_id` : hash of the Onnx model uploaded. the given hash is return via gRPC through the proto files. It's a SHA-256 hash that is generated each time a model is uploaded.<br>
         `data_list`: protected in transit and protected when running it on the secure enclave. In the case of a compromised OS, the data is isolated and confidential by SGX design.<br>

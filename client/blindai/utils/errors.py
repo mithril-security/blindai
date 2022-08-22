@@ -44,20 +44,24 @@ class AttestationError(Exception):
 
     pass
 
+
 class NotAnEnclaveError(Exception):
     """This exception is raised when the enclave claims are not signed by Intel, meaning that the claims are fake"""
 
     pass
+
 
 class IdentityError(Exception):
     """This exception is raised when the enclave code signature hash does not match the signature hash provided in the policy"""
 
     pass
 
+
 class DebugNotAllowedError(Exception):
     """This exception is raised when the enclave is in debug mode but the provided policy doesn't allow debug mode"""
 
     pass
+
 
 class VersionError(Exception):
     """This exception is raised when the server version is not supported by the client"""

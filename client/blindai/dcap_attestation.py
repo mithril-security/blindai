@@ -26,7 +26,12 @@ import _quote_verification
 from _quote_verification import status
 
 from blindai.utils.utils import encode_certificate
-from blindai.utils.errors import AttestationError, DebugNotAllowedError, IdentityError, NotAnEnclaveError
+from blindai.utils.errors import (
+    AttestationError,
+    DebugNotAllowedError,
+    IdentityError,
+    NotAnEnclaveError,
+)
 
 
 @dataclass
