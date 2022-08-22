@@ -189,7 +189,7 @@ pub fn setup(platform: String, uid: String) -> anyhow::Result<()> {
                 //We send using the server, the differents event in the db
                 if !events.is_empty() {
                     let response = reqwest::Client::new()
-                        .post("https://telemetry.mithrilsecurity.io")
+                        .post("https://telemetry.mithrilsecurity.io/blindai/")
                         .timeout(Duration::from_secs(60))
                         .json(&events)
                         .send()

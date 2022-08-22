@@ -10,9 +10,9 @@ theme:
   features:
     - navigation.instant
     - navigation.tabs
-    - navigation.tabs.sticky
     - navigation.top
     - search.highlight
+    - content.tabs.link
   logo: assets/logo.png
   favicon: assets/logo.png
   palette:
@@ -33,11 +33,22 @@ extra_javascript:
   - 'https://code.jquery.com/jquery-3.3.1.min.js'
 
 markdown_extensions:
+  - abbr
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - pymdownx.details
   - pymdownx.highlight:
       anchor_linenums: true
+  - pymdownx.betterem:
+      smart_enable: all
   - pymdownx.inlinehilite
   - pymdownx.snippets
   - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true 
 
 plugins:
 - search
