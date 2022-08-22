@@ -45,7 +45,7 @@ class TestCovidNetBase:
             if not self.simulation and os.getenv("BLINDAI_DUMPRES") is not None:
                 upload_response.save_to_file("./client/tests/exec_upload.proof")
 
-            response = client.run_model(
+            response = client.predict(
                 upload_response.model_id,
                 img,
                 sign=True,
@@ -89,7 +89,7 @@ class TestCovidNetBase:
                 models.append(upload_response.model_id)
 
             for i in range(5):
-                response = client.run_model(
+                response = client.predict(
                     models[i],
                     img,
                     dtype=ModelDatumType.F32,
@@ -139,7 +139,7 @@ class TestCovidNetBase:
             policy=policy_file,
             certificate=certificate_file,
         ) as client:
-            response = client.run_model(
+            response = client.predict(
                 upload_response.model_id,
                 img,
                 dtype=ModelDatumType.F32,
@@ -179,7 +179,7 @@ class TestCovidNetBase:
                 model_id="Salut",
             )
 
-            response = client.run_model(
+            response = client.predict(
                 "Salut",
                 img,
                 dtype=ModelDatumType.F32,
@@ -225,7 +225,7 @@ class TestCovidNetBase:
 
                 inputs = torch.tensor(img, dtype=torch.float32)
 
-            response = client.run_model(upload_response.model_id, inputs)
+            response = client.predict(upload_response.model_id, inputs)
 
         ort_session = onnxruntime.InferenceSession(model)
         ort_inputs = {ort_session.get_inputs()[0].name: img}
@@ -269,7 +269,7 @@ class TestCovidNetBase:
                 test.append(inputs)
                 test.append(inputs)
 
-            response = client.run_model(upload_response.model_id, test)
+            response = client.predict(upload_response.model_id, test)
 
         ort_session = onnxruntime.InferenceSession(model)
         ort_inputs = {ort_session.get_inputs()[0].name: img}

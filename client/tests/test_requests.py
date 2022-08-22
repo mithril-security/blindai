@@ -178,12 +178,12 @@ class TestRequest(unittest.TestCase):
             certificate=os.path.join(os.path.dirname(__file__), "host_server.pem"),
         )
 
-        # run_model
+        # predict
 
         input = get_input()
 
         def run_model_util(sign):
-            def run_model(req: Iterator[RunModelRequest]):
+            def predict(req: Iterator[RunModelRequest]):
                 arr = b""
                 reql = list(req)
                 for el in reql:
@@ -198,9 +198,9 @@ class TestRequest(unittest.TestCase):
                     signature=real_response.signature if sign else None,
                 )
 
-            ExchangeStub().RunModel = Mock(side_effect=run_model)
+            ExchangeStub().RunModel = Mock(side_effect=predict)
 
-            response = client.run_model(res.model_id, input, sign=sign)
+            response = client.predict(res.model_id, input, sign=sign)
 
             if not sign:
                 self.assertFalse(response.is_signed())
@@ -267,11 +267,11 @@ class TestRequest(unittest.TestCase):
 
         client = blindai.client.connect("localhost", simulation=True)
 
-        # run_model
+        # predict
 
         input = get_input()
 
-        def run_model(req: Iterator[RunModelRequest]):
+        def predict(req: Iterator[RunModelRequest]):
             arr = b""
             reql = list(req)
             for el in reql:
@@ -285,9 +285,9 @@ class TestRequest(unittest.TestCase):
                 payload=real_response.payload,
             )
 
-        ExchangeStub().RunModel = Mock(side_effect=run_model)
+        ExchangeStub().RunModel = Mock(side_effect=predict)
 
-        response = client.run_model(res.model_id, input)
+        response = client.predict(res.model_id, input)
 
         self.assertFalse(response.is_signed())
 

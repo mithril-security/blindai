@@ -198,10 +198,10 @@ def verify_claims(claims: DcapClaims, policy: Policy):
     """
 
     if claims.sgx_mrenclave != policy.mr_enclave:
-        raise AttestationError("MRENCLAVE doesn't match with the policy")
+        raise IdentityError("Code signature mismatch (MRENCLAVE)")
 
     if claims.sgx_is_debuggable and not policy.allow_debug:
-        raise AttestationError(
+        raise DebugNotAllowedError(
             "Enclave is in debug mode but the policy doesn't allow debug"
         )
 

@@ -507,7 +507,7 @@ class Tensor:
         return self.info.datum_type
 
 
-class RunModelResponse(SignedResponse):
+class PredictResponse(SignedResponse):
     output_tensors: List[Tensor]
     model_id: str
 
@@ -970,14 +970,14 @@ class BlindAiConnection(contextlib.AbstractContextManager):
         return ret
 
     @raise_exception_if_conn_closed
-    def run_model(
+    def predict(
         self,
         model_id: str,
         tensors: Union[List[List[Any]], List[Any]],
         dtype: Optional[Union[List[ModelDatumType], ModelDatumType]] = None,
         shape: Optional[Union[List[List[int]], List[int]]] = None,
         sign: bool = False,
-    ) -> RunModelResponse:
+    ) -> PredictResponse:
         """
         Send data to the server to make a secure inference.
         
@@ -1031,7 +1031,7 @@ class BlindAiConnection(contextlib.AbstractContextManager):
         except RpcError as rpc_error:
             raise ConnectionError(check_rpc_exception(rpc_error))
 
-        return RunModelResponse(
+        return PredictResponse(
             tensors,
             dtype,
             shape,

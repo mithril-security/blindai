@@ -40,7 +40,7 @@ class TestDistilBertBase:
             )
             model_id = response.model_id
 
-            response = client.run_model(model_id, inputs)
+            response = client.predict(model_id, inputs)
             origin_pred = model(inputs).logits.detach()
 
             diff = (
@@ -69,7 +69,7 @@ class TestDistilBertBase:
 
             client.enclave_signing_key.verify(response.signature, response.payload)
 
-            response = client.run_model(model_id, inputs, sign=True)
+            response = client.predict(model_id, inputs, sign=True)
 
             client.enclave_signing_key.verify(response.signature, response.payload)
 

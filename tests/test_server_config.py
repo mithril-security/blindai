@@ -39,7 +39,7 @@ class TestServerConfigBase:
             policy=policy_file,
             certificate=certificate_file,
         ) as client:
-            response = client.run_model(
+            response = client.predict(
                 "covidnet",
                 inputs,
                 dtype=ModelDatumType.F32,
@@ -78,7 +78,7 @@ class TestServerConfigBase:
             policy=policy_file,
             certificate=certificate_file,
         ) as client:
-            response = client.run_model(
+            response = client.predict(
                 "gpt-neo-2.7b",
                 gptneox_inputs.flatten().tolist(),
                 dtype=ModelDatumType.I64,

@@ -19,8 +19,8 @@ Our solution comes in two parts:
 
 ### Latest versions
 
-* **BlindAI server:** _0.4.1_
-* **BlindAI client:** _0.4.1_
+* **BlindAI server:** _0.5.0_
+* **BlindAI client:** _0.5.0_
 
 ### Features
 
@@ -28,7 +28,6 @@ Our solution comes in two parts:
 * Model and data protected by hardware security
 * Support of Remote Attestation with TLS (DCAP library)
 * Easy to install, deploy, and maintain
-* Support `SGX+FLC`
 
 #### What you can do with BlindAI
 
