@@ -18,7 +18,7 @@
 
 BlindAI is a confidential AI inference server. Like regular AI inference solutions, BlindAI helps AI engineers serve models for end-users to benefit from their predictions, but with an added privacy layer. Data sent by users to the AI model is kept confidential at all times, from the transfer to the analysis. This way, users can benefit from AI models without ever having to expose their data in clear to anyone: neither the AI service provider, nor the Cloud provider (if any), can see the data.
 
-Confidentiality is assured by using special hardware-enforced Trusted Execution Environments. To read more about those, read our blog series [here](https://blog.mithrilsecurity.io/confidential-computing-explained-part-1-introduction/)
+Confidentiality is assured by using special hardware-enforced Trusted Execution Environments. To read more about those, read our blog series [here](https://blog.mithrilsecurity.io/confidential-computing-explained-part-1-introduction/).
 
 Our solution comes in two parts:
 
@@ -60,6 +60,7 @@ By using BlindAI, data remains always protected as it is only decrypted inside a
 You can test and see how BlindAI secures AI application through our [hosted demo of GPT2](INSERT LINK GPT2 DEMO), built using Gradio.
 
 In this demo, you can see how BlindAI works and make sure that your data is protected. Thanks to the attestation mechanism, even before sending data, our Python client will check that:
+
 - We are talking to a secure enclave with the hardware protection enabled.
 - The right code is loaded inside the enclave, and not a malicious one.
 
@@ -75,9 +76,11 @@ To interact with an AI model hosted on a remote secure enclave, we provide the `
 - upload an AI model that was previously converted to ONNX
 - query the model securely
 
-BlindAI is configured by default to connect to our managed Cloud backend to make it easy for users to upload and query models inside our secure enclaves. Even though we managed users AI models, thanks to the protection provided by the use of secure enclaves, data and models sent to our Cloud remain private and never. You can also deploy BlindAI on [your own infra](#on-premise-deployment).
+BlindAI is configured by default to connect to our managed Cloud backend to make it easy for users to upload and query models inside our secure enclaves. Even though we managed users AI models, thanks to the protection provided by the use of secure enclaves, data and models sent to our Cloud remain private and never. 
 
-### Querying a GPT2 model
+You can also deploy BlindAI on [your own infra](#on-premise-deployment).
+
+### Querying a GPT2
 
 We can see how it works with our GPT2 model for text generation. It is already loaded inside our managed Cloud, so we will simply need to query it. We will be using the `transformers` library for tokenizing.
 
@@ -98,37 +101,88 @@ with blindai.client.connect() as client:
 
 example = tokenizer.decode(response.output, skip_special_tokens=True)
 
-# We can check that our sentence was completed by GPT2 🦀
+# We can see how GPT2 completed our sentence 🦀
 >>> example
 "I like the Rust programming language because it's easy to write and maintain."
 ```
 
-### Uploading a ResNet
+### Uploading a ResNet18
 
 The model in the GPT2 example had already been loaded by us, but BlindAI also allows you to upload your own models to our managed Cloud solution. 
 
-To be able to upload your model to our Cloud, you will need to first register here to get an API key.
+To be able to upload your model to our Cloud, you will need to [first register](PUT LINK TO CLOUD HERE) to get an API key.
 
-Once you have it, you just have to provide it to our backend. 
+Once you have the API key, you just have to provide it to our backend. 
 
 ```python
 import torch
 import blindai
-model = torch.hub.load('pytorch/vision:v0.10.0', 'resnet18', pretrained=True)
 
+# Get the model and export it locally in ONNX format
+model = torch.hub.load('pytorch/vision:v0.10.0', 'resnet18', pretrained=True)
 dummy_inputs = torch.zeros(1,3,224,224)
 torch.onnx.export(model, dummy_inputs, "resnet18.onnx")
 
+# Define the expected input/output specs (shape and type)
 tensor_inputs = [
     [dummy_inputs.shape, blindai.client.ModelDatumType.F32]
 ]
 tensor_outputs = blindai.client.ModelDatumType.F32
 
-with blindai.client.connect() as client:
-    upload_response = client.upload_model(
-      model="resnet18.onnx", 
-      tensor_inputs=tensor_inputs, tensor_outputs=tensor_outputs
+# Upload the ONNX file along with specs and model name
+with blindai.client.connect(api_key=...) as client:
+    client.upload_model(
+      model="resnet18.onnx",
+      tensor_inputs=tensor_inputs, tensor_outputs=tensor_outputs,
     )
+```
+
+The first block of code pulls a model from [PyTorch Hub](https://pytorch.org/hub/), and export it in ONNX format. Because [tracing](https://pytorch.org/tutorials/advanced/super_resolution_with_onnxruntime.html) is used, we need to provide a dummy input for the model to know the shape of inputs used live.
+
+Before uploading, we need to provide information on the expected inputs and outputs.
+
+Finally, we can connect to the managed backend and upload the model. You can provide a model name to know which one to query, for instance here `model_name="resnet18"`. Because we have already uploaded a model with the name `"resnet18"`, you should not try to upload a model with that name as it is already taken on our main server.
+
+### Querying a ResNet18
+
+Now we can consume this model securely. We can now have a ResNet18 analyze an image of our dog, without showing the image of the dog in clear. 
+
+<img src="https://github.com/pytorch/hub/raw/master/images/dog.jpg" alt="Dog to analyze" width="200"/>
+
+We will first pull the dog image, and preprocess it before sending it our enclave. The code is similar to [PyTorch ResNet18 example](https://pytorch.org/hub/pytorch_vision_resnet/):
+
+```python
+# Source: https://pytorch.org/hub/pytorch_vision_resnet/
+import blindai
+import urllib
+from PIL import Image
+from torchvision import transforms
+
+# Download an example image from the pytorch website
+url, filename = ("https://github.com/pytorch/hub/raw/master/images/dog.jpg", "dog.jpg")
+try: urllib.URLopener().retrieve(url, filename)
+except: urllib.request.urlretrieve(url, filename)
+
+# sample execution (requires torchvision)
+input_image = Image.open(filename)
+preprocess = transforms.Compose([
+    transforms.Resize(256),
+    transforms.CenterCrop(224),
+    transforms.ToTensor(),
+    transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+])
+input_tensor = preprocess(input_image)
+input_batch = input_tensor.unsqueeze(0) # create a mini-batch as expected by the model
+```
+
+Now we that we have the input tensor, we simply need to send it to the pre-uploaded ResNet18 model inside our secure enclave:
+
+```python
+with blindai.client.connect() as client:
+  # Send data to the GPT2 model
+  response = client.run_model("resnet18", input_list)
+
+>>> response.output[0].argmax()
 ```
 
 ### On-premise deployment
@@ -148,24 +202,6 @@ BlindAI is currently a solution for AI model deployment. We suppose the model ha
 This scenario often comes up once you have been able to train a model on a specific dataset, most likely on premise, like on biometric, medical or financial data, and now want to deploy it at scale as a Service to your users.
 
 BlindAI can be seen as a variant of current serving solutions, like Nvidia Triton, Torchserve, TFserve, Kserve and so on. We provide the networking layer and the client SDK to consume the service remotely and securely, thanks to our secure AI backend.
-
-## :wrench: How do I use it?
-
-### A - Export the AI workflow
-
-For data scientists to deploy their workloads they must first export their AI models, and possibly their pre/post processing in ONNX format. Pytorch or Tensorflow models can easily be exported into an ONNX file. Exporting a neural network in ONNX format facilitates its deployment, as it will be optimised for inference.
-
-Because we leverage the Tract project behind the scenes, the following operators are currently supported: https://github.com/sonos/tract#onnx 
-
-### B - Deploy it on BlindAI
-
-![Workflow of BlindAI](assets/workflow_blindai.PNG)
-
-Once the model is exported and ready to be served, the workflow is always the same:
-
-- Run our inference server, for instance using Docker. 
-- Upload the ONNX model inside the inference server using our SDK. By leveraging our SDK, we make sure the IP of the model is protected as well.
-- Send data securely to be analysed by the AI model with the client SDK.
 
 ## :sunny: Models covered by BlindAI
 
