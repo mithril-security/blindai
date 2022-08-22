@@ -26,7 +26,7 @@ import _quote_verification
 from _quote_verification import status
 
 from blindai.utils.utils import encode_certificate
-from blindai.utils.errors import AttestationError
+from blindai.utils.errors import AttestationError, DebugNotAllowedError, IdentityError, NotAnEnclaveError
 
 
 @dataclass
@@ -89,7 +89,7 @@ def verify_dcap_attestation(
     ret = t.verify()
 
     if ret.pckCertificateStatus != status.STATUS_OK:
-        raise AttestationError(
+        raise NotAnEnclaveError(
             "Wrong PCK Certificate Status {}", ret.pckCertificateStatus
         )
 
