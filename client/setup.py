@@ -96,7 +96,7 @@ def generate_stub():
 
     proto_include = pkg_resources.resource_filename("grpc_tools", "_proto")
     for file in PROTO_FILES:
-        grpc_tools.protoc.main(
+        ret = grpc_tools.protoc.main(
             [
                 "grpc_tools.protoc",
                 "-I{}".format(proto_include),
@@ -106,6 +106,10 @@ def generate_stub():
                 "{}".format(file),
             ]
         )
+        if ret != 0:
+            print(f"Proto file generation failed. Cannot continue. Error code: {ret}")
+            exit(1)
+
 
 
 def get_libs():
