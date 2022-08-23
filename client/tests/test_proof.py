@@ -17,7 +17,6 @@ from blindai.utils.errors import SignatureError, AttestationError
 from unittest.mock import Mock, patch
 from datetime import datetime, timedelta
 import time  # so we can override time.time
-import cbor2
 
 from .covidnet import get_input, get_model
 
