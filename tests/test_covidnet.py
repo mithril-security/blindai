@@ -58,9 +58,7 @@ class TestCovidNetBase:
 
         ort_outs = ort_session.run(None, ort_inputs)
 
-        diff = abs(sum(np.array([response.output[0].as_flat()]) - ort_outs))[0][
-            0
-        ]
+        diff = abs(sum(np.array([response.output[0].as_flat()]) - ort_outs))[0][0]
         self.assertLess(diff, 0.001)  # difference is <0.1%
 
     @unittest.skipIf(
@@ -100,9 +98,9 @@ class TestCovidNetBase:
 
                 ort_outs = ort_session.run(None, ort_inputs)
 
-                diff = abs(
-                    sum(np.array([response.output[0].as_flat()]) - ort_outs)
-                )[0][0]
+                diff = abs(sum(np.array([response.output[0].as_flat()]) - ort_outs))[0][
+                    0
+                ]
                 self.assertLess(diff, 0.001)  # difference is <0.1%
 
     @unittest.skipIf(
@@ -151,9 +149,7 @@ class TestCovidNetBase:
 
         ort_outs = ort_session.run(None, ort_inputs)
 
-        diff = abs(sum(np.array([response.output[0].as_flat()]) - ort_outs))[0][
-            0
-        ]
+        diff = abs(sum(np.array([response.output[0].as_flat()]) - ort_outs))[0][0]
         self.assertLess(diff, 0.001)  # difference is <0.1%
 
     @unittest.skipIf(
@@ -191,9 +187,7 @@ class TestCovidNetBase:
 
         ort_outs = ort_session.run(None, ort_inputs)
 
-        diff = abs(sum(np.array([response.output[0].as_flat()]) - ort_outs))[0][
-            0
-        ]
+        diff = abs(sum(np.array([response.output[0].as_flat()]) - ort_outs))[0][0]
         self.assertLess(diff, 0.001)  # difference is <0.1%
 
     @unittest.skipIf(
@@ -228,13 +222,9 @@ class TestCovidNetBase:
 
         ort_outs = ort_session.run(None, ort_inputs)
 
-        diff = abs(sum(np.array([response1.output[0].as_flat()]) - ort_outs))[
-            0
-        ][0]
+        diff = abs(sum(np.array([response1.output[0].as_flat()]) - ort_outs))[0][0]
         self.assertLess(diff, 0.001)  # difference is <0.1%
-        diff = abs(sum(np.array([response2.output[0].as_flat()]) - ort_outs))[
-            0
-        ][0]
+        diff = abs(sum(np.array([response2.output[0].as_flat()]) - ort_outs))[0][0]
         self.assertLess(diff, 0.001)  # difference is <0.1%
 
 

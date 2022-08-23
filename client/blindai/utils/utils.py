@@ -62,9 +62,7 @@ def get_supported_server_version() -> str:
         __name__, "../supported_server_versions.py"
     ).decode("utf-8")
     versions_re = r"__version__ = \"(?P<version>.+)\""
-    supported_versions = (
-        re.match(versions_re, supported_versions_file).group("version")
-    )
+    supported_versions = re.match(versions_re, supported_versions_file).group("version")
     return supported_versions
 
 
