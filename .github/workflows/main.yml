@@ -75,7 +75,7 @@ jobs:
 
       # Build client
 
-      - run: rm -rf client/proto && cp -r server/proto client
+      - run: cp -r server/proto client
         if: ${{ steps.cache-wheels.outputs.cache-hit != 'true' }}
 
       - uses: actions/cache@v2
