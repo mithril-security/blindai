@@ -157,7 +157,7 @@ class TestProof(unittest.TestCase):
 
         response2 = deepcopy(response)
         payload = Payload.FromString(response2.payload)
-        payload.run_model_payload.output[0].bytes_data = b"asdsd"
+        payload.run_model_payload.output_tensors[0].bytes_data = b"asdsd"
         response2.payload = payload.SerializeToString()
         with self.assertRaises(SignatureError):
             response2.validate(
