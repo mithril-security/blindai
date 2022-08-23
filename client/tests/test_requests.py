@@ -213,7 +213,8 @@ class TestRequest(unittest.TestCase):
                 self.assertEqual(
                     b"".join(
                         serialize_tensor(
-                            response.output_tensors[0].as_numpy().flatten(), ModelDatumType.F32
+                            response.output_tensors[0].as_numpy().flatten(),
+                            ModelDatumType.F32,
                         )
                     ),
                     Payload.FromString(real_response.payload)

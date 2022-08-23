@@ -639,7 +639,6 @@ class PredictResponse(SignedResponse):
         if model_id != payload.model_id:
             raise SignatureError("Invalid response model_id")
 
-
     def _load_payload(self):
         payload = PbPayload.FromString(self.payload).run_model_payload
         self.output_tensors = [
@@ -655,6 +654,7 @@ class PredictResponse(SignedResponse):
             for tensor in payload.output_tensors
         ]
         self.model_id = payload.model_id
+
 
 class DeleteModelResponse:
     pass

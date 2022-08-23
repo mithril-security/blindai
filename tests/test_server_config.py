@@ -15,9 +15,7 @@ from server import (
 )
 from test_covidnet import setUpModule as covidNetSetUpModule
 
-model_path = os.path.join(
-    os.path.dirname(__file__), "assets/COVID-Net-CXR-2.onnx"
-)
+model_path = os.path.join(os.path.dirname(__file__), "assets/COVID-Net-CXR-2.onnx")
 
 
 class TestServerConfigBase:
@@ -100,18 +98,21 @@ if __name__ == "__main__":
 
 gptneox_inputs, inputs = None, None
 
+
 def setUpModule():
     global gptneox_inputs, inputs
     inputs = covidNetSetUpModule()
 
-    gptneox_inputs = torch.tensor(np.load(os.path.join(os.path.dirname(__file__), "./gpt-neo-2.7b.npz"))["inputs"])
+    gptneox_inputs = torch.tensor(
+        np.load(os.path.join(os.path.dirname(__file__), "./gpt-neo-2.7b.npz"))["inputs"]
+    )
 
     if not os.path.exists(os.path.join(bin_dir, "./gpt-neo-2.7b")):
         model = AutoModel.from_pretrained("EleutherAI/gpt-neo-2.7B")
 
         os.mkdir(os.path.join(bin_dir, "./gpt-neo-2.7b"))
         torch.onnx.export(
-            model, 
+            model,
             gptneox_inputs,
             os.path.join(bin_dir, "./gpt-neo-2.7b/gpt-neo-2.7b.onnx"),
             export_params=True,

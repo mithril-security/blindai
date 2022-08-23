@@ -13,7 +13,12 @@ from blindai.dcap_attestation import (
     DcapClaims,
     verify_dcap_attestation,
 )
-from blindai.utils.errors import AttestationError, IdentityError, NotAnEnclaveError, DebugNotAllowedError
+from blindai.utils.errors import (
+    AttestationError,
+    IdentityError,
+    NotAnEnclaveError,
+    DebugNotAllowedError,
+)
 import os
 
 policy = Policy(

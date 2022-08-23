@@ -32,11 +32,15 @@ img = process_image_file(
 img = img.astype("float32") / 255.0
 img = img[np.newaxis, :, :, :]
 
-model_path = os.path.join(os.path.dirname(__file__), "../../tests/assets/COVID-Net-CXR-2.onnx")
+model_path = os.path.join(
+    os.path.dirname(__file__), "../../tests/assets/COVID-Net-CXR-2.onnx"
+)
+
 
 def get_input():
     return img
 
+
 def get_model():
-    with open(model_path, 'rb') as f:
+    with open(model_path, "rb") as f:
         return f.read()

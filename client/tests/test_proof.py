@@ -46,7 +46,12 @@ class TestProof(unittest.TestCase):
         self.assertEqual(response.payload, response2.payload)
         self.assertEqual(response.signature, response2.signature)
         self.assertEqual(response.attestation, response2.attestation)
-        self.assertTrue([(t1.as_numpy() == t2.as_numpy()).all() for t1, t2 in zip(response.output_tensors, response2.output_tensors)])
+        self.assertTrue(
+            [
+                (t1.as_numpy() == t2.as_numpy()).all()
+                for t1, t2 in zip(response.output_tensors, response2.output_tensors)
+            ]
+        )
 
         response3 = PredictResponse()
         response3.load_from_bytes(response.as_bytes())
@@ -54,7 +59,12 @@ class TestProof(unittest.TestCase):
         self.assertEqual(response.payload, response3.payload)
         self.assertEqual(response.signature, response3.signature)
         self.assertEqual(response.attestation, response3.attestation)
-        self.assertTrue([(t1.as_numpy() == t2.as_numpy()).all() for t1, t2 in zip(response.output_tensors, response2.output_tensors)])
+        self.assertTrue(
+            [
+                (t1.as_numpy() == t2.as_numpy()).all()
+                for t1, t2 in zip(response.output_tensors, response2.output_tensors)
+            ]
+        )
 
         response3.save_to_file(tmp_path)
         response4 = PredictResponse()
@@ -63,7 +73,12 @@ class TestProof(unittest.TestCase):
         self.assertEqual(response.payload, response4.payload)
         self.assertEqual(response.signature, response4.signature)
         self.assertEqual(response.attestation, response4.attestation)
-        self.assertTrue([(t1.as_numpy() == t2.as_numpy()).all() for t1, t2 in zip(response.output_tensors, response4.output_tensors)])
+        self.assertTrue(
+            [
+                (t1.as_numpy() == t2.as_numpy()).all()
+                for t1, t2 in zip(response.output_tensors, response4.output_tensors)
+            ]
+        )
 
     @patch("time.time", mock_time)
     def test_parse_upload(self):
@@ -156,7 +171,7 @@ class TestProof(unittest.TestCase):
 
         response2 = deepcopy(response)
         data = deepcopy(get_input())
-        data[0,4,0] += 1
+        data[0, 4, 0] += 1
         with self.assertRaises(SignatureError):
             response2.validate(
                 response.model_id,
