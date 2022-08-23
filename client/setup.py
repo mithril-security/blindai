@@ -111,7 +111,6 @@ def generate_stub():
             exit(1)
 
 
-
 def get_libs():
     if PLATFORM == "LINUX":
         return "lib/*.so"

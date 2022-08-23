@@ -78,7 +78,6 @@ pub unsafe extern "C" fn start_server(
     let _ = backtrace::enable_backtrace("enclave.signed.so", PrintFormat::Full);
 
     env_logger::Builder::from_env(Env::default().default_filter_or("info")).init();
-
     info!("Switched to enclave context");
 
     let telemetry_platform = CStr::from_ptr(telemetry_platform);
