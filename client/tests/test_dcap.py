@@ -1,7 +1,7 @@
 from datetime import datetime
 import unittest
 from unittest.mock import MagicMock, patch
-from blindai.client import UploadModelResponse
+from blindai import UploadModelResponse
 from bitstring import Bits
 from copy import deepcopy
 from _quote_verification import status as QuoteStatus

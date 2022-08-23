@@ -1,6 +1,6 @@
 import torch
-import blindai.client
-from blindai.client import BlindAiConnection, ModelDatumType
+import blindai
+from blindai import Connection, ModelDatumType
 import unittest
 from server import (
     close_server,
@@ -24,7 +24,7 @@ class TestCovidNetBase:
         os.getenv("BLINDAI_TEST_SKIP_COVIDNET") is not None, "skipped by env var"
     )
     def test_base(self):
-        with blindai.client.connect(
+        with blindai.connect(
             addr="localhost",
             simulation=self.simulation,
             policy=policy_file,
@@ -67,7 +67,7 @@ class TestCovidNetBase:
         os.getenv("BLINDAI_TEST_SKIP_COVIDNET") is not None, "skipped by env var"
     )
     def test_multiple(self):
-        with blindai.client.connect(
+        with blindai.connect(
             addr="localhost",
             simulation=self.simulation,
             policy=policy_file,
@@ -109,7 +109,7 @@ class TestCovidNetBase:
         os.getenv("BLINDAI_TEST_SKIP_COVIDNET") is not None, "skipped by env var"
     )
     def test_seal(self):
-        with blindai.client.connect(
+        with blindai.connect(
             addr="localhost",
             simulation=self.simulation,
             policy=policy_file,
@@ -132,7 +132,7 @@ class TestCovidNetBase:
         close_server()
         launch_server()
 
-        with blindai.client.connect(
+        with blindai.connect(
             addr="localhost",
             simulation=self.simulation,
             policy=policy_file,
@@ -160,7 +160,7 @@ class TestCovidNetBase:
         os.getenv("BLINDAI_TEST_SKIP_COVIDNET") is not None, "skipped by env var"
     )
     def test_feat(self):
-        with blindai.client.connect(
+        with blindai.connect(
             addr="localhost",
             simulation=self.simulation,
             policy=policy_file,
@@ -200,7 +200,7 @@ class TestCovidNetBase:
         os.getenv("BLINDAI_TEST_SKIP_COVIDNET") is not None, "skipped by env var"
     )
     def test_torch_inputs(self):
-        with blindai.client.connect(
+        with blindai.connect(
             addr="localhost",
             simulation=self.simulation,
             policy=policy_file,

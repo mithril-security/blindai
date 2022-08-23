@@ -662,7 +662,7 @@ class DeleteModelResponse:
 
 def raise_exception_if_conn_closed(f):
     """
-    Decorator which raises an exception if the BlindAiConnection is closed before calling
+    Decorator which raises an exception if the Connection is closed before calling
     the decorated method
     """
 
@@ -675,7 +675,7 @@ def raise_exception_if_conn_closed(f):
     return wrapper
 
 
-class BlindAiConnection(contextlib.AbstractContextManager):
+class Connection(contextlib.AbstractContextManager):
     _channel: Optional[Channel] = None
     policy: Optional[Policy] = None
     _stub: Optional[ExchangeStub] = None
@@ -1117,7 +1117,7 @@ class BlindAiConnection(contextlib.AbstractContextManager):
             self.server_version = None
 
     def __enter__(self):
-        """Return the BlindAiConnection upon entering the runtime context."""
+        """Return the Connection upon entering the runtime context."""
         return self
 
     def __exit__(self, *args):
@@ -1125,6 +1125,6 @@ class BlindAiConnection(contextlib.AbstractContextManager):
         self.close()
 
 
-@wraps(BlindAiConnection.__init__, assigned=("__doc__", "__annotations__"))
+@wraps(Connection.__init__, assigned=("__doc__", "__annotations__"))
 def connect(*args, **kwargs):
-    return BlindAiConnection(*args, **kwargs)
+    return Connection(*args, **kwargs)

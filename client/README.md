@@ -16,8 +16,8 @@ $ pip install blindai
 
 ```python
 from transformers import DistilBertTokenizer
-import blindai.client
-from blindai.client import ModelDatumType
+import blindai
+from blindai import ModelDatumType
 import torch
 
 # Create dummy input for export
@@ -40,7 +40,7 @@ torch.onnx.export(
 )
 
 # Launch client
-with blindai.client.connect(
+with blindai.connect(
     addr="localhost", policy="policy.toml", certificate="host_server.pem"
 ) as client:
     response = client.upload_model(
@@ -54,7 +54,7 @@ with blindai.client.connect(
 ### Uploading data
 ```python
 from transformers import DistilBertTokenizer
-import blindai.client
+import blindai
 
 # Prepare the inputs
 tokenizer = DistilBertTokenizer.from_pretrained("distilbert-base-uncased")
@@ -62,7 +62,7 @@ sentence = "I love AI and privacy!"
 inputs = tokenizer(sentence, padding="max_length", max_length=8)["input_ids"]
 
 # Load the client
-with blindai.client.connect(
+with blindai.connect(
     addr="localhost", policy="policy.toml", certificate="host_server.pem"
 ) as client:
     # Get prediction

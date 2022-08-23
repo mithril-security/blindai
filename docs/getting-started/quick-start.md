@@ -88,10 +88,10 @@ For now, the library is only compatible with Linux. We are working on a native W
 You can run the following script in order to send the model to the server:
 
 ```python
-from blindai.client import BlindAiConnection, ModelDatumType
+from blindai import Connection, ModelDatumType
 import torch
 
-client = BlindAiConnection(addr="localhost", simulation=True)
+client = Connection(addr="localhost", simulation=True)
 
 response = client.upload_model(
     model="./distilbert-base-uncased.onnx", 
@@ -124,10 +124,10 @@ inputs = tokenizer(sentence, padding = "max_length", max_length = 8)["input_ids"
 Now we simply have to create our client, connect and send data to be analyzed. In the same fashion as before, we will create a client in simulation, and simply send data to be analyzed with the proper communication channel.
 
 ```python
-from blindai.client import BlindAiConnection
+from blindai import Connection
 
 # Load the client
-client = BlindAiConnection("localhost", simulation=True)
+client = Connection("localhost", simulation=True)
 
 # Get prediction
 response = client.run_model(model_id, inputs) # replace model_id by its previously printed value.

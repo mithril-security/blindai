@@ -8,7 +8,7 @@ from blindai.pb.securedexchange_pb2 import (
     Payload,
 )
 
-from blindai.client import (
+from blindai import (
     PredictResponse,
     UploadModelResponse,
 )

@@ -1,8 +1,8 @@
 import unittest
 import os
 import shutil
-import blindai.client
-from blindai.client import ModelDatumType
+import blindai
+from blindai import ModelDatumType
 from transformers import AutoModel, AutoTokenizer
 import numpy as np
 import torch
@@ -31,7 +31,7 @@ class TestServerConfigBase:
             model_path,
             os.path.join(bin_dir, "covidnet.onnx"),
         )
-        with blindai.client.connect(
+        with blindai.connect(
             addr="localhost",
             simulation=self.simulation,
             policy=policy_file,
@@ -49,7 +49,7 @@ class TestServerConfigBase:
         os.path.join(os.path.dirname(__file__), "startup_model_config.toml")
     )
     def test_config_no_sendmodel(self):
-        with blindai.client.connect(
+        with blindai.connect(
             addr="localhost",
             simulation=self.simulation,
             policy=policy_file,
@@ -70,7 +70,7 @@ class TestServerConfigBase:
         os.path.join(os.path.dirname(__file__), "startup_model_gptneox_config.toml")
     )
     def test_gptneox(self):
-        with blindai.client.connect(
+        with blindai.connect(
             addr="localhost",
             simulation=self.simulation,
             policy=policy_file,

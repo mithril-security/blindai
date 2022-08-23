@@ -1,5 +1,5 @@
 import os
-import blindai.client
+import blindai
 import cv2
 import numpy as np
 

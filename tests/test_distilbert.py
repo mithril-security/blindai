@@ -2,8 +2,8 @@ import shutil
 from transformers import DistilBertForSequenceClassification
 from transformers import DistilBertTokenizer
 import torch
-import blindai.client
-from blindai.client import ModelDatumType
+import blindai
+from blindai import ModelDatumType
 import unittest
 import os
 from server import (
@@ -25,7 +25,7 @@ class TestDistilBertBase:
             self.skipTest("no hardware support")
 
     def test_base(self):
-        with blindai.client.connect(
+        with blindai.connect(
             addr="localhost",
             simulation=self.simulation,
             policy=policy_file,
@@ -52,7 +52,7 @@ class TestDistilBertBase:
             client.delete_model(model_id)
 
     def test_signed(self):
-        with blindai.client.connect(
+        with blindai.connect(
             addr="localhost",
             simulation=self.simulation,
             policy=policy_file,
