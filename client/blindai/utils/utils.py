@@ -63,13 +63,13 @@ def get_supported_server_version() -> str:
     ).decode("utf-8")
     versions_re = r"__version__ = \"(?P<version>.+)\""
     supported_versions = (
-        re.match(versions_re, supported_versions_file).group("version").split(".")
+        re.match(versions_re, supported_versions_file).group("version")
     )
     return supported_versions
 
 
 def supported_server_version(version: str) -> bool:
-    supported_versions = get_supported_server_version()
+    supported_versions = get_supported_server_version().split(".")
     server_version = version.split(".")
     for i in range(len(server_version)):
         # Numeric characters in supported_versions must match the ones in the server version

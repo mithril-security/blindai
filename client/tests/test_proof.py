@@ -48,7 +48,7 @@ class TestProof(unittest.TestCase):
         self.assertTrue(
             [
                 (t1.as_numpy() == t2.as_numpy()).all()
-                for t1, t2 in zip(response.output_tensors, response2.output_tensors)
+                for t1, t2 in zip(response.output, response2.output)
             ]
         )
 
@@ -61,7 +61,7 @@ class TestProof(unittest.TestCase):
         self.assertTrue(
             [
                 (t1.as_numpy() == t2.as_numpy()).all()
-                for t1, t2 in zip(response.output_tensors, response2.output_tensors)
+                for t1, t2 in zip(response.output, response2.output)
             ]
         )
 
@@ -75,7 +75,7 @@ class TestProof(unittest.TestCase):
         self.assertTrue(
             [
                 (t1.as_numpy() == t2.as_numpy()).all()
-                for t1, t2 in zip(response.output_tensors, response4.output_tensors)
+                for t1, t2 in zip(response.output, response4.output)
             ]
         )
 
@@ -157,7 +157,7 @@ class TestProof(unittest.TestCase):
 
         response2 = deepcopy(response)
         payload = Payload.FromString(response2.payload)
-        payload.run_model_payload.output_tensors[0].bytes_data = b"asdsd"
+        payload.run_model_payload.output[0].bytes_data = b"asdsd"
         response2.payload = payload.SerializeToString()
         with self.assertRaises(SignatureError):
             response2.validate(

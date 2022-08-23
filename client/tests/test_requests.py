@@ -112,7 +112,7 @@ class TestRequest(unittest.TestCase):
                     arr += el.data
                     self.assertEqual(el.sign, sign)
                     self.assertEqual(
-                        TensorInfoMatcher(el.input_specs),
+                        TensorInfoMatcher(el.tensor_inputs),
                         TensorInfoMatcher(input_specs),
                     )
                     # self.assertEqual(el.output_specs, output_specs)
@@ -211,7 +211,7 @@ class TestRequest(unittest.TestCase):
                 self.assertEqual(
                     b"".join(
                         serialize_tensor(
-                            response.output_tensors[0].as_numpy().flatten(),
+                            response.output[0].as_numpy().flatten(),
                             ModelDatumType.F32,
                         )
                     ),

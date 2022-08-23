@@ -44,7 +44,7 @@ class TestDistilBertBase:
             origin_pred = model(inputs).logits.detach()
 
             diff = (
-                (torch.tensor([response.output_tensors[0].as_flat()]) - origin_pred)
+                (torch.tensor([response.output[0].as_flat()]) - origin_pred)
                 .sum()
                 .abs()
             )
@@ -76,7 +76,7 @@ class TestDistilBertBase:
         origin_pred = model(inputs).logits.detach()
 
         diff = (
-            (torch.tensor([response.output_tensors[0].as_flat()]) - origin_pred)
+            (torch.tensor([response.output[0].as_flat()]) - origin_pred)
             .sum()
             .abs()
         )

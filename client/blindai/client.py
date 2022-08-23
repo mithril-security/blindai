@@ -523,7 +523,7 @@ class Tensor:
 
 
 class PredictResponse(SignedResponse):
-    output_tensors: List[Tensor] = None
+    output: List[Tensor] = None
     model_id: str = None
 
     def __init__(
@@ -541,7 +541,7 @@ class PredictResponse(SignedResponse):
             return
 
         payload = PbPayload.FromString(response.payload).run_model_payload
-        self.output_tensors = [
+        self.output = [
             Tensor(
                 info=TensorInfo(
                     tensor.info.dims,
@@ -642,7 +642,7 @@ class PredictResponse(SignedResponse):
 
     def _load_payload(self):
         payload = PbPayload.FromString(self.payload).run_model_payload
-        self.output_tensors = [
+        self.output = [
             Tensor(
                 info=TensorInfo(
                     tensor.info.dims,
