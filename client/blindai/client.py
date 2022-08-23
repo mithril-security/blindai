@@ -68,6 +68,7 @@ from blindai.utils.utils import (
     get_enclave_signing_key,
     strip_https,
     supported_server_version,
+    get_supported_server_version,
     ModelDatumType,
 )
 from blindai.version import __version__ as app_version
@@ -299,23 +300,23 @@ def _validate_quote(
 
 
 def _get_input_output_tensors(
-    tensor_inputs: Optional[List[List[Any]]],
-    tensor_outputs: Optional[ModelDatumType],
+    input_specs: Optional[List[List[Any]]],
+    output_specs: Optional[ModelDatumType],
     shape: Tuple,
     datum_type: ModelDatumType,
     dtype_out: ModelDatumType,
 ) -> Tuple[List[List[Any]], List[ModelDatumType]]:
-    if tensor_inputs is None or tensor_outputs is None:
-        tensor_inputs = [shape, datum_type]
-        tensor_outputs = [dtype_out]
+    if input_specs is None or output_specs is None:
+        input_specs = [shape, datum_type]
+        output_specs = [dtype_out]
 
-    if type(tensor_inputs[0]) != list:
-        tensor_inputs = [tensor_inputs]
-    if type(tensor_outputs[0]) != list:
-        tensor_outputs = [tensor_outputs]
+    if type(input_specs[0]) != list:
+        input_specs = [input_specs]
+    if type(output_specs[0]) != list:
+        output_specs = [output_specs]
 
     inputs = []
-    for i, tensor_input in enumerate(tensor_inputs):
+    for i, tensor_input in enumerate(input_specs):
         dtype = (
             translate_dtype(tensor_input[1]) if tensor_input[1] is not None else None
         )
@@ -328,7 +329,7 @@ def _get_input_output_tensors(
         )
 
     outputs = []
-    for i, tensor_output in enumerate(tensor_outputs):
+    for i, tensor_output in enumerate(output_specs):
         dtype = (
             translate_dtype(tensor_output[0]) if tensor_output[0] is not None else None
         )
@@ -684,8 +685,8 @@ class Connection(contextlib.AbstractContextManager):
     attestation: Optional[GetSgxQuoteWithCollateralReply] = None
     server_version: Optional[str] = None
     client_info: ClientInfo
-    tensor_inputs: Optional[List[List[Any]]]
-    tensor_outputs: Optional[List[ModelDatumType]]
+    input_specs: Optional[List[List[Any]]]
+    output_specs: Optional[List[ModelDatumType]]
     closed: bool = False
     _jwt: Optional[str] = None
 
@@ -717,9 +718,9 @@ class Connection(contextlib.AbstractContextManager):
         but please keep in mind that this mode should NEVER be used in production as it doesn't
         have most of the security provided by the hardware mode.
 
-        ***Security & confidentiality warnings:***<br>
+        ***Security & confidentiality warnings:***
            *policy: Defines the rules upon which enclaves are accepted (after quote data verification). Contains the hash of MRENCLAVE which helps identify code and data of an enclave. In the case of leakeage of this file, data & model confidentiality would not be affected as the information just serves as a verification check.
-           For more details, the attestation info is verified against the policy for the quote. In case of a leakage of the information of this file, code and data inside the secure enclave will remain inaccessible.<br>
+           For more details, the attestation info is verified against the policy for the quote. In case of a leakage of the information of this file, code and data inside the secure enclave will remain inaccessible.
            certificate:  The certificate file, which is also generated server side, is used to assigned the claims the policy is checked against. It serves to identify the server for creating a secure channel and begin the attestation process.*
 
         Args:
@@ -736,8 +737,10 @@ class Connection(contextlib.AbstractContextManager):
             debug_mode (bool, optional): Prints debug message, will also turn on GRPC log messages.
 
         Raises:
-            AttestationError: Will be raised in case the policy doesn't match the
-                server identity and configuration, or if te attestation is invalid.
+            AttestationError: Will be raised if the policy doesn't match the server configuration, or if the attestation is invalid.
+            NotAnEnclaveError: Will be raised if the enclave claims are not validated by the hardware provider, meaning that the claims cannot be verified using the hardware root of trust.
+            IdentityError: Will be raised if the enclave code signature hash does not match the signature hash provided in the policy.
+            DebugNotAllowedError: Will be raised if the enclave is in debug mode but the provided policy doesn't allow debug mode.
             ConnectionError: will be raised if the connection with the server fails.
             VersionError: Will be raised if the version of the server is not supported by the client.
             FileNotFoundError: will be raised if the policy file, or the certificate file is not
@@ -868,12 +871,12 @@ class Connection(contextlib.AbstractContextManager):
             self.server_version = response.version
             if not supported_server_version(response.version):
                 raise VersionError(
-                    "Incompatible client/server versions. Please use the correct client for your server."
+                    f"Incompatible client/server versions. Please use the correct client for your server. Expected server version: {get_supported_server_version()}, Current server version: {self.server_version}"
                 )
 
             if self.simulation_mode:
                 logging.warning(
-                    "Attestation process is bypassed: running without requesting and checking attestation"
+                    "Attestation process is bypassed: running without requesting and checking attestation."
                 )
                 response = stub.GetCertificate(
                     certificate_request(), metadata=self._grpc_call_metadata()
@@ -916,8 +919,8 @@ class Connection(contextlib.AbstractContextManager):
     def upload_model(
         self,
         model: str,
-        tensor_inputs: Optional[List[Tuple[List[int], ModelDatumType]]] = None,
-        tensor_outputs: Optional[List[ModelDatumType]] = None,
+        input_specs: Optional[List[Tuple[List[int], ModelDatumType]]] = None,
+        output_specs: Optional[List[ModelDatumType]] = None,
         shape: Tuple = None,
         dtype: ModelDatumType = None,
         dtype_out: ModelDatumType = None,
@@ -936,8 +939,8 @@ class Connection(contextlib.AbstractContextManager):
 
         Args:
             model (str): Path to Onnx model file.
-            tensor_inputs (List[Tuple[List[int], ModelDatumType]], optional): The list of input fact and datum types for each input grouped together in lists, describing the different inputs of the model. Defaults to None.
-            tensor_outputs (List[ModelDatumType], optional): The list of datum types describing the different output types of the model. Defaults to ModelDatumType.F32
+            input_specs (List[Tuple[List[int], ModelDatumType]], optional): The list of input fact and datum types for each input grouped together in lists, describing the different inputs of the model. Defaults to None.
+            output_specs (List[ModelDatumType], optional): The list of datum types describing the different output types of the model. Defaults to ModelDatumType.F32
             shape (Tuple, optional): The shape of the model input. Defaults to None.
             datum_type (ModelDatumType, optional): The type of the model input data (f32 by default). Defaults to ModelDatumType.F32.
             dtype_out (ModelDatumType, optional): The type of the model output data (f32 by default). Defaults to ModelDatumType.F32.
@@ -964,7 +967,7 @@ class Connection(contextlib.AbstractContextManager):
                 data = f.read()
 
             (inputs, outputs) = _get_input_output_tensors(
-                tensor_inputs, tensor_outputs, shape, dtype, dtype_out
+                input_specs, output_specs, shape, dtype, dtype_out
             )
             response = self._stub.SendModel(
                 (
@@ -975,8 +978,8 @@ class Connection(contextlib.AbstractContextManager):
                         model_id=model_id,
                         model_name=model_name,
                         client_info=self.client_info,
-                        tensor_inputs=inputs,
-                        tensor_outputs=outputs,
+                        input_specs=inputs,
+                        output_specs=outputs,
                         save_model=save_model,
                     )
                     for chunk in create_byte_chunk(data)
@@ -1083,8 +1086,9 @@ class Connection(contextlib.AbstractContextManager):
         """Delete a model in the inference server.
         This may be used to free up some memory.
         Note that the model in currently stored in-memory, and you cannot keep it loaded across server restarts.
+
         ***Security & confidentiality warnings:***<br>
-            *model_id : The deletion of a model only relies on the `model_id`. It doesn't relies on a session token or anything, hence if the `model_id` is known, it's deletion is possible.*
+            *model_id : If you are using this on the Mithril Cloud, you can only delete models that you uploaded. Otherwise, the deletion of a model does only relies on the `model_id`. It doesn't relies on a session token or anything, hence if the `model_id` is known, it's deletion is possible.*
 
         Args:
             model_id (str): The id of the model to remove.

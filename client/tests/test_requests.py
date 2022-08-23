@@ -99,7 +99,7 @@ class TestRequest(unittest.TestCase):
         datum = ModelDatumType.F32
         datum_out = ModelDatumType.F32
         shape = (1, 480, 480, 3)
-        tensor_inputs = [
+        input_specs = [
             TensorInfo(dims=(1, 480, 480, 3), datum_type=ModelDatumType.F32)
         ]
 
@@ -114,10 +114,10 @@ class TestRequest(unittest.TestCase):
                     arr += el.data
                     self.assertEqual(el.sign, sign)
                     self.assertEqual(
-                        TensorInfoMatcher(el.tensor_inputs),
-                        TensorInfoMatcher(tensor_inputs),
+                        TensorInfoMatcher(el.input_specs),
+                        TensorInfoMatcher(input_specs),
                     )
-                    # self.assertEqual(el.tensor_outputs, tensor_outputs)
+                    # self.assertEqual(el.output_specs, output_specs)
                     self.assertEqual(el.length, len(model_bytes))
 
                 self.assertEqual(arr, model_bytes)

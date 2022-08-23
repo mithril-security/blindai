@@ -46,7 +46,7 @@ class AttestationError(Exception):
 
 
 class NotAnEnclaveError(Exception):
-    """This exception is raised when the enclave claims are not signed by Intel, meaning that the claims are fake"""
+    """This exception is raised when the enclave claims are not validated by the hardware provider, meaning that the claims cannot be verified using the hardware root of trust"""
 
     pass
 
