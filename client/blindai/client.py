@@ -978,8 +978,8 @@ class Connection(contextlib.AbstractContextManager):
                         model_id=model_id,
                         model_name=model_name,
                         client_info=self.client_info,
-                        input_specs=inputs,
-                        output_specs=outputs,
+                        tensor_inputs=inputs,
+                        tensor_outputs=outputs,
                         save_model=save_model,
                     )
                     for chunk in create_byte_chunk(data)
