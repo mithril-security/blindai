@@ -37,7 +37,7 @@ class TestServerConfigBase:
             policy=policy_file,
             certificate=certificate_file,
         ) as client:
-            response = client.predict(
+            client.predict(
                 "covidnet",
                 inputs,
                 dtype=ModelDatumType.F32,
@@ -59,7 +59,7 @@ class TestServerConfigBase:
                 # send model disabled, so
                 # stream is not consumed in server, so it makes a connection error
                 # i guess?
-                response = client.upload_model(
+                client.upload_model(
                     model=model_path,
                     shape=(1, 480, 480, 3),
                     dtype=ModelDatumType.F32,
@@ -76,7 +76,7 @@ class TestServerConfigBase:
             policy=policy_file,
             certificate=certificate_file,
         ) as client:
-            response = client.predict(
+            client.predict(
                 "gpt-neo-2.7b",
                 gptneox_inputs.flatten().tolist(),
                 dtype=ModelDatumType.I64,
