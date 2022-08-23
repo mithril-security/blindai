@@ -99,9 +99,7 @@ class TestRequest(unittest.TestCase):
         datum = ModelDatumType.F32
         datum_out = ModelDatumType.F32
         shape = (1, 480, 480, 3)
-        input_specs = [
-            TensorInfo(dims=(1, 480, 480, 3), datum_type=ModelDatumType.F32)
-        ]
+        input_specs = [TensorInfo(dims=(1, 480, 480, 3), datum_type=ModelDatumType.F32)]
 
         def send_model_util(sign):
             model_bytes = get_model()
