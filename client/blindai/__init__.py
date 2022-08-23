@@ -7,4 +7,5 @@ from .client import (
     DeleteModelResponse,
     Tensor,
     TensorInfo,
+    ModelDatumType,
 )

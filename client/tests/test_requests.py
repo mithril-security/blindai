@@ -20,7 +20,7 @@ from blindai.pb.securedexchange_pb2 import (
     TensorInfo,
 )
 
-from blindai import (
+from blindai.client import (
     ModelDatumType,
     PredictResponse,
     UploadModelResponse,
@@ -51,8 +51,8 @@ class TensorInfoMatcher:
 
 
 class TestRequest(unittest.TestCase):
-    @patch("blindai.AttestationStub")
-    @patch("blindai.secure_channel")
+    @patch("blindai.client.AttestationStub")
+    @patch("blindai.client.secure_channel")
     @patch("time.time", mock_time)
     def test_connect(self, secure_channel: MagicMock, AttestationStub: MagicMock):
         res = UploadModelResponse()
@@ -66,9 +66,9 @@ class TestRequest(unittest.TestCase):
             certificate=os.path.join(os.path.dirname(__file__), "host_server.pem"),
         )
 
-    @patch("blindai.ExchangeStub")
-    @patch("blindai.AttestationStub")
-    @patch("blindai.secure_channel")
+    @patch("blindai.client.ExchangeStub")
+    @patch("blindai.client.AttestationStub")
+    @patch("blindai.client.secure_channel")
     @patch("time.time", mock_time)
     def test_upload_model(
         self,
@@ -150,9 +150,9 @@ class TestRequest(unittest.TestCase):
         send_model_util(sign=False)
         send_model_util(sign=True)
 
-    @patch("blindai.ExchangeStub")
-    @patch("blindai.AttestationStub")
-    @patch("blindai.secure_channel")
+    @patch("blindai.client.ExchangeStub")
+    @patch("blindai.client.AttestationStub")
+    @patch("blindai.client.secure_channel")
     @patch("time.time", mock_time)
     def test_run_model(
         self,
@@ -239,9 +239,9 @@ class TestRequest(unittest.TestCase):
         client.close()
         self.assertTrue(client.closed)
 
-    @patch("blindai.ExchangeStub")
-    @patch("blindai.AttestationStub")
-    @patch("blindai.secure_channel")
+    @patch("blindai.client.ExchangeStub")
+    @patch("blindai.client.AttestationStub")
+    @patch("blindai.client.secure_channel")
     @patch("ssl.get_server_certificate")
     @patch("time.time", mock_time)
     def test_run_model_simulation(
