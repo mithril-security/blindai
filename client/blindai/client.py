@@ -735,6 +735,7 @@ class Connection(contextlib.AbstractContextManager):
             untrusted_port (int, optional): Untrusted connection server port. Defaults to 50052.
             attested_port (int, optional): Attested connection server port. Defaults to 50051.
             debug_mode (bool, optional): Prints debug message, will also turn on GRPC log messages.
+            api_key (str, optional): Key to upload and use your models on Mithril Cloud. This parameter is not needed if you want to use the public models, or if you want to deploy the server yourself.
 
         Raises:
             AttestationError: Will be raised if the policy doesn't match the server configuration, or if the attestation is invalid.
