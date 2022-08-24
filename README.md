@@ -29,10 +29,7 @@ Our solution comes in two parts:
 
 - [:lock: Motivation](#lock-motivation)
 - [:rocket: Getting started](#rocket-getting-started)
-- [:book: Which part of the AI workflow do we cover?](#book-which-part-of-the-ai-workflow-do-we-cover)
-- [:wrench: How do I use it?](#wrench-how-do-i-use-it)
-  * [A - Export the AI workflow](#a---export-the-ai-workflow)
-  * [B - Deploy it on BlindAI](#b---deploy-it-on-blindai)
+- [📖 Which part of the AI workflow do we cover?](#book-which-part-of-the-ai-workflow-do-we-cover)
 - [:sunny: Models covered by BlindAI](#sunny-models-covered-by-blindai)
 - [:page_facing_up: Documentation](#page_facing_up-documentation)
 - [:white_check_mark: What you can do with BlindAI](#white_check_mark-what-you-can-do-with-blindai)
@@ -64,7 +61,7 @@ In this demo, you can see how BlindAI works and make sure that your data is prot
 - We are talking to a secure enclave with the hardware protection enabled.
 - The right code is loaded inside the enclave, and not a malicious one.
 
-You can find more on [secure enclaves attestation here](INSERT LINK TO ATTESTATION EXPLAINED).
+You can find more on [secure enclaves attestation here](https://blog.mithrilsecurity.io/confidential-computing-explained-part-2-attestation/).
 
 ![GPT2 demo](INSERT DEMO GIF.gif)
 
@@ -91,8 +88,8 @@ from transformers import GPT2Tokenizer
 tokenizer = GPT2Tokenizer.from_pretrained('gpt2')
 example = "I like the Rust programming language because"
 
-# Here we will use a preprocessing step. More details can be found on INSERT CODE SNIPPET
-input_list = get_example_inputs(example, tokenizer)
+# Detailled tokenizing here https://gist.github.com/dhuynh95/4357aec425bd30fbb41db0bc6ce0f8b2
+input_list = get_example_inputs([example], tokenizer)
 
 # Connect to a remote model. If security checks fail, an exception is raised
 with blindai.client.connect() as client:
@@ -141,7 +138,7 @@ The first block of code pulls a model from [PyTorch Hub](https://pytorch.org/hub
 
 Before uploading, we need to provide information on the expected inputs and outputs.
 
-Finally, we can connect to the managed backend and upload the model. You can provide a model name to know which one to query, for instance here `model_name="resnet18"`. Because we have already uploaded a model with the name `"resnet18"`, you should not try to upload a model with that name as it is already taken on our main server.
+Finally, we can connect to the managed backend and upload the model. You can provide a model name to know which one to query, for instance with `model_name="resnet18"`. Because we have already uploaded a model with the name `"resnet18"`, you should not try to upload a model with that exact name as it is already taken on our main server.
 
 ### Querying a ResNet18
 
