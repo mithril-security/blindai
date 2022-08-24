@@ -337,6 +337,21 @@ impl InferModel {
             self.model_id,
             inputs
         );
+
+        for (ix, el) in inputs.iter().enumerate() {
+            let tensor_fact = InferenceFact::dt_shape(el.datum_type(), el.shape());
+            let input_fact = match self.model.as_ref() {
+                TractModel::OptimizedOnnx(model) => {
+                    let f = model.model.input_fact(ix)?;
+                    InferenceFact::dt_shape(f.datum_type, f.shape.iter())
+                },
+                TractModel::UnoptimizedOnnx(model) => model.model.input_fact(ix)?.clone(),
+            };
+            if !tensor_fact.compatible_with(&input_fact) {
+                bail!("Incompatible tensor input: {:?} (expected {:?})", tensor_fact, input_fact)
+            }
+        }
+        
         match self.model.as_ref() {
             TractModel::OptimizedOnnx(model) => model.run(inputs),
             TractModel::UnoptimizedOnnx(model) => model.run(inputs),

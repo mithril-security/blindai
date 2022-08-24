@@ -369,7 +369,7 @@ impl Exchange for Exchanger {
 
         let results = results.map_err(|err| {
             error!("Error while running inference: {:?}", err);
-            Status::unknown("Unknown error".to_string())
+            Status::unknown(format!("{}", err))
         })?;
 
         let output_tensors = results
