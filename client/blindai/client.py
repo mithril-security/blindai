@@ -76,7 +76,7 @@ from blindai.version import __version__ as app_version
 from blindai.utils.serialize import deserialize_tensor, serialize_tensor
 
 MITHRIL_SERVICES_URL = os.getenv(
-    "MITHRIL_SERVICES_URL", "api.cloud.mithrilsecurity.io:4000"
+    "MITHRIL_SERVICES_URL", "api.cloud.mithrilsecurity.io"
 )
 MITHRIL_SERVICES_INSECURE = os.getenv("MITHRIL_SERVICES_INSECURE") == "true"
 if not MITHRIL_SERVICES_INSECURE:
@@ -750,8 +750,10 @@ class Connection(contextlib.AbstractContextManager):
         if debug_mode:  # pragma: no cover
             os.environ["GRPC_TRACE"] = "transport_security,tsi"
             os.environ["GRPC_VERBOSITY"] = "DEBUG"
+            
+        use_cloud=addr is None
 
-        if addr is None:
+        if use_cloud is True:
             # Use Mithril Cloud services.
             if MITHRIL_SERVICES_INSECURE:
                 channel = grpc.insecure_channel(MITHRIL_SERVICES_URL)
@@ -802,7 +804,7 @@ class Connection(contextlib.AbstractContextManager):
             simulation,
             untrusted_port,
             attested_port,
-            use_mithril_services=addr is None,
+            use_mithril_services=use_cloud,
         )
 
     def _connect_enclave(
@@ -1132,4 +1134,43 @@ class Connection(contextlib.AbstractContextManager):
 
 @wraps(Connection.__init__, assigned=("__doc__", "__annotations__"))
 def connect(*args, **kwargs):
+    """ Connect to the server with the specified parameters.
+        You will have to specify here the expected policy (server identity, configuration...)
+        and the server TLS certificate, if you are using the hardware mode.
+
+        You don't need to specify an address if you want to reach the Mithril Cloud server.
+
+        If you're using the simulation mode, you don't need to provide a policy and certificate,
+        but please keep in mind that this mode should NEVER be used in production as it doesn't
+        have most of the security provided by the hardware mode.
+
+        ***Security & confidentiality warnings:***
+           *policy: Defines the rules upon which enclaves are accepted (after quote data verification). Contains the hash of MRENCLAVE which helps identify code and data of an enclave. In the case of leakeage of this file, data & model confidentiality would not be affected as the information just serves as a verification check.
+           For more details, the attestation info is verified against the policy for the quote. In case of a leakage of the information of this file, code and data inside the secure enclave will remain inaccessible.
+           certificate:  The certificate file, which is also generated server side, is used to assigned the claims the policy is checked against. It serves to identify the server for creating a secure channel and begin the attestation process.*
+
+        Args:
+            addr (str): The address of BlindAI server you want to reach. If you don't specify anything, you will be automatically connected to Mithril Cloud.
+            server_name (str, optional): Contains the CN expected by the server TLS certificate. Defaults to "blindai-srv".
+            policy (Optional[str], optional): Path to the toml file describing the policy of the server.
+                Generated in the server side. Defaults to None.
+            certificate (Optional[str], optional): Path to the public key of the untrusted inference server.
+                Generated in the server side. Defaults to None.
+            simulation (bool, optional): Connect to the server in simulation mode.
+                If set to True, the args policy and certificate will be ignored. Defaults to False.
+            untrusted_port (int, optional): Untrusted connection server port. Defaults to 50052.
+            attested_port (int, optional): Attested connection server port. Defaults to 50051.
+            debug_mode (bool, optional): Prints debug message, will also turn on GRPC log messages.
+            api_key (str, optional): Key to upload and use your models on Mithril Cloud. This parameter is not needed if you want to use the public models, or if you want to deploy the server yourself.
+
+        Raises:
+            AttestationError: Will be raised if the policy doesn't match the server configuration, or if the attestation is invalid.
+            NotAnEnclaveError: Will be raised if the enclave claims are not validated by the hardware provider, meaning that the claims cannot be verified using the hardware root of trust.
+            IdentityError: Will be raised if the enclave code signature hash does not match the signature hash provided in the policy.
+            DebugNotAllowedError: Will be raised if the enclave is in debug mode but the provided policy doesn't allow debug mode.
+            ConnectionError: will be raised if the connection with the server fails.
+            VersionError: Will be raised if the version of the server is not supported by the client.
+            FileNotFoundError: will be raised if the policy file, or the certificate file is not
+                found (in Hardware mode).
+        """
     return Connection(*args, **kwargs)
