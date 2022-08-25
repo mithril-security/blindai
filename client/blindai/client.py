@@ -99,6 +99,8 @@ else:
 
 CONNECTION_TIMEOUT = 10
 
+logging.basicConfig(format="BlindAI - %(levelname)s - %(message)s", level=logging.INFO)
+
 
 def dtype_to_numpy(dtype: ModelDatumType) -> str:
     translation_map = {
@@ -888,6 +890,7 @@ class Connection(contextlib.AbstractContextManager):
                 self.attestation = stub.GetSgxQuoteWithCollateral(
                     quote_request(), metadata=self._grpc_call_metadata()
                 )
+                logging.info("Certificate verification passed")
                 claims = verify_dcap_attestation(
                     self.attestation.quote,
                     self.attestation.collateral,
@@ -897,8 +900,7 @@ class Connection(contextlib.AbstractContextManager):
                 verify_claims(claims, self.policy)
                 server_cert = claims.get_server_cert()
 
-                logging.info("Quote verification passed")
-                logging.info("Certificate from attestation process")
+                logging.info("Enclave identity and configuration verification passed")
                 logging.info("MREnclave " + claims.sgx_mrenclave)
 
             channel.close()
@@ -991,6 +993,7 @@ class Connection(contextlib.AbstractContextManager):
         except RpcError as rpc_error:
             raise ConnectionError(check_rpc_exception(rpc_error))
 
+        logging.info("Model uploaded successfully to the server")
         # Response Verification
         payload = PbPayload.FromString(response.payload).send_model_payload
         ret = UploadModelResponse()
@@ -1071,6 +1074,7 @@ class Connection(contextlib.AbstractContextManager):
         except RpcError as rpc_error:
             raise ConnectionError(check_rpc_exception(rpc_error))
 
+        logging.info("Inference done successfully by the server")
         return PredictResponse(
             tensors,
             dtype,
