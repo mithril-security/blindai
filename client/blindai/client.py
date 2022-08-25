@@ -560,6 +560,7 @@ class PredictResponse(SignedResponse):
             self.payload = response.payload
             self.signature = response.signature
             self.attestation = attestation
+            logging.debug("Veryfing integrity of the data sent...")
             self.validate(
                 self.model_id,
                 input_tensors,
@@ -569,6 +570,9 @@ class PredictResponse(SignedResponse):
                 enclave_signing_key=enclave_signing_key,
                 allow_simulation_mode=allow_simulation_mode,
             )
+            logging.info(f"Integrity of the data uploaded verified.")
+        else:
+            logging.info(f"Response validity and integrity NOT verified.")
 
     def validate(
         self,
@@ -587,7 +591,7 @@ class PredictResponse(SignedResponse):
 
         ***Security & confidentiality warnings:***<br>
             *`validate_quote` and `enclave_signing_key` : in case where the quote validation is set, the `enclave_signing_key` is generated directly using the certificate and the policy file and assigned otherwise.
-            The hash of the `enclave_signing_key` is then represented as the MRSIGNER hash.<br>
+            The hash of the `enclave_signing_key` is then represented as the MRSIGNER hash.
             When the simulation mode is off, the attestation is verified, and only in that case, the data is processed while assigning `data_list`*
 
         Args:
@@ -636,6 +640,7 @@ class PredictResponse(SignedResponse):
 
         if hash.digest() != payload.input_hash:
             raise SignatureError("Invalid response input_hash")
+        logging.info(f"Hash of data uploaded: {hash.hexdigest()}")
 
         if model_id != payload.model_id:
             raise SignatureError("Invalid response model_id")
@@ -887,10 +892,12 @@ class Connection(contextlib.AbstractContextManager):
                 server_cert = encode_certificate(response.enclave_tls_certificate)
 
             else:
+                logging.debug("Verifying server certificate...")
                 self.attestation = stub.GetSgxQuoteWithCollateral(
                     quote_request(), metadata=self._grpc_call_metadata()
                 )
-                logging.info("Certificate verification passed")
+                logging.debug("Certificate verification passed")
+                logging.debug("Veryfing enclave identity and configuration...")
                 claims = verify_dcap_attestation(
                     self.attestation.quote,
                     self.attestation.collateral,
@@ -900,8 +907,8 @@ class Connection(contextlib.AbstractContextManager):
                 verify_claims(claims, self.policy)
                 server_cert = claims.get_server_cert()
 
-                logging.info("Enclave identity and configuration verification passed")
                 logging.info("MREnclave " + claims.sgx_mrenclave)
+                logging.info("Enclave identity and configuration verification passed")
 
             channel.close()
             self.enclave_signing_key = get_enclave_signing_key(server_cert)
@@ -912,7 +919,7 @@ class Connection(contextlib.AbstractContextManager):
 
             self._stub = ExchangeStub(channel)
             self._channel = channel
-            logging.info("Successfuly connected to the server")
+            logging.info("Successfuly connected to the trusted part of the enclave")
 
         except RpcError as rpc_error:
             channel.close()
@@ -972,6 +979,7 @@ class Connection(contextlib.AbstractContextManager):
             (inputs, outputs) = _get_input_output_tensors(
                 input_specs, output_specs, shape, dtype, dtype_out
             )
+            logging.debug("Uploading model...")
             response = self._stub.SendModel(
                 (
                     PbSendModelRequest(
@@ -993,7 +1001,6 @@ class Connection(contextlib.AbstractContextManager):
         except RpcError as rpc_error:
             raise ConnectionError(check_rpc_exception(rpc_error))
 
-        logging.info("Model uploaded successfully to the server")
         # Response Verification
         payload = PbPayload.FromString(response.payload).send_model_payload
         ret = UploadModelResponse()
@@ -1003,13 +1010,18 @@ class Connection(contextlib.AbstractContextManager):
             ret.payload = response.payload
             ret.signature = response.signature
             ret.attestation = self.attestation
+            logging.debug("Veryfing integrity of the data uploaded...")
             ret.validate(
                 sha256(data).digest(),
                 validate_quote=False,
                 enclave_signing_key=self.enclave_signing_key,
                 allow_simulation_mode=self.simulation_mode,
             )
+            logging.info(f"Integrity of the model uploaded verified.")
+        else:
+            logging.warning("Integrity of the model uploaded NOT verified.")
 
+        logging.debug("Model uploaded successfully to the server")
         return ret
 
     @raise_exception_if_conn_closed
@@ -1044,6 +1056,7 @@ class Connection(contextlib.AbstractContextManager):
         """
 
         try:
+            logging.debug("Sending inference request...")
             response = self._stub.RunModel(
                 (
                     # this will create an iterator of PbRunModelRequest, that will return
@@ -1074,7 +1087,7 @@ class Connection(contextlib.AbstractContextManager):
         except RpcError as rpc_error:
             raise ConnectionError(check_rpc_exception(rpc_error))
 
-        logging.info("Inference done successfully by the server")
+        logging.debug("Inference done successfully by the server")
         return PredictResponse(
             tensors,
             dtype,
