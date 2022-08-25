@@ -122,8 +122,11 @@ impl ModelStore {
                 && model_id_currently_store >= self.config.max_model_store
             {
                 let mut first_id: String = String::new();
-                for key in write_guard.models_by_id.keys().cloned().take(1) {
-                    first_id = key;
+                for (key, model) in write_guard.models_by_id.iter() {
+                    if model.load_context == ModelLoadContext::FromSendModel {
+                        first_id = key;
+                        break;
+                    }
                 }
                 write_guard.models_by_id.remove(&first_id);
             }
