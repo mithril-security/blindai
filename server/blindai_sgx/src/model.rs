@@ -234,7 +234,7 @@ pub enum TractModel {
     UnoptimizedOnnx(UnoptimizedOnnx),
 }
 
-#[derive(Debug, Hash, Clone, Serialize, Deserialize)]
+#[derive(Debug, Hash, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
 pub enum ModelLoadContext {
     FromSendModel,
     FromStartupConfig,
@@ -247,7 +247,6 @@ pub struct InferModel {
     model_name: Option<String>,
     #[allow(unused)]
     model_hash: Digest,
-    #[allow(unused)]
     load_context: ModelLoadContext,
     owner_id: Option<usize>,
 }
@@ -390,6 +389,10 @@ impl InferModel {
     #[allow(unused)]
     pub fn model_hash(&self) -> Digest {
         self.model_hash
+    }
+
+    pub fn load_context(&self) -> ModelLoadContext {
+        self.load_context
     }
 
     pub fn get_output_names(&self) -> Vec<String> {

@@ -112,7 +112,7 @@ impl ModelStore {
             // remove a model store if the store is full (FIFO)
             let model_id_currently_store = write_guard.models_by_id.len();
             info!(
-                "Max of model allow: {:?}, Current model store by id: {:?}",
+                "Max number of models allowed to be in memory at once: {:?}, Current number of models in memory: {:?}",
                 self.config.max_model_store, model_id_currently_store
             );
 
@@ -121,14 +121,13 @@ impl ModelStore {
             if self.config.max_model_store != 0
                 && model_id_currently_store >= self.config.max_model_store
             {
-                let mut first_id: String = String::new();
-                for (key, model) in write_guard.models_by_id.iter() {
-                    if model.load_context == ModelLoadContext::FromSendModel {
-                        first_id = key;
-                        break;
-                    }
-                }
-                write_guard.models_by_id.remove(&first_id);
+                let (key, _) = write_guard
+                    .models_by_id
+                    .iter()
+                    .find(|(_, model)| model.load_context() == ModelLoadContext::FromSendModel)
+                    .context("Too many models in memory at once, and unable to remove any of them.")?;
+                let key = key.clone(); // key is a borrow in write_guard, clone is required since remove takes &mut
+                write_guard.models_by_id.remove(&key);
             }
 
             // HashMap entry api requires only one lookup and should be prefered than .get()

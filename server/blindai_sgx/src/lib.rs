@@ -111,8 +111,9 @@ async fn main(telemetry_platform: String, telemetry_uid: String) -> Result<()> {
     let mut config_file = File::open("config.toml").context("Opening config.toml file")?;
     let mut contents = String::new();
     config_file.read_to_string(&mut contents)?;
-    let config: blindai_common::BlindAIConfig =
+    let mut config: blindai_common::BlindAIConfig =
         toml::from_str(&contents).context("Parsing config.toml file")?;
+    config.fixup_and_warnings(); 
     let config = Arc::new(config);
 
     let dcap_quote_provider = DcapQuoteProvider::new(&enclave_identity.cert_der);

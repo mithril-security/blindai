@@ -16,6 +16,7 @@ use std::net::SocketAddr;
 
 use anyhow::{Context, Result};
 use http::Uri;
+use log::*;
 use serde::{de::Error, Deserialize, Deserializer, Serialize};
 use std::net::ToSocketAddrs;
 use tonic_rpc::tonic_rpc;
@@ -77,6 +78,13 @@ fn uri_to_socket(uri: &Uri) -> Result<SocketAddr> {
 }
 
 impl BlindAIConfig {
+    /// Post-load fixups, and show warnings to the console.
+    pub fn fixup_and_warnings(&mut self) {
+        if self.max_model_store <= self.load_models.len() {
+            warn!("The maximum number of models allowed in memory at once is set up as {}, but there are {} startup models. This means that the server won't be able to accept any new model from any user.", self.max_model_store, self.load_models.len());
+        }
+    }
+
     pub fn internal_host_to_enclave_socket(&self) -> Result<SocketAddr> {
         uri_to_socket(&self.internal_host_to_enclave_url)
     }
