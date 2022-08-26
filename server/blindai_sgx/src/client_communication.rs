@@ -461,6 +461,7 @@ impl Exchange for Exchanger {
         &self,
         request: Request<DeleteModelRequest>,
     ) -> Result<Response<DeleteModelReply>, Status> {
+        let auth_ext = request.extensions().get::<AuthExtension>().cloned();
         let request = request.into_inner();
         let model_id = request.model_id;
 
@@ -468,8 +469,18 @@ impl Exchange for Exchanger {
             return Err(Status::invalid_argument("Model doesn't exist"));
         }
 
+        let user_id = if let Some(auth_ext) = auth_ext {
+            if let Some(userid) = auth_ext.userid() {
+                userid
+            } else {
+                return Err(Status::unauthenticated("You must provide an api key"));
+            }
+        } else {
+            None
+        };
+
         // Delete the model
-        if self.model_store.delete_model(&model_id).is_none() {
+        if self.model_store.delete_model(&model_id, user_id).is_none() {
             error!("Model doesn't exist");
             return Err(Status::invalid_argument("Model doesn't exist"));
         }

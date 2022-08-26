@@ -125,7 +125,9 @@ impl ModelStore {
                     .models_by_id
                     .iter()
                     .find(|(_, model)| model.load_context() == ModelLoadContext::FromSendModel)
-                    .context("Too many models in memory at once, and unable to remove any of them.")?;
+                    .context(
+                        "Too many models in memory at once, and unable to remove any of them.",
+                    )?;
                 let key = key.clone(); // key is a borrow in write_guard, clone is required since remove takes &mut
                 write_guard.models_by_id.remove(&key);
             }
@@ -256,11 +258,22 @@ impl ModelStore {
         }
     }
 
-    pub fn delete_model(&self, model_id: &str) -> Option<Arc<InferModel>> {
+    /// If user_id is provided, it will fail if the model is not owned by this user.
+    /// This will never remove startup models.
+    pub fn delete_model(&self, model_id: &str, user_id: Option<usize>) -> Option<Arc<InferModel>> {
         let mut write_guard = self.inner.write().unwrap();
 
         let model = match write_guard.models_by_id.entry(model_id.to_string()) {
-            Entry::Occupied(entry) => entry.remove(),
+            Entry::Occupied(entry) => {
+                if entry.get().load_context() == ModelLoadContext::FromStartupConfig {
+                    return None;
+                }
+                if !user_id.is_none() && entry.get().owner_id() != user_id {
+                    return None;
+                }
+
+                entry.remove()
+            }
             Entry::Vacant(_) => return None,
         };
 
