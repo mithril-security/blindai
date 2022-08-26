@@ -1105,7 +1105,7 @@ class Connection(contextlib.AbstractContextManager):
     def delete_model(self, model_id: str) -> DeleteModelResponse:
         """Delete a model in the inference server.
         This may be used to free up some memory.
-        If you did not specify that you wanted your model to be saved on the server, please note that the model will only be present in memory, and will disappear when the server close. 
+        If you did not specify that you wanted your model to be saved on the server, please note that the model will only be present in memory, and will disappear when the server close.
 
         ***Security & confidentiality warnings:***
             *model_id : If you are using this on the Mithril Security Cloud, you can only delete models that you uploaded. Otherwise, the deletion of a model does only relies on the `model_id`. It doesn't relies on a session token or anything, hence if the `model_id` is known, it's deletion is possible.*
