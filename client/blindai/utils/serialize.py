@@ -41,11 +41,15 @@ def serialize_tensor(tensor: Iterable[T], type: ModelDatumType) -> Iterator[byte
     num_items_per_chunk = CHUNK_SIZE // bytes_per_item[type]
     fmt = format_per_item[type]
     it = iter(tensor)
+
+    first_round = True
     while True:
         items = list(itertools.islice(it, num_items_per_chunk))
-        if len(items) == 0:
+        # first_round condition: this enabled the function to return an empty byte array when there are no element in the tensor
+        if len(items) == 0 and not first_round:
             break
         yield struct.pack(f"<{len(items)}{fmt}", *items)
+        first_round = False
 
 
 def deserialize_tensor(data: bytes, type: ModelDatumType) -> Iterator[T]:
