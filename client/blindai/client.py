@@ -570,9 +570,9 @@ class PredictResponse(SignedResponse):
                 enclave_signing_key=enclave_signing_key,
                 allow_simulation_mode=allow_simulation_mode,
             )
-            logging.info(f"Integrity of the data uploaded verified.")
+            logging.info("Integrity of the data uploaded verified.")
         else:
-            logging.info(f"Response validity and integrity NOT verified.")
+            logging.info("Response validity and integrity NOT verified.")
 
     def validate(
         self,
@@ -717,7 +717,7 @@ class Connection(contextlib.AbstractContextManager):
         You will have to specify here the expected policy (server identity, configuration...)
         and the server TLS certificate, if you are using the hardware mode.
 
-        You don't need to specify an address if you want to reach the Mithril Cloud server.
+        If you want to use Mithril Security Cloud, you don't need to specify the address, the policy and the certificate. Those informations will be automatically retreived.
 
         If you're using the simulation mode, you don't need to provide a policy and certificate,
         but please keep in mind that this mode should NEVER be used in production as it doesn't
@@ -729,12 +729,12 @@ class Connection(contextlib.AbstractContextManager):
            certificate:  The certificate file, which is also generated server side, is used to assigned the claims the policy is checked against. It serves to identify the server for creating a secure channel and begin the attestation process.*
 
         Args:
-            addr (str): The address of BlindAI server you want to reach. If you don't specify anything, you will be automatically connected to Mithril Cloud.
+            addr (str): The address of BlindAI server you want to reach. If you don't specify anything, you will be automatically connected to Mithril Security Cloud.
             server_name (str, optional): Contains the CN expected by the server TLS certificate. Defaults to "blindai-srv".
             policy (Optional[str], optional): Path to the toml file describing the policy of the server.
-                Generated in the server side. Defaults to None.
+                Generated in the server side. Defaults to None. Will be ignored if you are in simulation mode or trying to connect to the Mithril Security Cloud.
             certificate (Optional[str], optional): Path to the public key of the untrusted inference server.
-                Generated in the server side. Defaults to None.
+                Generated in the server side. Defaults to None. Will be ignored if you are in simulation mode or trying to connect to the Mithril Security Cloud.
             simulation (bool, optional): Connect to the server in simulation mode.
                 If set to True, the args policy and certificate will be ignored. Defaults to False.
             untrusted_port (int, optional): Untrusted connection server port. Defaults to 50052.
@@ -942,8 +942,8 @@ class Connection(contextlib.AbstractContextManager):
         """Upload an inference model to the server.
         The provided model needs to be in the Onnx format.
 
-        ***Security & confidentiality warnings:***<br>
-        *`model`: The model sent on a Onnx format is encrypted in transit via TLS (as all connections). It may be subject to inference Attacks if an adversary is able to query the trained model repeatedly to determine whether or not a particular example is part of the trained dataset model.<br>
+        ***Security & confidentiality warnings:***
+        *`model`: The model sent on a Onnx format is encrypted in transit via TLS (as all connections). It may be subject to inference Attacks if an adversary is able to query the trained model repeatedly to determine whether or not a particular example is part of the trained dataset model.
         `sign` : by enabling sign, DCAP attestation is verified by the SGX attestation model. This attestation model relies on Elliptic Curve Digital Signature algorithm (ECDSA).*
 
 
@@ -956,7 +956,7 @@ class Connection(contextlib.AbstractContextManager):
             dtype_out (ModelDatumType, optional): The type of the model output data (f32 by default). Defaults to ModelDatumType.F32.
             sign (bool, optional): Get signed responses from the server or not. Defaults to False.
             model_name (Optional[str], optional): Name of the model.
-            save_model (bool, optional): Whether or not the model will be saved to disk in the server. The model will be saved encrypted (sealed) so that only the server enclave can load it afterwards. The server will load the model on startup. Defaults to False.
+            save_model (bool, optional): Whether or not the model will be saved to disk in the server. The model will be saved encrypted (sealed) so that only the server enclave can load it afterwards. Defaults to False.
             model_id (Optional[str], optional): Id of the model. By default, the server will assign a random UUID.
 
         Raises:
@@ -1017,7 +1017,7 @@ class Connection(contextlib.AbstractContextManager):
                 enclave_signing_key=self.enclave_signing_key,
                 allow_simulation_mode=self.simulation_mode,
             )
-            logging.info(f"Integrity of the model uploaded verified.")
+            logging.info("Integrity of the model uploaded verified.")
         else:
             logging.warning("Integrity of the model uploaded NOT verified.")
 
@@ -1149,43 +1149,4 @@ class Connection(contextlib.AbstractContextManager):
 
 @wraps(Connection.__init__, assigned=("__doc__", "__annotations__"))
 def connect(*args, **kwargs):
-    """Connect to the server with the specified parameters.
-    You will have to specify here the expected policy (server identity, configuration...)
-    and the server TLS certificate, if you are using the hardware mode.
-
-    You don't need to specify an address if you want to reach the Mithril Cloud server.
-
-    If you're using the simulation mode, you don't need to provide a policy and certificate,
-    but please keep in mind that this mode should NEVER be used in production as it doesn't
-    have most of the security provided by the hardware mode.
-
-    ***Security & confidentiality warnings:***
-       *policy: Defines the rules upon which enclaves are accepted (after quote data verification). Contains the hash of MRENCLAVE which helps identify code and data of an enclave. In the case of leakeage of this file, data & model confidentiality would not be affected as the information just serves as a verification check.
-       For more details, the attestation info is verified against the policy for the quote. In case of a leakage of the information of this file, code and data inside the secure enclave will remain inaccessible.
-       certificate:  The certificate file, which is also generated server side, is used to assigned the claims the policy is checked against. It serves to identify the server for creating a secure channel and begin the attestation process.*
-
-    Args:
-        addr (str): The address of BlindAI server you want to reach. If you don't specify anything, you will be automatically connected to Mithril Cloud.
-        server_name (str, optional): Contains the CN expected by the server TLS certificate. Defaults to "blindai-srv".
-        policy (Optional[str], optional): Path to the toml file describing the policy of the server.
-            Generated in the server side. Defaults to None.
-        certificate (Optional[str], optional): Path to the public key of the untrusted inference server.
-            Generated in the server side. Defaults to None.
-        simulation (bool, optional): Connect to the server in simulation mode.
-            If set to True, the args policy and certificate will be ignored. Defaults to False.
-        untrusted_port (int, optional): Untrusted connection server port. Defaults to 50052.
-        attested_port (int, optional): Attested connection server port. Defaults to 50051.
-        debug_mode (bool, optional): Prints debug message, will also turn on GRPC log messages.
-        api_key (str, optional): Key to upload and use your models on Mithril Cloud. This parameter is not needed if you want to use the public models, or if you want to deploy the server yourself.
-
-    Raises:
-        AttestationError: Will be raised if the policy doesn't match the server configuration, or if the attestation is invalid.
-        NotAnEnclaveError: Will be raised if the enclave claims are not validated by the hardware provider, meaning that the claims cannot be verified using the hardware root of trust.
-        IdentityError: Will be raised if the enclave code signature hash does not match the signature hash provided in the policy.
-        DebugNotAllowedError: Will be raised if the enclave is in debug mode but the provided policy doesn't allow debug mode.
-        ConnectionError: will be raised if the connection with the server fails.
-        VersionError: Will be raised if the version of the server is not supported by the client.
-        FileNotFoundError: will be raised if the policy file, or the certificate file is not
-            found (in Hardware mode).
-    """
     return Connection(*args, **kwargs)
