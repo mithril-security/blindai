@@ -740,7 +740,7 @@ class Connection(contextlib.AbstractContextManager):
             untrusted_port (int, optional): Untrusted connection server port. Defaults to 50052.
             attested_port (int, optional): Attested connection server port. Defaults to 50051.
             debug_mode (bool, optional): Prints debug message, will also turn on GRPC log messages.
-            api_key (str, optional): Key to upload and use your models on Mithril Cloud. This parameter is not needed if you want to use the public models, or if you want to deploy the server yourself.
+            api_key (str, optional): Key to upload and use your models on Mithril Security Cloud. This parameter is not needed if you want to use the public models, or if you want to deploy the server yourself.
 
         Raises:
             AttestationError: Will be raised if the policy doesn't match the server configuration, or if the attestation is invalid.
@@ -951,9 +951,9 @@ class Connection(contextlib.AbstractContextManager):
             model (str): Path to Onnx model file.
             input_specs (List[Tuple[List[int], ModelDatumType]], optional): The list of input fact and datum types for each input grouped together in lists, describing the different inputs of the model. Defaults to None.
             output_specs (List[ModelDatumType], optional): The list of datum types describing the different output types of the model. Defaults to ModelDatumType.F32
-            shape (Tuple, optional): The shape of the model input. Defaults to None.
-            datum_type (ModelDatumType, optional): The type of the model input data (f32 by default). Defaults to ModelDatumType.F32.
-            dtype_out (ModelDatumType, optional): The type of the model output data (f32 by default). Defaults to ModelDatumType.F32.
+            shape (Tuple, optional): The shape of the model input. Ignored if you are using models with multiple inputs. Defaults to None.
+            datum_type (ModelDatumType, optional): The type of the model input data (f32 by default). Ignored if you are using models with multiple inputs. Defaults to ModelDatumType.F32.
+            dtype_out (ModelDatumType, optional): The type of the model output data (f32 by default). Ignored if you are using models with multiple outputs. Defaults to ModelDatumType.F32.
             sign (bool, optional): Get signed responses from the server or not. Defaults to False.
             model_name (Optional[str], optional): Name of the model.
             save_model (bool, optional): Whether or not the model will be saved to disk in the server. The model will be saved encrypted (sealed) so that only the server enclave can load it afterwards. Defaults to False.
@@ -1038,21 +1038,23 @@ class Connection(contextlib.AbstractContextManager):
 
         The data provided must be in a list, as the tensor will be rebuilt inside the server.
 
-        ***Security & confidentiality warnings:***<br>
-        *`model_id` : hash of the Onnx model uploaded. the given hash is return via gRPC through the proto files. It's a SHA-256 hash that is generated each time a model is uploaded.<br>
-        `data_list`: protected in transit and protected when running it on the secure enclave. In the case of a compromised OS, the data is isolated and confidential by SGX design.<br>
+        ***Security & confidentiality warnings:***
+        *`model_id` : hash of the Onnx model uploaded. the given hash is return via gRPC through the proto files. It's a SHA-256 hash that is generated each time a model is uploaded.
+        `tensors`: protected in transit and protected when running it on the secure enclave. In the case of a compromised OS, the data is isolated and confidential by SGX design.
         `sign`: by enabling sign, DCAP attestation is enabled to verify the SGX attestation model. This attestation model relies on Elliptic Curve Digital Signature algorithm (ECDSA).*
 
         Args:
             model_id (str): If set, will run a specific model.
-            tensors (Union[List[Any], List[List[Any]]))): The input data. It must be an array of numbers or an array of arrays of numbers of the same type datum_type specified in `upload_model`.
+            tensors (Union[List[Any], List[List[Any]]))): The input data. It must be an array of numpy, tensors or flat list of the same type datum_type specified in `upload_model`.
+            dtype (Union[List[ModelDatumType], ModelDatumType], optional): The type of data of the data you want to upload. Only required if you are uploading flat lists, will be ignored if you are uploading numpy or tensors (this info will be extracted directly from the tensors/numpys).
+            shape (Union[List[List[int]], List[int]], optional): The shape of the data you want to upload. Only required if you are uploading flat lists, will be ignored if you are uploading numpy or tensors (this info will be extracted directly from the tensors/numpys).
             sign (bool, optional): Get signed responses from the server or not. Defaults to False.
         Raises:
             ConnectionError: Will be raised if the client is not connected.
             SignatureError: Will be raised if the response signature is invalid
             ValueError: Will be raised if the connection is closed
         Returns:
-            RunModelResponse: The response object.
+            PredictResponse: The response object.
         """
 
         try:
@@ -1103,17 +1105,17 @@ class Connection(contextlib.AbstractContextManager):
     def delete_model(self, model_id: str) -> DeleteModelResponse:
         """Delete a model in the inference server.
         This may be used to free up some memory.
-        Note that the model in currently stored in-memory, and you cannot keep it loaded across server restarts.
+        If you did not specify that you wanted your model to be saved on the server, please note that the model will only be present in memory, and will disappear when the server close. 
 
-        ***Security & confidentiality warnings:***<br>
-            *model_id : If you are using this on the Mithril Cloud, you can only delete models that you uploaded. Otherwise, the deletion of a model does only relies on the `model_id`. It doesn't relies on a session token or anything, hence if the `model_id` is known, it's deletion is possible.*
+        ***Security & confidentiality warnings:***
+            *model_id : If you are using this on the Mithril Security Cloud, you can only delete models that you uploaded. Otherwise, the deletion of a model does only relies on the `model_id`. It doesn't relies on a session token or anything, hence if the `model_id` is known, it's deletion is possible.*
 
         Args:
             model_id (str): The id of the model to remove.
 
         Raises:
-            ConnectionError: Will be raised if the client is not connected or if an happens.
-            ValueError: Will be raised if the connection is closed
+            ConnectionError: Will be raised if the client is not connected or if an error happens during the connection.
+            ValueError: Will be raised if the connection is closed.
         Returns:
             DeleteModelResponse: The response object.
         """
@@ -1129,7 +1131,7 @@ class Connection(contextlib.AbstractContextManager):
         return DeleteModelResponse()
 
     def close(self):
-        """Close the connection between the client and the inference server. This method has no effect if the file is already closed."""
+        """Close the connection between the client and the inference server. This method has no effect if the connection is already closed."""
         if not self.closed:
             self._channel.close()
             self.closed = True
