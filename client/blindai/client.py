@@ -230,7 +230,7 @@ def translate_tensors(tensors, dtypes, shapes):
     # - list[int] should be wrapped into [X]
     # - but! list[list[int]] is should be unchanged
     if not isinstance(tensors, list) or (
-        len(tensors) > 0 and not isinstance(tensors[0], list)
+        len(tensors) > 0 and isinstance(tensors[0], list)
     ):
         tensors = [tensors]
 
@@ -238,7 +238,7 @@ def translate_tensors(tensors, dtypes, shapes):
     if dtypes is not None and not isinstance(dtypes, list):
         dtypes = [dtypes]
     if not isinstance(shapes, list) or (
-        len(shapes) > 0 and not isinstance(shapes[0], list)
+        len(shapes) > 0 and not (isinstance(shapes[0], list) or isinstance(shapes[0], tuple))
     ):
         shapes = [shapes]
 
