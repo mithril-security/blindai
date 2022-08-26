@@ -471,7 +471,7 @@ impl Exchange for Exchanger {
 
         let user_id = if let Some(auth_ext) = auth_ext {
             if let Some(userid) = auth_ext.userid() {
-                userid
+                Some(userid)
             } else {
                 return Err(Status::unauthenticated("You must provide an api key"));
             }
