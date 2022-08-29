@@ -66,24 +66,6 @@ class TestServerConfigBase:
                     sign=True,
                 )
 
-    @with_server_config(
-        os.path.join(os.path.dirname(__file__), "startup_model_gptneox_config.toml")
-    )
-    def test_gptneox(self):
-        with blindai.connect(
-            addr="localhost",
-            simulation=self.simulation,
-            policy=policy_file,
-            certificate=certificate_file,
-        ) as client:
-            client.predict(
-                "gpt-neo-2.7b",
-                gptneox_inputs.flatten().tolist(),
-                dtype=ModelDatumType.I64,
-                shape=gptneox_inputs.shape,
-                sign=True,
-            )
-
 
 class TestServerConfigSW(TestServerConfigBase, unittest.TestCase):
     simulation = True
@@ -96,24 +78,9 @@ class TestServerConfigHW(TestServerConfigBase, unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 
-gptneox_inputs, inputs = None, None
+inputs = None
 
 
 def setUpModule():
-    global gptneox_inputs, inputs
+    global inputs
     inputs = covidNetSetUpModule()
-
-    gptneox_inputs = torch.tensor(
-        np.load(os.path.join(os.path.dirname(__file__), "./gpt-neo-2.7b.npz"))["inputs"]
-    )
-
-    if not os.path.exists(os.path.join(bin_dir, "./gpt-neo-2.7b")):
-        model = AutoModel.from_pretrained("EleutherAI/gpt-neo-2.7B")
-
-        os.mkdir(os.path.join(bin_dir, "./gpt-neo-2.7b"))
-        torch.onnx.export(
-            model,
-            gptneox_inputs,
-            os.path.join(bin_dir, "./gpt-neo-2.7b/gpt-neo-2.7b.onnx"),
-            export_params=True,
-        )
