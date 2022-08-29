@@ -45,19 +45,19 @@ class AttestationError(Exception):
     pass
 
 
-class NotAnEnclaveError(Exception):
+class NotAnEnclaveError(AttestationError):
     """This exception is raised when the enclave claims are not validated by the hardware provider, meaning that the claims cannot be verified using the hardware root of trust"""
 
     pass
 
 
-class IdentityError(Exception):
+class IdentityError(AttestationError):
     """This exception is raised when the enclave code signature hash does not match the signature hash provided in the policy"""
 
     pass
 
 
-class DebugNotAllowedError(Exception):
+class DebugNotAllowedError(AttestationError):
     """This exception is raised when the enclave is in debug mode but the provided policy doesn't allow debug mode"""
 
     pass

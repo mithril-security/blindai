@@ -238,7 +238,8 @@ def translate_tensors(tensors, dtypes, shapes):
     if dtypes is not None and not isinstance(dtypes, list):
         dtypes = [dtypes]
     if not isinstance(shapes, list) or (
-        len(shapes) > 0 and not (isinstance(shapes[0], list) or isinstance(shapes[0], tuple))
+        len(shapes) > 0
+        and not (isinstance(shapes[0], list) or isinstance(shapes[0], tuple))
     ):
         shapes = [shapes]
 
@@ -494,9 +495,11 @@ class Tensor:
         self.bytes_data = bytes_data
 
     def as_flat(self) -> list:
+        """Convert the prediction calculated by the server to a flat python list."""
         return list(deserialize_tensor(self.bytes_data, self.info.datum_type))
 
     def as_numpy(self):
+        """Convert the prediction calculated by the server to a numpy array."""
         import numpy
 
         arr = numpy.array([*self.as_flat()], dtype=dtype_to_numpy(self.info.datum_type))
@@ -504,6 +507,7 @@ class Tensor:
         return arr
 
     def as_torch(self):
+        """Convert the prediction calculated by the server to a Torch Tensor."""
         import torch
 
         arr = torch.asarray(
@@ -523,6 +527,19 @@ class Tensor:
 
 
 class PredictResponse(SignedResponse):
+    """Contains the inference calculated by the server, alongside the data needed to verify the integrity of the data sent.
+
+    Args:
+        input_tensors (Union[List[List[Any]], List[Any]]) = Contains the data that was used for the inference. Copied directly from the input provided in predict, not sent back by the server.
+        input_datum_type (Union[List[ModelDatumType], ModelDatumType]) = Contains all the types of the input data. Copied directly from the input provided in predict, not sent back by the server.
+        input_shape (Union[List[List[int]], List[int]]): Contains all the shapes of the input data. Copied directly from the input provided in predict, not sent back by the server.
+        response (PbRunModelReply): Contains the inference calculated by the server. Act as an array. To extract the first prediction, please use [0]. Can be converted to a Torch Tensor, a numpy array of a flat list.
+        sign (bool): Determines if the input was signed, and if the client should verify the integrity of the data sent. Default to true.
+        attestation (Optional[GetSgxQuoteWithCollateralReply], optional): Contains the attestation provided by the enclave, if connected to a server in hardware mode.
+        enclave_signing_key (Optional[bytes], optional): Enclave signing key in case the attestation should not be validated. Will be set up automatically.
+        allow_simulation_mode (bool, optional): Whether or not simulation mode responses should be accepted. Will be set up automatically, depending on how you chose to connect to the server.
+    """
+
     output: List[Tensor] = None
     model_id: str = None
 
@@ -787,6 +804,9 @@ class Connection(contextlib.AbstractContextManager):
             logging.debug(
                 f"Selected enclave {response.enclave_url} & has jwt? {len(response.jwt) > 0}"
             )
+
+        if policy is None and simulation is False:
+            policy = Policy.from_str(MITHRIL_SERVICES_POLICY)
 
         uname = platform.uname()
         self.client_info = ClientInfo(
