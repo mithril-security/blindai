@@ -750,8 +750,10 @@ class Connection(contextlib.AbstractContextManager):
             server_name (str, optional): Contains the CN expected by the server TLS certificate. Defaults to "blindai-srv".
             policy (Optional[str], optional): Path to the toml file describing the policy of the server.
                 Generated in the server side. Defaults to None. Will be ignored if you are in simulation mode or trying to connect to the Mithril Security Cloud.
+                If left to none and if you are in hardware mode, the built-in policy (policy matching to the 0.5 version of the server, or the Mithril Security Cloud enclave) will be used.
             certificate (Optional[str], optional): Path to the public key of the untrusted inference server.
                 Generated in the server side. Defaults to None. Will be ignored if you are in simulation mode or trying to connect to the Mithril Security Cloud.
+                If left to none and if you are in hardware mode, the certificate verification will be disabled
             simulation (bool, optional): Connect to the server in simulation mode.
                 If set to True, the args policy and certificate will be ignored. Defaults to False.
             untrusted_port (int, optional): Untrusted connection server port. Defaults to 50052.
@@ -806,6 +808,7 @@ class Connection(contextlib.AbstractContextManager):
             )
 
         if policy is None and simulation is False:
+            logging.info("No policy specified. Using the built-in policy.")
             policy = Policy.from_str(MITHRIL_SERVICES_POLICY)
 
         uname = platform.uname()
@@ -858,9 +861,22 @@ class Connection(contextlib.AbstractContextManager):
         if simulation:
             logging.warning("Untrusted server certificate check bypassed")
 
-        if simulation or use_mithril_services:
+        if (
+            simulation
+            or use_mithril_services
+            or (simulation is False and certificate is None)
+        ):
+            if (
+                simulation is False
+                and certificate is None
+                and use_mithril_services is False
+            ):
+                logging.warning(
+                    "No certificate specified. The certificate verification is disabled."
+                )
             try:
                 socket.setdefaulttimeout(CONNECTION_TIMEOUT)
+
                 untrusted_server_cert = ssl.get_server_certificate(
                     (addr, untrusted_port)
                 )
