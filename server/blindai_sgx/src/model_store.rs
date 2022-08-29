@@ -258,8 +258,8 @@ impl ModelStore {
         }
     }
 
-    /// If user_id is provided, it will fail if the model is not owned by this user.
-    /// This will never remove startup models.
+    /// If user_id is provided, it will fail if the model is not owned by this
+    /// user. This will never remove startup models.
     pub fn delete_model(&self, model_id: &str, user_id: Option<usize>) -> Option<Arc<InferModel>> {
         let mut write_guard = self.inner.write().unwrap();
 
@@ -324,7 +324,7 @@ impl ModelStore {
             let model = InferModel::load_model_path(
                 Path::new(&model.path),
                 model.model_id.clone(),
-                None,
+                format!("startup model - {}", model.model_id.clone()).into(),
                 model_hash,
                 &translate_facts(&model.input_facts)?,
                 &translate_facts(&model.output_facts)?,

@@ -263,7 +263,9 @@ impl InferModel {
         load_context: ModelLoadContext,
         owner_id: Option<usize>,
     ) -> Result<Self> {
-        let mut graph = tract_onnx::onnx().with_ignore_output_shapes(true).model_for_path(model_path)?;
+        let mut graph = tract_onnx::onnx()
+            .with_ignore_output_shapes(true)
+            .model_for_path(model_path)?;
 
         trace!(
             "Loading model from path with input_facts {:?} output_facts {:?} optim {:?}",
@@ -302,7 +304,9 @@ impl InferModel {
         load_context: ModelLoadContext,
         owner_id: Option<usize>,
     ) -> Result<Self> {
-        let mut graph = tract_onnx::onnx().with_ignore_output_shapes(true).model_for_read(&mut model_data)?;
+        let mut graph = tract_onnx::onnx()
+            .with_ignore_output_shapes(true)
+            .model_for_read(&mut model_data)?;
 
         trace!(
             "Loading model from bytes with input_facts {:?} output_facts {:?} optim {:?}",
@@ -343,14 +347,18 @@ impl InferModel {
                 TractModel::OptimizedOnnx(model) => {
                     let f = model.model.input_fact(ix)?;
                     InferenceFact::dt_shape(f.datum_type, f.shape.iter())
-                },
+                }
                 TractModel::UnoptimizedOnnx(model) => model.model.input_fact(ix)?.clone(),
             };
             if !tensor_fact.compatible_with(&input_fact) {
-                bail!("Incompatible tensor input: {:?} (expected {:?})", tensor_fact, input_fact)
+                bail!(
+                    "Incompatible tensor input: {:?} (expected {:?})",
+                    tensor_fact,
+                    input_fact
+                )
             }
         }
-        
+
         match self.model.as_ref() {
             TractModel::OptimizedOnnx(model) => model.run(inputs),
             TractModel::UnoptimizedOnnx(model) => model.run(inputs),
