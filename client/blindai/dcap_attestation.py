@@ -206,6 +206,8 @@ def verify_claims(claims: DcapClaims, policy: Policy):
 
     Raises:
         AttestationError: Attestation does not match policy.
+        IdentityError: The enclave code signature hash does not match the signature hash provided in the policy.
+        DebugNotAllowedError: The enclave is in debug mode, but the policy does not allow it.
     """
 
     if claims.sgx_mrenclave != policy.mr_enclave:

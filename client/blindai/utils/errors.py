@@ -40,7 +40,13 @@ class SignatureError(Exception):
 
 
 class AttestationError(Exception):
-    """This exception is raised when the attestation is not valid (code signature mismatching, enclave settings mismatching...). Used a master exception for all other sub exceptions on the quote validation"""
+    """This exception is raised when the attestation is not valid (code signature mismatching, enclave settings mismatching...). Used a master exception for all other sub exceptions on the quote validation.
+
+    Args:
+        Args:
+        claims (DcapClaims): The claims.
+        policy (Policy): The enclave policy.
+    """
 
     def __init__(self, message, claims, policy):
         self.claims = claims
@@ -52,7 +58,7 @@ class AttestationError(Exception):
 
 
 class QuoteValidationError(Exception):
-    """This exception is raised when the returned quote is invalid (TCB outdated, not signed by the hardware provider...). Used a master exception for all other sub exceptions on the quote validation."""
+    """This exception is raised when the returned quote is invalid (TCB outdated, not signed by the hardware provider...). Used a master exception for all other sub exceptions on the quote validation"""
 
     pass
 
@@ -64,7 +70,12 @@ class NotAnEnclaveError(QuoteValidationError):
 
 
 class EnclaveHeldDataError(QuoteValidationError):
-    """This exception is raised when the enclave held data expected does not match the one in the quote. The expected enclave held data in BlindAI is the untrusted certificate to avoid man-in-the-middle attacks."""
+    """This exception is raised when the enclave held data expected does not match the one in the quote. The expected enclave held data in BlindAI is the untrusted certificate to avoid man-in-the-middle attacks
+
+    Args:
+        expected_hash (str): Enclave held data hash expected
+        measured_hash (str): Enclave held data hash calculated
+    """
 
     def __init__(self, message, expected_hash, measured_hash):
         self.expected_hash = expected_hash
@@ -101,7 +112,7 @@ class DebugNotAllowedError(AttestationError):
 
 
 class HardwareModeUnsupportedError(Exception):
-    """This exception is raised when the server is in simulation mode but an hardware mode attestation was requested from it."""
+    """This exception is raised when the server is in simulation mode but an hardware mode attestation was requested from it"""
 
     pass
 

@@ -13,7 +13,7 @@ from blindai import (
     UploadModelResponse,
 )
 from blindai.dcap_attestation import Policy
-from blindai.utils.errors import SignatureError, AttestationError
+from blindai.utils.errors import SignatureError, AttestationError, QuoteValidationError
 from unittest.mock import Mock, patch
 from datetime import datetime, timedelta
 import time  # so we can override time.time
@@ -137,7 +137,7 @@ class TestProof(unittest.TestCase):
 
         response2 = deepcopy(response)
         response2.attestation.quote += b"a"
-        with self.assertRaises(AttestationError):
+        with self.assertRaises(QuoteValidationError):
             response2.validate(
                 response.model_id,
                 get_input(),
@@ -214,7 +214,7 @@ class TestProof(unittest.TestCase):
 
         response2 = deepcopy(response)
         response2.attestation.quote += b"a"
-        with self.assertRaises(AttestationError):
+        with self.assertRaises(QuoteValidationError):
             response2.validate(
                 model_hash,
                 policy=policy,
