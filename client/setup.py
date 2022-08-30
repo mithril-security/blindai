@@ -234,7 +234,7 @@ setuptools.setup(
     classifiers=[
         "Programming Language :: Python :: 3",
         "Programming Language :: C++",
-        "License :: Apache License 2.0",
+        "License :: OSI Approved :: Apache Software License",
         "Operating System :: Unix",
         "Operating System :: Microsoft :: Windows",
         "Operating System :: MacOS :: MacOS X",

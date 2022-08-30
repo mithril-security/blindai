@@ -13,7 +13,12 @@ from blindai import (
     UploadModelResponse,
 )
 from blindai.dcap_attestation import Policy
-from blindai.utils.errors import SignatureError, AttestationError, QuoteValidationError, EnclaveHeldDataError
+from blindai.utils.errors import (
+    SignatureError,
+    AttestationError,
+    QuoteValidationError,
+    EnclaveHeldDataError,
+)
 from unittest.mock import Mock, patch
 from datetime import datetime, timedelta
 import time  # so we can override time.time

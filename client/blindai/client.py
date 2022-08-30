@@ -966,7 +966,12 @@ class Connection(contextlib.AbstractContextManager):
 
         except RpcError as rpc_error:
             channel.close()
-            raise ConnectionError(check_rpc_exception(rpc_error))
+            if rpc_error.code() == grpc.StatusCode.FAILED_PRECONDITION:
+                raise HardwareModeUnsupportedError(
+                    "The server you are trying to reach is in Simulation mode. It cannot attest of its identity."
+                )
+            else:
+                raise ConnectionError(check_rpc_exception(rpc_error))
 
     @raise_exception_if_conn_closed
     def upload_model(
