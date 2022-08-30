@@ -202,7 +202,10 @@ setuptools.setup(
     long_description=read("README.md"),
     long_description_content_type="text/markdown",
     keywords="confidential computing inference client enclave sgx machine learning",
-    url="https://www.mithrilsecurity.io/",
+    url="https://github.com/mithril-security/blindai",
+    project_urls={
+        "Documentation": "https://blindai.mithrilsecurity.io/",
+    },
     packages=setuptools.find_packages(exclude=["blindai/cpp/wrapper.cc"]),
     package_data={"": [get_libs(), "tls/*.pem", "tls/*.toml"]},
     ext_modules=[CMakeExtension("_quote_verification")],
@@ -231,6 +234,7 @@ setuptools.setup(
     classifiers=[
         "Programming Language :: Python :: 3",
         "Programming Language :: C++",
+        "License :: Apache License 2.0",
         "Operating System :: Unix",
         "Operating System :: Microsoft :: Windows",
         "Operating System :: MacOS :: MacOS X",

@@ -27,6 +27,8 @@ from _quote_verification import status
 
 from blindai.utils.utils import encode_certificate
 from blindai.utils.errors import (
+    QuoteValidationError,
+    EnclaveHeldDataError,
     AttestationError,
     DebugNotAllowedError,
     IdentityError,
@@ -69,7 +71,9 @@ def verify_dcap_attestation(
         enclave_held_data (bytes): Enclave held data
 
     Raises:
-        AttestationError: Attestation does not match policy.
+        QuoteValidationError: The quote could not be validated.
+        EnclaveHeldDataError: The enclave held data expected does not match the one in the quote. The expected enclave held data in BlindAI is the untrusted certificate to avoid man-in-the-middle attacks.
+        NotAnEnclaveError: The enclave claims are not validated by the hardware provider, meaning that the claims cannot be verified using the hardware root of trust.
 
     Returns:
         DcapClaims: The claims.
@@ -99,17 +103,19 @@ def verify_dcap_attestation(
         )
 
     if ret.tcbInfoStatus != status.STATUS_OK:
-        raise AttestationError("Wrong TCB Info Status {}", ret.tcbInfoStatus)
+        raise QuoteValidationError("Wrong TCB Info Status {}", ret.tcbInfoStatus)
 
     if ret.qeIdentityStatus != status.STATUS_OK:
-        raise AttestationError("Wrong QE Identity Status {}", ret.qeIdentityStatus)
+        raise QuoteValidationError("Wrong QE Identity Status {}", ret.qeIdentityStatus)
 
     if ret.quoteStatus not in [status.STATUS_OK, status.STATUS_TCB_SW_HARDENING_NEEDED]:
-        raise AttestationError("Wrong Quote Status {}", ret.quoteStatus)
+        raise QuoteValidationError("Wrong Quote Status {}", ret.quoteStatus)
 
     if hashlib.sha256(enclave_held_data).digest() != bytes(ret.reportData)[:32]:
-        raise AttestationError(
-            "Enclave Held Data hash doesn't match with the report data from the quote"
+        raise EnclaveHeldDataError(
+            "Enclave Held Data hash doesn't match with the report data from the quote",
+            hashlib.sha256(enclave_held_data).hexdigest(),
+            bytes(ret.reportData)[:32].hex(),
         )
 
     claims = DcapClaims(
@@ -203,11 +209,19 @@ def verify_claims(claims: DcapClaims, policy: Policy):
     """
 
     if claims.sgx_mrenclave != policy.mr_enclave:
-        raise IdentityError("Code signature mismatch (MRENCLAVE)")
+        raise IdentityError(
+            "Code signature mismatch (MRENCLAVE)",
+            claims,
+            policy,
+            policy.mr_enclave,
+            claims.sgx_mrenclave,
+        )
 
     if claims.sgx_is_debuggable and not policy.allow_debug:
         raise DebugNotAllowedError(
-            "Enclave is in debug mode but the policy doesn't allow debug"
+            "Enclave is in debug mode but the policy doesn't allow debug",
+            claims,
+            policy,
         )
 
     # If this flag is set, then the enclave is initialized
@@ -218,15 +232,19 @@ def verify_claims(claims: DcapClaims, policy: Policy):
         != Bits(policy.attributes_flags) | SGX_FLAGS_INITTED
     ):
         raise AttestationError(
-            "SGX attributes flags bytes do not conform to the policy"
+            "SGX attributes flags bytes do not conform to the policy", claims, policy
         )
 
     if Bits(claims.sgx_attributes[8:]) & Bits(policy.attributes_mask_xfrm) != Bits(
         policy.attributes_xfrm
     ):
-        raise AttestationError("SGX XFRM flags bytes do not conform to the policy")
+        raise AttestationError(
+            "SGX XFRM flags bytes do not conform to the policy", claims, policy
+        )
 
     if Bits(claims.sgx_misc_select) & Bits(policy.misc_mask) != Bits(
         policy.misc_select
     ):
-        raise AttestationError("SGX MISC SELECT bytes do not conform to the policy")
+        raise AttestationError(
+            "SGX MISC SELECT bytes do not conform to the policy", claims, policy
+        )

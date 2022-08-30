@@ -59,6 +59,7 @@ from blindai.pb.untrusted_pb2_grpc import AttestationStub
 from blindai.utils.errors import (
     SignatureError,
     VersionError,
+    HardwareModeUnsupportedError,
     check_rpc_exception,
     check_socket_exception,
 )
@@ -766,6 +767,7 @@ class Connection(contextlib.AbstractContextManager):
             NotAnEnclaveError: Will be raised if the enclave claims are not validated by the hardware provider, meaning that the claims cannot be verified using the hardware root of trust.
             IdentityError: Will be raised if the enclave code signature hash does not match the signature hash provided in the policy.
             DebugNotAllowedError: Will be raised if the enclave is in debug mode but the provided policy doesn't allow debug mode.
+            HardwareModeUnsupportedError: will be raised if the server is in simulation mode but an hardware mode attestation was requested from it.
             ConnectionError: will be raised if the connection with the server fails.
             VersionError: Will be raised if the version of the server is not supported by the client.
             FileNotFoundError: will be raised if the policy file, or the certificate file is not
@@ -885,7 +887,12 @@ class Connection(contextlib.AbstractContextManager):
                 )
 
             except RpcError as rpc_error:
-                raise ConnectionError(check_rpc_exception(rpc_error))
+                if rpc_error.code() == grpc.StatusCode.FAILED_PRECONDITION:
+                    raise HardwareModeUnsupportedError(
+                        "The server you are trying to reach is in Simulation mode. It cannot attest of its identity."
+                    )
+                else:
+                    raise ConnectionError(check_rpc_exception(rpc_error))
 
             except socket.error as socket_error:
                 raise ConnectionError(check_socket_exception(socket_error))
