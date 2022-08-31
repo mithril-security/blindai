@@ -57,13 +57,13 @@ nav:
 - Home: 'index.md'
 - 'Getting started':
   - 'getting-started/quick-start.md'
-  - 'getting-started/cloud-deployment.md'
   - 'getting-started/deploy-on-hardware.md'
   - 'getting-started/telemetry.md'
 - 'Client API reference': 'resources/blindai/client.html'
 - 'Advanced':
   - 'advanced/certificate-and-policy.md'
-  - 'advanced/hardware_server.md'
+  - 'advanced/server-from-sources.md'
+  - 'advanced/client-from-sources.md'
+  - 'advanced/cloud-deployment.md'
   - 'advanced/setting-up-your-dev-environment.md'
-  - 'advanced/client_side.md'
   - 'advanced/blindai-project-structure.md'

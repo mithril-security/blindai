@@ -2,7 +2,7 @@
 
 You will find here some tutorials to deploy **BlindAI** easily on some cloud providers.
 
-If you want to deploy the server on another provider or on premise, you should head directly to [deploy-on-hardware.md](deploy-on-hardware.md "mention").
+If you want to deploy the server on another provider or on premise, you should head directly to [deploy-on-hardware.md](../getting-started/deploy-on-hardware.md "mention").
 
 === "Azure DCsv2"
 
@@ -76,7 +76,7 @@ If you want to deploy the server on another provider or on premise, you should h
 
     If you are good to go, you just need to install Docker on the VM. [Please follow these instructions to get started quickly. ](https://docs.docker.com/engine/install/ubuntu/#install-using-the-repository)
 
-    Once Docker is installed, refer to the [deploy-on-hardware.md](deploy-on-hardware.md "mention") page.
+    Once Docker is installed, refer to the [deploy-on-hardware.md](../getting-started/deploy-on-hardware.md "mention") page.
 
 === "Azure DCsv3"
 
@@ -150,4 +150,4 @@ If you want to deploy the server on another provider or on premise, you should h
 
     If you are good to go, you just need to install Docker on the VM. [Please follow these instructions to get started quickly. ](https://docs.docker.com/engine/install/ubuntu/#install-using-the-repository)
 
-    Once Docker is installed, refer to the [deploy-on-hardware.md](deploy-on-hardware.md "mention") page.
+    Once Docker is installed, refer to [the deploy on hardware section](../getting-started/deploy-on-hardware.md) page.
