@@ -1,4 +1,4 @@
-# Deploy on Hardware
+# Hardware deployment
 
 ## Hardware requirements
 
@@ -64,39 +64,56 @@ Please make sure you have [Docker ](https://docs.docker.com/get-docker/)installe
         mithrilsecuritysas/blindai-server-dcsv3:latest
     ```
 
+!!! info
+    If you built this image locally you can allow debug by running with -e POLICY_ALLOW_DEBUG=true. Building from sources is documented [here](../advanced/server-from-sources.md)
 
-## Get the policy and TLS Certificate
+!!! warning
+    You should only allow debug if your policy.toml allows debug. More information about the policy in [this section](../advanced/certificate-and-policy.md)
 
+## Extract Policy and default TLS Certificate from the Hardware docker image
 
-
-In hardware mode, we are required to pass two files that were generated previously by the server to the client: `policy.toml` and `host_server.pem`. Read more about what these files are used for here: [certificate-and-policy.md](../advanced/certificate-and-policy.md "mention")
-
-You may pull the policy for the latest prebuilt server binary with this command:
+You can extract the policy directly from the prebuilt Docker Image using:
 
 === "Hardware mode"
 
-    ```
-    docker run --rm mithrilsecuritysas/blindai-server:latest cat /root/policy.toml > policy.toml
-    ```
-
-    If you wish to use the default built-in TLS certificate, you need to pull the certificate first as well.
-
-    ```
-    docker run --rm mithrilsecuritysas/blindai-server:latest cat /root/tls/host_server.pem > host_server.pem
+    ```bash
+    docker run --rm mithrilsecuritysas/blindai-server:latest /bin/cat /root/policy.toml > policy.toml
     ```
 
 === "Hardware mode (Azure DCsv3 VMs)"
 
-    ```
-    docker run --rm mithrilsecuritysas/blindai-server-dcsv3:latest cat /root/policy.toml > policy.toml
-    ```
-
-    If you wish to use the default built-in TLS certificate, you need to pull the certificate first as well.
-
-    ```
-    docker run --rm mithrilsecuritysas/blindai-server-dcsv3:latest cat /root/tls/host_server.pem > host_server.pem
+    ```bash
+    docker run --rm mithrilsecuritysas/blindai-server-dcsv3:latest /bin/cat /root/policy.toml > policy.toml
     ```
 
+You can also extract the default TLS certificate like this:
 
-**Please remember that this certificate is not secure, it is strongly recommended to [generate your own certificate](../advanced/certificate-and-policy.md#inject-your-own-tls-certificate-to-blindai).**
+=== "Hardware mode"
 
+    ```bash
+    docker run --rm mithrilsecuritysas/blindai-server:latest /bin/cat /root/tls/host_server.pem > host_server.pem
+    ```
+
+=== "Hardware mode (Azure DCsv3 VMs)"
+
+    ```bash
+    docker run --rm mithrilsecuritysas/blindai-server-dcsv3:latest /bin/cat /root/tls/host_server.pem > host_server.pem
+    ```
+
+## Writing a client to connect to the hardware_mode server
+
+You can start from the python code of [the quick-start section](quick-start.md). You should then replace the instances of :
+```py
+client = BlindAiConnection(addr="localhost", simulation=True)
+```
+
+by
+
+```py
+client = BlindaiConnection(addr="localhost", policy="/path/to/policy.toml", certificate="/path/to/host_server.pem")
+```
+
+Your client will use your tls certificate and will only be able to connect to an enclave generated with the exact same policy.toml.
+
+!!! warning
+    If you want to deploy for production you should check out [the certificate and policy section](../advanced/certificate-and-policy.md). You will learn how to inject your onw tls certificate and how to check the authenticity of the policy.

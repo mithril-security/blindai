@@ -41,74 +41,20 @@ You can build the whole project by using our Docker image. We have set up the Do
     ```
     This will create a policy file with `allow_debug = false`. To change that, use `-e POLICY_ALLOW_DEBUG=true` when building.
 
-
-### Run the compiled server
-
-To run the client, you will want to get the `policy.toml` and `host_server.pem`  file from the server using:
-
-=== "Simulation mode"
-    This step can be ignored when running in software mode.
-
-=== "Hardware mode"
+!!! info
+    If your goal is to obtain a policy.toml file to connect to a distant server. You should build the image in hardware mode (sgx support isn't needed for compilation). You can then extract it by running:
     ```bash
-    docker run mithrilsecuritysas/blindai-server:latest /bin/cat /root/policy.toml > policy.toml
-    ```
-    ```bash
-    docker run mithrilsecuritysas/blindai-server:latest /bin/cat /root/tls/host_server.pem > host_server.pem
+    docker run --rm <image_name> cat /root/policy.toml > policy.toml
     ```
 
-=== "Hardware mode (Azure DCsv3 VMs)"
-    ```bash
-    docker run mithrilsecuritysas/blindai-server-dcsv3:latest /bin/cat /root/policy.toml > policy.toml
-    ```
-    ```bash
-    docker run mithrilsecuritysas/blindai-server-dcsv3:latest /bin/cat /root/tls/host_server.pem > host_server.pem
-    ```
-You need to run this command to start the docker image:
+### Running
 
-=== "Simulation mode"
-    ```bash
-    docker run -it \
-        -p 50051:50051 \
-        -p 50052:50052 \
-        mithrilsecuritysas/blindai-server-sim:latest
-    ```
-
-=== "Hardware mode"
-    Make sure you have the correct hardware and drivers (see [#hardware-requirements](../getting-started/deploy-on-hardware.md#hardware-requirements "mention")), and run:
-
-    ```bash
-    docker run -it \
-        -p 50051:50051 \
-        -p 50052:50052 \
-        --device /dev/sgx/enclave \
-        --device /dev/sgx/provision \
-        mithrilsecuritysas/blindai-server:latest /root/start.sh PCCS_API_KEY
-    ```
-
-    A [Quote Provisioning Certificate Caching Service (PCCS)](https://github.com/intel/SGXDataCenterAttestationPrimitives/blob/master/QuoteGeneration/pccs/README.md) is built-in inside the Docker Image in order to generate the DCAP attestation from the enclave. You need to provide an API Key in order for the PCCS server to function. [You can get one from Intel here.](https://api.portal.trustedservices.intel.com/provisioning-certification)
-
-    !!! info
-        The `PCCS_API_KEY` needs to be replaced with the PCCS API Key.
-
-    !!! info
-        This will launch the enclave in non debug-mode. If you wish to launch in debug mode, use `-e ENCLAVE_DEBUG_MODE=true` when launching.
-
-=== "Hardware mode (Azure DCsv3 VMs)"
-    ```bash
-    docker run -it \
-        -p 50051:50051 \
-        -p 50052:50052 \
-        --device /dev/sgx/enclave \
-        --device /dev/sgx/provision \
-        mithrilsecuritysas/blindai-server-dcsv3:latest
-    ```
-
-    !!! info
-        This will launch the enclave in non debug-mode. If you wish to launch in debug mode, use `-e ENCLAVE_DEBUG_MODE=true` when launching.
+You can follow the instructions of either [the simulation deployment section](../getting-started/quick-start.md) or [the deploy-on-hardware section](../getting-started/deploy-on-hardware.md) depending on your build mode.
 
 
 ## Without docker
+
+### Build process
 
 Make sure to follow [setting-up-your-dev-environment.md](setting-up-your-dev-environment.md "mention") first to set up your environment and install the build dependencies.
 
