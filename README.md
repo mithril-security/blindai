@@ -54,7 +54,7 @@ By using BlindAI, data remains always protected as it is only decrypted inside a
 
 ## Gradio Demo
 
-You can test and see how BlindAI secures AI application through our [hosted demo of GPT2](INSERT LINK GPT2 DEMO), built using Gradio.
+You can test and see how BlindAI secures AI application through our [hosted demo of GPT2](https://huggingface.co/spaces/mithril-security/blindai), built using Gradio.
 
 In this demo, you can see how BlindAI works and make sure that your data is protected. Thanks to the attestation mechanism, even before sending data, our Python client will check that:
 
@@ -63,7 +63,7 @@ In this demo, you can see how BlindAI works and make sure that your data is prot
 
 You can find more on [secure enclaves attestation here](https://blog.mithrilsecurity.io/confidential-computing-explained-part-2-attestation/).
 
-![GPT2 demo](INSERT DEMO GIF.gif)
+![GPT2 demo](https://raw.githubusercontent.com/mithril-security/animations/main/gradio_demo.gif)
 
 ## Quick tour
 
@@ -88,15 +88,18 @@ from transformers import GPT2Tokenizer
 tokenizer = GPT2Tokenizer.from_pretrained('gpt2')
 example = "I like the Rust programming language because"
 
-# Detailled tokenizing here https://gist.github.com/dhuynh95/4357aec425bd30fbb41db0bc6ce0f8b2
+def get_example_inputs(example, tokenizer):
+  # Detailled tokenizing here https://gist.github.com/dhuynh95/4357aec425bd30fbb41db0bc6ce0f8b2
+  ...
+
 input_list = get_example_inputs([example], tokenizer)
 
 # Connect to a remote model. If security checks fail, an exception is raised
-with blindai.client.connect() as client:
+with blindai.Connection() as client:
   # Send data to the GPT2 model
-  response = client.run_model("gpt2", input_list)
+  response = client.predict("gpt2", input_list)
 
-example = tokenizer.decode(response.output, skip_special_tokens=True)
+example = tokenizer.decode(response.output[0].as_torch(), skip_special_tokens=True)
 
 # We can see how GPT2 completed our sentence 🦀
 >>> example
@@ -107,7 +110,7 @@ example = tokenizer.decode(response.output, skip_special_tokens=True)
 
 The model in the GPT2 example had already been loaded by us, but BlindAI also allows you to upload your own models to our managed Cloud solution. 
 
-To be able to upload your model to our Cloud, you will need to [first register](PUT LINK TO CLOUD HERE) to get an API key.
+To be able to upload your model to our Cloud, you will need to [first register](https://cloud.mithrilsecurity.io/) to get an API key.
 
 Once you have the API key, you just have to provide it to our backend. 
 
@@ -122,12 +125,12 @@ torch.onnx.export(model, dummy_inputs, "resnet18.onnx")
 
 # Define the expected input/output specs (shape and type)
 tensor_inputs = [
-    [dummy_inputs.shape, blindai.client.ModelDatumType.F32]
+    [dummy_inputs.shape, blindai.ModelDatumType.F32]
 ]
-tensor_outputs = blindai.client.ModelDatumType.F32
+tensor_outputs = blindai.ModelDatumType.F32
 
 # Upload the ONNX file along with specs and model name
-with blindai.client.connect(api_key=...) as client:
+with blindai.Connection(api_key=...) as client:
     client.upload_model(
       model="resnet18.onnx",
       tensor_inputs=tensor_inputs, tensor_outputs=tensor_outputs,
