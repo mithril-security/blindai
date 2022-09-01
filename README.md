@@ -146,6 +146,16 @@ We provide some information in our workshop [Reconcile AI and privacy with Confi
 
 You can also have a look on our series [Confidential Computing explained](https://blog.mithrilsecurity.io/confidential-computing-explained-part-1-introduction/).
 
+**Q: Why should I trust you?**
+
+**A**: The client and server are open source. You can find them on our [GitHub](https://github.com/mithril-security/blindai).
+    
+Thanks to this, you can verify yourself that the client does implement the right encryption mechanisms.
+    
+In addition, the server side code can be verified thanks to remote attestation. Our server code is open, and any version will generate a specific hash that you can reproduce yourself. You can compile BlindAI and get the hash of the code yourself.
+
+Then you will just need to verify that this trustful source is indeed loaded in the remote server by using remote attestation.
+
 **Q: How much slowdown should we expect when using BlindAI?**
 
 **A:** We will provide a detailled benchmark soon. Usually you should see a negligeable slowdown with some simple models, and we have observed up to 30-40% slowdown for complex models.
