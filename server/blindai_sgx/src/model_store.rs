@@ -86,11 +86,13 @@ impl ModelStore {
 
         let mut models_path = PathBuf::new();
         models_path.push(&self.config.models_path);
-        if !owner_username.is_none()
-        {
-            models_path.push(&owner_username.clone().unwrap_or_else(|| "No_username".to_string())); 
-            if !fs::metadata(models_path.as_path().display().to_string()).is_ok()
-            {
+        if !owner_username.is_none() {
+            models_path.push(
+                &owner_username
+                    .clone()
+                    .unwrap_or_else(|| "No_username".to_string()),
+            );
+            if !fs::metadata(models_path.as_path().display().to_string()).is_ok() {
                 fs::create_dir(&models_path);
             }
         }
@@ -108,7 +110,7 @@ impl ModelStore {
                 &output_facts,
                 optim,
                 owner_id,
-                owner_username.clone()
+                owner_username.clone(),
             )
             .context("Sealing the model")?;
             info!("Model sealed");
@@ -156,7 +158,7 @@ impl ModelStore {
                         model_name,
                         model_hash,
                         owner_id,
-                        owner_username.clone()
+                        owner_username.clone(),
                     )
                 }
                 weak_value_hash_map::Entry::Vacant(entry) => {
@@ -173,7 +175,7 @@ impl ModelStore {
                         optim,
                         load_context,
                         owner_id,
-                        owner_username.clone()
+                        owner_username.clone(),
                     )?;
                     entry.insert(inference_model.model.clone());
                     inference_model
@@ -250,7 +252,7 @@ impl ModelStore {
                             model.optim,
                             ModelLoadContext::FromSendModel,
                             model.owner_id,
-                            model.owner_username
+                            model.owner_username,
                         )
                         .map_err(|err| anyhow!("Adding model failed: {:?}", err))?;
                         info!("Model {:?} loaded", model.model_id);
@@ -344,7 +346,7 @@ impl ModelStore {
                 !model.no_optim,
                 ModelLoadContext::FromStartupConfig,
                 None,
-                None
+                None,
             )?;
             models
                 .models_by_id
