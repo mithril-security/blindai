@@ -249,6 +249,7 @@ pub struct InferModel {
     model_hash: Digest,
     load_context: ModelLoadContext,
     owner_id: Option<usize>,
+    owner_username: Option<String>,
 }
 
 impl InferModel {
@@ -262,6 +263,7 @@ impl InferModel {
         optim: bool,
         load_context: ModelLoadContext,
         owner_id: Option<usize>,
+        owner_username: Option<String>,
     ) -> Result<Self> {
         let mut graph = tract_onnx::onnx()
             .with_ignore_output_shapes(true)
@@ -290,6 +292,7 @@ impl InferModel {
             model_hash,
             load_context,
             owner_id,
+            owner_username,
         })
     }
 
@@ -303,6 +306,7 @@ impl InferModel {
         optim: bool,
         load_context: ModelLoadContext,
         owner_id: Option<usize>,
+        owner_username: Option<String>,
     ) -> Result<Self> {
         let mut graph = tract_onnx::onnx()
             .with_ignore_output_shapes(true)
@@ -331,6 +335,7 @@ impl InferModel {
             model_hash,
             load_context,
             owner_id,
+            owner_username,
         })
     }
 
@@ -371,6 +376,7 @@ impl InferModel {
         model_name: Option<String>,
         model_hash: Digest,
         owner_id: Option<usize>,
+        owner_username: Option<String>,
     ) -> Self {
         InferModel {
             model: onnx,
@@ -379,6 +385,7 @@ impl InferModel {
             model_hash,
             load_context: ModelLoadContext::FromSendModel,
             owner_id,
+            owner_username,
         }
     }
 
@@ -392,6 +399,10 @@ impl InferModel {
 
     pub fn owner_id(&self) -> Option<usize> {
         self.owner_id
+    }
+
+    pub fn owner_username(&self) -> Option<String> {
+        self.owner_username.clone()
     }
 
     #[allow(unused)]

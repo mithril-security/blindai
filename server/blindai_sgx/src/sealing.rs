@@ -22,6 +22,7 @@ pub struct SerializableModel<'a> {
     pub output_facts: &'a [TensorFacts],
     pub optim: bool,
     pub owner_id: Option<usize>,
+    pub owner_username: Option<String>,
 }
 
 #[derive(Deserialize, Debug)]
@@ -33,6 +34,7 @@ pub struct DeserializableModel {
     pub output_facts: Vec<TensorFacts>,
     pub optim: bool,
     pub owner_id: Option<usize>,
+    pub owner_username: Option<String>,
 }
 
 fn create_sealeddata_for_serializable(model: SerializableModel) -> Result<Vec<u8>> {
@@ -121,6 +123,7 @@ pub fn seal(
     output_facts: &[TensorFacts],
     optim: bool,
     owner_id: Option<usize>,
+    owner_username: Option<String>,
 ) -> anyhow::Result<()> {
     //seal data
     let sealed = create_sealeddata_for_serializable(SerializableModel {
@@ -131,6 +134,7 @@ pub fn seal(
         output_facts,
         optim,
         owner_id,
+        owner_username,
     })?;
 
     //write sealed data

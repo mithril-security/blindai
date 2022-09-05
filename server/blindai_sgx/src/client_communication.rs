@@ -197,6 +197,7 @@ impl Exchange for Exchanger {
                 true, // todo: make optim configurable
                 ModelLoadContext::FromSendModel,
                 auth_ext.as_ref().and_then(|ext| ext.userid()),
+                auth_ext.as_ref().and_then(|ext| ext.username()),
             )
             .map_err(|err| {
                 error!("Error while creating model: {:?}", err);
