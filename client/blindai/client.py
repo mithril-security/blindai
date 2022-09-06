@@ -308,13 +308,19 @@ def _get_input_output_tensors(
     datum_type: ModelDatumType,
     dtype_out: ModelDatumType,
 ) -> Tuple[List[List[Any]], List[ModelDatumType]]:
-    if input_specs is None or output_specs is None:
+    if input_specs is None and (datum_type is None or shape is None):
+        input_specs = []
+    if output_specs is None and dtype_out is None:
+        output_specs = []
+
+    if input_specs is None:
         input_specs = [shape, datum_type]
+    if output_specs is None:
         output_specs = [dtype_out]
 
-    if type(input_specs[0]) != list:
+    if len(input_specs) > 0 and type(input_specs[0]) != list:
         input_specs = [input_specs]
-    if type(output_specs[0]) != list:
+    if len(output_specs) > 0 and type(output_specs[0]) != list:
         output_specs = [output_specs]
 
     inputs = []
@@ -1027,6 +1033,7 @@ class Connection(contextlib.AbstractContextManager):
             (inputs, outputs) = _get_input_output_tensors(
                 input_specs, output_specs, shape, dtype, dtype_out
             )
+            logging.debug(f"tensor specs: {inputs} {outputs}")
             logging.debug("Uploading model...")
             response = self._stub.SendModel(
                 (

@@ -2734,7 +2734,7 @@ dependencies = [
 [[package]]
 name = "tract-core"
 version = "0.17.2-pre"
-source = "git+https://github.com/mithril-security/tract-sgx-xargo.git?tag=0.17.2-pre-experimental2#351d4a5a8c1159a887e6de894037668a4d5f6035"
+source = "git+https://github.com/mithril-security/tract-sgx-xargo.git?tag=0.17.2-pre-experimental3#0f928d18b5cf32b72848e3c7d1c88ea2a096ec94"
 dependencies = [
  "anyhow",
  "bit-set",
@@ -2756,7 +2756,7 @@ dependencies = [
 [[package]]
 name = "tract-data"
 version = "0.17.2-pre"
-source = "git+https://github.com/mithril-security/tract-sgx-xargo.git?tag=0.17.2-pre-experimental2#351d4a5a8c1159a887e6de894037668a4d5f6035"
+source = "git+https://github.com/mithril-security/tract-sgx-xargo.git?tag=0.17.2-pre-experimental3#0f928d18b5cf32b72848e3c7d1c88ea2a096ec94"
 dependencies = [
  "anyhow",
  "educe",
@@ -2774,7 +2774,7 @@ dependencies = [
 [[package]]
 name = "tract-hir"
 version = "0.17.2-pre"
-source = "git+https://github.com/mithril-security/tract-sgx-xargo.git?tag=0.17.2-pre-experimental2#351d4a5a8c1159a887e6de894037668a4d5f6035"
+source = "git+https://github.com/mithril-security/tract-sgx-xargo.git?tag=0.17.2-pre-experimental3#0f928d18b5cf32b72848e3c7d1c88ea2a096ec94"
 dependencies = [
  "derive-new",
  "educe",
@@ -2785,7 +2785,7 @@ dependencies = [
 [[package]]
 name = "tract-linalg"
 version = "0.17.2-pre"
-source = "git+https://github.com/mithril-security/tract-sgx-xargo.git?tag=0.17.2-pre-experimental2#351d4a5a8c1159a887e6de894037668a4d5f6035"
+source = "git+https://github.com/mithril-security/tract-sgx-xargo.git?tag=0.17.2-pre-experimental3#0f928d18b5cf32b72848e3c7d1c88ea2a096ec94"
 dependencies = [
  "cc",
  "derive-new",
@@ -2807,7 +2807,7 @@ dependencies = [
 [[package]]
 name = "tract-nnef"
 version = "0.17.2-pre"
-source = "git+https://github.com/mithril-security/tract-sgx-xargo.git?tag=0.17.2-pre-experimental2#351d4a5a8c1159a887e6de894037668a4d5f6035"
+source = "git+https://github.com/mithril-security/tract-sgx-xargo.git?tag=0.17.2-pre-experimental3#0f928d18b5cf32b72848e3c7d1c88ea2a096ec94"
 dependencies = [
  "byteorder",
  "flate2",
@@ -2821,7 +2821,7 @@ dependencies = [
 [[package]]
 name = "tract-onnx"
 version = "0.17.2-pre"
-source = "git+https://github.com/mithril-security/tract-sgx-xargo.git?tag=0.17.2-pre-experimental2#351d4a5a8c1159a887e6de894037668a4d5f6035"
+source = "git+https://github.com/mithril-security/tract-sgx-xargo.git?tag=0.17.2-pre-experimental3#0f928d18b5cf32b72848e3c7d1c88ea2a096ec94"
 dependencies = [
  "bytes",
  "derive-new",
@@ -2841,7 +2841,7 @@ dependencies = [
 [[package]]
 name = "tract-onnx-opl"
 version = "0.17.2-pre"
-source = "git+https://github.com/mithril-security/tract-sgx-xargo.git?tag=0.17.2-pre-experimental2#351d4a5a8c1159a887e6de894037668a4d5f6035"
+source = "git+https://github.com/mithril-security/tract-sgx-xargo.git?tag=0.17.2-pre-experimental3#0f928d18b5cf32b72848e3c7d1c88ea2a096ec94"
 dependencies = [
  "educe",
  "tract-nnef",
@@ -3196,11 +3196,6 @@ dependencies = [
 ]
 
 [[patch.unused]]
-name = "futures-test"
-version = "0.3.21"
-source = "git+https://github.com/mithril-security/futures-sgx?tag=0.3.21-sgx#147db1fd9d7005685ac86626ca9077a6f531cbc2"
-
-[[patch.unused]]
 name = "sgx_alloc"
 version = "1.1.4"
 
@@ -3267,3 +3262,8 @@ version = "1.1.4"
 [[patch.unused]]
 name = "sgx_unwind"
 version = "1.1.4"
+
+[[patch.unused]]
+name = "futures-test"
+version = "0.3.21"
+source = "git+https://github.com/mithril-security/futures-sgx?tag=0.3.21-sgx#147db1fd9d7005685ac86626ca9077a6f531cbc2"

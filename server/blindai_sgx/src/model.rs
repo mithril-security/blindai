@@ -20,7 +20,7 @@ use log::*;
 use num_derive::FromPrimitive;
 use ring::digest::Digest;
 use serde::{Deserialize, Serialize};
-use tract_onnx::{prelude::*, tract_hir::infer::InferenceOp};
+use tract_onnx::{prelude::*, tract_hir::infer::{InferenceOp, DimFact, TypeFactoid}};
 
 pub use tract_onnx::prelude::DatumType as TractDatumType;
 
@@ -342,19 +342,38 @@ impl InferModel {
         );
 
         for (ix, el) in inputs.iter().enumerate() {
-            let tensor_fact = InferenceFact::dt_shape(el.datum_type(), el.shape());
-            let input_fact = match self.model.as_ref() {
+            let model_fact = match self.model.as_ref() {
                 TractModel::OptimizedOnnx(model) => {
                     let f = model.model.input_fact(ix)?;
                     InferenceFact::dt_shape(f.datum_type, f.shape.iter())
                 }
                 TractModel::UnoptimizedOnnx(model) => model.model.input_fact(ix)?.clone(),
             };
-            if !tensor_fact.compatible_with(&input_fact) {
+
+            // this sucks, should be done in tract!
+            // cannot use .compatible_with because it does not deal with symbols very well...
+
+            let dt_compatible = match model_fact.datum_type {
+                TypeFactoid::Only(dt) => dt == el.datum_type(),
+                TypeFactoid::Any => true,
+            };
+
+            let rank_compatible = if model_fact.shape.is_open() {
+                model_fact.shape.dims().count() <= el.rank()
+            } else {
+                model_fact.shape.dims().count() == el.rank()
+            };
+
+            let shape_compatible = model_fact.shape.dims().zip(el.shape()).all(|(mf, tf)| match mf {
+                DimFact::Only(tdim) => matches!(tdim, TDim::Sym(_)) || tdim == &TDim::Val(*tf as _),
+                DimFact::Any => true,
+            });
+
+            if !dt_compatible || !rank_compatible || !shape_compatible {
                 bail!(
                     "Incompatible tensor input: {:?} (expected {:?})",
-                    tensor_fact,
-                    input_fact
+                    InferenceFact::dt_shape(el.datum_type(), el.shape()),
+                    model_fact
                 )
             }
         }
