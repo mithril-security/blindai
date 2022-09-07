@@ -396,6 +396,8 @@ impl Exchange for Exchanger {
                 Status::unknown("Unknown error".to_string())
             })?;
 
+        let elapsed = start_time.elapsed();
+
         let mut payload = RunModelPayload {
             output_tensors,
             ..Default::default()
@@ -403,6 +405,10 @@ impl Exchange for Exchanger {
         if sign {
             payload.input_hash = input_hash;
             payload.model_id = model_id;
+        }
+
+        if self.config.send_inference_time {
+            payload.inference_time = elapsed.as_millis() as u64;
         }
 
         let payload_with_header = Payload {
@@ -426,7 +432,6 @@ impl Exchange for Exchanger {
         }
 
         // Log and telemetry
-        let elapsed = start_time.elapsed();
         let userid = auth_ext
             .and_then(|e| e.userid())
             .map(|id| format!("{}", id));

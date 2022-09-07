@@ -100,7 +100,8 @@ else:
 
 CONNECTION_TIMEOUT = 10
 
-logging.basicConfig(format="BlindAI - %(levelname)s - %(message)s", level=logging.INFO)
+log = logging.getLogger(__name__)
+# log.basicConfig(format="%(name)s - %(levelname)s - %(message)s", level=log.INFO)
 
 
 def dtype_to_numpy(dtype: ModelDatumType) -> str:
@@ -536,19 +537,18 @@ class Tensor:
 class PredictResponse(SignedResponse):
     """Contains the inference calculated by the server, alongside the data needed to verify the integrity of the data sent.
 
-    Args:
-        input_tensors (Union[List[List[Any]], List[Any]]) = Contains the data that was used for the inference. Copied directly from the input provided in predict, not sent back by the server.
-        input_datum_type (Union[List[ModelDatumType], ModelDatumType]) = Contains all the types of the input data. Copied directly from the input provided in predict, not sent back by the server.
-        input_shape (Union[List[List[int]], List[int]]): Contains all the shapes of the input data. Copied directly from the input provided in predict, not sent back by the server.
-        response (PbRunModelReply): Contains the inference calculated by the server. Act as an array. To extract the first prediction, please use [0]. Can be converted to a Torch Tensor, a numpy array of a flat list.
-        sign (bool): Determines if the input was signed, and if the client should verify the integrity of the data sent. Default to true.
+    Variables:
+        output (List[Tensor]): Contains the inference calculated by the server. Act as an array. To extract the first prediction, please use [0]. Can be converted to a Torch Tensor, a numpy array of a flat list.
+        model_id (str): Model ID of the model, on the server.
+        signature (bytes): Signature of the payload made by the server. Allows to verify if the object was not changed by a third party.
+        payload (RunModelPayload): Raw protobuf object of the response from the server. Used to verify if the request was not altered by a third party.
         attestation (Optional[GetSgxQuoteWithCollateralReply], optional): Contains the attestation provided by the enclave, if connected to a server in hardware mode.
-        enclave_signing_key (Optional[bytes], optional): Enclave signing key in case the attestation should not be validated. Will be set up automatically.
-        allow_simulation_mode (bool, optional): Whether or not simulation mode responses should be accepted. Will be set up automatically, depending on how you chose to connect to the server.
+        inference_time (int): Time spent to do the inference on the server. Will be set to 0 if the server does not share this data.
     """
 
     output: List[Tensor] = None
     model_id: str = None
+    inference_time: int = 0
 
     def __init__(
         self,
@@ -578,13 +578,14 @@ class PredictResponse(SignedResponse):
             for tensor in payload.output_tensors
         ]
         self.model_id = payload.model_id
+        self.inference_time = payload.inference_time
 
         # Response Verification
         if sign:
             self.payload = response.payload
             self.signature = response.signature
             self.attestation = attestation
-            logging.debug("Veryfing integrity of the data sent...")
+            log.debug("Veryfing integrity of the data sent...")
             self.validate(
                 self.model_id,
                 input_tensors,
@@ -594,9 +595,9 @@ class PredictResponse(SignedResponse):
                 enclave_signing_key=enclave_signing_key,
                 allow_simulation_mode=allow_simulation_mode,
             )
-            logging.info("Integrity of the data uploaded verified.")
+            log.info("Integrity of the data uploaded verified.")
         else:
-            logging.info("Response validity and integrity NOT verified.")
+            log.info("Response validity and integrity NOT verified.")
 
     def validate(
         self,
@@ -664,7 +665,7 @@ class PredictResponse(SignedResponse):
 
         if hash.digest() != payload.input_hash:
             raise SignatureError("Invalid response input_hash")
-        logging.info(f"Hash of data uploaded: {hash.hexdigest()}")
+        log.info(f"Hash of data uploaded: {hash.hexdigest()}")
 
         if model_id != payload.model_id:
             raise SignatureError("Invalid response model_id")
@@ -684,6 +685,7 @@ class PredictResponse(SignedResponse):
             for tensor in payload.output_tensors
         ]
         self.model_id = payload.model_id
+        self.inference_time = payload.inference_time
 
 
 class DeleteModelResponse:
@@ -810,13 +812,13 @@ class Connection(contextlib.AbstractContextManager):
 
             self._jwt = response.jwt if len(response.jwt) > 0 else None
 
-            logging.info("Successfully connected to Mithril Security Cloud")
-            logging.debug(
+            log.info("Successfully connected to Mithril Security Cloud")
+            log.debug(
                 f"Selected enclave {response.enclave_url} & has jwt? {len(response.jwt) > 0}"
             )
 
         if policy is None and simulation is False:
-            logging.info("No policy specified. Using the built-in policy.")
+            log.info("No policy specified. Using the built-in policy.")
             policy = Policy.from_str(MITHRIL_SERVICES_POLICY)
 
         uname = platform.uname()
@@ -867,7 +869,7 @@ class Connection(contextlib.AbstractContextManager):
             )
 
         if simulation:
-            logging.warning("Untrusted server certificate check bypassed")
+            log.warning("Untrusted server certificate check bypassed")
 
         if (
             simulation
@@ -879,7 +881,7 @@ class Connection(contextlib.AbstractContextManager):
                 and certificate is None
                 and use_mithril_services is False
             ):
-                logging.warning(
+                log.warning(
                     "No certificate specified. The certificate verification is disabled."
                 )
             try:
@@ -932,7 +934,7 @@ class Connection(contextlib.AbstractContextManager):
                 )
 
             if self.simulation_mode:
-                logging.warning(
+                log.warning(
                     "Attestation process is bypassed: running without requesting and checking attestation."
                 )
                 response = stub.GetCertificate(
@@ -941,12 +943,12 @@ class Connection(contextlib.AbstractContextManager):
                 server_cert = encode_certificate(response.enclave_tls_certificate)
 
             else:
-                logging.debug("Verifying server certificate...")
+                log.debug("Verifying server certificate...")
                 self.attestation = stub.GetSgxQuoteWithCollateral(
                     quote_request(), metadata=self._grpc_call_metadata()
                 )
-                logging.debug("Certificate verification passed")
-                logging.debug("Veryfing enclave identity and configuration...")
+                log.debug("Certificate verification passed")
+                log.debug("Veryfing enclave identity and configuration...")
                 claims = verify_dcap_attestation(
                     self.attestation.quote,
                     self.attestation.collateral,
@@ -956,8 +958,8 @@ class Connection(contextlib.AbstractContextManager):
                 verify_claims(claims, self.policy)
                 server_cert = claims.get_server_cert()
 
-                logging.info("MREnclave " + claims.sgx_mrenclave)
-                logging.info("Enclave identity and configuration verification passed")
+                log.info("MREnclave " + claims.sgx_mrenclave)
+                log.info("Enclave identity and configuration verification passed")
 
             channel.close()
             self.enclave_signing_key = get_enclave_signing_key(server_cert)
@@ -968,7 +970,7 @@ class Connection(contextlib.AbstractContextManager):
 
             self._stub = ExchangeStub(channel)
             self._channel = channel
-            logging.info("Successfuly connected to the trusted part of the enclave")
+            log.info("Successfuly connected to the trusted part of the enclave")
 
         except RpcError as rpc_error:
             channel.close()
@@ -1003,11 +1005,11 @@ class Connection(contextlib.AbstractContextManager):
 
         Args:
             model (str): Path to Onnx model file.
-            input_specs (List[Tuple[List[int], ModelDatumType]], optional): The list of input fact and datum types for each input grouped together in lists, describing the different inputs of the model. Defaults to None.
-            output_specs (List[ModelDatumType], optional): The list of datum types describing the different output types of the model. Defaults to ModelDatumType.F32
-            shape (Tuple, optional): The shape of the model input. Ignored if you are using models with multiple inputs. Defaults to None.
-            datum_type (ModelDatumType, optional): The type of the model input data (f32 by default). Ignored if you are using models with multiple inputs. Defaults to ModelDatumType.F32.
-            dtype_out (ModelDatumType, optional): The type of the model output data (f32 by default). Ignored if you are using models with multiple outputs. Defaults to ModelDatumType.F32.
+            input_specs (List[Tuple[List[int], ModelDatumType]], optional): The list of input fact and datum types for each input grouped together in lists, describing the different inputs of the model. Can be left to None most of the time, as the server will retreive that information directly from the model, if available.
+            output_specs (List[ModelDatumType], optional): The list of datum types describing the different output types of the model. Can be left to None most of the time, as the server will retreive that information directly from the model, if available.
+            shape (Tuple, optional): The shape of the model input. Ignored if you are using models with multiple inputs. Can be left to None most of the time, as the server will retreive that information directly from the model, if available.
+            datum_type (ModelDatumType, optional): The type of the model input data (f32 by default). Ignored if you are using models with multiple inputs. Can be left to None most of the time, as the server will retreive that information directly from the model, if available.
+            dtype_out (ModelDatumType, optional): The type of the model output data (f32 by default). Ignored if you are using models with multiple outputs. Can be left to None most of the time, as the server will retreive that information directly from the model, if available.
             sign (bool, optional): Get signed responses from the server or not. Defaults to False.
             model_name (Optional[str], optional): Name of the model.
             save_model (bool, optional): Whether or not the model will be saved to disk in the server. The model will be saved encrypted (sealed) so that only the server enclave can load it afterwards. Defaults to False.
@@ -1033,8 +1035,8 @@ class Connection(contextlib.AbstractContextManager):
             (inputs, outputs) = _get_input_output_tensors(
                 input_specs, output_specs, shape, dtype, dtype_out
             )
-            logging.debug(f"tensor specs: {inputs} {outputs}")
-            logging.debug("Uploading model...")
+            log.debug(f"tensor specs: {inputs} {outputs}")
+            log.debug("Uploading model...")
             response = self._stub.SendModel(
                 (
                     PbSendModelRequest(
@@ -1065,18 +1067,18 @@ class Connection(contextlib.AbstractContextManager):
             ret.payload = response.payload
             ret.signature = response.signature
             ret.attestation = self.attestation
-            logging.debug("Veryfing integrity of the data uploaded...")
+            log.debug("Veryfing integrity of the data uploaded...")
             ret.validate(
                 sha256(data).digest(),
                 validate_quote=False,
                 enclave_signing_key=self.enclave_signing_key,
                 allow_simulation_mode=self.simulation_mode,
             )
-            logging.info("Integrity of the model uploaded verified.")
+            log.info("Integrity of the model uploaded verified.")
         else:
-            logging.warning("Integrity of the model uploaded NOT verified.")
+            log.warning("Integrity of the model uploaded NOT verified.")
 
-        logging.debug("Model uploaded successfully to the server")
+        log.debug("Model uploaded successfully to the server")
         return ret
 
     @raise_exception_if_conn_closed
@@ -1113,7 +1115,7 @@ class Connection(contextlib.AbstractContextManager):
         """
 
         try:
-            logging.debug("Sending inference request...")
+            log.debug("Sending inference request...")
             response = self._stub.RunModel(
                 (
                     # this will create an iterator of PbRunModelRequest, that will return
@@ -1144,7 +1146,7 @@ class Connection(contextlib.AbstractContextManager):
         except RpcError as rpc_error:
             raise ConnectionError(check_rpc_exception(rpc_error))
 
-        logging.debug("Inference done successfully by the server")
+        log.debug("Inference done successfully by the server")
         return PredictResponse(
             tensors,
             dtype,

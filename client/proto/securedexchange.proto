@@ -146,6 +146,7 @@ message RunModelPayload {
     bytes input_hash = 1;
     string model_id = 2;
     repeated TensorData output_tensors = 3;
+    uint64 inference_time = 4;
 }
 
 /* DeleteModel */
