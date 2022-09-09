@@ -347,8 +347,11 @@ def _get_input_output_tensors(
 
 class SignedResponse:
     payload: Optional[bytes] = None
+    """Raw protobuf object of the response from the server. Used to verify if the request was not altered by a third party."""
     signature: Optional[bytes] = None
+    """Signature of the payload made by the server. Allows to verify if the object was not changed by a third party."""
     attestation: Optional[GetSgxQuoteWithCollateralReply] = None
+    """Contains the attestation provided by the enclave, if connected to a server in hardware mode."""
 
     def is_simulation_mode(self) -> bool:
         return self.attestation is None
@@ -535,19 +538,14 @@ class Tensor:
 class PredictResponse(SignedResponse):
     """Contains the inference calculated by the server, alongside the data needed to verify the integrity of the data sent.
     
-    Variables:
-        output (List[Tensor]): Contains the inference calculated by the server. Act as an array. To extract the first prediction, please use [0]. Can be converted to a Torch Tensor, a numpy array of a flat list.
-        model_id (str): Model ID of the model, on the server.
-        signature (bytes): Signature of the payload made by the server. Allows to verify if the object was not changed by a third party.
-        payload (RunModelPayload): Raw protobuf object of the response from the server. Used to verify if the request was not altered by a third party.
-        attestation (Optional[GetSgxQuoteWithCollateralReply], optional): Contains the attestation provided by the enclave, if connected to a server in hardware mode.
-        inference_time (int): Time spent to do the inference on the server. Will be set to 0 if the server does not share this data.
-    
     """
 
     output: List[Tensor] = None
+    """Contains the inference calculated by the server. Act as an array. To extract the first prediction, please use [0]. Can be converted to a Torch Tensor, a numpy array of a flat list."""
     model_id: str = None
+    """Model ID of the model, on the server."""
     inference_time: int = 0
+    """Time spent to do the inference on the server. Will be set to 0 if the server does not share this data."""
 
     def __init__(
         self,

@@ -213,16 +213,16 @@ setuptools.setup(
     zip_safe=False,
     python_requires=">=3.6.8",
     install_requires=[
-        "cryptography==37.0.4",
-        "toml==0.10.2",
+        "cryptography",
+        "toml",
         "grpcio>=1.4",
         "grpcio-tools>=1.4",
-        "bitstring==3.1.9",
-        "typing-extensions==4.3.0",
+        "bitstring",
+        "typing-extensions",
     ],
     extras_require={
         "dev": [
-            "pybind11==2.10.0",
+            "pybind11",
             "setuptools",
             "wheel",
             "check-wheel-contents",
