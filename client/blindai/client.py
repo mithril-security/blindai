@@ -102,6 +102,7 @@ CONNECTION_TIMEOUT = 10
 
 log = logging.getLogger(__name__)
 
+
 def dtype_to_numpy(dtype: ModelDatumType) -> str:
     translation_map = {
         ModelDatumType.F32: "float32",
@@ -536,9 +537,7 @@ class Tensor:
 
 
 class PredictResponse(SignedResponse):
-    """Contains the inference calculated by the server, alongside the data needed to verify the integrity of the data sent.
-    
-    """
+    """Contains the inference calculated by the server, alongside the data needed to verify the integrity of the data sent."""
 
     output: List[Tensor] = None
     """Contains the inference calculated by the server. Act as an array. To extract the first prediction, please use [0]. Can be converted to a Torch Tensor, a numpy array of a flat list."""
