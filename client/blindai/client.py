@@ -988,7 +988,7 @@ class Connection(contextlib.AbstractContextManager):
         dtype: ModelDatumType = None,
         dtype_out: ModelDatumType = None,
         sign: bool = False,
-        model_name: Optional[str] = None,
+        model_id: Optional[str] = None,
         save_model: bool = True,
     ) -> UploadModelResponse:
         """Upload an inference model to the server.
@@ -1007,7 +1007,7 @@ class Connection(contextlib.AbstractContextManager):
             datum_type (ModelDatumType, optional): The type of the model input data (f32 by default). Ignored if you are using models with multiple inputs. Can be left to None most of the time, as the server will retreive that information directly from the model, if available.
             dtype_out (ModelDatumType, optional): The type of the model output data (f32 by default). Ignored if you are using models with multiple outputs. Can be left to None most of the time, as the server will retreive that information directly from the model, if available.
             sign (bool, optional): Get signed responses from the server or not. Defaults to False.
-            model_name (Optional[str], optional): Name of the model. By default, the server will assign a random UUID. You can call the model with the name you specify here.
+            model_id (Optional[str], optional): Name of the model. By default, the server will assign a random UUID. You can call the model with the name you specify here.
             save_model (bool, optional): Whether or not the model will be saved to disk in the server. The model will be saved encrypted (sealed) so that only the server enclave can load it afterwards. Defaults to False.
 
         Raises:
@@ -1021,8 +1021,10 @@ class Connection(contextlib.AbstractContextManager):
         """
         response = None
 
-        if model_name is None:
+        if model_id is None:
             model_name = os.path.basename(model)
+        else:
+            model_name = model_id
         try:
             with open(model, "rb") as f:
                 data = f.read()
@@ -1038,7 +1040,7 @@ class Connection(contextlib.AbstractContextManager):
                         length=len(data),
                         data=chunk,
                         sign=sign,
-                        model_id=model_name,
+                        model_id=model_id,
                         model_name=model_name,
                         client_info=self.client_info,
                         tensor_inputs=inputs,

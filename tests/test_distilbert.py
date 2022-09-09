@@ -34,7 +34,6 @@ class TestDistilBertBase:
 
             response = client.upload_model(
                 model=model_path,
-                model_name="test.onnx",
             )
             model_id = response.model_id
 
@@ -57,7 +56,6 @@ class TestDistilBertBase:
             response = client.upload_model(
                 model=model_path,
                 sign=True,
-                model_name="test.onnx",
             )
             model_id = response.model_id
 
