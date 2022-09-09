@@ -35,8 +35,10 @@ class TestResnetBase:
             with self.assertRaises(ConnectionError):
                 client.predict(upload_response.model_id, torch.zeros(1, 1, 3, 224, 224))
             with self.assertRaises(ConnectionError):
-                client.predict(upload_response.model_id, torch.zeros(1, 3, 224, 224, dtype=torch.int64))
-
+                client.predict(
+                    upload_response.model_id,
+                    torch.zeros(1, 3, 224, 224, dtype=torch.int64),
+                )
 
 
 class TestResnetSW(TestResnetBase, unittest.TestCase):
@@ -57,11 +59,13 @@ def setUpModule():
     model_path = os.path.join(os.path.dirname(__file__), "resnet18.onnx")
 
     import urllib
+
     url = "https://github.com/onnx/models/raw/main/vision/classification/resnet/model/resnet18-v2-7.onnx"
-    try: urllib.URLopener().retrieve(url, model_path)
-    except: urllib.request.urlretrieve(url, model_path)
+    try:
+        urllib.URLopener().retrieve(url, model_path)
+    except Exception:
+        urllib.request.urlretrieve(url, model_path)
 
 
 if __name__ == "__main__":
     unittest.main()
-
