@@ -101,8 +101,6 @@ else:
 CONNECTION_TIMEOUT = 10
 
 log = logging.getLogger(__name__)
-# log.basicConfig(format="%(name)s - %(levelname)s - %(message)s", level=log.INFO)
-
 
 def dtype_to_numpy(dtype: ModelDatumType) -> str:
     translation_map = {
@@ -536,7 +534,7 @@ class Tensor:
 
 class PredictResponse(SignedResponse):
     """Contains the inference calculated by the server, alongside the data needed to verify the integrity of the data sent.
-
+    
     Variables:
         output (List[Tensor]): Contains the inference calculated by the server. Act as an array. To extract the first prediction, please use [0]. Can be converted to a Torch Tensor, a numpy array of a flat list.
         model_id (str): Model ID of the model, on the server.
@@ -544,6 +542,7 @@ class PredictResponse(SignedResponse):
         payload (RunModelPayload): Raw protobuf object of the response from the server. Used to verify if the request was not altered by a third party.
         attestation (Optional[GetSgxQuoteWithCollateralReply], optional): Contains the attestation provided by the enclave, if connected to a server in hardware mode.
         inference_time (int): Time spent to do the inference on the server. Will be set to 0 if the server does not share this data.
+    
     """
 
     output: List[Tensor] = None
@@ -993,7 +992,6 @@ class Connection(contextlib.AbstractContextManager):
         sign: bool = False,
         model_name: Optional[str] = None,
         save_model: bool = True,
-        model_id: Optional[str] = None,
     ) -> UploadModelResponse:
         """Upload an inference model to the server.
         The provided model needs to be in the Onnx format.
@@ -1011,9 +1009,8 @@ class Connection(contextlib.AbstractContextManager):
             datum_type (ModelDatumType, optional): The type of the model input data (f32 by default). Ignored if you are using models with multiple inputs. Can be left to None most of the time, as the server will retreive that information directly from the model, if available.
             dtype_out (ModelDatumType, optional): The type of the model output data (f32 by default). Ignored if you are using models with multiple outputs. Can be left to None most of the time, as the server will retreive that information directly from the model, if available.
             sign (bool, optional): Get signed responses from the server or not. Defaults to False.
-            model_name (Optional[str], optional): Name of the model.
+            model_name (Optional[str], optional): Name of the model. By default, the server will assign a random UUID. You can call the model with the name you specify here.
             save_model (bool, optional): Whether or not the model will be saved to disk in the server. The model will be saved encrypted (sealed) so that only the server enclave can load it afterwards. Defaults to False.
-            model_id (Optional[str], optional): Id of the model. By default, the server will assign a random UUID.
 
         Raises:
             ConnectionError: Will be raised if the client is not connected.
@@ -1043,7 +1040,7 @@ class Connection(contextlib.AbstractContextManager):
                         length=len(data),
                         data=chunk,
                         sign=sign,
-                        model_id=model_id,
+                        model_id=model_name,
                         model_name=model_name,
                         client_info=self.client_info,
                         tensor_inputs=inputs,
