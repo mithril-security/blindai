@@ -6,6 +6,7 @@
 
 <h4 align="center">
   <a href="https://www.mithrilsecurity.io">Website</a> |
+  <a href="cloud.mithrilsecurity.io/">Cloud</a> |
   <a href="https://blindai.mithrilsecurity.io/">Documentation</a> |
   <a href="https://blog.mithrilsecurity.io/">Blog</a> |
   <a href="https://hub.docker.com/u/mithrilsecuritysas">Docker Hub</a> |
@@ -77,6 +78,16 @@ BlindAI is configured by default to connect to our managed Cloud backend to make
 
 You can also deploy BlindAI on [your own infra](#on-premise-deployment).
 
+### Installing BlindAI
+
+BlindAI can easily be installed from [PyPI](https://pypi.org/project/blindai/):
+
+```bash
+pip install blindai
+```
+
+This package is enough for the deployment and querying of models on our managed infrastructure. For on-premise deployment, you will have to deploy our [Docker](https://hub.docker.com/u/mithrilsecuritysas) images.
+
 ### Querying a GPT2
 
 We can see how it works with our GPT2 model for text generation. It is already loaded inside our managed Cloud, so we will simply need to query it. We will be using the `transformers` library for tokenizing.
@@ -110,6 +121,8 @@ example = tokenizer.decode(response.output[0].as_torch(), skip_special_tokens=Tr
 
 The model in the GPT2 example had already been loaded by us, but BlindAI also allows you to upload your own models to our managed Cloud solution. 
 
+You can find a [Colab notebook](https://colab.research.google.com/drive/1c8pBM5gN5zL_AT0s4kBZjEGdivWW3hSt?usp=sharing) showing how to deploy and query a ResNet18 on BlindAI.
+
 To be able to upload your model to our Cloud, you will need to [first register](https://cloud.mithrilsecurity.io/) to get an API key.
 
 Once you have the API key, you just have to provide it to our backend. 
@@ -123,17 +136,10 @@ model = torch.hub.load('pytorch/vision:v0.10.0', 'resnet18', pretrained=True)
 dummy_inputs = torch.zeros(1,3,224,224)
 torch.onnx.export(model, dummy_inputs, "resnet18.onnx")
 
-# Define the expected input/output specs (shape and type)
-tensor_inputs = [
-    [dummy_inputs.shape, blindai.ModelDatumType.F32]
-]
-tensor_outputs = blindai.ModelDatumType.F32
-
 # Upload the ONNX file along with specs and model name
 with blindai.Connection(api_key=...) as client:
     client.upload_model(
       model="resnet18.onnx",
-      tensor_inputs=tensor_inputs, tensor_outputs=tensor_outputs,
     )
 ```
 
@@ -278,7 +284,7 @@ You can also have a look on our series [Confidential Computing explained](https:
 
 **Q: Do you do training or federated learning?**
 
-**A:** We do not cover training or federated learning yet. However this is definitively on our roadmap, and you should expect news from us soon. For more information, please reach out to us at contact [at] mithrilsecurity dot io.
+**A:** We will cover this topic soon. We have multy party learning framework leveraging secure enclave in development. You should learn about it in the near future.
 
 ## Telemetry
 
