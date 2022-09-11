@@ -137,7 +137,7 @@ dummy_inputs = torch.zeros(1,3,224,224)
 torch.onnx.export(model, dummy_inputs, "resnet18.onnx")
 
 # Upload the ONNX file along with specs and model name
-with blindai.Connection(api_key=...) as client:
+with blindai.connect(api_key=...) as client:
     client.upload_model(
       model="resnet18.onnx",
     )
@@ -184,9 +184,9 @@ input_batch = input_tensor.unsqueeze(0) # create a mini-batch as expected by the
 Now we that we have the input tensor, we simply need to send it to the pre-uploaded ResNet18 model inside our secure enclave:
 
 ```python
-with blindai.client.connect() as client:
+with blindai.connect() as client:
   # Send data to the GPT2 model
-  response = client.run_model("resnet18", input_list)
+  response = client.predict("resnet18", input_batch)
 
 >>> response.output[0].argmax()
 ```
