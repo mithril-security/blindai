@@ -85,6 +85,7 @@ impl Exchange for Exchanger {
         }
 
         let auth_ext = request.extensions().get::<AuthExtension>().cloned();
+
         if self.config.send_model_requires_auth
             && (auth_ext.is_none() || !auth_ext.as_ref().unwrap().is_logged())
         {
@@ -393,7 +394,7 @@ impl Exchange for Exchanger {
             .collect::<Result<Vec<TensorData>>>()
             .map_err(|err| {
                 error!("Error while seriliazing output: {:?}", err);
-                Status::unknown(format!("Error while seriliazing output: {:?}", err))
+                Status::unknown(format!("Error while serializing output: {:?}", err))
             })?;
 
         let elapsed = start_time.elapsed();

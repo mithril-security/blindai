@@ -20,7 +20,10 @@ use log::*;
 use num_derive::FromPrimitive;
 use ring::digest::Digest;
 use serde::{Deserialize, Serialize};
-use tract_onnx::{prelude::*, tract_hir::infer::{InferenceOp, DimFact, TypeFactoid}};
+use tract_onnx::{
+    prelude::*,
+    tract_hir::infer::{DimFact, InferenceOp, TypeFactoid},
+};
 
 pub use tract_onnx::prelude::DatumType as TractDatumType;
 
@@ -351,7 +354,8 @@ impl InferModel {
             };
 
             // this sucks, should be done in tract!
-            // cannot use .compatible_with because it does not deal with symbols very well...
+            // cannot use .compatible_with because it does not deal with symbols very
+            // well...
 
             let dt_compatible = match model_fact.datum_type {
                 TypeFactoid::Only(dt) => dt == el.datum_type(),
@@ -364,10 +368,17 @@ impl InferModel {
                 model_fact.shape.dims().count() == el.rank()
             };
 
-            let shape_compatible = model_fact.shape.dims().zip(el.shape()).all(|(mf, tf)| match mf {
-                DimFact::Only(tdim) => matches!(tdim, TDim::Sym(_)) || tdim == &TDim::Val(*tf as _),
-                DimFact::Any => true,
-            });
+            let shape_compatible =
+                model_fact
+                    .shape
+                    .dims()
+                    .zip(el.shape())
+                    .all(|(mf, tf)| match mf {
+                        DimFact::Only(tdim) => {
+                            matches!(tdim, TDim::Sym(_)) || tdim == &TDim::Val(*tf as _)
+                        }
+                        DimFact::Any => true,
+                    });
 
             if !dt_compatible || !rank_compatible || !shape_compatible {
                 bail!(

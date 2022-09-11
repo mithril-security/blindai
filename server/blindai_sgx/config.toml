@@ -25,6 +25,9 @@ max_model_store = 3
 # Allow user to send a model, or only use the models already uploaded.
 allow_sendmodel = true
 
+# Allow model to be saved on disk and sealed
+allow_model_sealing = false
+
 # Models to load on startup
 # [[load_models]]
 # model_id = "gpt-neox-2.7b"

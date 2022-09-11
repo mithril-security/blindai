@@ -1033,10 +1033,11 @@ class Connection(contextlib.AbstractContextManager):
             )
             log.debug(f"tensor specs: {inputs} {outputs}")
             log.debug("Uploading model...")
+            data_size = len(data)
             response = self._stub.SendModel(
                 (
                     PbSendModelRequest(
-                        length=len(data),
+                        length=data_size,
                         data=chunk,
                         sign=sign,
                         model_id=model_id,

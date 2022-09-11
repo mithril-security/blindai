@@ -148,7 +148,7 @@ checksum = "bef38d45163c2f1dde094a7dfd33ccf595c92905c8f8f4fdc18d06fb1037718a"
 
 [[package]]
 name = "blindai_app"
-version = "0.5.0"
+version = "0.5.1"
 dependencies = [
  "anyhow",
  "base16",
@@ -197,7 +197,7 @@ dependencies = [
 
 [[package]]
 name = "blindai_rpc"
-version = "0.5.0"
+version = "0.5.1"
 dependencies = [
  "tokio",
  "tokio-stream",
@@ -207,7 +207,7 @@ dependencies = [
 
 [[package]]
 name = "blindai_sgx"
-version = "0.5.0"
+version = "0.5.1"
 dependencies = [
  "anyhow",
  "base64",
@@ -255,7 +255,7 @@ dependencies = [
 
 [[package]]
 name = "blindai_sgx_attestation"
-version = "0.5.0"
+version = "0.5.1"
 dependencies = [
  "log",
  "sgx_types",
@@ -790,7 +790,7 @@ dependencies = [
 [[package]]
 name = "h2"
 version = "0.3.4"
-source = "git+https://github.com/mithril-security/h2-sgx?branch=h2-sgx#08d3ee063ee0ebd1b4a6fcc27ef9dcb7780a4a53"
+source = "git+https://github.com/mithril-security/h2-sgx?branch=h2-sgx#35bfbf106e0f4386ccd3f288441d70228d053b11"
 dependencies = [
  "bytes",
  "fnv",
@@ -2734,7 +2734,7 @@ dependencies = [
 [[package]]
 name = "tract-core"
 version = "0.17.2-pre"
-source = "git+https://github.com/mithril-security/tract-sgx-xargo.git?tag=0.17.2-pre-experimental5#2f85168ad5e66a8de472c37cdd426da0b2c3b5c7"
+source = "git+https://github.com/mithril-security/tract-sgx-xargo.git?tag=0.17.2-pre-experimental6#386229fb4808f4b2f84f957ef8ddc79d7b0f8f4b"
 dependencies = [
  "anyhow",
  "bit-set",
@@ -2756,7 +2756,7 @@ dependencies = [
 [[package]]
 name = "tract-data"
 version = "0.17.2-pre"
-source = "git+https://github.com/mithril-security/tract-sgx-xargo.git?tag=0.17.2-pre-experimental5#2f85168ad5e66a8de472c37cdd426da0b2c3b5c7"
+source = "git+https://github.com/mithril-security/tract-sgx-xargo.git?tag=0.17.2-pre-experimental6#386229fb4808f4b2f84f957ef8ddc79d7b0f8f4b"
 dependencies = [
  "anyhow",
  "educe",
@@ -2774,7 +2774,7 @@ dependencies = [
 [[package]]
 name = "tract-hir"
 version = "0.17.2-pre"
-source = "git+https://github.com/mithril-security/tract-sgx-xargo.git?tag=0.17.2-pre-experimental5#2f85168ad5e66a8de472c37cdd426da0b2c3b5c7"
+source = "git+https://github.com/mithril-security/tract-sgx-xargo.git?tag=0.17.2-pre-experimental6#386229fb4808f4b2f84f957ef8ddc79d7b0f8f4b"
 dependencies = [
  "derive-new",
  "educe",
@@ -2785,7 +2785,7 @@ dependencies = [
 [[package]]
 name = "tract-linalg"
 version = "0.17.2-pre"
-source = "git+https://github.com/mithril-security/tract-sgx-xargo.git?tag=0.17.2-pre-experimental5#2f85168ad5e66a8de472c37cdd426da0b2c3b5c7"
+source = "git+https://github.com/mithril-security/tract-sgx-xargo.git?tag=0.17.2-pre-experimental6#386229fb4808f4b2f84f957ef8ddc79d7b0f8f4b"
 dependencies = [
  "cc",
  "derive-new",
@@ -2807,7 +2807,7 @@ dependencies = [
 [[package]]
 name = "tract-nnef"
 version = "0.17.2-pre"
-source = "git+https://github.com/mithril-security/tract-sgx-xargo.git?tag=0.17.2-pre-experimental5#2f85168ad5e66a8de472c37cdd426da0b2c3b5c7"
+source = "git+https://github.com/mithril-security/tract-sgx-xargo.git?tag=0.17.2-pre-experimental6#386229fb4808f4b2f84f957ef8ddc79d7b0f8f4b"
 dependencies = [
  "byteorder",
  "flate2",
@@ -2821,7 +2821,7 @@ dependencies = [
 [[package]]
 name = "tract-onnx"
 version = "0.17.2-pre"
-source = "git+https://github.com/mithril-security/tract-sgx-xargo.git?tag=0.17.2-pre-experimental5#2f85168ad5e66a8de472c37cdd426da0b2c3b5c7"
+source = "git+https://github.com/mithril-security/tract-sgx-xargo.git?tag=0.17.2-pre-experimental6#386229fb4808f4b2f84f957ef8ddc79d7b0f8f4b"
 dependencies = [
  "bytes",
  "derive-new",
@@ -2841,7 +2841,7 @@ dependencies = [
 [[package]]
 name = "tract-onnx-opl"
 version = "0.17.2-pre"
-source = "git+https://github.com/mithril-security/tract-sgx-xargo.git?tag=0.17.2-pre-experimental5#2f85168ad5e66a8de472c37cdd426da0b2c3b5c7"
+source = "git+https://github.com/mithril-security/tract-sgx-xargo.git?tag=0.17.2-pre-experimental6#386229fb4808f4b2f84f957ef8ddc79d7b0f8f4b"
 dependencies = [
  "educe",
  "tract-nnef",
@@ -3196,6 +3196,11 @@ dependencies = [
 ]
 
 [[patch.unused]]
+name = "futures-test"
+version = "0.3.21"
+source = "git+https://github.com/mithril-security/futures-sgx?tag=0.3.21-sgx#147db1fd9d7005685ac86626ca9077a6f531cbc2"
+
+[[patch.unused]]
 name = "sgx_alloc"
 version = "1.1.4"
 
@@ -3262,8 +3267,3 @@ version = "1.1.4"
 [[patch.unused]]
 name = "sgx_unwind"
 version = "1.1.4"
-
-[[patch.unused]]
-name = "futures-test"
-version = "0.3.21"
-source = "git+https://github.com/mithril-security/futures-sgx?tag=0.3.21-sgx#147db1fd9d7005685ac86626ca9077a6f531cbc2"
