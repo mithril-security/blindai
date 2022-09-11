@@ -3,7 +3,7 @@ authors = ["Mithril Security"]
 edition = "2018"
 license = "Apache-2.0"
 name = "blindai_rpc"
-version = "0.4.1"
+version = "0.5.1"
 
 [dependencies]
 tokio = {version = "1.0", features = ["rt"]}

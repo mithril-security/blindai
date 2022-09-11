@@ -1,8 +1,9 @@
-import pickle
-import blindai.client
-from blindai.client import BlindAiConnection, ModelDatumType
+import torch
+import blindai
+from blindai import Connection, ModelDatumType
 import unittest
 from server import (
+    close_server,
     launch_server,
     policy_file,
     certificate_file,
@@ -12,10 +13,6 @@ import os
 import onnxruntime
 import cv2
 import numpy as np
-import logging
-
-
-logging.basicConfig(level=logging.INFO)
 
 
 class TestCovidNetBase:
@@ -27,7 +24,7 @@ class TestCovidNetBase:
         os.getenv("BLINDAI_TEST_SKIP_COVIDNET") is not None, "skipped by env var"
     )
     def test_base(self):
-        with blindai.client.connect(
+        with blindai.connect(
             addr="localhost",
             simulation=self.simulation,
             policy=policy_file,
@@ -47,9 +44,9 @@ class TestCovidNetBase:
             if not self.simulation and os.getenv("BLINDAI_DUMPRES") is not None:
                 upload_response.save_to_file("./client/tests/exec_upload.proof")
 
-            response = client.run_model(
+            response = client.predict(
                 upload_response.model_id,
-                flattened_img,
+                img,
                 sign=True,
             )
 
@@ -61,14 +58,14 @@ class TestCovidNetBase:
 
         ort_outs = ort_session.run(None, ort_inputs)
 
-        diff = abs(sum(np.array([response.output]) - ort_outs))[0][0]
+        diff = abs(sum(np.array([response.output[0].as_flat()]) - ort_outs))[0][0]
         self.assertLess(diff, 0.001)  # difference is <0.1%
 
     @unittest.skipIf(
         os.getenv("BLINDAI_TEST_SKIP_COVIDNET") is not None, "skipped by env var"
     )
     def test_multiple(self):
-        with blindai.client.connect(
+        with blindai.connect(
             addr="localhost",
             simulation=self.simulation,
             policy=policy_file,
@@ -89,9 +86,11 @@ class TestCovidNetBase:
                 models.append(upload_response.model_id)
 
             for i in range(5):
-                response = client.run_model(
+                response = client.predict(
                     models[i],
-                    flattened_img,
+                    img,
+                    dtype=ModelDatumType.F32,
+                    shape=(1, 480, 480, 3),
                 )
 
                 ort_session = onnxruntime.InferenceSession(model)
@@ -99,8 +98,133 @@ class TestCovidNetBase:
 
                 ort_outs = ort_session.run(None, ort_inputs)
 
-                diff = abs(sum(np.array([response.output]) - ort_outs))[0][0]
+                diff = abs(sum(np.array([response.output[0].as_flat()]) - ort_outs))[0][
+                    0
+                ]
                 self.assertLess(diff, 0.001)  # difference is <0.1%
+
+    @unittest.skipIf(
+        os.getenv("BLINDAI_TEST_SKIP_COVIDNET") is not None, "skipped by env var"
+    )
+    def test_seal(self):
+        with blindai.connect(
+            addr="localhost",
+            simulation=self.simulation,
+            policy=policy_file,
+            certificate=certificate_file,
+        ) as client:
+            model = os.path.join(
+                os.path.dirname(__file__), "assets/COVID-Net-CXR-2.onnx"
+            )
+
+            upload_response = client.upload_model(
+                model=model,
+                shape=(1, 480, 480, 3),
+                dtype=ModelDatumType.F32,
+                sign=True,
+                save_model=True,
+            )
+
+        # restart server :)
+        close_server()
+        launch_server()
+
+        with blindai.connect(
+            addr="localhost",
+            simulation=self.simulation,
+            policy=policy_file,
+            certificate=certificate_file,
+        ) as client:
+            response = client.predict(
+                upload_response.model_id,
+                img,
+                dtype=ModelDatumType.F32,
+                shape=(1, 480, 480, 3),
+                sign=True,
+            )
+
+        ort_session = onnxruntime.InferenceSession(model)
+        ort_inputs = {ort_session.get_inputs()[0].name: img}
+
+        ort_outs = ort_session.run(None, ort_inputs)
+
+        diff = abs(sum(np.array([response.output[0].as_flat()]) - ort_outs))[0][0]
+        self.assertLess(diff, 0.001)  # difference is <0.1%
+
+    @unittest.skipIf(
+        os.getenv("BLINDAI_TEST_SKIP_COVIDNET") is not None, "skipped by env var"
+    )
+    def test_feat(self):
+        with blindai.connect(
+            addr="localhost",
+            simulation=self.simulation,
+            policy=policy_file,
+            certificate=certificate_file,
+        ) as client:
+            model = os.path.join(
+                os.path.dirname(__file__), "assets/COVID-Net-CXR-2.onnx"
+            )
+
+            client.upload_model(
+                model=model,
+                shape=(1, 480, 480, 3),
+                dtype=ModelDatumType.F32,
+                sign=True,
+                model_id="Salut",
+            )
+
+            response = client.predict(
+                "Salut",
+                img,
+                dtype=ModelDatumType.F32,
+                shape=(1, 480, 480, 3),
+                sign=True,
+            )
+
+        ort_session = onnxruntime.InferenceSession(model)
+        ort_inputs = {ort_session.get_inputs()[0].name: img}
+
+        ort_outs = ort_session.run(None, ort_inputs)
+
+        diff = abs(sum(np.array([response.output[0].as_flat()]) - ort_outs))[0][0]
+        self.assertLess(diff, 0.001)  # difference is <0.1%
+
+    @unittest.skipIf(
+        os.getenv("BLINDAI_TEST_SKIP_COVIDNET") is not None, "skipped by env var"
+    )
+    def test_torch_inputs(self):
+        with blindai.connect(
+            addr="localhost",
+            simulation=self.simulation,
+            policy=policy_file,
+            certificate=certificate_file,
+        ) as client:
+            model = os.path.join(
+                os.path.dirname(__file__), "assets/COVID-Net-CXR-2.onnx"
+            )
+
+            upload_response = client.upload_model(
+                model=model,
+                shape=(1, 480, 480, 3),
+                dtype=ModelDatumType.F32,
+                sign=True,
+            )
+
+            inputs = img
+            response1 = client.predict(upload_response.model_id, inputs)
+
+            inputs = torch.tensor(img, dtype=torch.float32)
+            response2 = client.predict(upload_response.model_id, inputs)
+
+        ort_session = onnxruntime.InferenceSession(model)
+        ort_inputs = {ort_session.get_inputs()[0].name: img}
+
+        ort_outs = ort_session.run(None, ort_inputs)
+
+        diff = abs(sum(np.array([response1.output[0].as_flat()]) - ort_outs))[0][0]
+        self.assertLess(diff, 0.001)  # difference is <0.1%
+        diff = abs(sum(np.array([response2.output[0].as_flat()]) - ort_outs))[0][0]
+        self.assertLess(diff, 0.001)  # difference is <0.1%
 
 
 class TestCovidNetSW(TestCovidNetBase, unittest.TestCase):
@@ -111,11 +235,11 @@ class TestCovidNetHW(TestCovidNetBase, unittest.TestCase):
     simulation = False
 
 
-img, flattened_img = None, None
+img = None
 
 
 def setUpModule():
-    global flattened_img, img
+    global img
     if os.getenv("BLINDAI_TEST_SKIP_COVIDNET") is not None:
         return
     launch_server()
@@ -144,7 +268,7 @@ def setUpModule():
     img = img.astype("float32") / 255.0
     img = img[np.newaxis, :, :, :]
 
-    flattened_img = img.flatten().tolist()
+    return img
 
 
 if __name__ == "__main__":

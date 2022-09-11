@@ -141,7 +141,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut file = File::open("config.toml")?;
     let mut contents = String::new();
     file.read_to_string(&mut contents)?;
-    let network_config: blindai_common::NetworkConfig = toml::from_str(&contents)?;
+    let network_config: blindai_common::BlindAIConfig = toml::from_str(&contents)?;
 
     info!(
         "Starting server for Enclave --> Host internal communication at {}",

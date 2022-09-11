@@ -1,11 +1,8 @@
-from hashlib import sha256
 import os
-import pickle
 from typing import Iterator
 import unittest
 from unittest.mock import MagicMock, Mock, patch
-import blindai.client
-import cbor2
+import blindai
 from unittest.mock import *
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional, Tuple, Union
@@ -25,12 +22,14 @@ from blindai.pb.securedexchange_pb2 import (
 
 from blindai.client import (
     ModelDatumType,
-    RunModelResponse,
+    PredictResponse,
     UploadModelResponse,
 )
 
 import cryptography
 from cryptography.hazmat.primitives import serialization
+
+from blindai.utils.serialize import deserialize_tensor, serialize_tensor
 
 from .covidnet import get_input, model_path, get_model
 
@@ -40,15 +39,15 @@ mock_time.return_value = time.mktime(datetime(2022, 4, 15).timetuple())
 
 
 class TensorInfoMatcher:
-    facts: List[Tuple]
+    dims: List[Tuple]
     datum_types: List[ModelDatumType]
 
     def __init__(self, tensor_info: List[TensorInfo]):
-        self.facts = [x.fact for x in tensor_info]
+        self.dims = [x.dims for x in tensor_info]
         self.datum_types = [x.datum_type for x in tensor_info]
 
     def __eq__(self, other):
-        return self.facts == other.facts and self.datum_types == other.datum_types
+        return self.dims == other.dims and self.datum_types == other.datum_types
 
 
 class TestRequest(unittest.TestCase):
@@ -61,7 +60,7 @@ class TestRequest(unittest.TestCase):
 
         attestation = res.attestation
         AttestationStub().GetSgxQuoteWithCollateral = Mock(return_value=attestation)
-        blindai.client.connect(
+        blindai.connect(
             "localhost",
             policy=os.path.join(os.path.dirname(__file__), "policy.toml"),
             certificate=os.path.join(os.path.dirname(__file__), "host_server.pem"),
@@ -86,9 +85,10 @@ class TestRequest(unittest.TestCase):
 
         # connect
 
+        # get_server_certificate.return_value = attestation.
         attestation = res.attestation
         AttestationStub().GetSgxQuoteWithCollateral = Mock(return_value=attestation)
-        client = blindai.client.connect(
+        client = blindai.connect(
             "localhost",
             policy=os.path.join(os.path.dirname(__file__), "policy.toml"),
             certificate=os.path.join(os.path.dirname(__file__), "host_server.pem"),
@@ -99,15 +99,12 @@ class TestRequest(unittest.TestCase):
         datum = ModelDatumType.F32
         datum_out = ModelDatumType.F32
         shape = (1, 480, 480, 3)
-        tensor_inputs = [
-            TensorInfo(fact=(1, 480, 480, 3), datum_type=ModelDatumType.F32)
-        ]
-        tensor_outputs = [ModelDatumType.F32]
+        input_specs = [TensorInfo(dims=(1, 480, 480, 3), datum_type=ModelDatumType.F32)]
 
         def send_model_util(sign):
             model_bytes = get_model()
 
-            def send_model(req: Iterator[SendModelRequest]):
+            def send_model(req: Iterator[SendModelRequest], **_kw):
                 arr = b""
                 reql = list(req)
                 for el in reql:
@@ -116,9 +113,9 @@ class TestRequest(unittest.TestCase):
                     self.assertEqual(el.sign, sign)
                     self.assertEqual(
                         TensorInfoMatcher(el.tensor_inputs),
-                        TensorInfoMatcher(tensor_inputs),
+                        TensorInfoMatcher(input_specs),
                     )
-                    self.assertEqual(el.tensor_outputs, tensor_outputs)
+                    # self.assertEqual(el.output_specs, output_specs)
                     self.assertEqual(el.length, len(model_bytes))
 
                 self.assertEqual(arr, model_bytes)
@@ -161,7 +158,7 @@ class TestRequest(unittest.TestCase):
         AttestationStub: MagicMock,
         ExchangeStub: MagicMock,
     ):
-        res = RunModelResponse()
+        res = PredictResponse()
         res.load_from_file(os.path.join(os.path.dirname(__file__), "exec_run.proof"))
         real_response = RunModelReply(
             payload=res.payload,
@@ -172,35 +169,38 @@ class TestRequest(unittest.TestCase):
 
         attestation = res.attestation
         AttestationStub().GetSgxQuoteWithCollateral = Mock(return_value=attestation)
-        client = blindai.client.connect(
+        client = blindai.connect(
             "localhost",
             policy=os.path.join(os.path.dirname(__file__), "policy.toml"),
             certificate=os.path.join(os.path.dirname(__file__), "host_server.pem"),
         )
 
-        # run_model
+        # predict
 
         input = get_input()
 
         def run_model_util(sign):
-            def run_model(req: Iterator[RunModelRequest]):
+            def predict(req: Iterator[RunModelRequest], **_kw):
                 arr = b""
                 reql = list(req)
                 for el in reql:
-                    self.assertLessEqual(len(el.input), 32 * 1024)
-                    arr += el.input
+                    inp = el.input_tensors[0].bytes_data
+                    self.assertLessEqual(len(inp), 32 * 1024)
+                    arr += inp
                     self.assertEqual(el.sign, sign)
 
-                self.assertEqual(arr, cbor2.dumps([input]))
+                self.assertEqual(
+                    arr, b"".join(serialize_tensor(input.flatten(), ModelDatumType.F32))
+                )
 
                 return RunModelReply(
                     payload=real_response.payload,
                     signature=real_response.signature if sign else None,
                 )
 
-            ExchangeStub().RunModel = Mock(side_effect=run_model)
+            ExchangeStub().RunModel = Mock(side_effect=predict)
 
-            response = client.run_model(res.model_id, input, sign=sign)
+            response = client.predict(res.model_id, input, sign=sign)
 
             if not sign:
                 self.assertFalse(response.is_signed())
@@ -209,12 +209,15 @@ class TestRequest(unittest.TestCase):
                 self.assertEqual(response.payload, real_response.payload)
 
                 self.assertEqual(
-                    response.output,
-                    cbor2.loads(
-                        Payload.FromString(
-                            real_response.payload
-                        ).run_model_payload.output
+                    b"".join(
+                        serialize_tensor(
+                            response.output[0].as_numpy().flatten(),
+                            ModelDatumType.F32,
+                        )
                     ),
+                    Payload.FromString(real_response.payload)
+                    .run_model_payload.output_tensors[0]
+                    .bytes_data,
                 )
 
                 client.enclave_signing_key.verify(response.signature, response.payload)
@@ -246,7 +249,7 @@ class TestRequest(unittest.TestCase):
         AttestationStub: MagicMock,
         ExchangeStub: MagicMock,
     ):
-        res = RunModelResponse()
+        res = PredictResponse()
         res.load_from_file(os.path.join(os.path.dirname(__file__), "exec_run.proof"))
         real_response = RunModelReply(
             payload=res.payload,
@@ -265,29 +268,32 @@ class TestRequest(unittest.TestCase):
         )
         AttestationStub().GetCertificate = Mock(return_value=response)
 
-        client = blindai.client.connect("localhost", simulation=True)
+        client = blindai.connect("localhost", simulation=True)
 
-        # run_model
+        # predict
 
         input = get_input()
 
-        def run_model(req: Iterator[RunModelRequest]):
+        def predict(req: Iterator[RunModelRequest], **_kw):
             arr = b""
             reql = list(req)
             for el in reql:
-                self.assertLessEqual(len(el.input), 32 * 1024)
-                arr += el.input
+                inp = el.input_tensors[0].bytes_data
+                self.assertLessEqual(len(inp), 32 * 1024)
+                arr += inp
                 self.assertEqual(el.sign, False)
 
-            self.assertEqual(arr, cbor2.dumps([input]))
+            self.assertEqual(
+                arr, b"".join(serialize_tensor(input.flatten(), ModelDatumType.F32))
+            )
 
             return RunModelReply(
                 payload=real_response.payload,
             )
 
-        ExchangeStub().RunModel = Mock(side_effect=run_model)
+        ExchangeStub().RunModel = Mock(side_effect=predict)
 
-        response = client.run_model(res.model_id, input)
+        response = client.predict(res.model_id, input)
 
         self.assertFalse(response.is_signed())
 

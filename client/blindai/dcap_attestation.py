@@ -26,7 +26,14 @@ import _quote_verification
 from _quote_verification import status
 
 from blindai.utils.utils import encode_certificate
-from blindai.utils.errors import AttestationError
+from blindai.utils.errors import (
+    QuoteValidationError,
+    EnclaveHeldDataError,
+    AttestationError,
+    DebugNotAllowedError,
+    IdentityError,
+    NotAnEnclaveError,
+)
 
 
 @dataclass
@@ -64,7 +71,9 @@ def verify_dcap_attestation(
         enclave_held_data (bytes): Enclave held data
 
     Raises:
-        AttestationError: Attestation does not match policy.
+        QuoteValidationError: The quote could not be validated.
+        EnclaveHeldDataError: The enclave held data expected does not match the one in the quote. The expected enclave held data in BlindAI is the untrusted certificate to avoid man-in-the-middle attacks.
+        NotAnEnclaveError: The enclave claims are not validated by the hardware provider, meaning that the claims cannot be verified using the hardware root of trust.
 
     Returns:
         DcapClaims: The claims.
@@ -89,22 +98,24 @@ def verify_dcap_attestation(
     ret = t.verify()
 
     if ret.pckCertificateStatus != status.STATUS_OK:
-        raise AttestationError(
+        raise NotAnEnclaveError(
             "Wrong PCK Certificate Status {}", ret.pckCertificateStatus
         )
 
     if ret.tcbInfoStatus != status.STATUS_OK:
-        raise AttestationError("Wrong TCB Info Status {}", ret.tcbInfoStatus)
+        raise QuoteValidationError("Wrong TCB Info Status {}", ret.tcbInfoStatus)
 
     if ret.qeIdentityStatus != status.STATUS_OK:
-        raise AttestationError("Wrong QE Identity Status {}", ret.qeIdentityStatus)
+        raise QuoteValidationError("Wrong QE Identity Status {}", ret.qeIdentityStatus)
 
     if ret.quoteStatus not in [status.STATUS_OK, status.STATUS_TCB_SW_HARDENING_NEEDED]:
-        raise AttestationError("Wrong Quote Status {}", ret.quoteStatus)
+        raise QuoteValidationError("Wrong Quote Status {}", ret.quoteStatus)
 
     if hashlib.sha256(enclave_held_data).digest() != bytes(ret.reportData)[:32]:
-        raise AttestationError(
-            "Enclave Held Data hash doesn't match with the report data from the quote"
+        raise EnclaveHeldDataError(
+            "Enclave Held Data hash doesn't match with the report data from the quote",
+            hashlib.sha256(enclave_held_data).hexdigest(),
+            bytes(ret.reportData)[:32].hex(),
         )
 
     claims = DcapClaims(
@@ -135,6 +146,17 @@ class Policy:
     attributes_mask_xfrm: bytes
     allow_debug: bool
 
+    def from_str(s: str) -> Self:
+        """Load a policy from a file.
+
+        Args:
+            s (str): The content of the policy.
+
+        Returns:
+            Policy: The policy.
+        """
+        return Policy.from_dict(toml.loads(s))
+
     def from_file(path: str) -> Self:
         """Load a policy from a file.
 
@@ -144,26 +166,34 @@ class Policy:
         Returns:
             Policy: The policy.
         """
-        policy = toml.load(path)
+        return Policy.from_dict(toml.load(path))
+
+    def from_dict(obj: dict) -> Self:
+        """Load a policy from a dict.
+
+        Args:
+            obj (dict): The dict.
+
+        Returns:
+            Policy: The policy.
+        """
         return Policy(
-            mr_enclave=policy["mr_enclave"],
-            misc_mask=int(policy["misc_mask_hex"], 16).to_bytes(4, byteorder="little"),
-            misc_select=int(policy["misc_select_hex"], 16).to_bytes(
-                4, byteorder="little"
-            ),
-            attributes_flags=int(policy["attributes_flags_hex"], 16).to_bytes(
+            mr_enclave=obj["mr_enclave"],
+            misc_mask=int(obj["misc_mask_hex"], 16).to_bytes(4, byteorder="little"),
+            misc_select=int(obj["misc_select_hex"], 16).to_bytes(4, byteorder="little"),
+            attributes_flags=int(obj["attributes_flags_hex"], 16).to_bytes(
                 8, byteorder="little"
             ),
-            attributes_xfrm=int(policy["attributes_xfrm_hex"], 16).to_bytes(
+            attributes_xfrm=int(obj["attributes_xfrm_hex"], 16).to_bytes(
                 8, byteorder="little"
             ),
-            attributes_mask_flags=int(policy["attributes_mask_flags_hex"], 16).to_bytes(
+            attributes_mask_flags=int(obj["attributes_mask_flags_hex"], 16).to_bytes(
                 8, byteorder="little"
             ),
-            attributes_mask_xfrm=int(policy["attributes_mask_xfrm_hex"], 16).to_bytes(
+            attributes_mask_xfrm=int(obj["attributes_mask_xfrm_hex"], 16).to_bytes(
                 8, byteorder="little"
             ),
-            allow_debug=policy["allow_debug"],
+            allow_debug=obj["allow_debug"],
         )
 
 
@@ -176,14 +206,24 @@ def verify_claims(claims: DcapClaims, policy: Policy):
 
     Raises:
         AttestationError: Attestation does not match policy.
+        IdentityError: The enclave code signature hash does not match the signature hash provided in the policy.
+        DebugNotAllowedError: The enclave is in debug mode, but the policy does not allow it.
     """
 
     if claims.sgx_mrenclave != policy.mr_enclave:
-        raise AttestationError("MRENCLAVE doesn't match with the policy")
+        raise IdentityError(
+            "Code signature mismatch (MRENCLAVE)",
+            claims,
+            policy,
+            policy.mr_enclave,
+            claims.sgx_mrenclave,
+        )
 
     if claims.sgx_is_debuggable and not policy.allow_debug:
-        raise AttestationError(
-            "Enclave is in debug mode but the policy doesn't allow debug"
+        raise DebugNotAllowedError(
+            "Enclave is in debug mode but the policy doesn't allow debug",
+            claims,
+            policy,
         )
 
     # If this flag is set, then the enclave is initialized
@@ -194,15 +234,19 @@ def verify_claims(claims: DcapClaims, policy: Policy):
         != Bits(policy.attributes_flags) | SGX_FLAGS_INITTED
     ):
         raise AttestationError(
-            "SGX attributes flags bytes do not conform to the policy"
+            "SGX attributes flags bytes do not conform to the policy", claims, policy
         )
 
     if Bits(claims.sgx_attributes[8:]) & Bits(policy.attributes_mask_xfrm) != Bits(
         policy.attributes_xfrm
     ):
-        raise AttestationError("SGX XFRM flags bytes do not conform to the policy")
+        raise AttestationError(
+            "SGX XFRM flags bytes do not conform to the policy", claims, policy
+        )
 
     if Bits(claims.sgx_misc_select) & Bits(policy.misc_mask) != Bits(
         policy.misc_select
     ):
-        raise AttestationError("SGX MISC SELECT bytes do not conform to the policy")
+        raise AttestationError(
+            "SGX MISC SELECT bytes do not conform to the policy", claims, policy
+        )

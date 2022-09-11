@@ -1,12 +1,11 @@
 # requirements for building
 cryptography==37.0.4
-toml==0.10.2
-grpcio==1.47
-grpcio-tools==1.47
+toml
+grpcio>=1.4
+grpcio-tools>=1.4
 delvewheel==0.0.20
-bitstring==3.1.9
-cbor2==5.4.3
-pybind11==2.10.0
+bitstring
+pybind11
 setuptools
 wheel
 patchelf
@@ -15,3 +14,4 @@ auditwheel
 cibuildwheel
 pre-commit
 coverage
+numpy

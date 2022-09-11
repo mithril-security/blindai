@@ -32,6 +32,12 @@ enum DatumTypeEnum {
     I64 = 3;
     U32 = 4;
     U64 = 5;
+    U8 = 6;
+    U16 = 7;
+    I8 = 8;
+    I16 = 9;
+    Bool = 10;
+    UNKNOWN = -1;
 };
 
 message ClientInfo {
@@ -64,8 +70,17 @@ message Payload {
 
 /* Tensor */
 message TensorInfo {
-    repeated int32 fact = 1;
-    DatumTypeEnum datum_type = 2;
+    repeated int32 dims = 1;
+    DatumTypeEnum datum_type = 2; // Set to -1 if not known.
+    
+    // Which input/output index does this tensor data relate to
+    // Specify -1 if the index is not known (in which case you should fill `index_name`)
+    int32 index = 3;
+    string index_name = 4;
+}
+message TensorData {
+    TensorInfo info = 1;
+    bytes bytes_data = 2;
 }
 
 /* SendModel */
@@ -74,13 +89,17 @@ message SendModelRequest {
     bytes data = 1;
     uint64 length = 2;
     repeated TensorInfo tensor_inputs = 3;
-    repeated DatumTypeEnum tensor_outputs = 4;
+    repeated TensorInfo tensor_outputs = 4;
     // whether or not the server should sign the reply
     bool sign = 5;
     // this is optional
     ClientInfo client_info = 6;
     // this is optional
     string model_name = 7;
+    bool save_model = 8;
+    // this is optional, by default, generate a model uuid
+    string model_id = 9;
+    string jwt = 10;
 }
 
 message SendModelReply {
@@ -95,16 +114,17 @@ message SendModelPayload {
     // Raw SHA-256 hash of the uploaded ONNX model
     // This field is not present when `sign` is `false` in the request
     bytes model_hash = 1;
-    // Input fact
     // This field is empty when `sign` is `false` in the request
-    repeated int32 input_fact = 2;
-    string model_id = 3;
+    repeated TensorInfo tensor_inputs = 2;
+    repeated TensorInfo tensor_outputs = 3;
+    string model_id = 4;
 }
 
 /* RunModel */
 
 message RunModelRequest {
-    bytes input = 1;
+    repeated TensorData input_tensors = 1;
+
     // whether or not the server should sign the reply
     bool sign = 2;
     // this is optional
@@ -121,12 +141,12 @@ message RunModelReply {
 }
 
 message RunModelPayload {
-    bytes output = 1;
-    DatumTypeEnum datum_output = 2;
-    // Raw SHA-256 hash of the protobuf binary encoding of the repeated float input from RunModelRequest
+    // Raw SHA-256 hash of the protobuf binary encoding of the tensor inputs from RunModelRequest
     // This field is empty when `sign` is `false` in the request
-    bytes input_hash = 3;
-    string model_id = 4;
+    bytes input_hash = 1;
+    string model_id = 2;
+    repeated TensorData output_tensors = 3;
+    uint64 inference_time = 4;
 }
 
 /* DeleteModel */

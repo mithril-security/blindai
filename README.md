@@ -6,6 +6,7 @@
 
 <h4 align="center">
   <a href="https://www.mithrilsecurity.io">Website</a> |
+  <a href="cloud.mithrilsecurity.io/">Cloud</a> |
   <a href="https://blindai.mithrilsecurity.io/">Documentation</a> |
   <a href="https://blog.mithrilsecurity.io/">Blog</a> |
   <a href="https://hub.docker.com/u/mithrilsecuritysas">Docker Hub</a> |
@@ -18,7 +19,7 @@
 
 BlindAI is a confidential AI inference server. Like regular AI inference solutions, BlindAI helps AI engineers serve models for end-users to benefit from their predictions, but with an added privacy layer. Data sent by users to the AI model is kept confidential at all times, from the transfer to the analysis. This way, users can benefit from AI models without ever having to expose their data in clear to anyone: neither the AI service provider, nor the Cloud provider (if any), can see the data.
 
-Confidentiality is assured by using special hardware-enforced Trusted Execution Environments. To read more about those, read our blog series [here](https://blog.mithrilsecurity.io/confidential-computing-explained-part-1-introduction/)
+Confidentiality is assured by using special hardware-enforced Trusted Execution Environments. To read more about those, read our blog series [here](https://blog.mithrilsecurity.io/confidential-computing-explained-part-1-introduction/).
 
 Our solution comes in two parts:
 
@@ -29,10 +30,7 @@ Our solution comes in two parts:
 
 - [:lock: Motivation](#lock-motivation)
 - [:rocket: Getting started](#rocket-getting-started)
-- [:book: Which part of the AI workflow do we cover?](#book-which-part-of-the-ai-workflow-do-we-cover)
-- [:wrench: How do I use it?](#wrench-how-do-i-use-it)
-  * [A - Export the AI workflow](#a---export-the-ai-workflow)
-  * [B - Deploy it on BlindAI](#b---deploy-it-on-blindai)
+- [📖 Which part of the AI workflow do we cover?](#book-which-part-of-the-ai-workflow-do-we-cover)
 - [:sunny: Models covered by BlindAI](#sunny-models-covered-by-blindai)
 - [:page_facing_up: Documentation](#page_facing_up-documentation)
 - [:white_check_mark: What you can do with BlindAI](#white_check_mark-what-you-can-do-with-blindai)
@@ -55,11 +53,151 @@ Currently, even though data can be sent securely with TLS, some stakeholders in 
 
 By using BlindAI, data remains always protected as it is only decrypted inside a Trusted Execution Environment, called an enclave, whose contents are protected by hardware. While data is in clear inside the enclave, it is inaccessible to the outside thanks to isolation and memory encryption. This way, data can be processed, enriched, and analysed by AI, without exposing it to external parties.
 
-## :rocket: Getting started
+## Gradio Demo
 
-We provide a [Getting started](https://blindai.mithrilsecurity.io/en/latest/getting-started/quick-start/) example on our docs, with the deployment of DistilBERT with BlindAI, to make it possible to analyze confidential text with privacy guarantees.
+You can test and see how BlindAI secures AI application through our [hosted demo of GPT2](https://huggingface.co/spaces/mithril-security/blindai), built using Gradio.
 
-We have also articles and corresponding notebooks to deploy COVID-Net and Wav2vec2 with BlindAI, to enable respectively analysis of Chest X-Rays and speech with end-to-end protection. You can find them just [below](#sunny-models-covered-by-blindai) in our full table of use cases and models covered.
+In this demo, you can see how BlindAI works and make sure that your data is protected. Thanks to the attestation mechanism, even before sending data, our Python client will check that:
+
+- We are talking to a secure enclave with the hardware protection enabled.
+- The right code is loaded inside the enclave, and not a malicious one.
+
+You can find more on [secure enclaves attestation here](https://blog.mithrilsecurity.io/confidential-computing-explained-part-2-attestation/).
+
+![GPT2 demo](https://raw.githubusercontent.com/mithril-security/animations/main/gradio_demo.gif)
+
+## Quick tour
+
+BlindAI allows you to easily and quickly **deploy your AI models with privacy, all in Python**. 
+To interact with an AI model hosted on a remote secure enclave, we provide the `blindai.client` API. This client will:
+- check that we are talking to a genuine secure enclave with the right security features
+- upload an AI model that was previously converted to ONNX
+- query the model securely
+
+BlindAI is configured by default to connect to our managed Cloud backend to make it easy for users to upload and query models inside our secure enclaves. Even though we managed users AI models, thanks to the protection provided by the use of secure enclaves, data and models sent to our Cloud remain private and never. 
+
+You can also deploy BlindAI on [your own infra](#on-premise-deployment).
+
+### Installing BlindAI
+
+BlindAI can easily be installed from [PyPI](https://pypi.org/project/blindai/):
+
+```bash
+pip install blindai
+```
+
+This package is enough for the deployment and querying of models on our managed infrastructure. For on-premise deployment, you will have to deploy our [Docker](https://hub.docker.com/u/mithrilsecuritysas) images.
+
+### Querying a GPT2
+
+We can see how it works with our GPT2 model for text generation. It is already loaded inside our managed Cloud, so we will simply need to query it. We will be using the `transformers` library for tokenizing.
+
+```python
+import blindai
+from transformers import GPT2Tokenizer
+
+tokenizer = GPT2Tokenizer.from_pretrained('gpt2')
+example = "I like the Rust programming language because"
+
+def get_example_inputs(example, tokenizer):
+  # Detailled tokenizing here https://gist.github.com/dhuynh95/4357aec425bd30fbb41db0bc6ce0f8b2
+  ...
+
+input_list = get_example_inputs([example], tokenizer)
+
+# Connect to a remote model. If security checks fail, an exception is raised
+with blindai.Connection() as client:
+  # Send data to the GPT2 model
+  response = client.predict("gpt2", input_list)
+
+example = tokenizer.decode(response.output[0].as_torch(), skip_special_tokens=True)
+
+# We can see how GPT2 completed our sentence 🦀
+>>> example
+"I like the Rust programming language because it's easy to write and maintain."
+```
+
+### Uploading a ResNet18
+
+The model in the GPT2 example had already been loaded by us, but BlindAI also allows you to upload your own models to our managed Cloud solution. 
+
+You can find a [Colab notebook](https://colab.research.google.com/drive/1c8pBM5gN5zL_AT0s4kBZjEGdivWW3hSt?usp=sharing) showing how to deploy and query a ResNet18 on BlindAI.
+
+To be able to upload your model to our Cloud, you will need to [first register](https://cloud.mithrilsecurity.io/) to get an API key.
+
+Once you have the API key, you just have to provide it to our backend. 
+
+```python
+import torch
+import blindai
+
+# Get the model and export it locally in ONNX format
+model = torch.hub.load('pytorch/vision:v0.10.0', 'resnet18', pretrained=True)
+dummy_inputs = torch.zeros(1,3,224,224)
+torch.onnx.export(model, dummy_inputs, "resnet18.onnx")
+
+# Upload the ONNX file along with specs and model name
+with blindai.Connection(api_key=...) as client:
+    client.upload_model(
+      model="resnet18.onnx",
+    )
+```
+
+The first block of code pulls a model from [PyTorch Hub](https://pytorch.org/hub/), and export it in ONNX format. Because [tracing](https://pytorch.org/tutorials/advanced/super_resolution_with_onnxruntime.html) is used, we need to provide a dummy input for the model to know the shape of inputs used live.
+
+Before uploading, we need to provide information on the expected inputs and outputs.
+
+Finally, we can connect to the managed backend and upload the model. You can provide a model name to know which one to query, for instance with `model_name="resnet18"`. Because we have already uploaded a model with the name `"resnet18"`, you should not try to upload a model with that exact name as it is already taken on our main server.
+
+### Querying a ResNet18
+
+Now we can consume this model securely. We can now have a ResNet18 analyze an image of our dog, without showing the image of the dog in clear. 
+
+<img src="https://github.com/pytorch/hub/raw/master/images/dog.jpg" alt="Dog to analyze" width="200"/>
+
+We will first pull the dog image, and preprocess it before sending it our enclave. The code is similar to [PyTorch ResNet18 example](https://pytorch.org/hub/pytorch_vision_resnet/):
+
+```python
+# Source: https://pytorch.org/hub/pytorch_vision_resnet/
+import blindai
+import urllib
+from PIL import Image
+from torchvision import transforms
+
+# Download an example image from the pytorch website
+url, filename = ("https://github.com/pytorch/hub/raw/master/images/dog.jpg", "dog.jpg")
+try: urllib.URLopener().retrieve(url, filename)
+except: urllib.request.urlretrieve(url, filename)
+
+# sample execution (requires torchvision)
+input_image = Image.open(filename)
+preprocess = transforms.Compose([
+    transforms.Resize(256),
+    transforms.CenterCrop(224),
+    transforms.ToTensor(),
+    transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+])
+input_tensor = preprocess(input_image)
+input_batch = input_tensor.unsqueeze(0) # create a mini-batch as expected by the model
+```
+
+Now we that we have the input tensor, we simply need to send it to the pre-uploaded ResNet18 model inside our secure enclave:
+
+```python
+with blindai.client.connect() as client:
+  # Send data to the GPT2 model
+  response = client.run_model("resnet18", input_list)
+
+>>> response.output[0].argmax()
+```
+
+### On-premise deployment
+
+If you do not wish to use our managed Cloud, it is possible to deploy BlindAI yourself. We provide Docker images to help you with the deployment.
+
+To run our solution with the full security features, you will need access to the [proper hardware](#computer-current-hardware-support).
+
+You can still try our solution without the right hardware through our simulation version. *Be careful*, as the simulation provides no added security guarantees, and is meant for tests only.
 
 ## :book: Which part of the AI workflow do we cover?
 
@@ -70,24 +208,6 @@ BlindAI is currently a solution for AI model deployment. We suppose the model ha
 This scenario often comes up once you have been able to train a model on a specific dataset, most likely on premise, like on biometric, medical or financial data, and now want to deploy it at scale as a Service to your users.
 
 BlindAI can be seen as a variant of current serving solutions, like Nvidia Triton, Torchserve, TFserve, Kserve and so on. We provide the networking layer and the client SDK to consume the service remotely and securely, thanks to our secure AI backend.
-
-## :wrench: How do I use it?
-
-### A - Export the AI workflow
-
-For data scientists to deploy their workloads they must first export their AI models, and possibly their pre/post processing in ONNX format. Pytorch or Tensorflow models can easily be exported into an ONNX file. Exporting a neural network in ONNX format facilitates its deployment, as it will be optimised for inference.
-
-Because we leverage the Tract project behind the scenes, the following operators are currently supported: https://github.com/sonos/tract#onnx 
-
-### B - Deploy it on BlindAI
-
-![Workflow of BlindAI](assets/workflow_blindai.PNG)
-
-Once the model is exported and ready to be served, the workflow is always the same:
-
-- Run our inference server, for instance using Docker. 
-- Upload the ONNX model inside the inference server using our SDK. By leveraging our SDK, we make sure the IP of the model is protected as well.
-- Send data securely to be analysed by the AI model with the client SDK.
 
 ## :sunny: Models covered by BlindAI
 
@@ -174,7 +294,7 @@ Then you will just need to verify that this trustful source is indeed loaded in 
 
 **Q: Do you do training or federated learning?**
 
-**A:** We do not cover training or federated learning yet. However this is definitively on our roadmap, and you should expect news from us soon. For more information, please reach out to us at contact [at] mithrilsecurity dot io.
+**A:** We will cover this topic soon. We have multy party learning framework leveraging secure enclave in development. You should learn about it in the near future.
 
 ## Telemetry
 

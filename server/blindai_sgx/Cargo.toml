@@ -1,9 +1,9 @@
 [package]
 authors = ["Mithril Security"]
-edition = "2018"
+edition = "2021"
 license = "Apache-2.0"
 name = "blindai_sgx"
-version = "0.4.1"
+version = "0.5.1"
 
 [lib]
 crate-type = ["staticlib"]
@@ -13,6 +13,7 @@ name = "blindai_sgx"
 default = []
 
 [dependencies]
+weak-table = "0.3.2"
 anyhow = "=1.0.45"
 base64 = "0.13.0"
 blindai_common = {path = "../blindai_common"}
@@ -43,12 +44,14 @@ tokio-util = "=0.6.8"
 toml = "*"
 tonic = {version = "0.5.2", features = ["tls"]}
 tonic-rpc = {version = "0.1.1", features = ["json"]}
-uuid = {version="0.8.2", features=["v4"]}
-tract-core = {version = "0.17.2-pre", features = ["untrusted_fs"]}
-tract-onnx = {version = "0.17.2-pre", features = ["untrusted_fs"]}
+uuid = {version="0.8.2", features=["v4", "serde"]}
+tract-core = {version = "0.17.2-pre", features=["untrusted_fs"]}
+tract-onnx = {version = "0.17.2-pre", features=["untrusted_fs"]}
+tract-hir = {version = "0.17.2-pre"}
 x509-parser = "*"
 h2 = "=0.3.4"
 prost-types = "=0.8"
+jsonwebtoken = "8"
 
 [target.'cfg(not(target_env = "sgx"))'.dependencies]
 # sgx_libc = {git = "https://github.com/apache/teaclave-sgx-sdk.git"}

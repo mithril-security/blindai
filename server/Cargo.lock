@@ -148,7 +148,7 @@ checksum = "bef38d45163c2f1dde094a7dfd33ccf595c92905c8f8f4fdc18d06fb1037718a"
 
 [[package]]
 name = "blindai_app"
-version = "0.4.1"
+version = "0.5.1"
 dependencies = [
  "anyhow",
  "base16",
@@ -183,10 +183,11 @@ dependencies = [
 
 [[package]]
 name = "blindai_common"
-version = "0.4.1"
+version = "0.5.0"
 dependencies = [
  "anyhow",
  "http",
+ "log",
  "serde",
  "tokio",
  "tokio-stream",
@@ -196,7 +197,7 @@ dependencies = [
 
 [[package]]
 name = "blindai_rpc"
-version = "0.4.1"
+version = "0.5.1"
 dependencies = [
  "tokio",
  "tokio-stream",
@@ -206,7 +207,7 @@ dependencies = [
 
 [[package]]
 name = "blindai_sgx"
-version = "0.4.1"
+version = "0.5.1"
 dependencies = [
  "anyhow",
  "base64",
@@ -218,6 +219,7 @@ dependencies = [
  "futures",
  "h2",
  "hex",
+ "jsonwebtoken",
  "log",
  "num-derive",
  "num-traits",
@@ -244,14 +246,16 @@ dependencies = [
  "tonic-build",
  "tonic-rpc",
  "tract-core",
+ "tract-hir",
  "tract-onnx",
  "uuid",
+ "weak-table",
  "x509-parser",
 ]
 
 [[package]]
 name = "blindai_sgx_attestation"
-version = "0.4.1"
+version = "0.5.1"
 dependencies = [
  "log",
  "sgx_types",
@@ -786,7 +790,7 @@ dependencies = [
 [[package]]
 name = "h2"
 version = "0.3.4"
-source = "git+https://github.com/mithril-security/h2-sgx?branch=h2-sgx#08d3ee063ee0ebd1b4a6fcc27ef9dcb7780a4a53"
+source = "git+https://github.com/mithril-security/h2-sgx?branch=h2-sgx#35bfbf106e0f4386ccd3f288441d70228d053b11"
 dependencies = [
  "bytes",
  "fnv",
@@ -1019,6 +1023,20 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7cc9ffccd38c451a86bf13657df244e9c3f37493cce8e5e21e940963777acc84"
 dependencies = [
  "wasm-bindgen",
+]
+
+[[package]]
+name = "jsonwebtoken"
+version = "8.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1aa4b4af834c6cfd35d8763d359661b90f2e45d8f750a0849156c7f4671af09c"
+dependencies = [
+ "base64",
+ "pem",
+ "ring",
+ "serde",
+ "serde_json",
+ "simple_asn1",
 ]
 
 [[package]]
@@ -2295,6 +2313,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "simple_asn1"
+version = "0.6.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "adc4e5204eb1910f40f9cfa375f6f05b68c3abac4b6fd879c8ff5e7ae8a0a085"
+dependencies = [
+ "num-bigint 0.4.3",
+ "num-traits",
+ "thiserror",
+ "time 0.3.9",
+]
+
+[[package]]
 name = "slab"
 version = "0.4.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2704,7 +2734,7 @@ dependencies = [
 [[package]]
 name = "tract-core"
 version = "0.17.2-pre"
-source = "git+https://github.com/mithril-security/tract-sgx-xargo.git?tag=0.17.2-pre-experimental2#351d4a5a8c1159a887e6de894037668a4d5f6035"
+source = "git+https://github.com/mithril-security/tract-sgx-xargo.git?tag=0.17.2-pre-experimental6#386229fb4808f4b2f84f957ef8ddc79d7b0f8f4b"
 dependencies = [
  "anyhow",
  "bit-set",
@@ -2726,7 +2756,7 @@ dependencies = [
 [[package]]
 name = "tract-data"
 version = "0.17.2-pre"
-source = "git+https://github.com/mithril-security/tract-sgx-xargo.git?tag=0.17.2-pre-experimental2#351d4a5a8c1159a887e6de894037668a4d5f6035"
+source = "git+https://github.com/mithril-security/tract-sgx-xargo.git?tag=0.17.2-pre-experimental6#386229fb4808f4b2f84f957ef8ddc79d7b0f8f4b"
 dependencies = [
  "anyhow",
  "educe",
@@ -2744,7 +2774,7 @@ dependencies = [
 [[package]]
 name = "tract-hir"
 version = "0.17.2-pre"
-source = "git+https://github.com/mithril-security/tract-sgx-xargo.git?tag=0.17.2-pre-experimental2#351d4a5a8c1159a887e6de894037668a4d5f6035"
+source = "git+https://github.com/mithril-security/tract-sgx-xargo.git?tag=0.17.2-pre-experimental6#386229fb4808f4b2f84f957ef8ddc79d7b0f8f4b"
 dependencies = [
  "derive-new",
  "educe",
@@ -2755,7 +2785,7 @@ dependencies = [
 [[package]]
 name = "tract-linalg"
 version = "0.17.2-pre"
-source = "git+https://github.com/mithril-security/tract-sgx-xargo.git?tag=0.17.2-pre-experimental2#351d4a5a8c1159a887e6de894037668a4d5f6035"
+source = "git+https://github.com/mithril-security/tract-sgx-xargo.git?tag=0.17.2-pre-experimental6#386229fb4808f4b2f84f957ef8ddc79d7b0f8f4b"
 dependencies = [
  "cc",
  "derive-new",
@@ -2777,7 +2807,7 @@ dependencies = [
 [[package]]
 name = "tract-nnef"
 version = "0.17.2-pre"
-source = "git+https://github.com/mithril-security/tract-sgx-xargo.git?tag=0.17.2-pre-experimental2#351d4a5a8c1159a887e6de894037668a4d5f6035"
+source = "git+https://github.com/mithril-security/tract-sgx-xargo.git?tag=0.17.2-pre-experimental6#386229fb4808f4b2f84f957ef8ddc79d7b0f8f4b"
 dependencies = [
  "byteorder",
  "flate2",
@@ -2791,7 +2821,7 @@ dependencies = [
 [[package]]
 name = "tract-onnx"
 version = "0.17.2-pre"
-source = "git+https://github.com/mithril-security/tract-sgx-xargo.git?tag=0.17.2-pre-experimental2#351d4a5a8c1159a887e6de894037668a4d5f6035"
+source = "git+https://github.com/mithril-security/tract-sgx-xargo.git?tag=0.17.2-pre-experimental6#386229fb4808f4b2f84f957ef8ddc79d7b0f8f4b"
 dependencies = [
  "bytes",
  "derive-new",
@@ -2811,7 +2841,7 @@ dependencies = [
 [[package]]
 name = "tract-onnx-opl"
 version = "0.17.2-pre"
-source = "git+https://github.com/mithril-security/tract-sgx-xargo.git?tag=0.17.2-pre-experimental2#351d4a5a8c1159a887e6de894037668a4d5f6035"
+source = "git+https://github.com/mithril-security/tract-sgx-xargo.git?tag=0.17.2-pre-experimental6#386229fb4808f4b2f84f957ef8ddc79d7b0f8f4b"
 dependencies = [
  "educe",
  "tract-nnef",
@@ -2893,6 +2923,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bc5cf98d8186244414c848017f0e2676b3fcb46807f6668a97dfe67359a3c4b7"
 dependencies = [
  "getrandom",
+ "serde",
 ]
 
 [[package]]
@@ -3001,6 +3032,12 @@ name = "wasm-bindgen-shared"
 version = "0.2.78"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0237232789cf037d5480773fe568aac745bfe2afbc11a863e97901780a6b47cc"
+
+[[package]]
+name = "weak-table"
+version = "0.3.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "323f4da9523e9a669e1eaf9c6e763892769b1d38c623913647bfdc1532fe4549"
 
 [[package]]
 name = "web-sys"
@@ -3159,6 +3196,11 @@ dependencies = [
 ]
 
 [[patch.unused]]
+name = "futures-test"
+version = "0.3.21"
+source = "git+https://github.com/mithril-security/futures-sgx?tag=0.3.21-sgx#147db1fd9d7005685ac86626ca9077a6f531cbc2"
+
+[[patch.unused]]
 name = "sgx_alloc"
 version = "1.1.4"
 
@@ -3225,8 +3267,3 @@ version = "1.1.4"
 [[patch.unused]]
 name = "sgx_unwind"
 version = "1.1.4"
-
-[[patch.unused]]
-name = "futures-test"
-version = "0.3.21"
-source = "git+https://github.com/mithril-security/futures-sgx?tag=0.3.21-sgx#147db1fd9d7005685ac86626ca9077a6f531cbc2"

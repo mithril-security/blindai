@@ -16,12 +16,34 @@ use std::net::SocketAddr;
 
 use anyhow::{Context, Result};
 use http::Uri;
+use log::*;
 use serde::{de::Error, Deserialize, Deserializer, Serialize};
 use std::net::ToSocketAddrs;
 use tonic_rpc::tonic_rpc;
 
 #[derive(Deserialize, Clone, Debug)]
-pub struct NetworkConfig {
+pub struct ModelFactsConfig {
+    pub datum_type: Option<String>,
+    pub dims: Option<Vec<usize>>,
+    pub index: Option<usize>,
+    pub index_name: Option<String>,
+}
+
+#[derive(Deserialize, Clone, Debug)]
+pub struct LoadModelConfig {
+    pub path: String,
+    pub model_id: String,
+    pub model_name: Option<String>,
+    #[serde(default)]
+    pub input_facts: Vec<ModelFactsConfig>,
+    #[serde(default)]
+    pub output_facts: Vec<ModelFactsConfig>,
+    #[serde(default)]
+    pub no_optim: bool,
+}
+
+#[derive(Deserialize, Clone, Debug)]
+pub struct BlindAIConfig {
     // Internal connection for Host -> Enclave communication
     #[serde(deserialize_with = "deserialize_uri")]
     pub internal_host_to_enclave_url: Uri,
@@ -36,6 +58,18 @@ pub struct NetworkConfig {
     pub client_to_enclave_attested_url: Uri,
     pub max_model_size: usize,
     pub max_input_size: usize,
+    pub models_path: String,
+    pub allow_sendmodel: bool,
+    #[serde(default)]
+    pub send_model_requires_auth: bool,
+    #[serde(default)]
+    pub load_models: Vec<LoadModelConfig>,
+    #[serde(default)]
+    pub max_model_store: usize,
+    #[serde(default)]
+    pub send_inference_time: bool,
+    #[serde(default)]
+    pub allow_model_sealing: bool,
 }
 
 fn uri_to_socket(uri: &Uri) -> Result<SocketAddr> {
@@ -47,7 +81,14 @@ fn uri_to_socket(uri: &Uri) -> Result<SocketAddr> {
         .context("Uri could not be converted to socket")
 }
 
-impl NetworkConfig {
+impl BlindAIConfig {
+    /// Post-load fixups, and show warnings to the console.
+    pub fn fixup_and_warnings(&mut self) {
+        if self.max_model_store <= self.load_models.len() {
+            warn!("The maximum number of models allowed in memory at once is set up as {}, but there are {} startup models. This means that the server won't be able to accept any new model from any user.", self.max_model_store, self.load_models.len());
+        }
+    }
+
     pub fn internal_host_to_enclave_socket(&self) -> Result<SocketAddr> {
         uri_to_socket(&self.internal_host_to_enclave_url)
     }

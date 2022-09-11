@@ -19,8 +19,12 @@ from cryptography.hazmat.primitives.serialization import Encoding
 from cryptography.x509 import ObjectIdentifier, load_pem_x509_certificate
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
 import pkgutil
+from blindai.pb.securedexchange_pb2 import DatumTypeEnum
+from enum import IntEnum
 
 CHUNK_SIZE = 32 * 1024  # 32kb
+
+ModelDatumType = IntEnum("ModelDatumType", DatumTypeEnum.items())
 
 
 def strip_https(url: str) -> str:
@@ -53,14 +57,17 @@ def get_enclave_signing_key(server_cert: bytes) -> bytes:
     return enclave_signing_key
 
 
-def supported_server_version(version: str) -> bool:
+def get_supported_server_version() -> str:
     supported_versions_file = pkgutil.get_data(
         __name__, "../supported_server_versions.py"
     ).decode("utf-8")
     versions_re = r"__version__ = \"(?P<version>.+)\""
-    supported_versions = (
-        re.match(versions_re, supported_versions_file).group("version").split(".")
-    )
+    supported_versions = re.match(versions_re, supported_versions_file).group("version")
+    return supported_versions
+
+
+def supported_server_version(version: str) -> bool:
+    supported_versions = get_supported_server_version().split(".")
     server_version = version.split(".")
     for i in range(len(server_version)):
         # Numeric characters in supported_versions must match the ones in the server version

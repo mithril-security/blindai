@@ -138,7 +138,7 @@ RUN cd /root && \
 
 # -- Rust
 RUN cd /root && \
-    curl 'https://static.rust-lang.org/rustup/dist/x86_64-unknown-linux-gnu/rustup-init' --output /root/rustup-init && \
+    curl -4 'https://static.rust-lang.org/rustup/dist/x86_64-unknown-linux-gnu/rustup-init' --output /root/rustup-init && \
     chmod +x /root/rustup-init && \
     echo '1' | /root/rustup-init --default-toolchain $RUST_TOOLCHAIN && \
     echo 'source /root/.cargo/env' >> /root/.bashrc && \

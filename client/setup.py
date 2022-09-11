@@ -64,7 +64,12 @@ ATTESTATION_BUILD_SCRIPT = {
 }
 
 # Proto Files
-PROTO_FILES = ["securedexchange.proto", "untrusted.proto", "proof_files.proto"]
+PROTO_FILES = [
+    "securedexchange.proto",
+    "untrusted.proto",
+    "proof_files.proto",
+    "licensing.proto",
+]
 PROTO_PATH = os.path.join(os.path.dirname(__file__), "proto")
 
 
@@ -91,7 +96,7 @@ def generate_stub():
 
     proto_include = pkg_resources.resource_filename("grpc_tools", "_proto")
     for file in PROTO_FILES:
-        grpc_tools.protoc.main(
+        ret = grpc_tools.protoc.main(
             [
                 "grpc_tools.protoc",
                 "-I{}".format(proto_include),
@@ -101,6 +106,9 @@ def generate_stub():
                 "{}".format(file),
             ]
         )
+        if ret != 0:
+            print(f"Proto file generation failed. Cannot continue. Error code: {ret}")
+            exit(1)
 
 
 def get_libs():
@@ -194,25 +202,27 @@ setuptools.setup(
     long_description=read("README.md"),
     long_description_content_type="text/markdown",
     keywords="confidential computing inference client enclave sgx machine learning",
-    url="https://www.mithrilsecurity.io/",
+    url="https://github.com/mithril-security/blindai",
+    project_urls={
+        "Documentation": "https://blindai.mithrilsecurity.io/",
+    },
     packages=setuptools.find_packages(exclude=["blindai/cpp/wrapper.cc"]),
-    package_data={"": [get_libs(), "tls/*.pem"]},
+    package_data={"": [get_libs(), "tls/*.pem", "tls/*.toml"]},
     ext_modules=[CMakeExtension("_quote_verification")],
     cmdclass={"build_ext": CMakeBuild, "build_py": BuildPackage},
     zip_safe=False,
     python_requires=">=3.6.8",
     install_requires=[
-        "cryptography==37.0.4",
-        "toml==0.10.2",
-        "grpcio==1.47",
-        "grpcio-tools==1.47",
-        "bitstring==3.1.9",
-        "cbor2==5.4.3",
-        "typing-extensions==4.3.0",
+        "cryptography",
+        "toml",
+        "grpcio>=1.4",
+        "grpcio-tools>=1.4",
+        "bitstring",
+        "typing-extensions",
     ],
     extras_require={
         "dev": [
-            "pybind11==2.10.0",
+            "pybind11",
             "setuptools",
             "wheel",
             "check-wheel-contents",
@@ -224,6 +234,7 @@ setuptools.setup(
     classifiers=[
         "Programming Language :: Python :: 3",
         "Programming Language :: C++",
+        "License :: OSI Approved :: Apache Software License",
         "Operating System :: Unix",
         "Operating System :: Microsoft :: Windows",
         "Operating System :: MacOS :: MacOS X",
