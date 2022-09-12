@@ -100,7 +100,14 @@ impl ModelStore {
 
         // Sealing
         if save_model {
-            info!("Sealing model...");
+            info!(
+                "{}",
+                if self.config.allow_model_sealing {
+                    "Sealing model..."
+                } else {
+                    "Sealing model NOT allowed, model will be saved in clear on the disk"
+                }
+            );
             sealing::seal(
                 models_path.as_path(),
                 &model_bytes,
@@ -111,9 +118,17 @@ impl ModelStore {
                 optim,
                 owner_id,
                 owner_username.clone(),
+                self.config.allow_model_sealing,
             )
             .context("Sealing the model")?;
-            info!("Model sealed");
+            info!(
+                "{}",
+                if self.config.allow_model_sealing {
+                    "Model sealed"
+                } else {
+                    "Model saved on disk"
+                }
+            );
         }
 
         // Create an entry in the hashmap and in the dedup map
@@ -240,7 +255,9 @@ impl ModelStore {
         if let Ok(paths) = fs::read_dir(&self.config.models_path) {
             for path in paths {
                 let path = path?;
-                if let Ok(model) = sealing::unseal(path.path().as_path()) {
+                if let Ok(model) =
+                    sealing::unseal(path.path().as_path(), self.config.allow_model_sealing)
+                {
                     if id_to_fetch == model.model_id.clone() {
                         self.add_model(
                             &model.model_bytes,

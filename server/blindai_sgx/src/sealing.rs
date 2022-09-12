@@ -37,54 +37,68 @@ pub struct DeserializableModel {
     pub owner_username: Option<String>,
 }
 
-fn create_sealeddata_for_serializable(model: SerializableModel) -> Result<Vec<u8>> {
+fn create_sealeddata_for_serializable(
+    model: SerializableModel,
+    encrypt_data: bool,
+) -> Result<Vec<u8>> {
     let encoded_vec = serde_cbor::to_vec(&model)?;
-    let encoded_slice = encoded_vec.as_slice();
+    if encrypt_data {
+        let encoded_slice = encoded_vec.as_slice();
 
-    let attr = sgx_attributes_t {
-        flags: sgx_types::TSEAL_DEFAULT_FLAGSMASK,
-        xfrm: 0,
-    };
-    let sealed_data = SgxSealedData::<[u8]>::seal_data_ex(
-        sgx_types::SGX_KEYPOLICY_MRENCLAVE,
-        attr,
-        0,
-        &[],
-        encoded_slice,
-    )
-    .map_err(|e| anyhow!("SGX Error: {}", e.as_str()))
-    .context("Couldn't seal data")?;
+        let attr = sgx_attributes_t {
+            flags: sgx_types::TSEAL_DEFAULT_FLAGSMASK,
+            xfrm: 0,
+        };
+        let sealed_data = SgxSealedData::<[u8]>::seal_data_ex(
+            sgx_types::SGX_KEYPOLICY_MRENCLAVE,
+            attr,
+            0,
+            &[],
+            encoded_slice,
+        )
+        .map_err(|e| anyhow!("SGX Error: {}", e.as_str()))
+        .context("Couldn't seal data")?;
 
-    //calculate the size of the sealed data
-    let size_seal = SgxSealedData::<[u8]>::calc_raw_sealed_data_size(
-        sealed_data.get_add_mac_txt_len(),
-        sealed_data.get_encrypt_txt_len(),
-    );
+        //calculate the size of the sealed data
+        let size_seal = SgxSealedData::<[u8]>::calc_raw_sealed_data_size(
+            sealed_data.get_add_mac_txt_len(),
+            sealed_data.get_encrypt_txt_len(),
+        );
 
-    let mut sealed_log_arr: Vec<u8> = vec![0; size_seal as usize];
+        let mut sealed_log_arr: Vec<u8> = vec![0; size_seal as usize];
 
-    //write sealed data to array
-    to_sealed_log_for_slice(&sealed_data, &mut sealed_log_arr)
-        .ok_or_else(|| anyhow!("sealing failed"))?;
-    Ok(sealed_log_arr)
+        //write sealed data to array
+        to_sealed_log_for_slice(&sealed_data, &mut sealed_log_arr)
+            .ok_or_else(|| anyhow!("sealing failed"))?;
+        Ok(sealed_log_arr)
+    } else {
+        Ok(encoded_vec)
+    }
 }
 
-fn recover_sealeddata_for_serializable(mut data: Vec<u8>) -> anyhow::Result<DeserializableModel> {
-    //recover sealed data from array
-    let opt = from_sealed_log_for_slice::<u8>(&mut data)
-        .ok_or_else(|| anyhow!("Couldn't convert the sealed data into a sealed_log"))?;
+fn recover_sealeddata_for_serializable(
+    mut data: Vec<u8>,
+    decrypt_data: bool,
+) -> anyhow::Result<DeserializableModel> {
+    if decrypt_data {
+        //recover sealed data from array
+        let opt = from_sealed_log_for_slice::<u8>(&mut data)
+            .ok_or_else(|| anyhow!("Couldn't convert the sealed data into a sealed_log"))?;
 
-    //recover the unsealed data from the array
-    let result = opt
-        .unseal_data()
-        .map_err(|e| anyhow!("SGX Error: {}", e.as_str()))
-        .context("Couldn't recover the sealed data from the sealed_log")?;
+        //recover the unsealed data from the array
+        let result = opt
+            .unseal_data()
+            .map_err(|e| anyhow!("SGX Error: {}", e.as_str()))
+            .context("Couldn't recover the sealed data from the sealed_log")?;
 
-    //decipher the sealed data
-    let encoded_slice = result.get_decrypt_txt();
-    let model: DeserializableModel = serde_cbor::from_slice(encoded_slice)?;
-
-    Ok(model)
+        //decipher the sealed data
+        let encoded_slice = result.get_decrypt_txt();
+        let model: DeserializableModel = serde_cbor::from_slice(encoded_slice)?;
+        Ok(model)
+    } else {
+        let model: DeserializableModel = serde_cbor::from_slice(&data)?;
+        Ok(model)
+    }
 }
 
 fn to_sealed_log_for_slice<T: Copy + ContiguousMemory>(
@@ -124,24 +138,28 @@ pub fn seal(
     optim: bool,
     owner_id: Option<usize>,
     owner_username: Option<String>,
+    encrypt_data: bool,
 ) -> anyhow::Result<()> {
     //seal data
-    let sealed = create_sealeddata_for_serializable(SerializableModel {
-        model_bytes,
-        model_name,
-        model_id,
-        input_facts,
-        output_facts,
-        optim,
-        owner_id,
-        owner_username,
-    })?;
+    let model_data = create_sealeddata_for_serializable(
+        SerializableModel {
+            model_bytes,
+            model_name,
+            model_id,
+            input_facts,
+            output_facts,
+            optim,
+            owner_id,
+            owner_username,
+        },
+        encrypt_data,
+    )?;
 
     //write sealed data
-    Ok(fs::write(path, &sealed)?)
+    Ok(fs::write(path, &model_data)?)
 }
 
-pub fn unseal(path: &Path) -> anyhow::Result<DeserializableModel> {
+pub fn unseal(path: &Path, decrypt_data: bool) -> anyhow::Result<DeserializableModel> {
     let buf = fs::read(path)?;
-    recover_sealeddata_for_serializable(buf)
+    recover_sealeddata_for_serializable(buf, decrypt_data)
 }

@@ -34,9 +34,6 @@ class TestDistilBertBase:
 
             response = client.upload_model(
                 model=model_path,
-                shape=inputs.shape,
-                dtype=ModelDatumType.I64,
-                model_name="test.onnx",
             )
             model_id = response.model_id
 
@@ -58,10 +55,7 @@ class TestDistilBertBase:
         ) as client:
             response = client.upload_model(
                 model=model_path,
-                shape=inputs.shape,
-                dtype=ModelDatumType.I64,
                 sign=True,
-                model_name="test.onnx",
             )
             model_id = response.model_id
 

@@ -123,7 +123,6 @@ class TestCovidNetBase:
                 dtype=ModelDatumType.F32,
                 sign=True,
                 save_model=True,
-                model_name="Hi",
             )
 
         # restart server :)

@@ -85,6 +85,7 @@ impl Exchange for Exchanger {
         }
 
         let auth_ext = request.extensions().get::<AuthExtension>().cloned();
+
         if self.config.send_model_requires_auth
             && (auth_ext.is_none() || !auth_ext.as_ref().unwrap().is_logged())
         {
@@ -174,7 +175,7 @@ impl Exchange for Exchanger {
             .collect::<Result<Vec<_>>>()
             .map_err(|err| {
                 error!("Error while getting input info: {:?}", err);
-                Status::invalid_argument("Unknown error".to_string())
+                Status::invalid_argument(format!("Error while getting input info: {:?}", err))
             })?;
         let output_info = output_info_req
             .iter()
@@ -183,7 +184,7 @@ impl Exchange for Exchanger {
             .collect::<Result<Vec<_>>>()
             .map_err(|err| {
                 error!("Error while getting output info: {:?}", err);
-                Status::invalid_argument("Unknown error".to_string())
+                Status::invalid_argument(format!("Error while getting input info: {:?}", err))
             })?;
         let (model_id, model_hash) = self
             .model_store
@@ -201,7 +202,7 @@ impl Exchange for Exchanger {
             )
             .map_err(|err| {
                 error!("Error while creating model: {:?}", err);
-                Status::unknown("Unknown error".to_string())
+                Status::unknown(format!("Error while creating model: {:?}", err))
             })?;
 
         // Construct the return payload
@@ -393,9 +394,11 @@ impl Exchange for Exchanger {
             })
             .collect::<Result<Vec<TensorData>>>()
             .map_err(|err| {
-                error!("Error while serilizing output: {:?}", err);
-                Status::unknown("Unknown error".to_string())
+                error!("Error while seriliazing output: {:?}", err);
+                Status::unknown(format!("Error while serializing output: {:?}", err))
             })?;
+
+        let elapsed = start_time.elapsed();
 
         let mut payload = RunModelPayload {
             output_tensors,
@@ -404,6 +407,10 @@ impl Exchange for Exchanger {
         if sign {
             payload.input_hash = input_hash;
             payload.model_id = model_id;
+        }
+
+        if self.config.send_inference_time {
+            payload.inference_time = elapsed.as_millis() as u64;
         }
 
         let payload_with_header = Payload {
@@ -427,7 +434,6 @@ impl Exchange for Exchanger {
         }
 
         // Log and telemetry
-        let elapsed = start_time.elapsed();
         let userid = auth_ext
             .and_then(|e| e.userid())
             .map(|id| format!("{}", id));

@@ -175,3 +175,4 @@ tests/distilbert-base-uncased.onnx
 tests/*proof.json
 tests/policy.toml
 tests/host_server.pem
+tests/resnet18.onnx
