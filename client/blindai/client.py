@@ -808,7 +808,11 @@ class Connection(contextlib.AbstractContextManager):
 
             self._jwt = response.jwt if len(response.jwt) > 0 else None
 
-            log.info("Successfully connected to Mithril Security Cloud")
+            if not response.private_cloud:
+                log.info("Successfully connected to Mithril Security Public Cloud")
+            else:
+                log.info("Successfully connected to Mithril Security Private Cloud")
+
             log.debug(
                 f"Selected enclave {response.enclave_url} & has jwt? {len(response.jwt) > 0}"
             )
