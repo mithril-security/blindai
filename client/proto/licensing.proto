@@ -3,6 +3,7 @@ syntax = "proto3";
 message GetEnclaveReply {
     string jwt = 1;
     string enclave_url = 2;
+    bool private_cloud = 3;
 }
 
 service LicensingService {
