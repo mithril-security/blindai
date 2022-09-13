@@ -1,5 +1,8 @@
 # Build the server from source
 
+!!! info
+    If you're building the client because you want to change it, you should first go to [the setting up your dev environment guide](../setting-up-your-dev-environment.md) and then build without docker.
+
 ## Using Docker 🐳
 
 ### Build process
@@ -49,15 +52,14 @@ You can build the whole project by using our Docker image. We have set up the Do
 
 ### Running
 
-You can follow the instructions of either [the simulation deployment section](../getting-started/quick-start.md) or [the deploy-on-hardware section](../getting-started/deploy-on-hardware.md) depending on your build mode.
+You can use these images by following the instructions of either the [deploy on premise guide](../../deploy-on-premise.md) or the [cloud deployment guide](../../cloud-deployment.md)
 
 
 ## Without docker
 
 ### Build process
 
-Make sure to follow [setting-up-your-dev-environment.md](setting-up-your-dev-environment.md "mention") first to set up your environment and install the build dependencies.
-
+Make sure to [set up a dev environment](../setting-up-your-dev-environment.md "mention") to easily install the build dependencies.
 
 === "Software mode"
 
@@ -87,6 +89,8 @@ Two files will be generated after the building process:
 
 You will need these two files for running the client in non-simulation mode.
 
+More informations about them on [this page](../../main-concepts/privacy.md)
+
 ### Running
 
 === "Software mode"
@@ -98,7 +102,7 @@ You will need these two files for running the client in non-simulation mode.
 
 === "Hardware mode"
 
-    Make sure you have the correct hardware and drivers (see [#hardware-requirements](../getting-started/deploy-on-hardware.md#hardware-requirements "mention"))
+    Make sure you have the correct hardware and drivers (see [hardware-requirements](../../deploy-on-premise.md#hardware-requirements))
 
     You will also need to install the Provisionning Certificate Caching Service (PCCS) [using this documentation](https://github.com/intel/SGXDataCenterAttestationPrimitives/blob/master/QuoteGeneration/pccs/README.md).
 

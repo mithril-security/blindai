@@ -1,6 +1,26 @@
-# Hardware deployment
+# Deploy on premise
 
-## Hardware requirements
+The docker images used here are prebuilt ones from our dockerhub, you can take a look at the [build the server from source section]('build-from-sources/server.md')
+
+## Simulation mode
+
+This section explains how to work with the simulation mode. This simulates Intel SGX in software, and enables you to run this on any hardware you want.
+
+Launch the server using the simulation docker image:
+
+```bash
+docker run -it \
+    -p 50051:50051 \
+    -p 50052:50052 \ 
+    mithrilsecuritysas/blindai-server-sim:latest # make sure the ports 50051 and 50052 are available.
+```
+
+!!! warning
+    Please keep in mind that this image is not secure, since it simulates Intel SGX in software. It is lighter than hardware mode, and should not be used in production.
+
+## Hardware mode
+
+### Hardware requirements
 
 === "Hardware mode"
 
@@ -32,7 +52,7 @@
 
     There is no need to do anything, the drivers are already installed.
 
-## Running the server
+### Running the server
 
 Please make sure you have [Docker ](https://docs.docker.com/get-docker/)installed on your machine.
 
@@ -65,12 +85,12 @@ Please make sure you have [Docker ](https://docs.docker.com/get-docker/)installe
     ```
 
 !!! info
-    If you built this image locally you can allow debug by running with -e POLICY_ALLOW_DEBUG=true. Building from sources is documented [here](../advanced/server-from-sources.md)
+    If you built this image locally you can allow debug by running with -e POLICY_ALLOW_DEBUG=true. Building from sources is documented [here](advanced/build-from-sources/server.md)
 
 !!! warning
-    You should only allow debug if your policy.toml allows debug. More information about the policy in [this section](../advanced/certificate-and-policy.md)
+    You should only allow debug if your policy.toml allows debug.
 
-## Extract Policy and default TLS Certificate from the Hardware docker image
+### Extract Policy and default TLS Certificate from the Hardware docker image
 
 You can extract the policy directly from the prebuilt Docker Image using:
 
@@ -100,7 +120,7 @@ You can also extract the default TLS certificate like this:
     docker run --rm mithrilsecuritysas/blindai-server-dcsv3:latest /bin/cat /root/tls/host_server.pem > host_server.pem
     ```
 
-## Writing a client to connect to the hardware_mode server
+### Connect to the hardware mode server
 
 You can start from the python code of [the quick-start section](quick-start.md). You should then replace the instances of :
 ```py
@@ -115,5 +135,5 @@ client = BlindaiConnection(addr="localhost", policy="/path/to/policy.toml", cert
 
 Your client will use your tls certificate and will only be able to connect to an enclave generated with the exact same policy.toml.
 
-!!! warning
-    If you want to deploy for production you should check out [the certificate and policy section](../advanced/certificate-and-policy.md). You will learn how to inject your onw tls certificate and how to check the authenticity of the policy.
+!!! note
+    If you want to deploy for production you should check out [the privacy section](main-concepts/privacy.md). You will learn how to check the authenticity of the policy and how to inject your onw tls certificate.
