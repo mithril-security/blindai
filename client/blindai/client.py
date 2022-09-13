@@ -1011,7 +1011,7 @@ class Connection(contextlib.AbstractContextManager):
             dtype_out (ModelDatumType, optional): The type of the model output data (f32 by default). Ignored if you are using models with multiple outputs. Can be left to None most of the time, as the server will retreive that information directly from the model, if available.
             sign (bool, optional): Get signed responses from the server or not. Defaults to False.
             model_id (Optional[str], optional): Name of the model. By default, the server will assign a random UUID. You can call the model with the name you specify here.
-            save_model (bool, optional): Whether or not the model will be saved to disk in the server. The model will be saved encrypted (sealed) so that only the server enclave can load it afterwards. Defaults to False.
+            save_model (bool, optional): Whether or not the model will be saved to disk in the server. The model will be saved encrypted (sealed) so that only the server enclave can load it afterwards. Defaults to True.
 
         Raises:
             ConnectionError: Will be raised if the client is not connected.
