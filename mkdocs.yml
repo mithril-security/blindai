@@ -52,10 +52,13 @@ plugins:
 - search
 
 nav:
-- 'docs/quick-start.md'
+- Getting Started: 'index.md'
 - 'Main concepts':
   - 'docs/main-concepts/overview.md'
-  - 'docs/main-concepts/privacy.md'
+  - 'Trusting BlindAI':
+    - 'docs/main-concepts/privacy.md'
+    - 'docs/main-concepts/authentication.md'
+    - 'docs/main-concepts/tls.md'
   - 'docs/main-concepts/sealing.md'
 - 'docs/mithril-cloud.md'
 - 'docs/deploy-on-premise.md'

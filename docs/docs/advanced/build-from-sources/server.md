@@ -12,7 +12,7 @@ You can build the whole project by using our Docker image. We have set up the Do
 === "Simulation mode"
     ```bash
     cd server
-    make init # create the TLS certificates
+    make init # create the TLS certificates and pull teaclave
     DOCKER_BUILDKIT=1 docker build \
         --target software \
         -t mithrilsecuritysas/blindai-server-sim:latest \
@@ -23,7 +23,7 @@ You can build the whole project by using our Docker image. We have set up the Do
 === "Hardware mode"
     ```bash
     cd server
-    make init # create the TLS certificates
+    make init # create the TLS certificates and pull teaclave
     DOCKER_BUILDKIT=1 docker build \
         --target hardware \
         -t mithrilsecuritysas/blindai-server:latest \
@@ -35,7 +35,7 @@ You can build the whole project by using our Docker image. We have set up the Do
 === "Hardware mode (Azure DCsv3 VMs)"
     ```bash
     cd server
-    make init # create the TLS certificates
+    make init # create the TLS certificates and pull teaclave
     DOCKER_BUILDKIT=1 docker build \
         --target hardware-dcsv3 \
         -t mithrilsecuritysas/blindai-server-dcsv3:latest \
@@ -60,6 +60,12 @@ You can use these images by following the instructions of either the [deploy on 
 ### Build process
 
 Make sure to [set up a dev environment](../setting-up-your-dev-environment.md "mention") to easily install the build dependencies.
+
+Then first of all :
+```bash
+make init
+```
+It will pull the right version of teaclave, alongside creating the tls certificate
 
 === "Software mode"
 

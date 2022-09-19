@@ -1,10 +1,5 @@
 # Overview
 
-## Latest versions
-
-* **BlindAI server:** _0.5.0_
-* **BlindAI client:** _0.5.0_
-
 ## What is Blindai?
 
 BlindAI is a confidential AI inference server. Like regular AI inference solutions, BlindAI helps AI engineers serve models for end-users to benefit from their predictions, but with an added privacy layer. Data sent by users to the AI model is kept confidential at all times, from the transfer to the analysis. This way, users can benefit from AI models without ever having to expose their data in clear to anyone: neither the AI service provider, nor the Cloud provider (if any), can see the data.
@@ -22,7 +17,7 @@ BlindAI workflow is simple:
 
 - [Launch](../deploy-on-premise.md): Our server is deployed on a machine with secure enclave capabilities.
 - [Remote attestation](privacy.md): The remote client asks the server to provide proof that it is indeed serving a secure enclave with the right security features.
-- [Prediction](../quick-start.md): Once remote attestation passes, the client can send data to be safely analysed using a TLS channel that ends inside the enclave. The AI model can be uploaded and applied, then the result is sent securely.
+- [Prediction](../../index.md): Once remote attestation passes, the client can send data to be safely analysed using a TLS channel that ends inside the enclave. The AI model can be uploaded and applied, then the result is sent securely.
 
 ## Features
 

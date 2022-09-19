@@ -1,15 +1,16 @@
-# Quick start
+# 👋 Welcome
 
-BlindAI allows you to easily and quickly **deploy your AI models with privacy, all in Python**. 
+**BlindAI** is a **fast, easy-to-use,** and **confidential inference server**, allowing you to easily and quickly deploy your AI models with privacy, **all in Python**. Thanks to the **end-to-end protection guarantees**, data owners can send private data to be analyzed by AI models, without fearing exposing their data to anyone else.
+
 To interact with an AI model hosted on a remote secure enclave, we provide the `blindai.client` API. This client will:
 
 - check that we are talking to a genuine secure enclave with the right security features
 - upload an AI model that was previously converted to ONNX
 - query the model securely
 
-BlindAI is configured by default to connect to our [managed Cloud backend](mithril-cloud.md) to make it easy for users to upload and query models inside our secure enclaves. Even though we managed users AI models, thanks to the protection provided by the use of secure enclaves, data and models sent to our Cloud remain private. 
+BlindAI is configured by default to connect to our [managed Cloud backend](docs/mithril-cloud.md) to make it easy for users to upload and query models inside our secure enclaves. Even though we managed users AI models, thanks to the protection provided by the use of secure enclaves, data and models sent to our Cloud remain private. 
 
-You can also deploy BlindAI on [your own infra](deploy-on-premise.md).
+You can also deploy BlindAI on [your own infra](docs/deploy-on-premise.md).
 
 ### Installing BlindAI
 
@@ -19,7 +20,7 @@ BlindAI can easily be installed from [PyPI](https://pypi.org/project/blindai/):
 pip install blindai
 ```
 
-This package is enough for the deployment and querying of models on our managed infrastructure. For on-premise deployment, you will have to deploy our [Docker](https://hub.docker.com/u/mithrilsecuritysas) images, while you can build them yourself as demonstrated in [this section](advanced/build-from-sources/server.md), it is recommanded to start with the prebuilt images.
+This package is enough for the deployment and querying of models on our managed infrastructure. For on-premise deployment, you will have to deploy our [Docker](https://hub.docker.com/u/mithrilsecuritysas) images, while you can build them yourself as demonstrated in [this section](docs/advanced/build-from-sources/server.md), it is recommanded to start with the prebuilt images.
 
 ### Uploading a ResNet18
 

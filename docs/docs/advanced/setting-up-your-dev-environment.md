@@ -23,13 +23,7 @@ python setup.py install
 pip install -e .
 ```
 
-And check that everything is working fine by running the integration tests :
-```
-export BLINDAI_TEST_NO_HW=1
-cd ../tests
-pip install -r requirements.txt
-python -m unittest .
-```
+And try to build the server part, by following [this tutorial](build-from-sources/server.md#without-docker)
 
 ## Without Docker
 

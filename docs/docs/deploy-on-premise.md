@@ -122,7 +122,7 @@ You can also extract the default TLS certificate like this:
 
 ### Connect to the hardware mode server
 
-You can start from the python code of [the quick-start section](quick-start.md). You should then replace the instances of :
+You can start from the python code of [the quick-start section](../index.md). You should then replace the instances of :
 ```py
 client = BlindAiConnection(addr="localhost", simulation=True)
 ```
