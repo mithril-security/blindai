@@ -200,7 +200,7 @@ setuptools.setup(
     description="Client SDK for BlindAI Confidential Inference Server",
     license="Apache-2.0",
     long_description=read("README.md"),
-    long_description_content_type="text/markdown",
+    long_description_content_type="text/markdown; charset=UTF-8; variant=GFM",
     keywords="confidential computing inference client enclave sgx machine learning",
     url="https://github.com/mithril-security/blindai",
     project_urls={
@@ -215,8 +215,8 @@ setuptools.setup(
     install_requires=[
         "cryptography",
         "toml",
-        "grpcio>=1.4",
-        "grpcio-tools>=1.4",
+        "grpcio-tools==1.48.1",
+        "grpcio==1.48.1",
         "bitstring",
         "typing-extensions",
     ],
@@ -227,8 +227,8 @@ setuptools.setup(
             "wheel",
             "check-wheel-contents",
             "auditwheel",
-            "grpcio-tools==1.47",
-            "grpcio==1.47",
+            "grpcio-tools==1.48.1",
+            "grpcio==1.48.1",
         ]
     },
     classifiers=[

@@ -32,6 +32,10 @@ pub fn deserialize_tensor_bytes(
     shape: &[usize],
     data: &[u8],
 ) -> Result<Tensor> {
+    if shape.iter().product::<usize>() * TractDatumType::from(dt).size_of() != data.len() {
+        bail!("Deserialization error: Tensor of shape {:?} has {} bytes", shape, data.len())
+    }
+
     unsafe {
         match dt {
             ModelDatumType::U8 => Tensor::from_raw::<u8>(shape, data),
@@ -109,9 +113,9 @@ impl TryFrom<TractDatumType> for ModelDatumType {
     }
 }
 
-impl Into<TractDatumType> for ModelDatumType {
-    fn into(self) -> TractDatumType {
-        match self {
+impl From<ModelDatumType> for TractDatumType {
+    fn from(dt: ModelDatumType) -> TractDatumType {
+        match dt {
             ModelDatumType::F32 => TractDatumType::F32,
             ModelDatumType::F64 => TractDatumType::F64,
             ModelDatumType::I32 => TractDatumType::I32,

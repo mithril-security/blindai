@@ -70,4 +70,4 @@ nav:
   - 'docs/advanced/setting-up-your-dev-environment.md'
   - 'docs/advanced/blindai-project-structure.md'
 - 'docs/telemetry.md'
-- 'Client API reference': 'resources/blindai/client.html'
+- 'Client API reference': 'blindai/client.html'

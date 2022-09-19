@@ -1,8 +1,8 @@
 # requirements for building
 cryptography==37.0.4
 toml
-grpcio>=1.4
-grpcio-tools>=1.4
+grpcio==1.48.1
+grpcio-tools==1.48.1
 delvewheel==0.0.20
 bitstring
 pybind11
