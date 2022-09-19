@@ -65,6 +65,8 @@ pub struct BlindAIConfig {
     #[serde(default)]
     pub load_models: Vec<LoadModelConfig>,
     #[serde(default)]
+    pub custom_agent_id: Option<String>,
+    #[serde(default)]
     pub max_model_store: usize,
     #[serde(default)]
     pub send_inference_time: bool,
