@@ -188,7 +188,7 @@ with blindai.connect() as client:
   # Send data to the GPT2 model
   response = client.predict("resnet18", input_batch)
 
->>> response.output[0].argmax()
+>>> response.output[0].as_numpy().argmax()
 ```
 
 ### On-premise deployment
