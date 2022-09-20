@@ -316,6 +316,44 @@ EXPOSE 50051
 
 CMD ./blindai_app
 
+### build-software-low-memory: This image is used for building the app. Low memory profile will be used.
+FROM base-build AS build-software-low-memory
+
+COPY . ./server
+
+ENV SGX_MODE=SW
+
+RUN --mount=type=cache,id=SW-/root/server/target,target=/root/server/target \
+    --mount=type=cache,id=SW-/root/server/tmp,target=/root/server/tmp \
+    --mount=type=cache,target=/root/.xargo \
+    --mount=type=cache,target=/root/.cargo/git \
+    --mount=type=cache,target=/root/.cargo/registry \
+    make -C server SGX_MODE=SW LOW_MEMORY=1 all bin/tls/host_server.pem bin/tls/host_server.key && \
+    cp -r ./server/bin/* /root && \
+    cp ./server/policy.toml /root/policy.toml
+
+
+### software: This image is used for running the app. It is kept minimal and optimized for size
+FROM base AS software-low-memory
+
+# -- Copy built files from the build image
+COPY --from=build-software-low-memory \
+    /root/enclave.signed.so \
+    /root/blindai_app \
+    /root/config.toml \
+    /root/policy.toml \
+    /root
+COPY --from=build-software-low-memory \
+    /root/tls/ \
+    /root/tls/
+
+ENV SGX_MODE=SW
+
+EXPOSE 50052
+EXPOSE 50051
+
+CMD ./blindai_app
+
 ### vscode-dev-env: This image is used for developers to work on blindai with vscode remote containers extension
 
 FROM base-build AS dev-env

@@ -32,7 +32,7 @@ jobs:
           tags: mithrilsecuritysas/${{ matrix.image }}
           context: ./server
           file: ./server/docker/build.dockerfile
-          target: software
+          target: software-low-memory
           cache-from: type=gha
           cache-to: type=gha,mode=max
           outputs: type=docker,dest=/tmp/${{ matrix.image }}.tar
