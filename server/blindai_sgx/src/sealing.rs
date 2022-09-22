@@ -152,6 +152,7 @@ pub fn seal(
     )?;
 
     //write sealed data
+    fs::create_dir_all(path.parent().unwrap())?;
     Ok(fs::write(path, &model_data)?)
 }
 

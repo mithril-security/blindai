@@ -75,17 +75,41 @@ impl ModelStore {
         optim: bool,
         load_context: ModelLoadContext,
         owner_id: Option<usize>,
+        username: Option<&str>,
     ) -> Result<(String, Digest), ModelStoreError> {
-        let model_id = model_id.unwrap_or_else(|| Uuid::new_v4().to_string());
+        let model_id = model_id.unwrap_or_else(|| model_name.clone().unwrap_or_else(|| Uuid::new_v4().to_string()));
 
         let model_hash = digest::digest(&digest::SHA256, &model_bytes);
         info!("Model hash is {:?}", model_hash);
 
         let model_hash_vec = model_hash.as_ref().to_vec();
 
+        let model_id_path:Vec<&str> = model_id.split('/').collect();
+        if model_id_path.len() > 2 {
+            error!("Invalid model name {}", model_id);
+            return Err(ModelStoreError::from(anyhow!("Invalid model name")));
+        }
         let mut models_path = PathBuf::new();
         models_path.push(&self.config.models_path);
+        if let Some(username) = username {
+            if model_id_path.len() == 1 {
+                models_path.push(username);
+            }
+            if model_id_path.len() == 2 && model_id_path[0] != username {
+                error!("Trying to upload to an unauthorized namespace {}", model_id_path[0]);
+                return Err(ModelStoreError::from(anyhow!("Unauthorized namespace")));
+            }
+        }
         models_path.push(&model_id);
+        let mut model_id = if model_id_path.len() == 2 {
+            model_id_path[1].to_string()
+        }
+        else {
+            model_id
+        };
+        if save_model && self.config.allow_model_sealing {
+            model_id = model_id + "#" + &Uuid::new_v4().to_string();
+        }
 
         // Sealing
         if save_model {
@@ -255,6 +279,7 @@ impl ModelStore {
                             model.optim,
                             ModelLoadContext::FromSendModel,
                             model.owner_id,
+                            None,
                         )
                         .map_err(|err| anyhow!("Adding model failed: {:?}", err))?;
                         info!("Model {:?} loaded", model.model_id);

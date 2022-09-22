@@ -25,7 +25,7 @@ max_model_store = 3
 # Allow user to send a model, or only use the models already uploaded.
 allow_sendmodel = true
 
-# Allow model to be saved on disk and sealed
+# Allow model to be sealed when sealed on disk
 allow_model_sealing = false
 
 # Models to load on startup
