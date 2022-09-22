@@ -198,6 +198,7 @@ impl Exchange for Exchanger {
                 true, // todo: make optim configurable
                 ModelLoadContext::FromSendModel,
                 auth_ext.as_ref().and_then(|ext| ext.userid()),
+                auth_ext.as_ref().and_then(|ext| ext.username())
             )
             .map_err(|err| {
                 error!("Error while creating model: {:?}", err);
@@ -349,7 +350,9 @@ impl Exchange for Exchanger {
                 Status::invalid_argument("Tensor serialization error")
             })?;
 
-        if model_id.is_empty() {
+            
+        let model_id_path:Vec<&str> = model_id.split('/').collect();
+        if model_id.is_empty() || model_id_path.len() > 2 {
             return Err(Status::invalid_argument("Model doesn't exist"));
         }
 

@@ -30,7 +30,7 @@ pub fn setup() -> Result<()> {
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct JwtClaims {
-    // pub login: String,
+    pub username: String,
     pub userid: usize,
 
     // Expiration time (as UTC timestamp)
@@ -57,6 +57,10 @@ impl AuthExtension {
 
     pub fn userid(&self) -> Option<usize> {
         self.claims.as_ref().map(|c| c.userid)
+    }
+
+    pub fn username(&self) -> Option<&str> {
+        self.claims.as_ref().map(|c| c.username.as_ref())
     }
 }
 
