@@ -274,7 +274,10 @@ impl Exchange for Exchanger {
         request: Request<tonic::Streaming<RunModelRequest>>,
     ) -> Result<Response<RunModelReply>, Status> {
         let auth_ext = request.extensions().get::<AuthExtension>().cloned();
-
+        let username = match auth_ext.as_ref() {
+            Some(auth_ext) => auth_ext.username(),
+            None => None,
+        };
         let start_time = Instant::now();
 
         let mut input_tensors: Vec<TensorData> = Vec::new();
@@ -356,11 +359,11 @@ impl Exchange for Exchanger {
         }
 
         //if the model isn't on the server we try to load it from the disk
-        if !self.model_store.in_the_server(model_id.clone()) {
-            let _saved = self.model_store.unseal(model_id.clone());
+        if !self.model_store.in_the_server(model_id.clone(), username) {
+            let _saved = self.model_store.unseal(model_id.clone(), username);
         }
 
-        let res = self.model_store.use_model(&model_id, |model| {
+        let res = self.model_store.use_model(&model_id, username, |model| {
             (
                 model.run_inference(input_tensors.into()),
                 model.model_name().map(|e| e.to_string()),
@@ -478,9 +481,9 @@ impl Exchange for Exchanger {
             return Err(Status::invalid_argument("Model doesn't exist"));
         }
 
-        let user_id = if let Some(auth_ext) = auth_ext {
-            if let Some(userid) = auth_ext.userid() {
-                Some(userid)
+        let username = if let Some(auth_ext) = auth_ext.as_ref() {
+            if let Some(username) = auth_ext.username() {
+                Some(username)
             } else {
                 return Err(Status::unauthenticated("You must provide an api key"));
             }
@@ -489,7 +492,7 @@ impl Exchange for Exchanger {
         };
 
         // Delete the model
-        if self.model_store.delete_model(&model_id, user_id).is_none() {
+        if self.model_store.delete_model(&model_id, username).is_none() {
             error!("Model doesn't exist");
             return Err(Status::invalid_argument("Model doesn't exist"));
         }
