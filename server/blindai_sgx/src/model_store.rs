@@ -4,7 +4,6 @@ use crate::{
 };
 use std::{
     path::{Path, PathBuf},
-    sync::Weak,
 };
 
 use anyhow::{anyhow, Context, Result};
@@ -12,7 +11,6 @@ use blindai_common::{BlindAIConfig, LoadModelConfig, ModelFactsConfig};
 use log::*;
 use ring::digest::{self, Digest};
 use uuid::Uuid;
-use weak_table::{weak_value_hash_map, WeakValueHashMap};
 
 #[cfg(not(target_env = "sgx"))]
 use std::fs;
@@ -25,11 +23,11 @@ use std::sync::RwLock;
 use std::sync::SgxRwLock as RwLock;
 
 use std::{
-    collections::{hash_map::Entry, HashMap},
+    collections::{HashMap},
     sync::Arc,
 };
 
-use crate::model::{InferModel, TensorFacts, TractModel};
+use crate::model::{InferModel, TensorFacts};
 
 #[derive(Debug)]
 pub enum ModelStoreError {
@@ -46,8 +44,6 @@ impl From<anyhow::Error> for ModelStoreError {
 #[derive(Default)]
 struct InnerModelStore {
     models_by_id: HashMap<String, Arc<InferModel>>,
-    models_by_user: HashMap<usize, Arc<InferModel>>, // this should be a multimap
-    onnx_by_hash: WeakValueHashMap<Vec<u8>, Weak<TractModel>>,
 }
 
 /// This is where model are stored.
@@ -82,31 +78,16 @@ impl ModelStore {
         let model_hash = digest::digest(&digest::SHA256, &model_bytes);
         info!("Model hash is {:?}", model_hash);
 
-        let model_hash_vec = model_hash.as_ref().to_vec();
-
-        let model_id_path:Vec<&str> = model_id.split('/').collect();
-        if model_id_path.len() > 2 {
-            error!("Invalid model name {}", model_id);
-            return Err(ModelStoreError::from(anyhow!("Invalid model name")));
-        }
         let mut models_path = PathBuf::new();
         models_path.push(&self.config.models_path);
-        if let Some(username) = username {
-            if model_id_path.len() == 1 {
-                models_path.push(username);
-            }
-            if model_id_path.len() == 2 && model_id_path[0] != username {
-                error!("Trying to upload to an unauthorized namespace {}", model_id_path[0]);
-                return Err(ModelStoreError::from(anyhow!("Unauthorized namespace")));
-            }
-        }
-        models_path.push(&model_id);
-        let mut model_id = if model_id_path.len() == 2 {
-            model_id_path[1].to_string()
-        }
-        else {
-            model_id
+        let mut model_id = match key_from_id_and_username(&model_id, username, true) {
+            Some(id) => id,
+            None => {
+                error!("Invalid model name");
+                return Err(ModelStoreError::from(anyhow!("Invalid model name")));
+            },
         };
+        models_path.push(&model_id);
         if save_model && self.config.allow_model_sealing {
             model_id = model_id + "#" + &Uuid::new_v4().to_string();
         }
@@ -143,146 +124,68 @@ impl ModelStore {
             );
         }
 
-        // Create an entry in the hashmap and in the dedup map
+        // Create an entry in the hashmap
         {
+            let model = Arc::new(InferModel::load_model(
+                &model_bytes,
+                model_id.clone(),
+                model_name,
+                model_hash,
+                input_facts,
+                output_facts,
+                optim,
+                load_context,
+                owner_id,
+            )?);
+
             // take the write lock
             let mut write_guard = self.inner.write().unwrap();
-
-            // remove a model store if the store is full (FIFO)
-            let model_id_currently_store = write_guard.models_by_id.len();
-            info!(
-                "Max number of models allowed to be in memory at once: {:?}, Current number of models in memory: {:?}",
-                self.config.max_model_store, model_id_currently_store
-            );
-
-            // We check if the model store is full regarding the hashmap for the model
-            // and we release space if necessary
-            if self.config.max_model_store != 0
-                && model_id_currently_store >= self.config.max_model_store
-            {
-                let (key, _) = write_guard
-                    .models_by_id
-                    .iter()
-                    .find(|(_, model)| model.load_context() == ModelLoadContext::FromSendModel)
-                    .context(
-                        "Too many models in memory at once, and unable to remove any of them.",
-                    )?;
-                let key = key.clone(); // key is a borrow in write_guard, clone is required since remove takes &mut
-                write_guard.models_by_id.remove(&key);
-            }
-
-            // HashMap entry api requires only one lookup and should be prefered than .get()
-            // followed with .insert()
-
-            // deduplication support
-            let model = match write_guard.onnx_by_hash.entry(model_hash_vec.clone()) {
-                weak_value_hash_map::Entry::Occupied(entry) => {
-                    let tract_model = entry.get_strong();
-                    info!("Reusing an existing ONNX entry for model.");
-                    InferModel::from_onnx_loaded(
-                        tract_model.clone(),
-                        model_id.clone(),
-                        model_name,
-                        model_hash,
-                        owner_id,
-                    )
-                }
-                weak_value_hash_map::Entry::Vacant(entry) => {
-                    info!("Creating a new ONNX entry for model.");
-                    // FIXME(cchudant): this call may take a while to run, we may want to refactor
-                    // this so that the lock isn't taken here
-                    let inference_model = InferModel::load_model(
-                        &model_bytes,
-                        model_id.clone(),
-                        model_name,
-                        model_hash,
-                        input_facts,
-                        output_facts,
-                        optim,
-                        load_context,
-                        owner_id,
-                    )?;
-                    entry.insert(inference_model.model.clone());
-                    inference_model
-                }
-            };
-            let model = Arc::new(model);
-
-            // actual hashmap insertion
-            match write_guard.models_by_id.entry(model_id.clone()) {
-                Entry::Occupied(_) => {
-                    error!(
-                        "Name collision: model with name ({}) already exists.",
-                        model_id
-                    );
-                    return Err(ModelStoreError::NameCollision)?;
-                }
-                Entry::Vacant(entry) => entry.insert(model.clone()),
-            };
-
-            // owner id map
-            if let Some(owner_id) = owner_id {
-                match write_guard.models_by_user.entry(owner_id) {
-                    Entry::Occupied(mut entry) => {
-                        let old_model = entry.insert(model);
-
-                        match write_guard
-                            .models_by_id
-                            .entry(old_model.model_id().to_string())
-                        {
-                            Entry::Occupied(entry) => {
-                                entry.remove();
-                            }
-                            _ => {}
-                        }
-                    }
-                    Entry::Vacant(entry) => {
-                        entry.insert(model);
-                    }
-                }
-            }
+            write_guard.models_by_id.insert(model_id.clone(), model);
         }
 
         Ok((model_id, model_hash))
     }
 
     // Check if model is in the already in the server or no
-    pub fn in_the_server(&self, id_to_fetch: String) -> bool {
+    pub fn in_the_server(&self, id_to_fetch: String, username: Option<&str>) -> bool {
         let read_guard = self.inner.read().unwrap();
 
-        let find = match read_guard.models_by_id.get(&id_to_fetch.to_string()) {
-            Some(_model) => true,
+        match key_from_id_and_username(&id_to_fetch, username, self.config.allow_model_sealing) {
+            Some(key) => match read_guard.models_by_id.get(&key) {
+                Some(_model) => true,
+                None => false,
+            }
             None => false,
-        };
-
-        find
+        }
     }
 
     //Unseal function that unseal the model if we find it in the seal model, and
     // return true or false if we find it.
-    pub fn unseal(&self, id_to_fetch: String) -> Result<()> {
-        // take a read lock
-        if let Ok(paths) = fs::read_dir(&self.config.models_path) {
-            for path in paths {
-                let path = path?;
-                if let Ok(model) =
-                    sealing::unseal(path.path().as_path(), self.config.allow_model_sealing)
-                {
-                    if id_to_fetch == model.model_id.clone() {
-                        self.add_model(
-                            &model.model_bytes,
-                            model.model_name,
-                            Some(model.model_id.clone()),
-                            &model.input_facts,
-                            &model.output_facts,
-                            false,
-                            model.optim,
-                            ModelLoadContext::FromSendModel,
-                            model.owner_id,
-                            None,
-                        )
-                        .map_err(|err| anyhow!("Adding model failed: {:?}", err))?;
-                        info!("Model {:?} loaded", model.model_id);
+    pub fn unseal(&self, id_to_fetch: String, username: Option<&str>) -> Result<()> {
+        if let Some(id_to_fetch) = key_from_id_and_username(&id_to_fetch, username, self.config.allow_model_sealing) {
+            // take a read lock
+            if let Ok(paths) = fs::read_dir(&self.config.models_path) {
+                for path in paths {
+                    let path = path?;
+                    if let Ok(model) =
+                        sealing::unseal(path.path().as_path(), self.config.allow_model_sealing)
+                    {
+                        if id_to_fetch == model.model_id.clone() {
+                            self.add_model(
+                                &model.model_bytes,
+                                model.model_name,
+                                Some(model.model_id.clone()),
+                                &model.input_facts,
+                                &model.output_facts,
+                                false,
+                                model.optim,
+                                ModelLoadContext::FromSendModel,
+                                model.owner_id,
+                                None,
+                            )
+                            .map_err(|err| anyhow!("Adding model failed: {:?}", err))?;
+                            info!("Model {:?} loaded", model.model_id);
+                        }
                     }
                 }
             }
@@ -290,45 +193,27 @@ impl ModelStore {
         Ok(())
     }
 
-    pub fn use_model<U>(&self, model_id: &str, fun: impl FnOnce(&InferModel) -> U) -> Option<U> {
-        // take a read lock
-        let read_guard = self.inner.read().unwrap();
+    pub fn use_model<U>(&self, model_id: &str, username: Option<&str>, fun: impl FnOnce(&InferModel) -> U) -> Option<U> {
+        if let Some(key) = key_from_id_and_username(model_id, username, self.config.allow_model_sealing) {
+            // take a read lock
+            let read_guard = self.inner.read().unwrap();
 
-        match read_guard.models_by_id.get(model_id) {
-            Some(model) => Some(fun(model)),
-            None => None,
+            return match read_guard.models_by_id.get(&key) {
+                Some(model) => Some(fun(model)),
+                None => None,
+            };
         }
+        None
     }
 
     /// If user_id is provided, it will fail if the model is not owned by this
     /// user. This will never remove startup models.
-    pub fn delete_model(&self, model_id: &str, user_id: Option<usize>) -> Option<Arc<InferModel>> {
-        let mut write_guard = self.inner.write().unwrap();
-
-        let model = match write_guard.models_by_id.entry(model_id.to_string()) {
-            Entry::Occupied(entry) => {
-                if entry.get().load_context() == ModelLoadContext::FromStartupConfig {
-                    return None;
-                }
-                if !user_id.is_none() && entry.get().owner_id() != user_id {
-                    return None;
-                }
-
-                entry.remove()
-            }
-            Entry::Vacant(_) => return None,
-        };
-
-        if let Some(owner_id) = model.owner_id() {
-            match write_guard.models_by_user.entry(owner_id) {
-                Entry::Occupied(entry) => {
-                    entry.remove_entry();
-                }
-                _ => {}
-            }
+    pub fn delete_model(&self, model_id: &str, username: Option<&str>) -> Option<Arc<InferModel>> {
+        if let Some(key) = key_from_id_and_username(model_id, username, self.config.allow_model_sealing) {
+            let mut write_guard = self.inner.write().unwrap();
+            return write_guard.models_by_id.remove(&key);
         }
-
-        Some(model)
+        None
     }
 
     pub fn check_seal_file_exist(&self) -> Result<()> {
@@ -393,4 +278,21 @@ impl ModelStore {
 
         Ok(())
     }
+}
+
+pub fn key_from_id_and_username(model_id: &str, username: Option<&str>, private: bool) -> Option<String> {
+    let split_model_id: Vec<&str> = model_id.split('/').collect();
+    if split_model_id.len() > 2 {
+        return None;
+    }
+    if split_model_id.len() == 2 {
+        if private == true && split_model_id[0] != username.unwrap_or_default() {
+            return None;
+        }
+        return Some(model_id.to_owned());
+    }
+    if let Some(username) = username {
+        return Some(username.to_owned() + "/" + model_id);
+    }
+    Some(model_id.to_owned())
 }
