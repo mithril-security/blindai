@@ -217,6 +217,7 @@ setuptools.setup(
         "toml",
         "grpcio-tools==1.48.1",
         "grpcio==1.48.1",
+        "protobuf==3.20.1",
         "bitstring",
         "typing-extensions",
     ],
