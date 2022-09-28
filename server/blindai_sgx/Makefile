@@ -102,8 +102,12 @@ else
 endif
 	@echo "\033[32mGenerating keys and signing the enclave...\033[0m"
 	@mkdir -p $(BIN)
-	@openssl rsa -in Enclave_private.pem -pubout -out Enclave_public.pem
+ifeq ($(LOW_MEMORY), 1)
+	@echo "\033[32mLow memory mode requested.\033[0m"
+	@$(SGX_ENCLAVE_SIGNER) sign -key $(SRC_T)Enclave_private.pem -enclave $(BIN_T) -out $@ -config $(SRC_T)Enclave.low_memory.xml -dumpfile enclave.meta.txt
+else
 	@$(SGX_ENCLAVE_SIGNER) sign -key $(SRC_T)Enclave_private.pem -enclave $(BIN_T) -out $@ -config $(SRC_T)Enclave.config.xml -dumpfile enclave.meta.txt
+endif
 
 
 ../bin/config.toml:
@@ -111,6 +115,7 @@ endif
 
 Enclave_private.pem:
 	@openssl genrsa -out Enclave_private.pem -3 3072
+	@openssl rsa -in Enclave_private.pem -pubout -out Enclave_public.pem
 
 $(BIN_T): $(NAME_T_D)
 	@echo "\033[32mBuilding the enclave...\033[0m"

@@ -1,8 +1,9 @@
+<!-- Please refer to User's Guide for the explanation of each field -->
 <EnclaveConfiguration>
   <ProdID>0</ProdID>
   <ISVSVN>0</ISVSVN>
   <StackMaxSize>0x400000</StackMaxSize>
-  <HeapMaxSize>0x18DDBB000</HeapMaxSize>
+  <HeapMaxSize>0x8ED00000</HeapMaxSize>
   <TCSNum>24</TCSNum>
   <TCSPolicy>0</TCSPolicy>
   <DisableDebug>0</DisableDebug>

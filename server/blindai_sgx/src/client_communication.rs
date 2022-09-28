@@ -89,7 +89,7 @@ impl Exchange for Exchanger {
         if self.config.send_model_requires_auth
             && (auth_ext.is_none() || !auth_ext.as_ref().unwrap().is_logged())
         {
-            return Err(Status::permission_denied("You must be logged"));
+            return Err(Status::permission_denied("You must be logged in"));
         }
 
         let start_time = Instant::now();
@@ -264,6 +264,7 @@ impl Exchange for Exchanger {
                 time_taken: elapsed.as_secs_f64(),
             },
             client_info,
+            auth_ext.as_ref().and_then(|ext| ext.userid()),
         );
 
         Ok(Response::new(reply))
@@ -440,6 +441,7 @@ impl Exchange for Exchanger {
 
         // Log and telemetry
         let userid = auth_ext
+            .as_ref()
             .and_then(|e| e.userid())
             .map(|id| format!("{}", id));
         info!(
@@ -464,6 +466,7 @@ impl Exchange for Exchanger {
                 time_taken: elapsed.as_secs_f64(),
             },
             client_info,
+            auth_ext.as_ref().and_then(|ext| ext.userid()),
         );
 
         Ok(Response::new(reply))

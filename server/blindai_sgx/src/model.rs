@@ -33,7 +33,11 @@ pub fn deserialize_tensor_bytes(
     data: &[u8],
 ) -> Result<Tensor> {
     if shape.iter().product::<usize>() * TractDatumType::from(dt).size_of() != data.len() {
-        bail!("Deserialization error: Tensor of shape {:?} has {} bytes", shape, data.len())
+        bail!(
+            "Deserialization error: Tensor of shape {:?} has {} bytes",
+            shape,
+            data.len()
+        )
     }
 
     unsafe {
