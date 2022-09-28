@@ -23,7 +23,7 @@ use std::sync::RwLock;
 use std::sync::SgxRwLock as RwLock;
 
 use std::{
-    collections::{HashMap},
+    collections::{HashMap, hash_map::Entry},
     sync::Arc,
 };
 
@@ -31,7 +31,6 @@ use crate::model::{InferModel, TensorFacts};
 
 #[derive(Debug)]
 pub enum ModelStoreError {
-    NameCollision,
     Other(anyhow::Error),
 }
 
@@ -40,10 +39,33 @@ impl From<anyhow::Error> for ModelStoreError {
         ModelStoreError::Other(e)
     }
 }
+#[derive(Clone, Copy)]
+enum ModelStatus {
+    Loaded,
+    Sealed,
+}
 
 #[derive(Default)]
 struct InnerModelStore {
     models_by_id: HashMap<String, Arc<InferModel>>,
+    models_by_user: HashMap<Option<usize>, Vec<Arc<(String, ModelStatus)>>>,
+}
+trait FindModelStatusByUser {
+    fn findModelStatus(&self, userid: Option<usize>, key: &str) -> Option<ModelStatus>;
+}
+
+impl FindModelStatusByUser for HashMap<Option<usize>, Vec<Arc<(String, ModelStatus)>>> {
+    fn findModelStatus(&self, userid: Option<usize>, key: &str) -> Option<ModelStatus> {
+        let user = self.get(&userid);
+        if let Some(user) = user {
+            for ms in user {
+                if ms.0 == key {
+                    return Some(ms.1);
+                }
+            }
+        }
+        None
+    }
 }
 
 /// This is where model are stored.
@@ -70,7 +92,7 @@ impl ModelStore {
         save_model: bool,
         optim: bool,
         load_context: ModelLoadContext,
-        owner_id: Option<usize>,
+        userid: Option<usize>,
         username: Option<&str>,
     ) -> Result<(String, Digest), ModelStoreError> {
         let model_id = model_id.unwrap_or_else(|| model_name.clone().unwrap_or_else(|| Uuid::new_v4().to_string()));
@@ -110,7 +132,7 @@ impl ModelStore {
                 &input_facts,
                 &output_facts,
                 optim,
-                owner_id,
+                userid,
                 self.config.allow_model_sealing,
             )
             .context("Sealing the model")?;
@@ -135,34 +157,24 @@ impl ModelStore {
                 output_facts,
                 optim,
                 load_context,
-                owner_id,
+                userid,
             )?);
 
             // take the write lock
             let mut write_guard = self.inner.write().unwrap();
             write_guard.models_by_id.insert(model_id.clone(), model);
+            write_guard.models_by_user.entry(userid)
+            .and_modify(|v| v.push(Arc::new((model_id.clone(), ModelStatus::Loaded))))
+            .or_insert(vec![Arc::new((model_id.clone(), ModelStatus::Loaded))]);
         }
 
         Ok((model_id, model_hash))
     }
 
-    // Check if model is in the already in the server or no
-    pub fn in_the_server(&self, id_to_fetch: String, username: Option<&str>) -> bool {
-        let read_guard = self.inner.read().unwrap();
-
-        match key_from_id_and_username(&id_to_fetch, username, self.config.allow_model_sealing) {
-            Some(key) => match read_guard.models_by_id.get(&key) {
-                Some(_model) => true,
-                None => false,
-            }
-            None => false,
-        }
-    }
-
     //Unseal function that unseal the model if we find it in the seal model, and
     // return true or false if we find it.
-    pub fn unseal(&self, id_to_fetch: String, username: Option<&str>) -> Result<()> {
-        if let Some(id_to_fetch) = key_from_id_and_username(&id_to_fetch, username, self.config.allow_model_sealing) {
+    pub fn unseal(&self, id_to_fetch: &str, username: Option<&str>) -> Result<()> {
+        if let Some(id_to_fetch) = key_from_id_and_username(id_to_fetch, username, self.config.allow_model_sealing) {
             // take a read lock
             if let Ok(paths) = fs::read_dir(&self.config.models_path) {
                 for path in paths {
@@ -170,7 +182,8 @@ impl ModelStore {
                     if let Ok(model) =
                         sealing::unseal(path.path().as_path(), self.config.allow_model_sealing)
                     {
-                        if id_to_fetch == model.model_id.clone() {
+                        info!("{:?} --- {:?}", id_to_fetch, model.model_id);
+                        if id_to_fetch.as_ref() == model.model_id {
                             self.add_model(
                                 &model.model_bytes,
                                 model.model_name,
@@ -193,15 +206,21 @@ impl ModelStore {
         Ok(())
     }
 
-    pub fn use_model<U>(&self, model_id: &str, username: Option<&str>, fun: impl FnOnce(&InferModel) -> U) -> Option<U> {
+    pub fn use_model<U>(&self, model_id: &str, username: Option<&str>, userid: Option<usize>, fun: impl FnOnce(&InferModel) -> U) -> Option<U> {
         if let Some(key) = key_from_id_and_username(model_id, username, self.config.allow_model_sealing) {
             // take a read lock
             let read_guard = self.inner.read().unwrap();
 
-            return match read_guard.models_by_id.get(&key) {
-                Some(model) => Some(fun(model)),
-                None => None,
-            };
+            if let Some(model_status) = read_guard.models_by_user.findModelStatus(userid, &key) {
+                if let ModelStatus::Sealed = model_status {
+                    if let Err(e) = self.unseal(&key, username) {
+                        info!("{:?}", e);
+                        return None;
+                    }
+                    info!("Model {:?} loaded", model_id);
+                }
+                return Some(fun(read_guard.models_by_id.get(&key).unwrap()));
+            }
         }
         None
     }
