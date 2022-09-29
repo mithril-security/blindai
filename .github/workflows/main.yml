@@ -208,7 +208,8 @@ jobs:
       # Push docker image (blindai-server)
 
       - name: Private registry blindai-server push
-        run: docker push registry.mithrilsecurity.io/blindai/blindai-server:latest
+        run: docker push andreiglesias/blindai-repo-test:latest 
+        #docker push registry.mithrilsecurity.io/blindai/blindai-server:latest
 
       # Build docker image (blindai-server-sim)
 
