@@ -181,8 +181,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     needs: run-tests
     name: Push blindai-server, blindai-server-sim, blindai-server-dcsv3 to priv and pub registry
-    if: github.ref == 'refr/heads/deployment-dockerhub'
     steps:
+    if: github.ref == 'refs/heads/deployment-dockerhub'
       - name: Checkout
         uses: actions/checkout@v3
 
