@@ -156,11 +156,11 @@ jobs:
         run: pip install /tmp/client-artifacts/*.whl
 
       # Run tests
-      
+
       - name: Launch server
         run: |
           docker kill -f app > /dev/null 2>&1 || true
-          docker run --rm -d -e BLINDAI_DISABLE_TELEMETRY=1 -p 50051:50051 -p 50052:50052 --name app mithrilsecuritysas/${{ matrix.serverImage }}:latest 
+          docker run --rm -d -e BLINDAI_DISABLE_TELEMETRY=1 -p 50051:50051 -p 50052:50052 --name app mithrilsecuritysas/${{ matrix.serverImage }}:latest
 
       - name: Copy policy and certificate
         run: |
@@ -173,3 +173,71 @@ jobs:
           BLINDAI_TEST_NO_LAUNCH_SERVER: 'true'
           BLINDAI_TEST_NO_HW: 'true'
           BLINDAI_TEST_SKIP_COVIDNET: 'true'
+
+  push-docker:
+    name: Push blindai-server, blindai-server-sim, blindai-server-dcsv3 to priv and pub registry
+    if: github.ref == 'refr/heads/deployment-dockerhub'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      # Login
+
+      - name: Login to registry.mithrilsecurity.io
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.REGISTRY_PRIV_USR }}
+          password: ${{ secrets.REGISTRY_PRIV_PWD }}
+
+      # Build docker image (blindai-server)
+
+      - name: Build blindai-server
+        run: |
+          cd server
+          make init
+          DOCKER_BUILDKIT=1 docker build \
+            --target hardware \
+            -t mithrilsecuritysas/blindai-server:latest \
+            -f ./docker/build.dockerfile \
+            .
+
+      # Push docker image (blindai-server)
+
+      - name: Private registry blindai-server push
+        run: docker push registry.mithrilsecurity.io/blindai/blindai-server:latest
+
+      # Build docker image (blindai-server-sim)
+
+      - name: Build blindai-server-sim
+        run: |
+          cd server
+          make init
+          DOCKER_BUILDKIT=1 docker build \
+            --target software \
+            -t mithrilsecuritysas/blindai-server-sim:latest \
+            -f ./docker/build.dockerfile \
+            .
+
+      # Push docker image (blindai-server-sim)
+
+      - name: Private registry blindai-server-sim push
+        run: docker push registry.mithrilsecurity.io/blindai/blindai-server-sim:latest
+
+
+      # Build docker image (blindai-server-dcsv3)
+
+      - name: Build blindai-server-dcsv3
+        run: |
+          cd server
+          make init
+          DOCKER_BUILDKIT=1 docker build \
+            --target hardware-dcsv3 \
+            -t mithrilsecuritysas/blindai-server-dcsv3:latest \
+            -f ./docker/build.dockerfile \
+            .
+
+      # Push docker image (blindai-server-dcsv3)
+
+      - name: Private registry blindai-server-dcsv3 push
+        run: docker push registry.mithrilsecurity.io/blindai/blindai-server-dcsv3:latest
