@@ -205,7 +205,10 @@ jobs:
             -t ${{ secrets.REGISTRY_PRIV_USR }}/blindai-server:latest \
             -f ./docker/build.dockerfile \
             .
-          docker run --rm ${{ secrets.REGISTRY_PRIV_USR }}/blindai-server:latest cat /root/policy.toml > ../examples/policy.toml
+
+      - name: Copy policy
+        run: |
+          docker run --rm ${{ secrets.REGISTRY_PRIV_USR }}/blindai-server:latest cat /root/policy.toml > examples/policy.toml
 
       # Push docker image (blindai-server)
 
