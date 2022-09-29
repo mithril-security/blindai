@@ -179,16 +179,12 @@ jobs:
       matrix:
         os: [ubuntu-latest]
     runs-on: ${{ matrix.os }}
-    #needs: run-tests
+    needs: run-tests
     name: Push blindai-server, blindai-server-sim, blindai-server-dcsv3 to priv and pub registry
     if: github.ref == 'refs/heads/deployment-dockerhub'
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-
-      - name: Copy TEST
-        run: |
-          echo "TEST" > TEST
 
       # Login
 
