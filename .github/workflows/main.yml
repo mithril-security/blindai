@@ -176,7 +176,6 @@ jobs:
 
   push-docker:
     name: Push blindai-server, blindai-server-sim, blindai-server-dcsv3 to priv and pub registry
-    if: github.ref == 'refr/heads/deployment-dockerhub'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
