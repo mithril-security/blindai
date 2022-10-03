@@ -214,10 +214,11 @@ jobs:
       # Commit and push the policy
 
       - name: Commit and push the policy
-        uses: devops-infra/action-commit-push@master
+        uses: maxgfr/github-commit-push-file@main
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          commit_message: 'Update blindai-server policy'
+          commit_name: 'fix: add new line to sha.txt'
+          #github_token: ${{ secrets.GITHUB_TOKEN }}
+          #commit_message: 'Update blindai-server policy'
 
       # Push docker image (blindai-server)
 
@@ -239,7 +240,7 @@ jobs:
 
       # Push docker image (blindai-server-sim)
 
-      - name: Dockerhub Push blindai-server-sim
+      - name: Dockerhub Push - blindai-server-sim
         run: docker push ${{ secrets.REGISTRY_PRIV_USR }}/blindai-server-sim:latest 
         # docker push registry.mithrilsecurity.io/blindai/blindai-server-sim:latest
 
@@ -258,6 +259,10 @@ jobs:
 
       # Push docker image (blindai-server-dcsv3)
 
+<<<<<<< HEAD
       - name: Dockerhub Push - blindai-server-dcsv3
+=======
+>>>>>>> deployment-dockerhub
         run: docker push ${{ secrets.REGISTRY_PRIV_USR }}/blindai-server-dcsv3:latest 
+      - name: Dockerhub Push - blindai-server-dcsv3
         #docker push registry.mithrilsecurity.io/blindai/blindai-server-dcsv3:latest
