@@ -206,9 +206,18 @@ jobs:
             -f ./docker/build.dockerfile \
             .
 
+      # Copy policy
+
       - name: Copy policy
         run: |
           docker run --rm ${{ secrets.REGISTRY_PRIV_USR }}/blindai-server:latest cat /root/policy.toml > examples/policy.toml
+
+      # Commit and push the file
+
+      - name: Commit and push the policy
+        uses: maxgfr/github-commit-push-file@main
+        with:
+          commit_name: 'Update blindai-server policy'
 
       # Push docker image (blindai-server)
 
