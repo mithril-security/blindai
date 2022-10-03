@@ -221,7 +221,7 @@ jobs:
 
       # Push docker image (blindai-server)
 
-      - name: [Dockerhub Push] blindai-server
+      - name: \[Dockerhub Push\] blindai-server
         run: docker push ${{ secrets.REGISTRY_PRIV_USR }}/blindai-server:latest 
         #docker push registry.mithrilsecurity.io/blindai/blindai-server:latest
 
@@ -239,7 +239,7 @@ jobs:
 
       # Push docker image (blindai-server-sim)
 
-      - name: [Dockerhub Push] blindai-server-sim
+      - name: \[Dockerhub Push\] blindai-server-sim
         run: docker push ${{ secrets.REGISTRY_PRIV_USR }}/blindai-server-sim:latest 
         # docker push registry.mithrilsecurity.io/blindai/blindai-server-sim:latest
 
@@ -258,6 +258,6 @@ jobs:
 
       # Push docker image (blindai-server-dcsv3)
 
-      - name: [Dockerhub Push] blindai-server-dcsv3
         run: docker push ${{ secrets.REGISTRY_PRIV_USR }}/blindai-server-dcsv3:latest 
+      - name: \[Dockerhub Push\] blindai-server-dcsv3
         #docker push registry.mithrilsecurity.io/blindai/blindai-server-dcsv3:latest
