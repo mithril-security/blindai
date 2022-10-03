@@ -179,8 +179,8 @@ jobs:
       matrix:
         os: [ubuntu-latest]
     runs-on: ${{ matrix.os }}
-    needs: run-tests
-    #if: github.ref == 'refs/heads/deployment-dockerhub'
+    #needs: run-tests
+    if: github.ref == 'refs/heads/deployment-dockerhub'
     steps:
       - name: Checkout
         uses: actions/checkout@v3
