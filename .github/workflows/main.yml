@@ -179,7 +179,7 @@ jobs:
       matrix:
         os: [ubuntu-latest]
     runs-on: ${{ matrix.os }}
-    #sneeds: run-tests
+    needs: run-tests
     if: github.ref == 'refs/heads/deployment-dockerhub'
     steps:
       - name: Checkout
@@ -215,11 +215,9 @@ jobs:
 
       - name: Commit and push the policy
         uses: devops-infra/action-commit-push@master
-        #uses: maxgfr/github-commit-push-file@main
         with:
-          #commit_name: 'Update blindai-server policy'
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          commit_message: Replaced foo with bar
+          commit_message: Update blindai-server policy
 
       # Push docker image (blindai-server)
 
