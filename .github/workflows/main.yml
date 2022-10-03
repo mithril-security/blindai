@@ -205,9 +205,9 @@ jobs:
             -f ./docker/build.dockerfile \
             .
 
-      # Copy policy
+      # Update policy
 
-      - name: Copy policy
+      - name: Update policy
         run: |
           docker run --rm ${{ secrets.REGISTRY_PRIV_USR }}/blindai-server:latest cat /root/policy.toml > examples/policy.toml
 
