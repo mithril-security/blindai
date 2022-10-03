@@ -214,9 +214,12 @@ jobs:
       # Commit and push the file
 
       - name: Commit and push the policy
-        uses: maxgfr/github-commit-push-file@main
+        uses: devops-infra/action-commit-push@master
+        #uses: maxgfr/github-commit-push-file@main
         with:
-          commit_name: 'Update blindai-server policy'
+          #commit_name: 'Update blindai-server policy'
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          commit_message: Replaced foo with bar
 
       # Push docker image (blindai-server)
 
