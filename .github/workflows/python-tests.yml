@@ -38,7 +38,7 @@ jobs:
           python3 -m coverage xml
 
       - name: Coverage report
-        uses: orgoro/coverage@v2
+        uses: orgoro/coverage@v3
         with:
           coverageFile: client/coverage.xml
           token: ${{ secrets.GITHUB_TOKEN }}
