@@ -179,8 +179,7 @@ jobs:
       matrix:
         os: [ubuntu-latest]
     runs-on: ${{ matrix.os }}
-    needs: run-tests
-    name: Push blindai-server, blindai-server-sim, blindai-server-dcsv3 to priv and pub registry
+    #needs: run-tests
     if: github.ref == 'refs/heads/deployment-dockerhub'
     steps:
       - name: Checkout
@@ -188,7 +187,7 @@ jobs:
 
       # Login
 
-      - name: Login to registry.mithrilsecurity.io
+      - name: Login to Dockerhub
         uses: docker/login-action@v1
         with:
           username: ${{ secrets.REGISTRY_PRIV_USR }}
@@ -206,13 +205,23 @@ jobs:
             -f ./docker/build.dockerfile \
             .
 
-      - name: Copy policy
+      # Update policy
+
+      - name: Update policy
         run: |
           docker run --rm ${{ secrets.REGISTRY_PRIV_USR }}/blindai-server:latest cat /root/policy.toml > examples/policy.toml
 
+      # Commit and push the policy
+
+      - name: Commit and push the policy
+        uses: devops-infra/action-commit-push@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          commit_message: 'Update blindai-server policy'
+
       # Push docker image (blindai-server)
 
-      - name: Private registry blindai-server push
+      - name: [Dockerhub Push] blindai-server
         run: docker push ${{ secrets.REGISTRY_PRIV_USR }}/blindai-server:latest 
         #docker push registry.mithrilsecurity.io/blindai/blindai-server:latest
 
@@ -230,7 +239,7 @@ jobs:
 
       # Push docker image (blindai-server-sim)
 
-      - name: Private registry blindai-server-sim push
+      - name: [Dockerhub Push] blindai-server-sim
         run: docker push ${{ secrets.REGISTRY_PRIV_USR }}/blindai-server-sim:latest 
         # docker push registry.mithrilsecurity.io/blindai/blindai-server-sim:latest
 
@@ -249,6 +258,6 @@ jobs:
 
       # Push docker image (blindai-server-dcsv3)
 
-      - name: Private registry blindai-server-dcsv3 push
+      - name: [Dockerhub Push] blindai-server-dcsv3
         run: docker push ${{ secrets.REGISTRY_PRIV_USR }}/blindai-server-dcsv3:latest 
         #docker push registry.mithrilsecurity.io/blindai/blindai-server-dcsv3:latest
