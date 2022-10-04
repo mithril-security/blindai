@@ -105,6 +105,9 @@ endif
 ifeq ($(LOW_MEMORY), 1)
 	@echo "\033[32mLow memory mode requested.\033[0m"
 	@$(SGX_ENCLAVE_SIGNER) sign -key $(SRC_T)Enclave_private.pem -enclave $(BIN_T) -out $@ -config $(SRC_T)Enclave.low_memory.xml -dumpfile enclave.meta.txt
+else ifeq ($(HIGH_MEMORY), 1)
+	@echo "\033[32mHigh memory mode requested.\033[0m"
+	@$(SGX_ENCLAVE_SIGNER) sign -key $(SRC_T)Enclave_private.pem -enclave $(BIN_T) -out $@ -config $(SRC_T)Enclave.high_memory.xml -dumpfile enclave.meta.txt
 else
 	@$(SGX_ENCLAVE_SIGNER) sign -key $(SRC_T)Enclave_private.pem -enclave $(BIN_T) -out $@ -config $(SRC_T)Enclave.config.xml -dumpfile enclave.meta.txt
 endif

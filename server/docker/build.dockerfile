@@ -9,6 +9,8 @@
 #       * copies binaries from build-hardware
 #  \-> hardware-dcsv3
 #       * copies binaries from build-hardware
+#  \-> hardware-cloud
+#       * copies binaries from build-hardware
 #
 # Check <https://docs.mithrilsecurity.io/started/installation> for more info
 
@@ -264,6 +266,69 @@ COPY --from=build-hardware \
     /root/policy.toml \
     /root
 COPY --from=build-hardware \
+    /root/tls/ \
+    /root/tls/
+
+# -- Flag Azure DCs_v3 mode
+ENV BLINDAI_AZURE_DCSV3_PATCH=1
+
+EXPOSE 50052
+EXPOSE 50051
+
+CMD ./start.sh
+
+##########################################
+### Hardware (production) mode - Cloud ###
+##########################################
+
+### build-hardware-cloud: This image is used for building the app
+FROM base-build AS build-hardware-cloud
+
+COPY . ./server
+
+ENV SGX_MODE=HW
+
+RUN --mount=type=cache,id=HW-/root/server/target,target=/root/server/target \
+    --mount=type=cache,id=HW-/root/server/tmp,target=/root/server/tmp \
+    --mount=type=cache,target=/root/.xargo \
+    --mount=type=cache,target=/root/.cargo/git \
+    --mount=type=cache,target=/root/.cargo/registry \
+    make -C server SGX_MODE=HW HIGH_MEMORY=1 all bin/tls/host_server.pem bin/tls/host_server.key && \
+    cp -r ./server/bin/* /root && \
+    cp ./server/policy.toml /root/policy.toml
+
+### hardware-cloud: This image is used for running the app. It is kept minimal and optimized for size
+FROM base AS hardware-cloud
+
+# -- Install azure_dcap_client
+RUN \
+    # Install temp dependencies
+    TEMP_DEPENDENCIES="curl gnupg software-properties-common" && \
+    apt-get update -y && apt-get install -y $TEMP_DEPENDENCIES && \
+
+    # We need to remove the default quote providing library in order to avoid conflicts
+    apt-get remove -y libsgx-dcap-default-qpl && \
+    
+    # Install azure_dcap_client
+    curl -sSL https://packages.microsoft.com/keys/microsoft.asc | apt-key add - && \
+    add-apt-repository "https://packages.microsoft.com/ubuntu/"$UBUNTU_VERSION"/prod" && \
+    apt-get update && apt-get install -y az-dcap-client && \
+    ln -s /usr/lib/libdcap_quoteprov.so /usr/lib/x86_64-linux-gnu/libdcap_quoteprov.so.1 && \
+
+    # Remove temp dependencies
+    apt-get remove -y $TEMP_DEPENDENCIES && apt-get autoremove -y && \
+    rm -rf /var/lib/apt/lists/* && rm -rf /var/cache/apt/archives/*
+
+COPY docker/hardware-dcsv3.sh /root/start.sh
+
+# -- Copy built files from the build image
+COPY --from=build-hardware-cloud \
+    /root/enclave.signed.so \
+    /root/blindai_app \
+    /root/config.toml \
+    /root/policy.toml \
+    /root
+COPY --from=build-hardware-cloud \
     /root/tls/ \
     /root/tls/
 
