@@ -67,11 +67,13 @@ pub struct BlindAIConfig {
     #[serde(default)]
     pub custom_agent_id: Option<String>,
     #[serde(default)]
-    pub max_model_store: usize,
+    pub max_model_store: Option<usize>,
+    #[serde(default)]
+    pub max_loaded_model_per_user: Option<usize>,
+    #[serde(default)]
+    pub max_sealed_model_per_user: Option<usize>,
     #[serde(default)]
     pub send_inference_time: bool,
-    #[serde(default)]
-    pub allow_model_sealing: bool,
 }
 
 fn uri_to_socket(uri: &Uri) -> Result<SocketAddr> {
@@ -86,8 +88,8 @@ fn uri_to_socket(uri: &Uri) -> Result<SocketAddr> {
 impl BlindAIConfig {
     /// Post-load fixups, and show warnings to the console.
     pub fn fixup_and_warnings(&mut self) {
-        if self.max_model_store <= self.load_models.len() {
-            warn!("The maximum number of models allowed in memory at once is set up as {}, but there are {} startup models. This means that the server won't be able to accept any new model from any user.", self.max_model_store, self.load_models.len());
+        if self.max_model_store.unwrap_or(usize::max_value()) <= self.load_models.len() {
+            warn!("The maximum number of models allowed in memory at once is set up as {:?}, but there are {} startup models. This means that the server won't be able to accept any new model from any user.", self.max_model_store, self.load_models.len());
         }
     }
 

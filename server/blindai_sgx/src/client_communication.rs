@@ -91,15 +91,13 @@ impl Exchange for Exchanger {
         {
             return Err(Status::permission_denied("You must be logged in"));
         }
-        let mut userid = None;
-        let mut username = None;
-        if let Some(auth_ext) = auth_ext.as_ref() {
-            userid = auth_ext.userid();
-            username = match userid {
+        let username = match auth_ext.as_ref() {
+            Some(auth_ext) => match auth_ext.userid() {
                 Some(id) => id.to_string().into(),
                 None => None,
-            };
-        }
+            },
+            None => None,
+        };
 
         let start_time = Instant::now();
 
@@ -206,7 +204,6 @@ impl Exchange for Exchanger {
                 save_model,
                 true, // todo: make optim configurable
                 ModelLoadContext::FromSendModel,
-                userid,
                 username.as_deref(),
             )
             .map_err(|err| {
@@ -269,7 +266,7 @@ impl Exchange for Exchanger {
                 time_taken: elapsed.as_secs_f64(),
             },
             client_info,
-            userid,
+            username.map(|name| name.parse::<usize>().unwrap()),
         );
 
         Ok(Response::new(reply))
@@ -280,15 +277,13 @@ impl Exchange for Exchanger {
         request: Request<tonic::Streaming<RunModelRequest>>,
     ) -> Result<Response<RunModelReply>, Status> {
         let auth_ext = request.extensions().get::<AuthExtension>().cloned();
-        let mut userid = None;
-        let mut username = None;
-        if let Some(auth_ext) = auth_ext.as_ref() {
-            userid = auth_ext.userid();
-            username = match userid {
+        let username = match auth_ext.as_ref() {
+            Some(auth_ext) => match auth_ext.userid() {
                 Some(id) => id.to_string().into(),
                 None => None,
-            };
-        }
+                },
+            None => None,
+        };
 
         let start_time = Instant::now();
 
@@ -370,7 +365,7 @@ impl Exchange for Exchanger {
             return Err(Status::invalid_argument("Model doesn't exist"));
         }
 
-        let res = self.model_store.use_model(&model_id, username.as_deref(), userid, |model| {
+        let res = self.model_store.use_model(&model_id, username.as_deref(), |model| {
             (
                 model.run_inference(input_tensors.into()),
                 model.model_name().map(|e| e.to_string()),
