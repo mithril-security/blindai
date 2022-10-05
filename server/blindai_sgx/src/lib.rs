@@ -149,6 +149,8 @@ async fn main(telemetry_platform: String, telemetry_uid: String) -> Result<()> {
 
     let model_store: Arc<ModelStore> = ModelStore::new(config.clone()).into();
 
+    model_store.load_metadata()?;
+
     model_store
         .check_seal_file_exist()
         .context("Unsealing models at startup")?;
