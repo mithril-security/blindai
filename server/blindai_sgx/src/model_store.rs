@@ -265,8 +265,7 @@ impl ModelStore {
             if models.map.len() == self.config.max_sealed_model_per_user.unwrap_or(usize::max_value()) {
                 info!("user sealed model limit atteined deleted model unusued for the longest time");
                 let (oldest_id, _) = models.get_oldest_unloaded().unwrap();
-                if let Some(tag_pos) = oldest_id.rfind('#') {
-                    let path = model_id.get(..tag_pos).unwrap();
+                if let Some(path) = path_from_key(&self.config.models_path, &model_id) {
                     let _ = fs::remove_file(path);
                 }
             }
@@ -329,6 +328,7 @@ impl ModelStore {
                     return Some(fun(model.model.as_ref().unwrap()));
                 }
                 else if let Some(_) = username {
+                    drop(write_guard);
                     return self.use_model(model_id, None, fun); // if model not found for user, search again in public namespace
                 }
             }
