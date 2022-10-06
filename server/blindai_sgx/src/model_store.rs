@@ -205,6 +205,11 @@ impl ModelStore {
             },
         };
         models_path.push(&model_id);
+
+        if models_path.as_path().exists() {
+            return Err(ModelStoreError::from(anyhow!("A model with the same name already exists, delete it first if you want to replace it")));
+        }
+
         if save_model {
             model_id = model_id + "#" + &Uuid::new_v4().to_string();
         }
