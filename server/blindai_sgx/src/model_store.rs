@@ -83,7 +83,7 @@ impl ModelClock for ModelsMap {
                 oldest = Some(m);
             } else {
                 oldest = oldest.map(|oldest| {
-                    if oldest.last_use < m.last_use {
+                    if oldest.last_use > m.last_use {
                         info!("{:?}", m.last_use);
                         m
                     } else {
@@ -102,7 +102,7 @@ impl ModelClock for ModelsMap {
             return None;
         }
         for (k, m) in self.map.iter() {
-            if oldest < m.last_use {
+            if oldest > m.last_use {
                 oldest = m.last_use;
                 oldest_id = k;
             }
@@ -120,7 +120,7 @@ impl ModelClock for UsersMap {
                     oldest = Some(o);
                 } else {
                     oldest = oldest.map(|oldest| {
-                        if oldest.last_use < o.last_use {
+                        if oldest.last_use > o.last_use {
                             o
                         } else {
                             oldest
@@ -146,7 +146,7 @@ impl ModelClock for UsersMap {
                     oldest = Some(o);
                 } else {
                     oldest = oldest.map(|(model_id, time)| {
-                        if time < o.1 {
+                        if time > o.1 {
                             (o.0, o.1)
                         } else {
                             (model_id, time)
@@ -255,14 +255,14 @@ impl ModelStore {
 
             let models = usermap.map.entry(username.map(str::to_string))
             .or_insert(ModelsMap::default());
-            if models.nb_loaded_models == self.config.max_loaded_model_per_user.unwrap_or(usize::max_value()) {
+            if models.nb_loaded_models >= self.config.max_loaded_model_per_user.unwrap_or(usize::max_value()) {
                 info!("user loaded model limit atteined unloading model unusued for the longest time");
                 if !d {
                     models.get_oldest_loaded().unwrap().model.take(); // drop model
                 }
                 models.nb_loaded_models -= 1;
             }
-            if models.map.len() == self.config.max_sealed_model_per_user.unwrap_or(usize::max_value()) {
+            if models.map.len() >= self.config.max_sealed_model_per_user.unwrap_or(usize::max_value()) {
                 info!("user sealed model limit atteined deleted model unusued for the longest time");
                 let (oldest_id, _) = models.get_oldest_unloaded().unwrap();
                 let oldest_id = oldest_id.to_owned();
