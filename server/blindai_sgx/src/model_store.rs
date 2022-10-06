@@ -265,9 +265,11 @@ impl ModelStore {
             if models.map.len() == self.config.max_sealed_model_per_user.unwrap_or(usize::max_value()) {
                 info!("user sealed model limit atteined deleted model unusued for the longest time");
                 let (oldest_id, _) = models.get_oldest_unloaded().unwrap();
-                if let Some(path) = path_from_key(&self.config.models_path, &model_id) {
+                let oldest_id = oldest_id.to_owned();
+                if let Some(path) = path_from_key(&self.config.models_path, &oldest_id) {
                     let _ = fs::remove_file(path);
                 }
+                models.map.remove(&oldest_id);
             }
             models.map.insert(model_id.clone(), model.into());
             models.nb_loaded_models += 1;
