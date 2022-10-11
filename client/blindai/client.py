@@ -78,14 +78,6 @@ from blindai.utils.serialize import deserialize_tensor, serialize_tensor
 
 MITHRIL_SERVICES_URL = os.getenv("MITHRIL_SERVICES_URL", "api.cloud.mithrilsecurity.io")
 MITHRIL_SERVICES_INSECURE = os.getenv("MITHRIL_SERVICES_INSECURE") == "true"
-if not MITHRIL_SERVICES_INSECURE:
-    if "MITHRIL_SERVICES_CA" in os.environ:
-        with os.open(os.getenv("MITHRIL_SERVICES_CA")) as f:
-            MITHRIL_SERVICES_CA = f.read()
-    else:
-        MITHRIL_SERVICES_CA = pkgutil.get_data(__name__, "tls/mithril_services_ca.pem")
-else:
-    MITHRIL_SERVICES_CA = False
 
 if not MITHRIL_SERVICES_INSECURE:
     if "MITHRIL_SERVICES_POLICY" in os.environ:
@@ -790,7 +782,7 @@ class Connection(contextlib.AbstractContextManager):
             else:
                 channel = grpc.secure_channel(
                     MITHRIL_SERVICES_URL,
-                    ssl_channel_credentials(root_certificates=MITHRIL_SERVICES_CA),
+                    ssl_channel_credentials(),
                 )
 
             stub = licensing_pb2_grpc.LicensingServiceStub(channel)

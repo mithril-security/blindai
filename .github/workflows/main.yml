@@ -32,7 +32,7 @@ jobs:
           tags: mithrilsecuritysas/${{ matrix.image }}
           context: ./server
           file: ./server/docker/build.dockerfile
-          target: software
+          target: software-low-memory
           cache-from: type=gha
           cache-to: type=gha,mode=max
           outputs: type=docker,dest=/tmp/${{ matrix.image }}.tar
@@ -156,11 +156,11 @@ jobs:
         run: pip install /tmp/client-artifacts/*.whl
 
       # Run tests
-      
+
       - name: Launch server
         run: |
           docker kill -f app > /dev/null 2>&1 || true
-          docker run --rm -d -e BLINDAI_DISABLE_TELEMETRY=1 -p 50051:50051 -p 50052:50052 --name app mithrilsecuritysas/${{ matrix.serverImage }}:latest 
+          docker run --rm -d -e BLINDAI_DISABLE_TELEMETRY=1 -p 50051:50051 -p 50052:50052 --name app mithrilsecuritysas/${{ matrix.serverImage }}:latest
 
       - name: Copy policy and certificate
         run: |
@@ -173,10 +173,138 @@ jobs:
           BLINDAI_TEST_NO_LAUNCH_SERVER: 'true'
           BLINDAI_TEST_NO_HW: 'true'
           BLINDAI_TEST_SKIP_COVIDNET: 'true'
-      
-      - name: Install Jupyter and related test tools
-        run: pip install pytest nbmake 
+
+  push-docker:
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    needs: run-tests
+    if: github.ref == 'refs/heads/deployment-dockerhub'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      # Login
+
+      - name: Login to Dockerhub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.REGISTRY_PRIV_USR }}
+          password: ${{ secrets.REGISTRY_PRIV_PWD }}
+
+      # Build docker image (blindai-server)
+
+      - name: Build blindai-server
+        run: |
+          cd server
+          make init
+          DOCKER_BUILDKIT=1 docker build \
+            --target hardware \
+            -t ${{ secrets.REGISTRY_PRIV_USR }}/blindai-server:latest \
+            -f ./docker/build.dockerfile \
+            .
+
+      # Update policy
+
+      - name: Update policy
+        run: |
+          docker run --rm ${{ secrets.REGISTRY_PRIV_USR }}/blindai-server:latest cat /root/policy.toml > examples/policy.toml
+
+      # Commit and push the file
+
+      - name: Commit and push the policy
+        uses: devops-infra/action-commit-push@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          commit_message: Update blindai-server policy
+
+      # Push docker image (blindai-server)
+
+      - name: Dockerhub blindai-server push
+        run: docker push ${{ secrets.REGISTRY_PRIV_USR }}/blindai-server:latest
+
+      # Build docker image (blindai-server-sim)
+
+      - name: Build blindai-server-sim
+        run: |
+          cd server
+          make init
+          DOCKER_BUILDKIT=1 docker build \
+            --target software \
+            -t ${{ secrets.REGISTRY_PRIV_USR }}/blindai-server-sim:latest \
+            -f ./docker/build.dockerfile \
+            .
+
+      # Push docker image (blindai-server-sim)
+
+      - name: Dockerhub blindai-server-sim push
+        run: docker push ${{ secrets.REGISTRY_PRIV_USR }}/blindai-server-sim:latest
+
+      # Build docker image (blindai-server-dcsv3)
+
+      - name: Build blindai-server-dcsv3
+        run: |
+          cd server
+          make init
+          DOCKER_BUILDKIT=1 docker build \
+            --target hardware-dcsv3 \
+            -t ${{ secrets.REGISTRY_PRIV_USR }}/blindai-server-dcsv3:latest \
+            -f ./docker/build.dockerfile \
+            .
+
+      # Push docker image (blindai-server-dcsv3)
+
+      - name: Dockerhub blindai-server-dcsv3 push
+        run: docker push ${{ secrets.REGISTRY_PRIV_USR }}/blindai-server-dcsv3:latest
     
-      - name: Test Jupyter notebooks
-        run: 
-          pytest --nbmake-timeout=40 --nbmake-kernel=python3 --nbmake examples/**/*.ipynb || (docker logs app; false)
+  push-cloud:
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    needs: run-tests
+    if: github.ref == 'refs/heads/deployment-cloud'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      # Login
+
+      - name: Login to cloud
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ secrets.CLOUD_REPO }}
+          username: ${{ secrets.CLOUD_PRIV_USR }}
+          password: ${{ secrets.CLOUD_PRIV_PWD }}
+
+      # Build docker image (blindai-server-cloud)
+
+      - name: Build blindai-server-cloud
+        run: |
+          cd server
+          make init
+          DOCKER_BUILDKIT=1 docker build \
+            --target hardware-cloud \
+            -t ${{ secrets.CLOUD_REPO }}/blindai/blindai-server-cloud:latest \
+            -f ./docker/build.dockerfile \
+            .
+
+      # Update policy
+
+      - name: Update policy
+        run: |
+          docker run --rm ${{ secrets.CLOUD_REPO }}/blindai/blindai-server-cloud:latest cat /root/policy.toml > client/blindai/tls/mithril_services_policy.toml
+
+      # Commit and push the file
+
+      - name: Commit and push the policy
+        uses: devops-infra/action-commit-push@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          commit_message: Update blindai-server-cloud policy
+
+      # Push docker image (blindai-server-cloud)
+
+      - name: Dockerhub blindai-server-cloud push
+        run: docker push ${{ secrets.CLOUD_REPO }}/blindai/blindai-server-cloud:latest
