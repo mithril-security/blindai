@@ -8,7 +8,7 @@ In BlindAI we bind the [MRENCLAVE](privacy.md#verifying-the-enclave) to the seal
 
 ## Model sealing in BlindAI
 
-When you upload a model on a BlindAI server instance, it is sealed by default, which means that the model will be serialized, encrypted and saved on the server's machine. At start up, blindAI will unseal previously saved models so that you don't have a to re-upload them at each server restart.
+When you upload a model on a BlindAI server instance, it is sealed by default, which means that the model will be serialized, encrypted, and saved on the server's machine. At start up, BlindAI will unseal previously saved models so that you don't have to re-upload them at each server restart.
 
 ## Deactivating sealing
 

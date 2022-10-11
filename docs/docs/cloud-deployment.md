@@ -16,7 +16,7 @@ You will find here some tutorials to deploy **BlindAI** easily on some cloud pro
 
     ![Start the creation process.](../assets/2022-02-24 11_09_26.png)
 
-    After this, you will start to see a configuration screen. Please select either **Ubuntu 18.04 or 20.04. For security reason, it is strongly advised to use a SSH public key in order to use the VM.**
+    After this, you will start to see a configuration screen. Please select either **Ubuntu 18.04 or 20.04. For security reasons, it is strongly advised to use a SSH public key in order to use the VM.**
 
     ![Basic configuration](../assets/2022-02-24 11_57_19.png)
 
@@ -55,7 +55,7 @@ You will find here some tutorials to deploy **BlindAI** easily on some cloud pro
 
     ![Start the creation process.](../assets/2022-02-24 11_09_26.png)
 
-    After this, you will start to see a configuration screen. Please select either **Ubuntu 18.04 or 20.04. For security reason, it is strongly advised to use a SSH public key in order to use the VM.**
+    After this, you will start to see a configuration screen. Please select either **Ubuntu 18.04 or 20.04. For security reasons, it is strongly advised to use a SSH public key in order to use the VM.**
 
     ![Basic configuration](../assets/2022-02-24 11_57_19.png)
 
@@ -83,7 +83,7 @@ You will find here some tutorials to deploy **BlindAI** easily on some cloud pro
 
 ### Using the VM
 
-You can now start the VM. In order to have a good experience with SSH, we recommand you to download [**Visual Studio Code**](https://code.visualstudio.com/) and get the extension [**Remote - SSH**](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-ssh).
+You can now start the VM. In order to have a good experience with SSH, we recommend you download **Visual** Studio Code**](https://code.visualstudio.com/) and get the extension [**Remote - SSH**](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-ssh).
 
 Setting up a SSH connection is fairly easy in Visual Studio Code. All you need to do is add a SSH Host (you can find this option in **the Command Palette**):&#x20;
 
@@ -99,7 +99,7 @@ Once you are online, we need to make sure that the SGX drivers are installed. Yo
 
 ![](../assets/2022-02-24 12_17_25.png)
 
-If you can see "`SGX`" in the list, in the same way it appear on the screenshot above, **you're good to go**! If `SGX` is missing, you can simply install the drivers yourself with those commands:&#x20;
+If you can see "`SGX`" in the list, in the same way it appears on the screenshot above, **you're good to go**! If `SGX` is missing, you can simply install the drivers yourself with those commands:&#x20;
 
 ```
 wget https://download.01.org/intel-sgx/sgx-linux/2.15.1/distro/ubuntu18.04-server/sgx_linux_x64_driver_1.41.bin

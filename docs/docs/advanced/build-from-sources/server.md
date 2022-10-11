@@ -52,7 +52,7 @@ You can build the whole project by using our Docker image. We have set up the Do
 
 ### Running
 
-You can use these images by following the instructions of either the [deploy on premise guide](../../deploy-on-premise.md) or the [cloud deployment guide](../../cloud-deployment.md)
+You can use these images by following the instructions of either the [deploy on premise guide](../../deploy-on-premise.md) or the [cloud deployment guide](../../cloud-deployment.md).
 
 
 ## Without docker
@@ -110,7 +110,7 @@ More informations about them on [this page](../../main-concepts/privacy.md)
 
     Make sure you have the correct hardware and drivers (see [hardware-requirements](../../deploy-on-premise.md#hardware-requirements))
 
-    You will also need to install the Provisionning Certificate Caching Service (PCCS) [using this documentation](https://github.com/intel/SGXDataCenterAttestationPrimitives/blob/master/QuoteGeneration/pccs/README.md).
+    You will also need to install the Provisioning Certificate Caching Service (PCCS) [using this documentation](https://github.com/intel/SGXDataCenterAttestationPrimitives/blob/master/QuoteGeneration/pccs/README.md).
 
     You will need the SGX Default Quote Provider Library as well. This can be installed with this command:
 

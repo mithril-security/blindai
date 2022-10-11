@@ -1,12 +1,12 @@
-# Securely communicating with blindAI
+# Securely communicating with BlindAI
 
 ## Https certificate
 
-The `host_server.pem` file is the https certificate for the attestation server. This is used to securely communicate with the untrusted attestation server, which is used to get the SGX attestation. In production, you should generate this yourself.
+The `host_server.pem` file is the HTTPS certificate for the attestation server. This is used to securely communicate with the untrusted attestation server, which is used to get the SGX attestation. In production, you should generate this yourself.
 
 ## Inject your own TLS Certificate to BlindAI
 
-The Docker image ships with a TLS certifcate by default. However, its private key is directly embedded in the public Docker hub image, therefore **it is not secure**, and should be replaced in production.
+The Docker image ships with a TLS certificate by default. However, its private key is directly embedded in the public Docker hub image, therefore **it is not secure**, and should be replaced in production.
 
 To generate a new self-signed TLS certificate, you can run
 
@@ -43,7 +43,7 @@ Once you have generated your TLS certificate, you can use it with the project us
 
 `-v $(pwd)/tls:/root/tls` allows you to mount your own TLS certificate to the Docker Image.&#x20;
 
-## Use a certificat to communicate with a remote BlindAI's instance
+## Use a certificate to communicate with a remote BlindAI instance
 
 You can pass the generated certificate to the client like so:
 
@@ -52,4 +52,4 @@ blindai.connect(addr="addr", certificate="path/to/host_server.pem")
 ```
 
 !!! info
-    If you're not using simulation mode, you're required to pass a tls certificate. [Mithril cloud](../mithril-cloud.md)'s certificate is directly in the python package, which is why you didn't have to specify it in the quick-start example.
+    If you're not using simulation mode, you're required to pass a TLS certificate. [Mithril cloud](../mithril-cloud.md)'s certificate is directly in the python package, which is why you didn't have to specify it in the quick-start example.

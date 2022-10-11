@@ -4,7 +4,7 @@ The docker images used here are prebuilt ones from our dockerhub, you can take a
 
 ## Simulation mode
 
-This section explains how to work with the simulation mode. This simulates Intel SGX in software, and enables you to run this on any hardware you want.
+This section explains how to work with the simulation mode. This simulates Intel SGX in software and enables you to run this on any hardware you want.
 
 Launch the server using the simulation docker image:
 
@@ -25,17 +25,17 @@ docker run -it \
 === "Hardware mode"
 
     !!! info
-        If you are using Azure DCsV2 vms, you can ignore all of this. The drivers and the PCCS server are built-in the vms.
+        If you are using Azure DCsV2 VMs, you can ignore all of this. The drivers and the PCCS server are built-in the VMs.
 
-    You will need to have an Intel SGX ready device, with `SGX+FLC` (Flexible Launch Control) support. Read [this Intel documentation page](https://www.intel.com/content/www/us/en/support/articles/000057420/software/intel-security-products.html) to see if your Intel processor supports it.
+    You will need to have an Intel SGX-ready device, with `SGX+FLC` (Flexible Launch Control) support. Read [this Intel documentation page](https://www.intel.com/content/www/us/en/support/articles/000057420/software/intel-security-products.html) to see if your Intel processor supports it.
 
-    Please make sure to have the `SGX+FLC` drivers (preferably with the version **1.41**) installed on your system before running the docker image.
+    Please make sure to have the `SGX+FLC` drivers (preferably with version **1.41**) installed on your system before running the docker image.
 
     !!! success
         If you can find the drivers named "enclave" and "provision" (or sgx\_enclave and sgx\_provision) in /dev/, you are good to go!
 
     !!! failure
-        If on the other hand, you can find a driver named "isgx", that means your system is not supported. This driver is for the first generation of SGX, which lacks security features we rely on. You can still boot the server in hardware mode and benefit from the isolation offered by SGX enclaves, but you will need to use the client in simulation mode.
+        If on the other hand, you can find a driver named "isgx", that means your system is not supported. This driver is for the first generation of SGX, which lacks the security features we rely on. You can still boot the server in hardware mode and benefit from the isolation offered by SGX enclaves, but you will need to use the client in simulation mode.
 
     In case you don't have any drivers installed, you can install the drivers with this:
 
@@ -45,7 +45,7 @@ docker run -it \
     ./sgx_linux_x64_driver_1.41.bin
     ```
 
-    The binary file contains the drivers signed by Intel, and will proceed to the installation transparently.
+    The binary file contains the drivers signed by Intel and will proceed to the installation transparently.
 
 
 === "Hardware mode (Azure DCsv3 VMs)"
@@ -133,7 +133,7 @@ by
 client = BlindaiConnection(addr="localhost", policy="/path/to/policy.toml", certificate="/path/to/host_server.pem")
 ```
 
-Your client will use your tls certificate and will only be able to connect to an enclave generated with the exact same policy.toml.
+Your client will use your TLS certificate and will only be able to connect to an enclave generated with the exact same policy.toml.
 
 !!! note
-    If you want to deploy for production you should check out [the privacy section](main-concepts/privacy.md). You will learn how to check the authenticity of the policy and how to inject your onw tls certificate.
+    If you want to deploy for production you should check out [the privacy section](main-concepts/privacy.md). You will learn how to check the authenticity of the policy and how to inject your own TLS certificate.
