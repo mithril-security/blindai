@@ -249,7 +249,7 @@ impl ModelStore {
 
             let usermap = &mut write_guard.models;
             let d = if usermap.nb_loaded_models == self.config.max_model_store.unwrap_or(usize::max_value()) {
-                info!("global loaded model limit atteined unloading model unusued for the longest time");
+                info!("Global loaded model limit reached. The oldest model used will be unloaded...");
                 usermap.get_oldest_loaded().unwrap().model.take(); // drop model
                 usermap.nb_loaded_models -= 1;
                 true
@@ -260,7 +260,7 @@ impl ModelStore {
             let models = usermap.map.entry(username.map(str::to_string))
             .or_insert(ModelsMap::default());
             if models.nb_loaded_models >= self.config.max_loaded_model_per_user.unwrap_or(usize::max_value()) {
-                info!("user loaded model limit atteined unloading model unusued for the longest time");
+                info!("User loaded model limit reached. The oldest model used will be unloaded...");
                 if !d {
                     models.get_oldest_loaded().unwrap().model.take(); // drop model
                 }
@@ -268,7 +268,7 @@ impl ModelStore {
             }
             if save_model {
                 if models.map.len() >= self.config.max_sealed_model_per_user.unwrap_or(usize::max_value()) {
-                    info!("user sealed model limit atteined deleted model unusued for the longest time");
+                    info!("User sealed model limit reached. The oldest model used will be deleted...");
                     let (oldest_id, _) = models.get_oldest_unloaded().unwrap();
                     let oldest_id = oldest_id.to_owned();
                     if let Some(path) = path_from_key(&self.config.models_path, &oldest_id) {
