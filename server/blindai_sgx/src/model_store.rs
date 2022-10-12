@@ -278,7 +278,7 @@ impl ModelStore {
                 }
             }
             models.map.insert(model_id.clone(), model.into());
-            models.owner_id = owner_id.unwrap();
+            models.owner_id = owner_id.unwrap_or(0);
             models.nb_loaded_models += 1;
             write_guard.models.nb_loaded_models += 1;
             crate::sealing::seal_metadata(&write_guard.models)?;
