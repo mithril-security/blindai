@@ -91,9 +91,17 @@ impl Exchange for Exchanger {
         {
             return Err(Status::permission_denied("You must be logged in"));
         }
-        let username = match auth_ext.as_ref() {
+        let userid = match auth_ext.as_ref() {
             Some(auth_ext) => match auth_ext.userid() {
                 Some(id) => id.to_string().into(),
+                None => None,
+            },
+            None => None,
+        };
+
+        let username = match auth_ext.as_ref() {
+            Some(auth_ext) => match auth_ext.username() {
+                Some(username) => username.into(),
                 None => None,
             },
             None => None,
@@ -204,7 +212,8 @@ impl Exchange for Exchanger {
                 save_model,
                 true, // todo: make optim configurable
                 ModelLoadContext::FromSendModel,
-                username.as_deref(),
+                userid.as_deref(),
+                username.as_deref()
             )
             .map_err(|err| {
                 error!("Error while creating model: {:?}", err);
@@ -256,7 +265,7 @@ impl Exchange for Exchanger {
             model_name.as_deref().unwrap_or("<unknown>"),
             model_size,
             sign,
-            username.as_deref().unwrap_or("<none>"),
+            userid.as_deref().unwrap_or("<none>"),
         );
         telemetry::add_event(
             TelemetryEventProps::SendModel {
@@ -266,7 +275,7 @@ impl Exchange for Exchanger {
                 time_taken: elapsed.as_secs_f64(),
             },
             client_info,
-            username.map(|name| name.parse::<usize>().unwrap()),
+            userid.map(|id| id.parse::<usize>().unwrap()),
         );
 
         Ok(Response::new(reply))
@@ -277,13 +286,16 @@ impl Exchange for Exchanger {
         request: Request<tonic::Streaming<RunModelRequest>>,
     ) -> Result<Response<RunModelReply>, Status> {
         let auth_ext = request.extensions().get::<AuthExtension>().cloned();
-        let username = match auth_ext.as_ref() {
+
+        let user_id = match auth_ext.as_ref() {
             Some(auth_ext) => match auth_ext.userid() {
                 Some(id) => id.to_string().into(),
                 None => None,
                 },
             None => None,
         };
+
+        let username: Option<String>;
 
         let start_time = Instant::now();
 
@@ -361,11 +373,25 @@ impl Exchange for Exchanger {
 
             
         let model_id_path:Vec<&str> = model_id.split('/').collect();
+
         if model_id.is_empty() || model_id_path.len() > 2 {
             return Err(Status::invalid_argument("Model doesn't exist"));
         }
 
-        let res = self.model_store.use_model(&model_id, username.as_deref(), |model| {
+        if model_id_path.len() == 1 {
+            username = match auth_ext.as_ref() {
+                Some(auth_ext) => match auth_ext.username() {
+                    Some(name) => Some(name),
+                    None => None,
+                },
+                None => None,
+            };
+        }
+        else {
+            username = Some(model_id_path[0].to_string());
+        }
+
+        let res = self.model_store.use_model(&model_id, user_id.as_deref(), username.as_deref(), self.config.disable_ownership_check, |model| {
             (
                 model.run_inference(input_tensors.into()),
                 model.model_name().map(|e| e.to_string()),
@@ -484,7 +510,8 @@ impl Exchange for Exchanger {
         if model_id.is_empty() {
             return Err(Status::invalid_argument("Model doesn't exist"));
         }
-        let username = if let Some(auth_ext) = auth_ext.as_ref() {
+
+        let user_id = if let Some(auth_ext) = auth_ext.as_ref() {
             if let Some(id) = auth_ext.userid() {
                 Some(id.to_string())
             } else {
@@ -494,8 +521,16 @@ impl Exchange for Exchanger {
             None
         };
 
+        let username = match auth_ext.as_ref() {
+            Some(auth_ext) => match auth_ext.username() {
+                Some(username) => username.into(),
+                None => None,
+            },
+            None => None,
+        };
+
         // Delete the model
-        if self.model_store.delete_model(&model_id, username.as_deref()).is_none() {
+        if self.model_store.delete_model(&model_id, user_id.as_deref(), username.as_deref()).is_none() {
             error!("Model doesn't exist");
             return Err(Status::invalid_argument("Model doesn't exist"));
         }

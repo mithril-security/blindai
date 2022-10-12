@@ -3,7 +3,7 @@ authors = ["Mithril Security"]
 edition = "2018"
 license = "Apache-2.0"
 name = "blindai_common"
-version = "0.5.0"
+version = "0.5.5"
 
 [dependencies]
 anyhow = "=1.0.45"

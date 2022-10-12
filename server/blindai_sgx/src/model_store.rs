@@ -60,7 +60,9 @@ impl From<InferModel> for StoredModel {
 pub struct ModelsMap {
     pub map: HashMap<String, StoredModel>,
     nb_loaded_models: usize,
+    owner_id: usize
 }
+
 #[derive(Default)]
 pub struct UsersMap {
     pub map: HashMap<Option<String>, ModelsMap>,
@@ -188,6 +190,7 @@ impl ModelStore {
         save_model: bool,
         optim: bool,
         load_context: ModelLoadContext,
+        user_id: Option<&str>,
         username: Option<&str>,
     ) -> Result<(String, Digest), ModelStoreError> {
         let model_id = model_id.unwrap_or_else(|| model_name.clone().unwrap_or_else(|| Uuid::new_v4().to_string()));
@@ -206,16 +209,12 @@ impl ModelStore {
         };
         models_path.push(&model_id);
 
-        if models_path.as_path().exists() {
+        if models_path.as_path().exists() && load_context != ModelLoadContext::FromLoadingFromDisk {
             return Err(ModelStoreError::from(anyhow!("A model with the same name already exists, delete it first if you want to replace it")));
         }
 
-        if save_model {
-            model_id = model_id + "#" + &Uuid::new_v4().to_string();
-        }
-        
         // Sealing
-        let owner_id = username.map(|name| name.parse::<usize>().unwrap());
+        let owner_id = user_id.map(|id| id.parse::<usize>().unwrap());
         if save_model {
             info!("Sealing model...");
             sealing::seal(
@@ -267,16 +266,19 @@ impl ModelStore {
                 }
                 models.nb_loaded_models -= 1;
             }
-            if models.map.len() >= self.config.max_sealed_model_per_user.unwrap_or(usize::max_value()) {
-                info!("user sealed model limit atteined deleted model unusued for the longest time");
-                let (oldest_id, _) = models.get_oldest_unloaded().unwrap();
-                let oldest_id = oldest_id.to_owned();
-                if let Some(path) = path_from_key(&self.config.models_path, &oldest_id) {
-                    let _ = fs::remove_file(path);
+            if save_model {
+                if models.map.len() >= self.config.max_sealed_model_per_user.unwrap_or(usize::max_value()) {
+                    info!("user sealed model limit atteined deleted model unusued for the longest time");
+                    let (oldest_id, _) = models.get_oldest_unloaded().unwrap();
+                    let oldest_id = oldest_id.to_owned();
+                    if let Some(path) = path_from_key(&self.config.models_path, &oldest_id) {
+                        let _ = fs::remove_file(path);
+                    }
+                    models.map.remove(&oldest_id);
                 }
-                models.map.remove(&oldest_id);
             }
             models.map.insert(model_id.clone(), model.into());
+            models.owner_id = owner_id.unwrap();
             models.nb_loaded_models += 1;
             write_guard.models.nb_loaded_models += 1;
             crate::sealing::seal_metadata(&write_guard.models)?;
@@ -286,7 +288,7 @@ impl ModelStore {
     }
 
     //Unseal function that unseal the model if we find it in the seal model
-    pub fn unseal(&self, id_to_fetch: &str, username: Option<&str>, path: &Path) -> Result<()> {
+    pub fn unseal(&self, id_to_fetch: &str, user_id: Option<&str>, username: Option<&str>, path: &Path) -> Result<()> {
         if let Some(id_to_fetch) = key_from_id_and_username(id_to_fetch, username) {
             if let Ok(model) = sealing::unseal(path)
             {
@@ -299,7 +301,8 @@ impl ModelStore {
                         &model.output_facts,
                         false,
                         model.optim,
-                        ModelLoadContext::FromSendModel,
+                        ModelLoadContext::FromLoadingFromDisk,
+                        user_id,
                         username,
                     )
                     .map_err(|err| anyhow!("Adding model failed: {:?}", err))?;
@@ -310,16 +313,31 @@ impl ModelStore {
         Err(anyhow!("Sealed model not found"))
     }
 
-    pub fn use_model<U>(&self, model_id: &str, username: Option<&str>, fun: impl FnOnce(&InferModel) -> U) -> Option<U> {
+    pub fn use_model<U>(&self, model_id: &str, user_id: Option<&str>, username: Option<&str>, disable_ownership_check: bool, fun: impl FnOnce(&InferModel) -> U) -> Option<U> {
         if let Some(key) = key_from_id_and_username(model_id, username) {
             // take a write lock
             let mut write_guard = self.inner.write().unwrap();
             if let Some(models) = write_guard.models.map.get_mut(&username.map(str::to_string)) {
+                let owner = user_id.map(|id| id.parse::<usize>().unwrap());
+                if let Some(user) = owner {
+                    if models.owner_id != user && !disable_ownership_check {
+                        drop(write_guard);
+                        info!("Attempt at accessing a model from unauthorized namespace {:?} userid:{:?}", model_id, user);
+                        return None;
+                    }
+                }
+                else {
+                    if models.owner_id != 0 {
+                        drop(write_guard);
+                        info!("Attempt from a guest at accessing a model from unauthorized namespace {:?}", model_id);
+                        return None;
+                    }
+                }
                 if let Some(mut model) = models.map.get_mut(&key) {
                     if let None = model.model {
                         drop(write_guard);
                         if let Some(path) = path_from_key(&self.config.models_path, &key) {
-                            if let Err(e) = self.unseal(&key, username, &Path::new(&path)) {
+                            if let Err(e) = self.unseal(&key, user_id, username, &Path::new(&path)) {
                                 info!("{:?}", e);
                                 return None;
                             }
@@ -336,8 +354,12 @@ impl ModelStore {
                 }
                 else if let Some(_) = username {
                     drop(write_guard);
-                    return self.use_model(model_id, None, fun); // if model not found for user, search again in public namespace
+                    return self.use_model(model_id, None, None, false, fun); // if model not found for user, search again in public namespace
                 }
+            }
+            else {
+                drop(write_guard);
+                return self.use_model(model_id, None, None, false, fun); // if model not found for user, search again in public namespace
             }
         }
         None
@@ -345,18 +367,26 @@ impl ModelStore {
 
     /// If user_id is provided, it will fail if the model is not owned by this
     /// user. This will never remove startup models.
-    pub fn delete_model(&self, model_id: &str, username: Option<&str>) -> Option<()> {
+    pub fn delete_model(&self, model_id: &str, user_id: Option<&str>, username: Option<&str>) -> Option<()> {
         if let Some(key) = key_from_id_and_username(model_id, username) {
             let mut write_guard = self.inner.write().unwrap();
-            if let Some(path) = path_from_key(&self.config.models_path, &key) {
-                let _ = fs::remove_file(&path);
-            }
             if let Some(map) = write_guard.models.map.get_mut(&username.map(str::to_string)) {
+                let owner = user_id.map(|id| id.parse::<usize>().unwrap());
+                if let Some(user) = owner {
+                    if map.owner_id != user {
+                        drop(write_guard);
+                        info!("Attempt at deleting a model from unauthorized namespace {:?} userid:{:?}", model_id, user_id);
+                        return None;
+                    }
+                }
                 if let Some(_) = map.map.remove(&key).and_then(|m| m.model) {
                     map.nb_loaded_models -= 1;
                     write_guard.models.nb_loaded_models -= 1;
-                    return Some(());
                 }
+            }
+            if let Some(path) = path_from_key(&self.config.models_path, &key) {
+                let _ = fs::remove_file(&path);
+                return Some(());
             }
         }
         None
@@ -451,8 +481,5 @@ pub fn key_from_id_and_username(model_id: &str, username: Option<&str>) -> Optio
 }
 
 pub fn path_from_key(model_path: &str, key: &str) -> Option<String> {
-    if let Some(tag_pos) = key.rfind('#') {
-        return Some(model_path.to_string() + "/" + key.get(..tag_pos).unwrap());
-    }
-    None
+    Some(model_path.to_string() + "/" + key)
 }
