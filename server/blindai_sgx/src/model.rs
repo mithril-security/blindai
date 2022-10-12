@@ -249,6 +249,7 @@ pub enum TractModel {
 pub enum ModelLoadContext {
     FromSendModel,
     FromStartupConfig,
+    FromLoadingFromDisk
 }
 
 #[derive(Debug)]

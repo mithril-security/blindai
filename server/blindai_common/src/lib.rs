@@ -63,6 +63,8 @@ pub struct BlindAIConfig {
     #[serde(default)]
     pub send_model_requires_auth: bool,
     #[serde(default)]
+    pub disable_ownership_check: bool,
+    #[serde(default)]
     pub load_models: Vec<LoadModelConfig>,
     #[serde(default)]
     pub custom_agent_id: Option<String>,
