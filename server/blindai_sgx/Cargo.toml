@@ -3,7 +3,7 @@ authors = ["Mithril Security"]
 edition = "2021"
 license = "Apache-2.0"
 name = "blindai_sgx"
-version = "0.5.1"
+version = "0.5.5"
 
 [lib]
 crate-type = ["staticlib"]
