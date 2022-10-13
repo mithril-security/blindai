@@ -159,12 +159,12 @@ pub fn seal_metadata(umap: &UsersMap) -> anyhow::Result<()> {
         serializable.insert(k.to_owned(), v.map.iter().map(|(k, v)| (k.to_owned(), v.last_use)).collect());
     }
     let sealed_metadata = create_sealeddata_for_serializable(serializable)?;
-    Ok(fs::write("./metadata", sealed_metadata)?)
+    Ok(fs::write("./metadata/metadata", sealed_metadata)?)
 }
 
 pub fn unseal_metadata() -> anyhow::Result<UsersMap> {
     let mut umap = UsersMap::default();
-    if let Ok(buf) = fs::read("./metadata") {
+    if let Ok(buf) = fs::read("./metadata/metadata") {
         let unsealed: SerializableUsersMap = recover_sealeddata_for_serializable(buf)?;
         for (k, v) in unsealed.iter() {
             let mut model_map = ModelsMap::default();
