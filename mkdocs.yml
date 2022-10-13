@@ -50,6 +50,7 @@ markdown_extensions:
 
 plugins:
 - search
+- mkdocs-jupyter
 
 nav:
 - Getting Started: 'index.md'
@@ -71,3 +72,9 @@ nav:
   - 'docs/advanced/blindai-project-structure.md'
 - 'docs/telemetry.md'
 - 'Client API reference': 'blindai/client.html'
+- 'Integrating AI models from other frameworks': 
+  - 'Example of BlindAI deployment with ResNet18': 'BlindAI_ResNet18.ipynb'
+  - 'Example of BlindAI deployment with CovidNet': 'BlindAI-COVID-Net.ipynb'
+  - 'Example of BlindAI deployment with DistilBERT': 'BlindAI-DistilBERT.ipynb'
+  - 'Example of BlindAI deployment with Facenet': 'BlindAI-Facenet.ipynb'
+  - 'Example of BlindAI deployment with Wav2vec2': 'BlindAI-Wav2vec2.ipynb'
