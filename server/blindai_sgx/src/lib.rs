@@ -42,6 +42,8 @@ use std::untrusted::fs;
 #[cfg(not(target_env = "sgx"))]
 use std::fs;
 
+use std::path::Path;
+
 use anyhow::{Context, Error, Result};
 
 use crate::client_communication::{secured_exchange::exchange_server::ExchangeServer, Exchanger};
@@ -106,6 +108,12 @@ async fn main(telemetry_platform: String, telemetry_uid: String) -> Result<()> {
         signing_key_seed,
     ));
     let enclave_identity = my_identity.tls_identity.clone();
+
+    let metadata_folder = Path::new("./metadata").exists();
+
+    if (!metadata_folder) {
+        fs::create_dir("./metadata")?;
+    }
 
     // Read the config
     let mut config_file = File::open("config.toml").context("Opening config.toml file")?;
