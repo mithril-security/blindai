@@ -1,17 +1,21 @@
 use anyhow::{anyhow, Context, Result};
+use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
-use sgx_tseal::SgxSealedData;
+use sgx_tseal::{SgxSealedData, SgxUnsealedData};
 use sgx_types::{marker::ContiguousMemory, sgx_attributes_t, sgx_sealed_data_t};
 #[cfg(not(target_env = "sgx"))]
 use std::fs;
 #[cfg(target_env = "sgx")]
 use std::untrusted::fs;
-use std::{path::Path, str, vec::Vec};
+use std::{path::Path, str, vec::Vec, collections::HashMap, time::SystemTime};
 
 use crate::model::TensorFacts;
 
 extern crate sgx_tseal;
 extern crate sgx_types;
+
+use crate::model_store::{UsersMap, ModelsMap, StoredModel};
+type SerializableUsersMap = HashMap<Option<String>, Vec<(String, SystemTime)>>;
 
 #[derive(Serialize, Debug)]
 pub struct SerializableModel<'a> {
@@ -35,68 +39,58 @@ pub struct DeserializableModel {
     pub owner_id: Option<usize>,
 }
 
-fn create_sealeddata_for_serializable(
-    model: SerializableModel,
-    encrypt_data: bool,
-) -> Result<Vec<u8>> {
+fn create_sealeddata_for_serializable<T>(
+    model: T,
+) -> Result<Vec<u8>> 
+where T: Serialize {
     let encoded_vec = serde_cbor::to_vec(&model)?;
-    if encrypt_data {
-        let encoded_slice = encoded_vec.as_slice();
+    let encoded_slice = encoded_vec.as_slice();
 
-        let attr = sgx_attributes_t {
-            flags: sgx_types::TSEAL_DEFAULT_FLAGSMASK,
-            xfrm: 0,
-        };
-        let sealed_data = SgxSealedData::<[u8]>::seal_data_ex(
-            sgx_types::SGX_KEYPOLICY_MRENCLAVE,
-            attr,
-            0,
-            &[],
-            encoded_slice,
-        )
-        .map_err(|e| anyhow!("SGX Error: {}", e.as_str()))
-        .context("Couldn't seal data")?;
+    let attr = sgx_attributes_t {
+        flags: sgx_types::TSEAL_DEFAULT_FLAGSMASK,
+        xfrm: 0,
+    };
+    let sealed_data = SgxSealedData::<[u8]>::seal_data_ex(
+        sgx_types::SGX_KEYPOLICY_MRENCLAVE,
+        attr,
+        0,
+        &[],
+        encoded_slice,
+    )
+    .map_err(|e| anyhow!("SGX Error: {}", e.as_str()))
+    .context("Couldn't seal data")?;
 
-        //calculate the size of the sealed data
-        let size_seal = SgxSealedData::<[u8]>::calc_raw_sealed_data_size(
-            sealed_data.get_add_mac_txt_len(),
-            sealed_data.get_encrypt_txt_len(),
-        );
+    //calculate the size of the sealed data
+    let size_seal = SgxSealedData::<[u8]>::calc_raw_sealed_data_size(
+        sealed_data.get_add_mac_txt_len(),
+        sealed_data.get_encrypt_txt_len(),
+    );
 
-        let mut sealed_log_arr: Vec<u8> = vec![0; size_seal as usize];
+    let mut sealed_log_arr: Vec<u8> = vec![0; size_seal as usize];
 
-        //write sealed data to array
-        to_sealed_log_for_slice(&sealed_data, &mut sealed_log_arr)
-            .ok_or_else(|| anyhow!("sealing failed"))?;
-        Ok(sealed_log_arr)
-    } else {
-        Ok(encoded_vec)
-    }
+    //write sealed data to array
+    to_sealed_log_for_slice(&sealed_data, &mut sealed_log_arr)
+        .ok_or_else(|| anyhow!("sealing failed"))?;
+    Ok(sealed_log_arr)
 }
 
-fn recover_sealeddata_for_serializable(
-    mut data: Vec<u8>,
-    decrypt_data: bool,
-) -> anyhow::Result<DeserializableModel> {
-    if decrypt_data {
-        //recover sealed data from array
-        let opt = from_sealed_log_for_slice::<u8>(&mut data)
-            .ok_or_else(|| anyhow!("Couldn't convert the sealed data into a sealed_log"))?;
+fn recover_sealeddata_for_serializable<T>(
+    mut data: Vec<u8>
+) -> anyhow::Result<T> where T: DeserializeOwned {
+    //recover sealed data from array
+    let opt: SgxSealedData<[u8]> = from_sealed_log_for_slice::<u8>(& mut data)
+        .ok_or_else(|| anyhow!("Couldn't convert the sealed data into a sealed_log"))?;
 
-        //recover the unsealed data from the array
-        let result = opt
-            .unseal_data()
-            .map_err(|e| anyhow!("SGX Error: {}", e.as_str()))
-            .context("Couldn't recover the sealed data from the sealed_log")?;
+    //recover the unsealed data from the array
+    let result: SgxUnsealedData<[u8]> = opt
+        .unseal_data()
+        .map_err(|e| anyhow!("SGX Error: {}", e.as_str()))
+        .context("Couldn't recover the sealed data from the sealed_log")?;
 
-        //decipher the sealed data
-        let encoded_slice = result.get_decrypt_txt();
-        let model: DeserializableModel = serde_cbor::from_slice(encoded_slice)?;
-        Ok(model)
-    } else {
-        let model: DeserializableModel = serde_cbor::from_slice(&data)?;
-        Ok(model)
-    }
+    //decipher the sealed data
+    let encoded_slice = result.get_decrypt_txt();
+    let model = serde_cbor::from_slice(encoded_slice)?;
+    Ok(model)
 }
 
 fn to_sealed_log_for_slice<T: Copy + ContiguousMemory>(
@@ -135,7 +129,6 @@ pub fn seal(
     output_facts: &[TensorFacts],
     optim: bool,
     owner_id: Option<usize>,
-    encrypt_data: bool,
 ) -> anyhow::Result<()> {
     //seal data
     let model_data = create_sealeddata_for_serializable(
@@ -147,15 +140,39 @@ pub fn seal(
             output_facts,
             optim,
             owner_id,
-        },
-        encrypt_data,
+        }
     )?;
 
     //write sealed data
+    fs::create_dir_all(path.parent().unwrap())?;
     Ok(fs::write(path, &model_data)?)
 }
 
-pub fn unseal(path: &Path, decrypt_data: bool) -> anyhow::Result<DeserializableModel> {
+pub fn unseal(path: &Path) -> anyhow::Result<DeserializableModel> {
     let buf = fs::read(path)?;
-    recover_sealeddata_for_serializable(buf, decrypt_data)
+    recover_sealeddata_for_serializable(buf)
+}
+
+pub fn seal_metadata(umap: &UsersMap) -> anyhow::Result<()> {
+    let mut serializable = SerializableUsersMap::new();
+    for (k, v) in umap.map.iter() {
+        serializable.insert(k.to_owned(), v.map.iter().map(|(k, v)| (k.to_owned(), v.last_use)).collect());
+    }
+    let sealed_metadata = create_sealeddata_for_serializable(serializable)?;
+    Ok(fs::write("./metadata/metadata", sealed_metadata)?)
+}
+
+pub fn unseal_metadata() -> anyhow::Result<UsersMap> {
+    let mut umap = UsersMap::default();
+    if let Ok(buf) = fs::read("./metadata/metadata") {
+        let unsealed: SerializableUsersMap = recover_sealeddata_for_serializable(buf)?;
+        for (k, v) in unsealed.iter() {
+            let mut model_map = ModelsMap::default();
+            for (model_id, last_use) in v.iter() {
+                model_map.map.insert(model_id.to_owned(), StoredModel {model: None, last_use: last_use.to_owned()});
+            }
+            umap.map.insert(k.to_owned(), model_map);
+        }
+    }
+    Ok(umap)
 }

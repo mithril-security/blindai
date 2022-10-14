@@ -91,6 +91,21 @@ impl Exchange for Exchanger {
         {
             return Err(Status::permission_denied("You must be logged in"));
         }
+        let userid = match auth_ext.as_ref() {
+            Some(auth_ext) => match auth_ext.userid() {
+                Some(id) => id.to_string().into(),
+                None => None,
+            },
+            None => None,
+        };
+
+        let username = match auth_ext.as_ref() {
+            Some(auth_ext) => match auth_ext.username() {
+                Some(username) => username.into(),
+                None => None,
+            },
+            None => None,
+        };
 
         let start_time = Instant::now();
 
@@ -197,7 +212,8 @@ impl Exchange for Exchanger {
                 save_model,
                 true, // todo: make optim configurable
                 ModelLoadContext::FromSendModel,
-                auth_ext.as_ref().and_then(|ext| ext.userid()),
+                userid.as_deref(),
+                username.as_deref()
             )
             .map_err(|err| {
                 error!("Error while creating model: {:?}", err);
@@ -235,10 +251,6 @@ impl Exchange for Exchanger {
 
         // Logs and telemetry
         let elapsed = start_time.elapsed();
-        let userid = auth_ext
-            .as_ref()
-            .and_then(|e| e.userid())
-            .map(|id| format!("{}", id));
         info!(
             "[{} {}] SendModel successful in {}ms (model={}, size={}, sign={}, userid={})",
             client_info
@@ -263,7 +275,7 @@ impl Exchange for Exchanger {
                 time_taken: elapsed.as_secs_f64(),
             },
             client_info,
-            auth_ext.as_ref().and_then(|ext| ext.userid()),
+            userid.map(|id| id.parse::<usize>().unwrap()),
         );
 
         Ok(Response::new(reply))
@@ -274,6 +286,16 @@ impl Exchange for Exchanger {
         request: Request<tonic::Streaming<RunModelRequest>>,
     ) -> Result<Response<RunModelReply>, Status> {
         let auth_ext = request.extensions().get::<AuthExtension>().cloned();
+
+        let user_id = match auth_ext.as_ref() {
+            Some(auth_ext) => match auth_ext.userid() {
+                Some(id) => id.to_string().into(),
+                None => None,
+                },
+            None => None,
+        };
+
+        let username: Option<String>;
 
         let start_time = Instant::now();
 
@@ -349,16 +371,27 @@ impl Exchange for Exchanger {
                 Status::invalid_argument("Tensor serialization error")
             })?;
 
-        if model_id.is_empty() {
+            
+        let model_id_path:Vec<&str> = model_id.split('/').collect();
+
+        if model_id.is_empty() || model_id_path.len() > 2 {
             return Err(Status::invalid_argument("Model doesn't exist"));
         }
 
-        //if the model isn't on the server we try to load it from the disk
-        if !self.model_store.in_the_server(model_id.clone()) {
-            let _saved = self.model_store.unseal(model_id.clone());
+        if model_id_path.len() == 1 {
+            username = match auth_ext.as_ref() {
+                Some(auth_ext) => match auth_ext.username() {
+                    Some(name) => Some(name),
+                    None => None,
+                },
+                None => None,
+            };
+        }
+        else {
+            username = Some(model_id_path[0].to_string());
         }
 
-        let res = self.model_store.use_model(&model_id, |model| {
+        let res = self.model_store.use_model(&model_id, user_id.as_deref(), username.as_deref(), self.config.disable_ownership_check, |model| {
             (
                 model.run_inference(input_tensors.into()),
                 model.model_name().map(|e| e.to_string()),
@@ -478,9 +511,9 @@ impl Exchange for Exchanger {
             return Err(Status::invalid_argument("Model doesn't exist"));
         }
 
-        let user_id = if let Some(auth_ext) = auth_ext {
-            if let Some(userid) = auth_ext.userid() {
-                Some(userid)
+        let user_id = if let Some(auth_ext) = auth_ext.as_ref() {
+            if let Some(id) = auth_ext.userid() {
+                Some(id.to_string())
             } else {
                 return Err(Status::unauthenticated("You must provide an api key"));
             }
@@ -488,8 +521,16 @@ impl Exchange for Exchanger {
             None
         };
 
+        let username = match auth_ext.as_ref() {
+            Some(auth_ext) => match auth_ext.username() {
+                Some(username) => username.into(),
+                None => None,
+            },
+            None => None,
+        };
+
         // Delete the model
-        if self.model_store.delete_model(&model_id, user_id).is_none() {
+        if self.model_store.delete_model(&model_id, user_id.as_deref(), username.as_deref()).is_none() {
             error!("Model doesn't exist");
             return Err(Status::invalid_argument("Model doesn't exist"));
         }
