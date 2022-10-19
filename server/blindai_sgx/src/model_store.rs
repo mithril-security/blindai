@@ -145,7 +145,7 @@ impl ModelClock for UsersMap {
             }
             if let Some(o)= user_map.get_oldest_unloaded() {
                 if let None = oldest {
-                    oldest = Some(o);
+                    oldest = Some((o.0, k.as_deref(), o.2))
                 } else {
                     oldest = oldest.map(|(model_id, username, time)| {
                         if time > o.2 {
