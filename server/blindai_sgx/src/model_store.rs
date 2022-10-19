@@ -391,7 +391,7 @@ impl ModelStore {
             {
                 let read_guard = self.inner.read().unwrap(); // take read lock
                 if let Some((model_id, username, last_use)) = read_guard.models.get_oldest_unloaded() {
-                    if SystemTime::now() - std::time::Duration::from_secs(60 * 60 * 24 * 7) >= last_use {
+                    if SystemTime::now() - std::time::Duration::from_secs((self.config.daily_model_cleanup.unwrap() * 60 * 60 * 24).try_into().unwrap()) >= last_use {
                         model = Some((model_id.to_string(), username.map(|s| s.to_string())));
                         nb += 1
                     }

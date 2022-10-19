@@ -177,7 +177,9 @@ async fn main(telemetry_platform: String, telemetry_uid: String) -> Result<()> {
         config.clone(),
     );
 
-    spawn(
+    let daily_model_cleanup = config.daily_model_cleanup.clone();
+
+    let communication_server = spawn(
         async move {
             info!(
                 "Starting server for User --> Enclave (attested TLS) trusted communication at {}",
@@ -212,15 +214,20 @@ async fn main(telemetry_platform: String, telemetry_uid: String) -> Result<()> {
             Ok::<(), Error>(())
     });
 
-    loop {
-        sleep(Duration::from_secs(60 * 60 * 24)).await;
-        spawn({
-            let model_store = model_store.clone();
-            async move {
-                info!("Daily cleanup started");
-                let nb = model_store.prune_old_models();
-                info!("{} models deleted", nb);
-                Ok::<(), Error>(())
-    }});
+    if let Some(daily_model_cleanup) = daily_model_cleanup {
+        loop {
+            info!("Models not run for {} days will  be automatically deleted", daily_model_cleanup);
+            sleep(Duration::from_secs(60 * 60 * 24)).await;
+            spawn({
+                let model_store = model_store.clone();
+                async move {
+                    info!("Daily cleanup started");
+                    let nb = model_store.prune_old_models();
+                    info!("{} models deleted", nb);
+                    Ok::<(), Error>(())
+            }});
+        }
+    } else {
+        communication_server.await?
     }
 }
