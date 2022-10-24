@@ -6,6 +6,48 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.10] ## 2022-10-24
+
+### Changed
+- Cloud policy update
+
+## [0.5.9] ## 2022-10-13
+
+### Changed
+- Cloud policy update
+
+## [0.5.8] ## 2022-09-27
+
+### Changed
+- Bump protobuf to 3.20.1
+- Cloud policy update
+
+## [0.5.5] ## 2022-09-22
+
+### Changed
+- Pin gRPCio to 1.48.1
+- Cloud policy update
+
+## [0.5.1] ## 2022-09-11
+### Added
+- The client will show on which type of cloud the user is connected (public/private)
+
+### Changed
+- Cloud policy update
+
+## [0.5.0] ## 2022-09-09
+### Added
+- JWT & Cloud support
+- Cloud policy integrated into the client
+- Proper exceptions object for IdentityError (enclave signature mismatch)
+
+### Changed
+- Exceptions are now more explicits
+- Code refactoring
+- Docstring clarification
+- No longer using cbor2 for data serialization/deserialization
+- Client will now print messages of what its doing. (this behavior can be disabled with logging).
+
 ## [0.4.0] ## 2022-08-02
 ### Added
 - Multiple models support. The server can now have in memory more than one model at a time. 
