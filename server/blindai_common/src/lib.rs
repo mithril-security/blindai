@@ -76,6 +76,8 @@ pub struct BlindAIConfig {
     pub max_sealed_model_per_user: Option<usize>,
     #[serde(default)]
     pub send_inference_time: bool,
+    #[serde(default)]
+    pub daily_model_cleanup: Option<usize>,
 }
 
 fn uri_to_socket(uri: &Uri) -> Result<SocketAddr> {

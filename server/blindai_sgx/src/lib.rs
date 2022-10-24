@@ -24,6 +24,9 @@ use std::{ffi::CStr, sync::Arc};
 use log::*;
 use sgx_types::*;
 use std::io::Read;
+
+use tokio::{spawn, time::{sleep, Duration}};
+
 use tonic::transport::ServerTlsConfig;
 
 use tonic::transport::{Identity, Server};
@@ -111,7 +114,7 @@ async fn main(telemetry_platform: String, telemetry_uid: String) -> Result<()> {
 
     let metadata_folder = Path::new("./metadata").exists();
 
-    if (!metadata_folder) {
+    if !metadata_folder {
         fs::create_dir("./metadata")?;
     }
 
@@ -136,7 +139,7 @@ async fn main(telemetry_platform: String, telemetry_uid: String) -> Result<()> {
         fs::read("tls/host_server.key").context("Opening tls/host_server.key file")?;
     let untrusted_identity = Identity::from_pem(&untrusted_cert, &untrusted_key);
 
-    tokio::spawn({
+    spawn({
         let network_config = config.clone();
         async move {
             info!(
@@ -174,37 +177,57 @@ async fn main(telemetry_platform: String, telemetry_uid: String) -> Result<()> {
         config.clone(),
     );
 
-    let server_future = Server::builder()
-        .tls_config(ServerTlsConfig::new().identity((&enclave_identity).into()))?
-        .max_frame_size(Some(65536))
-        .add_service(ExchangeServer::with_interceptor(
-            exchanger,
-            auth::auth_interceptor,
-        ))
-        .serve(config.client_to_enclave_attested_socket()?);
+    let daily_model_cleanup = config.daily_model_cleanup.clone();
 
-    info!(
-        "Starting server for User --> Enclave (attested TLS) trusted communication at {}",
-        config.client_to_enclave_attested_url
-    );
-    println!("Server started, waiting for commands");
+    let communication_server = spawn(
+        async move {
+            info!(
+                "Starting server for User --> Enclave (attested TLS) trusted communication at {}",
+                config.client_to_enclave_attested_url
+            );
+            let server = Server::builder()
+            .tls_config(ServerTlsConfig::new().identity((&enclave_identity).into()))?
+            .max_frame_size(Some(65536))
+            .add_service(ExchangeServer::with_interceptor(
+                exchanger,
+                auth::auth_interceptor,
+            ))
+            .serve(config.client_to_enclave_attested_socket()?);
 
-    if cfg!(SGX_MODE = "SW") {
-        info!("Server running in simulation mode, attestation not available.");
-    }
+            println!("Server started, waiting for commands");
 
-    if std::env::var("BLINDAI_DISABLE_TELEMETRY").is_err() {
-        telemetry::setup(config.clone(), telemetry_platform, telemetry_uid)
-            .context("Setting up telemetry")?;
-        info!("Telemetry is enabled.")
+            if cfg!(SGX_MODE = "SW") {
+                info!("Server running in simulation mode, attestation not available.");
+            }
+        
+            if std::env::var("BLINDAI_DISABLE_TELEMETRY").is_err() {
+                telemetry::setup(config.clone(), telemetry_platform, telemetry_uid)
+                    .context("Setting up telemetry")?;
+                info!("Telemetry is enabled.")
+            } else {
+                info!("Telemetry is disabled.")
+            }
+            telemetry::add_event(TelemetryEventProps::Started {}, None, None);
+
+            server.await
+            .context("Running User --> Enclave (attested TLS) server")?;
+            Ok::<(), Error>(())
+    });
+
+    if let Some(daily_model_cleanup) = daily_model_cleanup {
+        loop {
+            info!("Models not run for {} days will  be automatically deleted", daily_model_cleanup);
+            sleep(Duration::from_secs(60 * 60 * 24)).await;
+            spawn({
+                let model_store = model_store.clone();
+                async move {
+                    info!("Daily cleanup started");
+                    let nb = model_store.prune_old_models();
+                    info!("{} models deleted", nb);
+                    Ok::<(), Error>(())
+            }});
+        }
     } else {
-        info!("Telemetry is disabled.")
+        communication_server.await?
     }
-    telemetry::add_event(TelemetryEventProps::Started {}, None, None);
-
-    server_future
-        .await
-        .context("Running User --> Enclave (attested TLS) server")?;
-
-    Ok(())
 }
