@@ -31,8 +31,8 @@ max_sealed_model_per_user = 3
 # Allow user to send a model, or only use the models already uploaded.
 allow_sendmodel = true
 
-# Allow model to be sealed when sealed on disk
-allow_model_sealing = false
+# Specify a number of days after which models are automatically cleaned up. if this is not specified, no cleanup will be done, if this is 0, models will be deleted at the net cleanup.
+daily_model_cleanup = 7
 
 # Models to load on startup
 # [[load_models]]

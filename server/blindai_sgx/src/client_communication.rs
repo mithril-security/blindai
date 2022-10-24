@@ -511,16 +511,6 @@ impl Exchange for Exchanger {
             return Err(Status::invalid_argument("Model doesn't exist"));
         }
 
-        let user_id = if let Some(auth_ext) = auth_ext.as_ref() {
-            if let Some(id) = auth_ext.userid() {
-                Some(id.to_string())
-            } else {
-                return Err(Status::unauthenticated("You must provide an api key"));
-            }
-        } else {
-            None
-        };
-
         let username = match auth_ext.as_ref() {
             Some(auth_ext) => match auth_ext.username() {
                 Some(username) => username.into(),
@@ -530,7 +520,7 @@ impl Exchange for Exchanger {
         };
 
         // Delete the model
-        if self.model_store.delete_model(&model_id, user_id.as_deref(), username.as_deref()).is_none() {
+        if self.model_store.delete_model(&model_id, username.as_deref()).is_none() {
             error!("Model doesn't exist");
             return Err(Status::invalid_argument("Model doesn't exist"));
         }
