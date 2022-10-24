@@ -71,7 +71,7 @@ pub struct UsersMap {
 
 trait ModelClock {
     fn get_oldest_loaded(&mut self) -> Option<&mut StoredModel>;
-    fn get_oldest_unloaded(&self) -> Option<(&str, SystemTime)>;
+    fn get_oldest_unloaded(&self) -> Option<(&str, Option<&str>, SystemTime)>;
 }
 
 impl ModelClock for ModelsMap {
@@ -97,7 +97,7 @@ impl ModelClock for ModelsMap {
         return oldest;
     }
 
-    fn get_oldest_unloaded(&self) -> Option<(&str, SystemTime)> {
+    fn get_oldest_unloaded(&self) -> Option<(&str, Option<&str>, SystemTime)> {
         let mut oldest = SystemTime::now();
         let mut oldest_id = "";
         if self.map.is_empty() {
@@ -109,7 +109,7 @@ impl ModelClock for ModelsMap {
                 oldest_id = k;
             }
         }
-        return Some((oldest_id, oldest));
+        return Some((oldest_id, None, oldest));
     }
 }
 
@@ -134,8 +134,8 @@ impl ModelClock for UsersMap {
         return oldest;
     }
 
-    fn get_oldest_unloaded(&self) -> Option<(&str, SystemTime)> {
-        let mut oldest: Option<(&str, SystemTime)> = None;
+    fn get_oldest_unloaded(&self) -> Option<(&str, Option<&str>, SystemTime)> {
+        let mut oldest: Option<(&str, Option<&str>, SystemTime)> = None;
         if self.map.is_empty() {
             return None;
         }
@@ -145,13 +145,13 @@ impl ModelClock for UsersMap {
             }
             if let Some(o)= user_map.get_oldest_unloaded() {
                 if let None = oldest {
-                    oldest = Some(o);
+                    oldest = Some((o.0, k.as_deref(), o.2))
                 } else {
-                    oldest = oldest.map(|(model_id, time)| {
-                        if time > o.1 {
-                            (o.0, o.1)
+                    oldest = oldest.map(|(model_id, username, time)| {
+                        if time > o.2 {
+                            (o.0, k.as_deref(), o.2)
                         } else {
-                            (model_id, time)
+                            (model_id, username, time)
                         }
                     });
                 }
@@ -269,7 +269,7 @@ impl ModelStore {
             if save_model {
                 if models.map.len() >= self.config.max_sealed_model_per_user.unwrap_or(usize::max_value()) {
                     info!("User sealed model limit reached. The oldest model used will be deleted...");
-                    let (oldest_id, _) = models.get_oldest_unloaded().unwrap();
+                    let (oldest_id, _, _) = models.get_oldest_unloaded().unwrap();
                     let oldest_id = oldest_id.to_owned();
                     if let Some(path) = path_from_key(&self.config.models_path, &oldest_id) {
                         let _ = fs::remove_file(path);
@@ -367,18 +367,10 @@ impl ModelStore {
 
     /// If user_id is provided, it will fail if the model is not owned by this
     /// user. This will never remove startup models.
-    pub fn delete_model(&self, model_id: &str, user_id: Option<&str>, username: Option<&str>) -> Option<()> {
+    pub fn delete_model(&self, model_id: &str, username: Option<&str>) -> Option<()> {
         if let Some(key) = key_from_id_and_username(model_id, username) {
             let mut write_guard = self.inner.write().unwrap();
             if let Some(map) = write_guard.models.map.get_mut(&username.map(str::to_string)) {
-                let owner = user_id.map(|id| id.parse::<usize>().unwrap());
-                if let Some(user) = owner {
-                    if map.owner_id != user {
-                        drop(write_guard);
-                        info!("Attempt at deleting a model from unauthorized namespace {:?} userid:{:?}", model_id, user_id);
-                        return None;
-                    }
-                }
                 if let Some(_) = map.map.remove(&key).and_then(|m| m.model) {
                     map.nb_loaded_models -= 1;
                     write_guard.models.nb_loaded_models -= 1;
@@ -390,6 +382,28 @@ impl ModelStore {
             }
         }
         None
+    }
+
+    pub fn prune_old_models(&self) -> usize {
+        let mut nb = 0;
+        loop {
+            let mut model = None;
+            {
+                let read_guard = self.inner.read().unwrap(); // take read lock
+                if let Some((model_id, username, last_use)) = read_guard.models.get_oldest_unloaded() {
+                    if SystemTime::now() - std::time::Duration::from_secs((self.config.daily_model_cleanup.unwrap() * 60 * 60 * 24).try_into().unwrap()) >= last_use {
+                        model = Some((model_id.to_string(), username.map(|s| s.to_string())));
+                        nb += 1
+                    }
+                }
+            }
+            if let Some((model_id, username)) = model {
+                self.delete_model(&model_id, username.as_deref());
+                info!("model {} owned by user {:?} automatically removed", &model_id, username.as_deref());
+            } else {
+                break nb
+            }
+        }
     }
 
     pub fn check_seal_file_exist(&self) -> Result<()> {

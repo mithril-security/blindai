@@ -9,8 +9,6 @@ theme:
   custom_dir: docs/material_theme_customization
   features:
     - navigation.instant
-    - navigation.tabs
-    - navigation.top
     - search.highlight
     - content.tabs.link
   logo: assets/logo.png
@@ -52,18 +50,31 @@ markdown_extensions:
 
 plugins:
 - search
+- mkdocs-jupyter
 
 nav:
-- Home: 'index.md'
-- 'Getting started':
-  - 'getting-started/quick-start.md'
-  - 'getting-started/deploy-on-hardware.md'
-  - 'getting-started/telemetry.md'
-- 'Client API reference': 'resources/blindai/client.html'
+- Getting Started: 'index.md'
+- 'Main concepts':
+  - 'docs/main-concepts/overview.md'
+  - 'Trusting BlindAI':
+    - 'docs/main-concepts/privacy.md'
+    - 'docs/main-concepts/authentication.md'
+    - 'docs/main-concepts/tls.md'
+  - 'docs/main-concepts/sealing.md'
+- 'docs/mithril-cloud.md'
+- 'docs/deploy-on-premise.md'
+- 'docs/cloud-deployment.md'
 - 'Advanced':
-  - 'advanced/certificate-and-policy.md'
-  - 'advanced/server-from-sources.md'
-  - 'advanced/client-from-sources.md'
-  - 'advanced/cloud-deployment.md'
-  - 'advanced/setting-up-your-dev-environment.md'
-  - 'advanced/blindai-project-structure.md'
+  - 'Build from sources':
+    - 'docs/advanced/build-from-sources/client.md'
+    - 'docs/advanced/build-from-sources/server.md'
+  - 'docs/advanced/setting-up-your-dev-environment.md'
+  - 'docs/advanced/blindai-project-structure.md'
+- 'docs/telemetry.md'
+- 'Client API reference': 'blindai/client.html'
+- 'Integrating AI models from other frameworks': 
+  - 'Example of BlindAI deployment with ResNet18': 'BlindAI_ResNet18.ipynb'
+  - 'Example of BlindAI deployment with CovidNet': 'BlindAI-COVID-Net.ipynb'
+  - 'Example of BlindAI deployment with DistilBERT': 'BlindAI-DistilBERT.ipynb'
+  - 'Example of BlindAI deployment with Facenet': 'BlindAI-Facenet.ipynb'
+  - 'Example of BlindAI deployment with Wav2vec2': 'BlindAI-Wav2vec2.ipynb'

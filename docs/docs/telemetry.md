@@ -16,7 +16,7 @@ This feature can be disabled at any time and any collected data can be deleted o
 
 We are currently collecting or may collect in the future:
 
-* the platform the server or client is running on (OS type, version and release, architecture)
+* the platform the server or client is running on (OS type, version, and release, architecture)
 * version of the server and clients, and client user agents
 * running mode (hardware, simulation, dcsv3)
 * user identifier generated at client/server startup
@@ -25,7 +25,7 @@ We are currently collecting or may collect in the future:
 * uptime of the server and time of the event
 * information about the hardware, like number of cores available, memory, ...
 
-We will never collect these kind of data:
+We will never collect these kinds of data:
 
 * User identity
 * Collect personal information such as IP addresses, email addresses, website URLs

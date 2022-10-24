@@ -148,7 +148,7 @@ checksum = "bef38d45163c2f1dde094a7dfd33ccf595c92905c8f8f4fdc18d06fb1037718a"
 
 [[package]]
 name = "blindai_app"
-version = "0.5.1"
+version = "0.5.6"
 dependencies = [
  "anyhow",
  "base16",
@@ -183,7 +183,7 @@ dependencies = [
 
 [[package]]
 name = "blindai_common"
-version = "0.5.0"
+version = "0.5.6"
 dependencies = [
  "anyhow",
  "http",
@@ -197,7 +197,7 @@ dependencies = [
 
 [[package]]
 name = "blindai_rpc"
-version = "0.5.1"
+version = "0.5.6"
 dependencies = [
  "tokio",
  "tokio-stream",
@@ -207,7 +207,7 @@ dependencies = [
 
 [[package]]
 name = "blindai_sgx"
-version = "0.5.1"
+version = "0.5.6"
 dependencies = [
  "anyhow",
  "base64",
@@ -225,7 +225,7 @@ dependencies = [
  "num-traits",
  "pkix",
  "prost 0.8.0",
- "prost-types 0.8.0",
+ "prost-types",
  "rand",
  "rcgen",
  "reqwest",
@@ -255,7 +255,7 @@ dependencies = [
 
 [[package]]
 name = "blindai_sgx_attestation"
-version = "0.5.1"
+version = "0.5.6"
 dependencies = [
  "log",
  "sgx_types",
@@ -331,15 +331,6 @@ dependencies = [
  "num-traits",
  "time 0.1.43",
  "winapi",
-]
-
-[[package]]
-name = "cmake"
-version = "0.1.48"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e8ad8cef104ac57b68b89df3208164d228503abbdce70f6880ffa3d970e7443a"
-dependencies = [
- "cc",
 ]
 
 [[package]]
@@ -629,12 +620,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "37ab347416e802de484e4d03c7316c48f1ecb56574dfd4a46a80f173ce1de04d"
 
 [[package]]
-name = "fixedbitset"
-version = "0.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "398ea4fabe40b9b0d885340a2a991a44c8a645624075ad966d21f88688e2b69e"
-
-[[package]]
 name = "flate2"
 version = "1.0.22"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -835,12 +820,6 @@ checksum = "6d621efb26863f0e9924c6ac577e8275e5e6b77455db64ffa6c65c904e9e132c"
 dependencies = [
  "unicode-segmentation",
 ]
-
-[[package]]
-name = "heck"
-version = "0.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2540771e65fc8cb83cd6e8a237f70c319bd5c29f78ed1084ba5d50eeac86f7f9"
 
 [[package]]
 name = "hermit-abi"
@@ -1098,9 +1077,9 @@ dependencies = [
 
 [[package]]
 name = "liquid-core"
-version = "0.24.1"
+version = "0.24.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8ea8f6c13e8ae36bce67fc1eaacf32c13b26d16576b7ee2ec9de33a3980cefd6"
+checksum = "df8b29797c65f55da665c74dfc7525bc7778c85b367dd8424d046684d0f40c6d"
 dependencies = [
  "anymap2",
  "itertools",
@@ -1194,6 +1173,15 @@ name = "memchr"
 version = "2.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "308cc39be01b73d0d18f82a0e7b2a3df85245f84af96fdddc5d202d27e47b86a"
+
+[[package]]
+name = "memmap2"
+version = "0.5.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "95af15f345b17af2efc8ead6080fb8bc376f8cec1b35277b935637595fe77498"
+dependencies = [
+ "libc",
+]
 
 [[package]]
 name = "mime"
@@ -1607,17 +1595,7 @@ version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "467d164a6de56270bd7c4d070df81d07beace25012d5103ced4e9ff08d6afdb7"
 dependencies = [
- "fixedbitset 0.2.0",
- "indexmap",
-]
-
-[[package]]
-name = "petgraph"
-version = "0.6.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4a13a2fa9d0b63e5f22328828741e523766fff0ee9e779316902290dff3f824f"
-dependencies = [
- "fixedbitset 0.4.0",
+ "fixedbitset",
  "indexmap",
 ]
 
@@ -1762,12 +1740,12 @@ dependencies = [
 
 [[package]]
 name = "prost"
-version = "0.10.4"
+version = "0.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "71adf41db68aa0daaefc69bb30bcd68ded9b9abaad5d1fbb6304c4fb390e083e"
+checksum = "399c3c31cdec40583bb68f0b18403400d01ec4289c383aa047560439952c4dd7"
 dependencies = [
  "bytes",
- "prost-derive 0.10.1",
+ "prost-derive 0.11.0",
 ]
 
 [[package]]
@@ -1777,35 +1755,13 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "355f634b43cdd80724ee7848f95770e7e70eefa6dcf14fea676216573b8fd603"
 dependencies = [
  "bytes",
- "heck 0.3.3",
+ "heck",
  "itertools",
  "log",
  "multimap",
- "petgraph 0.5.1",
+ "petgraph",
  "prost 0.8.0",
- "prost-types 0.8.0",
- "tempfile",
- "which",
-]
-
-[[package]]
-name = "prost-build"
-version = "0.10.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8ae5a4388762d5815a9fc0dea33c56b021cdc8dde0c55e0c9ca57197254b0cab"
-dependencies = [
- "bytes",
- "cfg-if",
- "cmake",
- "heck 0.4.0",
- "itertools",
- "lazy_static",
- "log",
- "multimap",
- "petgraph 0.6.0",
- "prost 0.10.4",
- "prost-types 0.10.1",
- "regex",
+ "prost-types",
  "tempfile",
  "which",
 ]
@@ -1825,9 +1781,9 @@ dependencies = [
 
 [[package]]
 name = "prost-derive"
-version = "0.10.1"
+version = "0.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7b670f45da57fb8542ebdbb6105a925fe571b67f9e7ed9f47a06a84e72b4e7cc"
+checksum = "7345d5f0e08c0536d7ac7229952590239e77abf0a0100a1b1d890add6ea96364"
 dependencies = [
  "anyhow",
  "itertools",
@@ -1844,16 +1800,6 @@ checksum = "603bbd6394701d13f3f25aada59c7de9d35a6a5887cfc156181234a44002771b"
 dependencies = [
  "bytes",
  "prost 0.8.0",
-]
-
-[[package]]
-name = "prost-types"
-version = "0.10.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2d0a014229361011dc8e69c8a1ec6c2e8d0f2af7c91e3ea3f5b2170298461e68"
-dependencies = [
- "bytes",
- "prost 0.10.4",
 ]
 
 [[package]]
@@ -1940,8 +1886,7 @@ dependencies = [
 [[package]]
 name = "regex"
 version = "1.5.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d83f127d94bdbcda4c8cc2e50f6f84f4b611f69c902699ca385a39c3a75f9ff1"
+source = "git+https://github.com/mithril-security/regex-sgx.git?branch=target-sgx-1.56#f46b4151976519be145db8072885ea4aa5f5396b"
 dependencies = [
  "aho-corasick",
  "memchr",
@@ -1951,8 +1896,7 @@ dependencies = [
 [[package]]
 name = "regex-syntax"
 version = "0.6.26"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "49b3de9ec5dc0a3417da371aab17d729997c15010e7fd24ff707773a33bddb64"
+source = "git+https://github.com/mithril-security/regex-sgx.git?branch=target-sgx-1.56#f46b4151976519be145db8072885ea4aa5f5396b"
 
 [[package]]
 name = "remove_dir_all"
@@ -2086,6 +2030,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "93fc1dc3aaa9bfed95e02e6eadabb4baf7e3078b0bd1b4d7b6b0b68378900502"
 dependencies = [
  "winapi-util",
+]
+
+[[package]]
+name = "scan_fmt"
+version = "0.2.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0b53b0a5db882a8e2fdaae0a43f7b39e7e9082389e978398bdf223a55b581248"
+dependencies = [
+ "regex",
 ]
 
 [[package]]
@@ -2622,7 +2575,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "12b52d07035516c2b74337d2ac7746075e7dcae7643816c1b12c5ff8a7484c08"
 dependencies = [
  "proc-macro2",
- "prost-build 0.8.0",
+ "prost-build",
  "quote",
  "syn",
 ]
@@ -2645,7 +2598,7 @@ name = "tonic-rpc-macro"
 version = "0.1.0"
 source = "git+https://github.com/mithril-security/tonic-rpc.git?branch=main#72fa78635720843d09f3876fa6f6ac33c1dfefdf"
 dependencies = [
- "heck 0.3.3",
+ "heck",
  "itertools",
  "proc-macro2",
  "quote",
@@ -2733,8 +2686,8 @@ dependencies = [
 
 [[package]]
 name = "tract-core"
-version = "0.17.2-pre"
-source = "git+https://github.com/mithril-security/tract-sgx-xargo.git?tag=0.17.2-pre-experimental7#3200eaf7656a1925f3e66cffdcb71e7f92c2d1eb"
+version = "0.18.3-pre"
+source = "git+https://github.com/mithril-security/tract-sgx-xargo.git?tag=0.18.4-pre#f0ec0d133731545e467768974e5fd45b49abbd07"
 dependencies = [
  "anyhow",
  "bit-set",
@@ -2755,8 +2708,8 @@ dependencies = [
 
 [[package]]
 name = "tract-data"
-version = "0.17.2-pre"
-source = "git+https://github.com/mithril-security/tract-sgx-xargo.git?tag=0.17.2-pre-experimental7#3200eaf7656a1925f3e66cffdcb71e7f92c2d1eb"
+version = "0.18.3-pre"
+source = "git+https://github.com/mithril-security/tract-sgx-xargo.git?tag=0.18.4-pre#f0ec0d133731545e467768974e5fd45b49abbd07"
 dependencies = [
  "anyhow",
  "educe",
@@ -2768,13 +2721,14 @@ dependencies = [
  "num-complex",
  "num-integer",
  "num-traits",
+ "scan_fmt",
  "smallvec",
 ]
 
 [[package]]
 name = "tract-hir"
-version = "0.17.2-pre"
-source = "git+https://github.com/mithril-security/tract-sgx-xargo.git?tag=0.17.2-pre-experimental7#3200eaf7656a1925f3e66cffdcb71e7f92c2d1eb"
+version = "0.18.3-pre"
+source = "git+https://github.com/mithril-security/tract-sgx-xargo.git?tag=0.18.4-pre#f0ec0d133731545e467768974e5fd45b49abbd07"
 dependencies = [
  "derive-new",
  "educe",
@@ -2784,21 +2738,22 @@ dependencies = [
 
 [[package]]
 name = "tract-linalg"
-version = "0.17.2-pre"
-source = "git+https://github.com/mithril-security/tract-sgx-xargo.git?tag=0.17.2-pre-experimental7#3200eaf7656a1925f3e66cffdcb71e7f92c2d1eb"
+version = "0.18.3-pre"
+source = "git+https://github.com/mithril-security/tract-sgx-xargo.git?tag=0.18.4-pre#f0ec0d133731545e467768974e5fd45b49abbd07"
 dependencies = [
  "cc",
  "derive-new",
  "downcast-rs",
  "dyn-clone",
- "educe",
+ "half 2.1.0",
  "lazy_static",
- "libc",
  "liquid",
+ "liquid-core",
  "log",
  "num-traits",
  "paste",
  "smallvec",
+ "time 0.3.9",
  "tract-data",
  "unicode-normalization",
  "walkdir",
@@ -2806,8 +2761,8 @@ dependencies = [
 
 [[package]]
 name = "tract-nnef"
-version = "0.17.2-pre"
-source = "git+https://github.com/mithril-security/tract-sgx-xargo.git?tag=0.17.2-pre-experimental7#3200eaf7656a1925f3e66cffdcb71e7f92c2d1eb"
+version = "0.18.3-pre"
+source = "git+https://github.com/mithril-security/tract-sgx-xargo.git?tag=0.18.4-pre#f0ec0d133731545e467768974e5fd45b49abbd07"
 dependencies = [
  "byteorder",
  "flate2",
@@ -2820,18 +2775,17 @@ dependencies = [
 
 [[package]]
 name = "tract-onnx"
-version = "0.17.2-pre"
-source = "git+https://github.com/mithril-security/tract-sgx-xargo.git?tag=0.17.2-pre-experimental7#3200eaf7656a1925f3e66cffdcb71e7f92c2d1eb"
+version = "0.18.3-pre"
+source = "git+https://github.com/mithril-security/tract-sgx-xargo.git?tag=0.18.4-pre#f0ec0d133731545e467768974e5fd45b49abbd07"
 dependencies = [
  "bytes",
  "derive-new",
  "educe",
  "log",
  "mapr",
+ "memmap2",
  "num-integer",
- "prost 0.10.4",
- "prost-build 0.10.4",
- "rand",
+ "prost 0.11.0",
  "smallvec",
  "tract-hir",
  "tract-nnef",
@@ -2840,10 +2794,13 @@ dependencies = [
 
 [[package]]
 name = "tract-onnx-opl"
-version = "0.17.2-pre"
-source = "git+https://github.com/mithril-security/tract-sgx-xargo.git?tag=0.17.2-pre-experimental7#3200eaf7656a1925f3e66cffdcb71e7f92c2d1eb"
+version = "0.18.3-pre"
+source = "git+https://github.com/mithril-security/tract-sgx-xargo.git?tag=0.18.4-pre#f0ec0d133731545e467768974e5fd45b49abbd07"
 dependencies = [
  "educe",
+ "getrandom",
+ "log",
+ "rand",
  "tract-nnef",
 ]
 

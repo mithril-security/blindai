@@ -9,4 +9,4 @@ The project has several parts:
   * `/server/blindai_sgx`: the enclave part (trusted execution environment), using Intel SGX
   * `/server/blindai_sgx_attestation`: DCAP attestation library, imported from the Apache Teaclave project and modified to suit our needs
   * `/server/blindai_common`: common library used by the host and enclave
-  * `/server/blindai_rpc`: common library used by the host and enclave, used for rpc communications
+  * `/server/blindai_rpc`: common library used by the host and enclave, used for RPC communications
