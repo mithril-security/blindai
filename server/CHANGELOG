@@ -4,7 +4,39 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.5.6] ## 2022-10-24
+### Added
+- Models unused will now be deleted, if the setting is specified in the server configuration file.
+
+### Changed
+- Bump to tract 0.18.3
+
+## [0.5.5] ## 2022-10-13
+### Added
+- Namespacing support
+
+### Changed
+- Bump to a new custom version of tract 0.17.2
+
+## [0.5.1] ## 2022-09-11
+### Added
+- Model sealing can be disabled
+
+### Changed
+- Bump to custom version of tract 0.17.2
+- The real error message was never sent if the stream was cancelled by the server
+- Code refactoring
+
+## [0.5.0] ## 2022-09-09
+### Added
+- Support of JWT attestation
+- Automatic detection of the input type and size of models
+- New telemetry system
+- Model sealing
+
+### Changed
+- Bump to tract 0.17.2
+- Error messages are now explicit
 
 ## [0.4.0] ## 2022-08-02
 ### Added
