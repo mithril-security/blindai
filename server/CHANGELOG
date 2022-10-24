@@ -37,6 +37,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Bump to tract 0.17.2
 - Error messages are now explicit
+- No longer using serde_cbor for data serialization/deserialization
 
 ## [0.4.0] ## 2022-08-02
 ### Added
