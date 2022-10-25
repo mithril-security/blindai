@@ -1,0 +1,42 @@
+syntax = "proto3";
+package dispatcher;
+
+import "attestation.proto";
+
+message EnclaveSpec {
+    string enclave_url = 2;
+
+    // identifier for the enclave
+    string enclave_id = 4;
+
+    string service = 5;
+    string service_version = 6;
+    bytes tls_certificate = 7;
+    // Currently only `sgx` or `sgx/sim`.
+    string attestation_platform = 8;
+    attestation.SgxAttestation sgx_attestation = 9;
+}
+
+message GetEnclaveReply {
+    repeated EnclaveSpec results = 1;
+}
+
+service Dispatcher {
+    rpc GetEnclave (GetEnclaveRequest) returns (GetEnclaveReply) {}
+}
+
+message GetEnclaveRequest {
+    string api_key = 1;
+
+    string enclave_id = 2;
+
+    string service = 3;
+    string service_version = 4;
+
+    // Currently only `sgx` or `sgx/sim`.
+    repeated string attestation_platform = 5;
+    bool omit_attestation = 6;
+    uint64 has_private_data_object = 7;
+
+    int32 limit = 8;
+}
