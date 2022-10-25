@@ -1,0 +1,31 @@
+syntax = "proto3";
+package identity;
+
+import "attestation.proto";
+
+message GetIdentityRequest {
+    bool omit_attestation = 1;
+}
+
+message GetIdentityResponse {
+    // `blindai`
+    string service = 1;
+    // The service version (blindai version)
+    string service_version = 2;
+
+    bytes tls_certificate = 3;
+
+    // Currently only `sgx` or `sgx/sim`.
+    string attestation_platform = 4;
+    attestation.SgxAttestation sgx_attestation = 5;
+
+    // List of the private data objects this TEE has access to.
+    repeated uint64 private_data_objects = 6;
+}
+
+// This is the service that will be called by the dispatcher.
+service Identity {
+    rpc GetIdentity(GetIdentityRequest) returns (GetIdentityResponse);
+}
+
+

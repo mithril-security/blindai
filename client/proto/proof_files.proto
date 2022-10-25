@@ -15,11 +15,11 @@
 syntax = "proto3";
 package proof_files;
 
-import "untrusted.proto";
+import "attestation.proto";
 
 // This is useful for proof files, but is not used on the wire
 message ResponseProof {
-    untrusted.GetSgxQuoteWithCollateralReply attestation = 1;
+    attestation.GetSgxQuoteWithCollateralReply attestation = 1;
     // This is a serialized `Payload` message
     bytes payload = 2;
     // Signature of the payload

@@ -20,10 +20,7 @@ if PLATFORM not in SUPPORTED_PLATFORMS:
     exit(1)
 
 # Convert distutils Windows platform specifiers to CMake -A arguments
-PLAT_TO_CMAKE = {
-    "win32": "Win32",
-    "win-amd64": "x64",
-}
+PLAT_TO_CMAKE = {"win32": "Win32", "win-amd64": "x64"}
 
 # AttestationLib Build Script
 ATTESTATION_BUILD_SCRIPT = {
@@ -69,6 +66,7 @@ PROTO_FILES = [
     "untrusted.proto",
     "proof_files.proto",
     "licensing.proto",
+    "attestation.proto",
 ]
 PROTO_PATH = os.path.join(os.path.dirname(__file__), "proto")
 
@@ -203,9 +201,7 @@ setuptools.setup(
     long_description_content_type="text/markdown; charset=UTF-8; variant=GFM",
     keywords="confidential computing inference client enclave sgx machine learning",
     url="https://github.com/mithril-security/blindai",
-    project_urls={
-        "Documentation": "https://blindai.mithrilsecurity.io/",
-    },
+    project_urls={"Documentation": "https://blindai.mithrilsecurity.io/"},
     packages=setuptools.find_packages(exclude=["blindai/cpp/wrapper.cc"]),
     package_data={"": [get_libs(), "tls/*.pem", "tls/*.toml"]},
     ext_modules=[CMakeExtension("_quote_verification")],
