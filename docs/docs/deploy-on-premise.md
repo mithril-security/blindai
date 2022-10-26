@@ -85,7 +85,7 @@ Please make sure you have [Docker ](https://docs.docker.com/get-docker/)installe
     ```
 
 !!! info
-    If you built this image locally you can allow debug by running with -e POLICY_ALLOW_DEBUG=true. Building from sources is documented [here](advanced/build-from-sources/server.md)
+    If you built this image locally you can allow debug by running with -e POLICY_ALLOW_DEBUG=true. Building from sources is documented [here](./contributing/build-from-sources/server.md)
 
 !!! warning
     You should only allow debug if your policy.toml allows debug.

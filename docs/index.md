@@ -20,7 +20,7 @@ BlindAI can easily be installed from [PyPI](https://pypi.org/project/blindai/):
 pip install blindai
 ```
 
-This package is enough for the deployment and querying of models on our managed infrastructure. For on-premise deployment, you will have to deploy our [Docker](https://hub.docker.com/u/mithrilsecuritysas) images, while you can build them yourself as demonstrated in [this section](docs/advanced/build-from-sources/server.md), it is recommanded to start with the prebuilt images.
+This package is enough for the deployment and querying of models on our managed infrastructure. For on-premise deployment, you will have to deploy our [Docker](https://hub.docker.com/u/mithrilsecuritysas) images, while you can build them yourself as demonstrated in [this section](docs/contributing/build-from-sources/server.md), it is recommanded to start with the prebuilt images.
 
 ### Uploading a ResNet18
 

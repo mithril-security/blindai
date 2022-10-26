@@ -5,7 +5,7 @@ Finding a privacy-by-design tool for AI can be difficult. We have decided to cre
 Having a tool by data scientists for data scientists is primordial to us, and our number one focus is to democratize AI privacy with an easy-to-use solution.
 
 ## Easy to use by data scientists
-As you can see from the [Getting Started](../../docs/getting-started.md) sample, AI models can be made private in two lines of code, so that any data consumed by these models are never exposed in clear to any third party.
+As you can see from the [Getting Started](../../index.md) sample, AI models can be made private in two lines of code, so that any data consumed by these models are never exposed in clear to any third party.
 
 Providing continuity with data scientist current tools, like PyTorch, TensorFlow, ONNX, or Hugging Face Transformers is key for us. We want confidential AI to be as easy to set up as a regular AI deployment solution.
 
