@@ -54,12 +54,12 @@ plugins:
 
 nav:
 - 'What is BlindAI':
-  - 'Overview' : 'index.md'
+  - 'Overview' : 'docs/what-is-blindai/overview.md'
   - 'Features':
     - 'Attested TLS': 'docs/what-is-blindai/features/tls.md'
   - 'Philosophy' : 'docs/what-is-blindai/philosophy.md'
   - 'Telemetry': 'docs/telemetry.md'
-- 'Getting Started': 'docs/getting-started.md'
+- 'Getting Started': 'index.md'
 - 'Examples': 
   - 'Example of BlindAI deployment with ResNet18': 'BlindAI_ResNet18.ipynb'
   - 'Example of BlindAI deployment with CovidNet': 'BlindAI-COVID-Net.ipynb'
