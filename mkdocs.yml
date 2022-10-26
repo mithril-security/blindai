@@ -37,6 +37,7 @@ markdown_extensions:
   - def_list
   - footnotes
   - md_in_html
+  - tables
   - pymdownx.details
   - pymdownx.highlight:
       anchor_linenums: true
@@ -78,3 +79,4 @@ nav:
   - 'Example of BlindAI deployment with DistilBERT': 'BlindAI-DistilBERT.ipynb'
   - 'Example of BlindAI deployment with Facenet': 'BlindAI-Facenet.ipynb'
   - 'Example of BlindAI deployment with Wav2vec2': 'BlindAI-Wav2vec2.ipynb'
+  - 'docs/Benchmarks.md'
