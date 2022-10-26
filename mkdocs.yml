@@ -53,28 +53,42 @@ plugins:
 - mkdocs-jupyter
 
 nav:
-- Getting Started: 'index.md'
-- 'Main concepts':
-  - 'docs/main-concepts/overview.md'
-  - 'Trusting BlindAI':
-    - 'docs/main-concepts/privacy.md'
-    - 'docs/main-concepts/authentication.md'
-    - 'docs/main-concepts/tls.md'
-  - 'docs/main-concepts/sealing.md'
-- 'docs/mithril-cloud.md'
-- 'docs/deploy-on-premise.md'
-- 'docs/cloud-deployment.md'
-- 'Advanced':
-  - 'Build from sources':
-    - 'docs/advanced/build-from-sources/client.md'
-    - 'docs/advanced/build-from-sources/server.md'
-  - 'docs/advanced/setting-up-your-dev-environment.md'
-  - 'docs/advanced/blindai-project-structure.md'
-- 'docs/telemetry.md'
-- 'Client API reference': 'blindai/client.html'
-- 'Integrating AI models from other frameworks': 
+- 'What is BlindAI':
+  - 'Overview' : 'index.md'
+  - 'Features':
+    - 'Attested TLS': 'docs/what-is-blindai/features/tls.md'
+  - 'Philosophy' : 'docs/what-is-blindai/philosophy.md'
+  - 'Telemetry': 'docs/telemetry.md'
+- 'Getting Started': 'docs/getting-started.md'
+- 'Examples': 
   - 'Example of BlindAI deployment with ResNet18': 'BlindAI_ResNet18.ipynb'
   - 'Example of BlindAI deployment with CovidNet': 'BlindAI-COVID-Net.ipynb'
   - 'Example of BlindAI deployment with DistilBERT': 'BlindAI-DistilBERT.ipynb'
   - 'Example of BlindAI deployment with Facenet': 'BlindAI-Facenet.ipynb'
   - 'Example of BlindAI deployment with Wav2vec2': 'BlindAI-Wav2vec2.ipynb'
+- 'Main concepts':
+    - 'Secure enclaves overview':
+      - 'Intel SGX': 'docs/main-concepts/secured-enclaves-overview/intel-sgx.md'
+      - 'AMD SEV': 'docs/main-concepts/secured-enclaves-overview/amd-sev.md'
+    - 'docs/main-concepts/privacy.md'
+    - 'docs/main-concepts/authentication.md'
+    - 'docs/main-concepts/tls.md'
+    - 'docs/main-concepts/sealing.md'
+- 'Benchmarks' : 'docs/benchmarks.md'
+- 'Deployment':
+  - 'BlindAI as a service': 'docs/mithril-cloud.md'
+  - 'On-premise': 'docs/deploy-on-premise.md'
+  - 'Cloud providers': 
+    - 'Azure': 'docs/cloud-deployment.md'
+- 'Advanced security':
+  - 'Threat model': 'docs/advanced-security/threat-model.md'
+  - 'Key management': 'docs/advanced-security/key-management.md'
+  - 'Attestation specs': 'docs/advanced-security/attestation.md'
+  - 'Trusted Computing Base': 'docs/advanced-security/trusted-computing-base.md'
+- 'Contributing':
+  - 'Project structure': 'docs/contributing/blindai-project-structure.md'
+  - 'Setting up the dev environment': 'docs/contributing/setting-up-your-dev-environment.md'
+  - 'Build the project':
+    - 'docs/contributing/build-from-sources/client.md'
+    - 'docs/contributing/build-from-sources/server.md'
+  - 'Client API reference': 'blindai/client.html'
