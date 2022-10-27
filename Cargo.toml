@@ -6,12 +6,62 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+prost = "0.6"
+weak-table = "0.3.2"
+anyhow = "=1.0.45"
+base64 = "0.13.0"
+bytes = "0.4.12"
+serde-pickle = "1.1.1"
+serde_bytes = "0.11.7"
+#blindai_common = {path = "../blindai_common"}
+#blindai_rpc = {path = "../blindai_rpc"}
+#blindai_sgx_attestation = {path = '../blindai_sgx_attestation'}
+der-parser = "*"
+env_logger = {version = "*", default-features = false}
+futures = "0.3.17"
+hex = "*"
+log = {features = ["release_max_level_trace"]}
+num-derive = "0.3.3"
+num-traits = "0.2.14"
+pkix = "0.1.1"
+#prost = {version = "0.8", default-features = false, features = ["prost-derive"]}
+rand = "*"
+rcgen = {version = "0.8.13", default-features = false, features=["pem"]}
+#reqwest = {version = "=0.11.4", default-features = false, features = ["json", "rustls-tls-webpki-roots"]}
+ring = "0.16.20"
+ring-compat = "0.4.0"
+rsa = {version = "0.5.0"}
+serde = "1.0.130"
+serde_cbor = "=0.11.1"
+serde_derive = "1.0.68"
+serde_json = "1.0.68"
+#tokio = {version = "1.12.*", features = ["rt"]}
+#tokio-stream = "*"
+#tokio-util = "=0.6.8"
+#toml = "*"
+#tonic = {version = "0.5.2", features = ["tls"]}
+#tonic-rpc = {version = "0.1.1", features = ["json"]}
+uuid = {version="0.8.2", features=["v4", "serde"]}
+tract-core = {path="tract/core"} #{version = "0.17.2-pre", features=["untrusted_fs"]}
+tract-onnx = {path="tract/onnx"} #{version = "0.17.2-pre", features=["untrusted_fs"]}
+tract-hir = {path="tract/hir"}  #{version = "0.17.2-pre"}
+x509-parser = "0.11.0"
+#h2 = "=0.3.4"
+#prost-types = "=0.8"
+#jsonwebtoken = "8"
+#serde_json = "0.3.24"
+int-enum = "0.5.0"
+cbor= "0.4.1"
 # enable TLS support via rustls
 tiny_http = { version = "0.12.0", features = ["ssl-rustls"] }
 [patch.crates-io]
 # tiny http uses ring which needs to be patched to work properly 
 # and securely in SGX target
-ring = { git = 'ssh://git@github.com/mithril-security/ring.git', branch="fortanix-target"}
+ring = {path="ring"}
+# { git = 'ssh://git@github.com/mithril-security/ring.git', branch="fortanix-target"}
+
+[build-dependencies]
+prost-build = "0.11.1"
 
 [package.metadata.fortanix-sgx]
 threads=10
