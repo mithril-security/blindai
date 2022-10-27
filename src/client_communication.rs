@@ -33,10 +33,10 @@ struct runModel{
 
 #[derive(Deserialize)]
 struct uploadModel{
-    //modelLength: u64,
-    model: Vec<Vec<u8>>,
+    model: Vec<u8>,
     input:Vec<TensorInfo>,
     output:Vec<ModelDatumType>,
+    length: u64
 }
 
 impl Exchanger {
@@ -87,8 +87,8 @@ pub fn send_model(&self,mut request: tiny_http::Request
     
     
     if model_size == 0 {
-        //model_size = uploadModelBody.modelLength.try_into().unwrap();
-        model_size=267874659;
+        model_size = uploadModelBody.length.try_into().unwrap();
+        //model_size=267874659;
         model_bytes.reserve_exact(model_size);
         model_name=None;
         //model_name = if !uploadModelBody.model_name.is_empty() {
@@ -106,12 +106,12 @@ pub fn send_model(&self,mut request: tiny_http::Request
             tensor_outputs.push((*output) as i32);
         }
 
-        //sign = json.sign;
+        //sign = uploadModelBody.sign;
     }
     if model_size > max_model_size || model_bytes.len() > max_model_size {
         return Err(Error::msg("Model is too big".to_string()));
     }
-    model_bytes.append(&mut uploadModelBody.model[0]);
+    model_bytes.append(&mut uploadModelBody.model);
     
 
     if model_size == 0 {

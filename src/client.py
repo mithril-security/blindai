@@ -26,16 +26,16 @@ class TensorInfo:
     
 
 class uploadModel:
-    #length:int
     model:List[int]
     input:List[TensorInfo]
     output:List[ModelDatumType]
+    length:int
 
-    def __init__(self,length,model,input,output):
+    def __init__(self,model,input,output,length):
         self.model = model
-        #self.length = length
         self.input = input
         self.output = output
+        self.length = length
 
 
 class runModel:
@@ -91,13 +91,9 @@ conn = http.client.HTTPSConnection("localhost", 9976, context = ssl._create_unve
 with open("distilbert-base-uncased.onnx","rb") as f:
     
     model = f.read()
-    modelsize = len(model)
-    print(modelsize)
     model=list(model)
-    #print(cbor2_dumps(modelsize))
-    
-    data = uploadModel(model = model, length = modelsize, input = inputs, output = outputs)
-    #print(data.length)
+    length = len(model)
+    data = uploadModel(model = model, input = inputs, output = outputs, length = length)
     data = cbor2_dumps(data.__dict__)
 
     conn.request("POST","/upload",data)

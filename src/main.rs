@@ -3,17 +3,19 @@ use tiny_http::{Response, Server};
 use std::sync::Arc;
 use identity::MyIdentity;
 mod identity;
-use anyhow::{anyhow, bail, Error, Result};
-use log::{info,error};
 mod model;
+use model::{ModelDatumType};
+use serde_derive::{Deserialize};
 mod model_store;
 use model_store::ModelStore;
-use std::time::Instant;
 use ring::digest::{self, Digest};
 #[cfg(not(target_env = "sgx"))]
 use std::sync::RwLock;
 #[cfg(target_env = "sgx")]
 use std::sync::SgxRwLock as RwLock;
+
+use serde_cbor;
+
 use crate::client_communication::Exchanger;
 mod client_communication;
 
@@ -22,6 +24,10 @@ fn main() {
 
     // Make debugging easier by enabling rust backtrace inside enclave
     std::env::set_var("RUST_BACKTRACE", "full");
+
+    let test_list = [216, 28, 136, 24, 101, 25, 4, 21, 25, 8, 245, 25, 38, 204, 25, 7, 206, 25, 36, 178, 25, 3, 231, 24, 102];
+    let deser_list:Vec<i32> = serde_cbor::from_slice(&test_list).unwrap();
+    println!("test deserialization{:?}",deser_list);
 
     let (certificate, storage_identity, signing_key_seed) = identity::create_certificate().unwrap();
     let my_identity = Arc::new(MyIdentity::from_cert(
