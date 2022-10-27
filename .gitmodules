@@ -1,0 +1,3 @@
+[submodule "ring-fortanix"]
+	path = ring-fortanix
+	url = https://github.com/mithril-security/ring-fortanix.git
