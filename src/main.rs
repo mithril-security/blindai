@@ -9,10 +9,10 @@ use serde_derive::{Deserialize};
 mod model_store;
 use model_store::ModelStore;
 use ring::digest::{self, Digest};
-#[cfg(not(target_env = "sgx"))]
+//#[cfg(not(target_env = "sgx"))]
 use std::sync::RwLock;
-#[cfg(target_env = "sgx")]
-use std::sync::SgxRwLock as RwLock;
+//#[cfg(target_env = "sgx")]
+//use std::sync::SgxRwLock as RwLock;
 
 use serde_cbor;
 
@@ -33,7 +33,6 @@ fn main() {
     ));
     let enclave_identity = my_identity.tls_identity.clone();
     let exchanger_temp = Arc::new(Exchanger::new(Arc::new(ModelStore::new()),my_identity,1000000000,100000));
-    
     let server = Arc::new(
         Server::https(
         "0.0.0.0:9976",
@@ -42,7 +41,6 @@ fn main() {
             private_key: enclave_identity.private_key_der,
         },
     ).unwrap());
-
     println!("Now listening on port 9976");
 
     let mut handles = Vec::new();

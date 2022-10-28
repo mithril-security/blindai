@@ -18,6 +18,10 @@ use anyhow::{anyhow, Context, Result};
 use core::hash::Hash;
 use num_derive::FromPrimitive;
 use ring::digest::Digest;
+//use tract_core::internal::*;
+//use tract_core::model::*;
+//use tract_core::prelude::*;
+//use tract_core::analyser::types::InferenceFact;
 use tract_onnx::prelude::{tract_ndarray::IxDynImpl, DatumType, TVec, *};
 use uuid::Uuid;
 use serde_derive::Deserialize;
@@ -50,7 +54,7 @@ impl ModelDatumType {
 
 macro_rules! dispatch_numbers {
     ($($path:ident)::* ($dt:expr) ($($args:expr),*)) => { {
-        use tract_onnx::prelude::DatumType;
+        //use tract_onnx::prelude::DatumType;
         match $dt {
             DatumType::U32  => $($path)::*::<u32>($($args),*),
             DatumType::U64  => $($path)::*::<u64>($($args),*),
@@ -87,14 +91,14 @@ fn create_tensor<A: serde::de::DeserializeOwned + tract_core::prelude::Datum>(
     input: &[u8],
     input_fact: &[usize],
 ) -> Result<Tensor> {
-    let dim = IxDynImpl::from(input_fact);
+    let dim = tract_ndarray::IxDynImpl::from(input_fact);
     let vec: Vec<A> = serde_cbor::from_slice(input).unwrap_or_default();
     let tensor = tract_ndarray::ArrayD::from_shape_vec(dim, vec)?.into();
     Ok(tensor)
 }
 
 fn convert_tensor<A: serde::ser::Serialize + tract_core::prelude::Datum>(
-    input: &tract_onnx::prelude::Tensor,
+    input: &tract_core::prelude::Tensor,
 ) -> Result<Vec<u8>> {
     let arr = input.to_array_view::<A>()?;
     let slice = arr

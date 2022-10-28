@@ -357,4 +357,47 @@ pub fn run_model(
     Ok(())
 }
 
+/*
+async fn delete_model(
+    &self,
+    mut request: tiny_http::Request,
+    ) -> Result<(),Error> { //Result<Response<DeleteModelReply>, Status> {
+    let auth_ext = request.extensions().get::<AuthExtension>().cloned();
+    let request = request.into_inner();
+    let model_id = request.model_id;
+
+    if model_id.is_empty() {
+        return Err(Error::msg("Model doesn't exist".to_string()));
+    }
+
+    let user_id = if let Some(auth_ext) = auth_ext.as_ref() {
+        if let Some(id) = auth_ext.userid() {
+            Some(id.to_string())
+        } else {
+            return Err(Error::msg("You must provide an api key".to_string()));
+        }
+    } else {
+        None
+    };
+
+    let username = match auth_ext.as_ref() {
+        Some(auth_ext) => match auth_ext.username() {
+            Some(username) => username.into(),
+            None => None,
+        },
+        None => None,
+    };
+
+    // Delete the model
+    if self.model_store.delete_model(&model_id, user_id.as_deref(), username.as_deref()).is_none() {
+        error!("Model doesn't exist");
+        return Err(Error::msg("Model doesn't exist".to_string()));
+    }
+    // Construct the payload
+    //let reply = DeleteModelReply {};
+    Ok(())
+    //Ok(Response::new(reply))
+}
+*/
+
 }
