@@ -8,3 +8,4 @@
 [submodule "tar-rs-sgx"]
 	path = tar-rs-sgx
 	url = https://github.com/mithril-security/tar-rs-sgx.git
+	branch = target-fortanix
