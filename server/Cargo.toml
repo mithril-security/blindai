@@ -47,9 +47,9 @@ tokio-util = {git = 'https://github.com/mithril-security/tokio-sgx', tag = "toki
 tonic-rpc = {git = "https://github.com/mithril-security/tonic-rpc.git", branch = "main"}
 tower = {git = 'https://github.com/mithril-security/tower-sgx', branch = "tower-sgx"}
 tracing-core = {git = 'https://github.com/mithril-security/tracing-sgx', branch = "tracing-core-sgx"}
-tract-core = {git = "https://github.com/mithril-security/tract-sgx-xargo.git", tag = "0.18.4-pre"}
-tract-onnx = {git = "https://github.com/mithril-security/tract-sgx-xargo.git", tag = "0.18.4-pre"}
-tract-hir = {git = "https://github.com/mithril-security/tract-sgx-xargo.git", tag = "0.18.4-pre"}
+tract-core = {git = "https://github.com/mithril-security/tract-sgx-xargo.git", tag = "0.18.2-pre-experimental1"}
+tract-onnx = {git = "https://github.com/mithril-security/tract-sgx-xargo.git", tag = "0.18.2-pre-experimental1"}
+tract-hir = {git = "https://github.com/mithril-security/tract-sgx-xargo.git", tag = "0.18.2-pre-experimental1"}
 regex = {git="https://github.com/mithril-security/regex-sgx.git", branch="target-sgx-1.56"}
 
 [patch.'https://github.com/apache/teaclave-sgx-sdk.git']
