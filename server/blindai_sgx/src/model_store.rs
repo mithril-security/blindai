@@ -81,6 +81,11 @@ impl ModelClock for ModelsMap {
             if let None = m.model {
                 continue ;
             }
+            if let Some(model) = &m.model {
+                if model.load_context() == ModelLoadContext::FromStartupConfig {
+                    continue ;
+                }
+            }
             if let None = oldest {
                 oldest = Some(m);
             } else {
@@ -371,6 +376,10 @@ impl ModelStore {
         if let Some(key) = key_from_id_and_username(model_id, username) {
             let mut write_guard = self.inner.write().unwrap();
             if let Some(map) = write_guard.models.map.get_mut(&username.map(str::to_string)) {
+                if let Some(model) = map.map.get(&key).and_then(|m| m.model.as_ref()) {
+                    if model.load_context() == ModelLoadContext::FromStartupConfig {
+                        return None;
+                    }                }
                 if let Some(_) = map.map.remove(&key).and_then(|m| m.model) {
                     map.nb_loaded_models -= 1;
                     write_guard.models.nb_loaded_models -= 1;
