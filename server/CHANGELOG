@@ -4,7 +4,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.5.6] ## 2022-10-24
+## [0.5.7] ## 2022-10-31
+### Changed
+- Bump to a custom version of tract 0.18.3 (fix infinite loop when loading some models)
+
+## [0.5.6] ## 2022-10-24 (MISFIRED)
 ### Added
 - Models unused will now be deleted, if the setting is specified in the server configuration file.
 
