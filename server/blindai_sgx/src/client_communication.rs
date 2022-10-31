@@ -297,8 +297,6 @@ impl Exchange for Exchanger {
 
         let username: Option<String>;
 
-        let start_time = Instant::now();
-
         let mut input_tensors: Vec<TensorData> = Vec::new();
 
         let mut client_info = None;
@@ -306,6 +304,8 @@ impl Exchange for Exchanger {
         let mut model_id = "".to_string();
 
         // Get all the data (in chunks)
+
+        let start_time_download = Instant::now();
 
         let mut stream = request.into_inner();
         while let Some(data_stream) = stream.next().await {
@@ -340,6 +340,22 @@ impl Exchange for Exchanger {
                 }
             }
         }
+
+        let elapsed_download = start_time_download.elapsed();
+
+        info!(
+            "[{} {}] Downloaded data in {}ms (sign={})",
+            client_info
+                .as_ref()
+                .map(|c| c.user_agent.as_ref())
+                .unwrap_or("<unknown>"),
+            client_info
+                .as_ref()
+                .map(|c| c.user_agent_version.as_ref())
+                .unwrap_or("<unknown>"),
+            elapsed_download.as_millis(),
+            sign,
+        );
 
         let mut input_hash = vec![];
         if sign {
@@ -391,6 +407,8 @@ impl Exchange for Exchanger {
             username = Some(model_id_path[0].to_string());
         }
 
+        let start_time = Instant::now();
+
         let res = self.model_store.use_model(&model_id, user_id.as_deref(), username.as_deref(), self.config.disable_ownership_check, |model| {
             (
                 model.run_inference(input_tensors.into()),
@@ -398,6 +416,8 @@ impl Exchange for Exchanger {
                 model.get_output_names(),
             )
         });
+
+        let elapsed = start_time.elapsed();
 
         let (results, model_name, output_names) =
             res.ok_or_else(|| Status::invalid_argument("Model doesn't exist"))?;
@@ -431,7 +451,7 @@ impl Exchange for Exchanger {
                 Status::unknown(format!("Error while serializing output: {:?}", err))
             })?;
 
-        let elapsed = start_time.elapsed();
+
 
         let mut payload = RunModelPayload {
             output_tensors,
