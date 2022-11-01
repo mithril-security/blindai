@@ -306,6 +306,7 @@ impl Exchange for Exchanger {
         // Get all the data (in chunks)
 
         let start_time_download = Instant::now();
+        let start_time_total = Instant::now();
 
         let mut stream = request.into_inner();
         while let Some(data_stream) = stream.next().await {
@@ -451,7 +452,7 @@ impl Exchange for Exchanger {
                 Status::unknown(format!("Error while serializing output: {:?}", err))
             })?;
 
-
+        let elapsed_total = start_time_total.elapsed();
 
         let mut payload = RunModelPayload {
             output_tensors,
@@ -464,6 +465,7 @@ impl Exchange for Exchanger {
 
         if self.config.send_inference_time {
             payload.inference_time = elapsed.as_millis() as u64;
+            payload.request_time = elapsed_total.as_millis() as u64;
         }
 
         let payload_with_header = Payload {
