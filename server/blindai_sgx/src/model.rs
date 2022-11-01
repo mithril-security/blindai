@@ -260,6 +260,7 @@ pub struct InferModel {
     #[allow(unused)]
     model_hash: Digest,
     load_context: ModelLoadContext,
+    #[allow(unused)]
     owner_id: Option<usize>,
 }
 
@@ -404,6 +405,7 @@ impl InferModel {
         }
     }
 
+    #[allow(unused)]
     pub fn from_onnx_loaded(
         onnx: Arc<TractModel>,
         model_id: String,
@@ -429,6 +431,7 @@ impl InferModel {
         &self.model_id
     }
 
+    #[allow(unused)]
     pub fn owner_id(&self) -> Option<usize> {
         self.owner_id
     }

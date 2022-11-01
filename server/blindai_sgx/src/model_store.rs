@@ -2,15 +2,12 @@ use crate::{
     model::ModelLoadContext,
     sealing::{self},
 };
-use std::{
-    path::{Path, PathBuf}, alloc::System,
-};
+use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
 use blindai_common::{BlindAIConfig, LoadModelConfig, ModelFactsConfig};
 use log::*;
 use ring::digest::{self, Digest};
-use serde::{Serialize, ser::SerializeStruct, Deserialize};
 use uuid::Uuid;
 
 #[cfg(not(target_env = "sgx"))]
@@ -205,7 +202,7 @@ impl ModelStore {
 
         let mut models_path = PathBuf::new();
         models_path.push(&self.config.models_path);
-        let mut model_id = match key_from_id_and_username(&model_id, username) {
+        let model_id = match key_from_id_and_username(&model_id, username) {
             Some(id) => id,
             None => {
                 error!("Invalid model name");
