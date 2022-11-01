@@ -359,7 +359,7 @@ impl ModelStore {
                     return self.use_model(model_id, None, None, false, fun); // if model not found for user, search again in public namespace
                 }
             }
-            else {
+            else if let Some(_) = username {
                 drop(write_guard);
                 return self.use_model(model_id, None, None, false, fun); // if model not found for user, search again in public namespace
             }
