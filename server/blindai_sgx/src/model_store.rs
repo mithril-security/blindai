@@ -478,9 +478,18 @@ impl ModelStore {
     }
 
     pub fn load_metadata(&self) -> anyhow::Result<()> {
-        self.inner.write().unwrap().models = crate::sealing::unseal_metadata()?;
+        let meta = crate::sealing::unseal_metadata();
+        match meta {
+            Ok(users_map) => {
+                self.inner.write().unwrap().models = users_map;
+            }
+            Err(err) => {
+                return Err(err);
+            }
+        }
         Ok(())
     }
+
 }
 
 pub fn key_from_id_and_username(model_id: &str, username: Option<&str>) -> Option<String> {

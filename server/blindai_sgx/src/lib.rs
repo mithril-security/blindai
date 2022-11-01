@@ -160,7 +160,10 @@ async fn main(telemetry_platform: String, telemetry_uid: String) -> Result<()> {
 
     let model_store: Arc<ModelStore> = ModelStore::new(config.clone()).into();
 
-    model_store.load_metadata()?;
+    match model_store.load_metadata() {
+        Ok(_) => info!("Metadata loaded"),
+        Err(err) => info!("Metadata couldn't be loaded. Reason: {:?}", err),
+    }
 
     model_store
         .check_seal_file_exist()
