@@ -5,6 +5,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [0.5.7] ## 2022-10-31
+### Added
+- If allowed, the server will send the inference request duration, in addition to the inference computation duration.
+
 ### Changed
 - Bump to a custom version of tract 0.18.3 (fix infinite loop when loading some models)
 
