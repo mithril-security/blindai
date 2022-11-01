@@ -537,6 +537,8 @@ class PredictResponse(SignedResponse):
     """Model ID of the model, on the server."""
     inference_time: int = 0
     """Time spent to do the inference on the server. Will be set to 0 if the server does not share this data."""
+    request_time: int = 0
+    """Time spent to handles the whole request. Will be set to 0 if the server does not share this data."""
 
     def __init__(
         self,
@@ -567,6 +569,7 @@ class PredictResponse(SignedResponse):
         ]
         self.model_id = payload.model_id
         self.inference_time = payload.inference_time
+        self.request_time = payload.request_time
 
         # Response Verification
         if sign:
@@ -674,6 +677,7 @@ class PredictResponse(SignedResponse):
         ]
         self.model_id = payload.model_id
         self.inference_time = payload.inference_time
+        self.request_time = payload.request_time
 
 
 class DeleteModelResponse:
