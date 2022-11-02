@@ -4,17 +4,15 @@ use std::sync::Arc;
 use identity::MyIdentity;
 mod identity;
 mod model;
-use model::{ModelDatumType};
-use serde_derive::{Deserialize};
+//use model::{ModelDatumType};
+//use serde_derive::{Deserialize};
 mod model_store;
 use model_store::ModelStore;
-use ring::digest::{self, Digest};
-//#[cfg(not(target_env = "sgx"))]
+//use ring::digest::{self, Digest};
 use std::sync::RwLock;
-//#[cfg(target_env = "sgx")]
-//use std::sync::SgxRwLock as RwLock;
 
-use serde_cbor;
+
+//use serde_cbor;
 
 use crate::client_communication::Exchanger;
 mod client_communication;
@@ -41,7 +39,7 @@ fn main() {
             private_key: enclave_identity.private_key_der,
         },
     ).unwrap());
-    println!("Now listening on port 9976");
+    println!("Now listening on port 9979");
 
     let mut handles = Vec::new();
 
@@ -51,7 +49,6 @@ fn main() {
         handles.push(thread::spawn(move || {
             for mut rq in server.incoming_requests() {
                 println!("{}",rq.url());
-                println!("Received request");
                 
                 if rq.url() == "/upload" {
                     Exchanger::send_model(&exchanger_temp, rq).unwrap();
@@ -59,6 +56,10 @@ fn main() {
 
                 else if rq.url() == "/run" {
                     Exchanger::run_model(&exchanger_temp, rq).unwrap();
+                }
+
+                else if rq.url() == "/delete" {
+                    Exchanger::delete_model(&exchanger_temp, rq).unwrap();
                 }
             }
         }));

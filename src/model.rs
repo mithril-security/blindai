@@ -18,19 +18,15 @@ use anyhow::{anyhow, Context, Result};
 use core::hash::Hash;
 use num_derive::FromPrimitive;
 use ring::digest::Digest;
-//use tract_core::internal::*;
-//use tract_core::model::*;
-//use tract_core::prelude::*;
-//use tract_core::analyser::types::InferenceFact;
 use tract_onnx::prelude::{tract_ndarray::IxDynImpl, DatumType, TVec, *};
 use uuid::Uuid;
-use serde_derive::Deserialize;
-//use int_enum::IntEnum;
+use serde_derive::{Serialize, Deserialize};
 
 pub type OnnxModel = SimplePlan<TypedFact, Box<dyn TypedOp>, Graph<TypedFact, Box<dyn TypedOp>>>;
 
-#[derive(Debug, FromPrimitive, PartialEq, Clone, Copy, Eq, Hash, Deserialize)]
+#[derive(Debug, Default, FromPrimitive, PartialEq, Clone, Copy, Eq, Hash, Serialize, Deserialize)]
 pub enum ModelDatumType {
+    #[default]
     F32 = 0,
     F64 = 1,
     I32 = 2,
@@ -54,7 +50,7 @@ impl ModelDatumType {
 
 macro_rules! dispatch_numbers {
     ($($path:ident)::* ($dt:expr) ($($args:expr),*)) => { {
-        //use tract_onnx::prelude::DatumType;
+        use tract_onnx::prelude::DatumType;
         match $dt {
             DatumType::U32  => $($path)::*::<u32>($($args),*),
             DatumType::U64  => $($path)::*::<u64>($($args),*),
@@ -69,7 +65,6 @@ macro_rules! dispatch_numbers {
 
 
 fn cbor_get_vec<A: serde::ser::Serialize>(v: Vec<A>) -> anyhow::Result<Vec<u8>> {
-//fn cbor_get_vec<A: serde::ser::Serialize>(v: A) -> anyhow::Result<Vec<u8>> {
     serde_cbor::to_vec(&v).context("Failed to serialize inference data")
 }
 fn create_inputs_for_tensor<
@@ -77,13 +72,9 @@ fn create_inputs_for_tensor<
 >(
     input: &mut [u8],
 ) -> anyhow::Result<Vec<Vec<u8>>> {
-    println!("Input in create_inputs_for tensors is : {:?}",input);
     let inputs_for_tensor: Result<Vec<Vec<u8>>>;
-    //let input_vec: Vec<A> = serde_cbor::from_slice::<Vec<A>>(input)?;
     let input_vec: Vec<Vec<A>> = serde_cbor::from_slice::<Vec<Vec<A>>>(input)?;
-    println!("Input_vec in create_inputs is : {:?}",input_vec);
     inputs_for_tensor = input_vec.into_iter().map(cbor_get_vec).collect();
-    println!("Inputs for tensors: {:?}",inputs_for_tensor);
     inputs_for_tensor
 }
 
@@ -157,13 +148,8 @@ impl InferenceModel {
 
     pub fn run_inference(&self, input: &mut [u8]) -> Result<Vec<u8>> {
         let input_datum_type = self.datum_inputs[0].get_datum_type();
-        println!("Before inputs_for_tensors");
-        println!("Inputs at run_infernce are: {:?}",input);
-        //let input_vec = input.to_vec();
         let inputs_for_tensor: Vec<Vec<u8>> =
-            //dispatch_numbers!((input_datum_type)(input_vec));
-        dispatch_numbers!(create_inputs_for_tensor(input_datum_type)(input))?;
-        println!("dispatch numbers: {:?}",inputs_for_tensor);
+            dispatch_numbers!(create_inputs_for_tensor(input_datum_type)(input))?;
 
         let mut tensors: Vec<_> = vec![];
         for (i, (datum_type, input_fact)) in self
@@ -179,8 +165,6 @@ impl InferenceModel {
             ))?;
             tensors.push(tensor);
         }
-
-        println!("Tenors in run_inference: {:?}",tensors);
 
         let mut result = self.onnx.run(TVec::from_vec(tensors.clone()))?;
         result = result
