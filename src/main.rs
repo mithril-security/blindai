@@ -31,15 +31,45 @@ fn main() {
     ));
     let enclave_identity = my_identity.tls_identity.clone();
     let exchanger_temp = Arc::new(Exchanger::new(Arc::new(ModelStore::new()),my_identity,1000000000,100000));
+
+    
+    let untrusted_server = Arc::new(
+        Server::https(
+            "0.0.0.0:9923",
+            tiny_http::SslConfig {
+                certificate: include_bytes!("../host_server.pem").to_vec(),
+                private_key: include_bytes!("../host_server.key").to_vec(),
+            },
+        ).unwrap()
+    );
+
+    
+    let mut untrusted_handles = Vec::new();
+
+    for _ in 0..4 {
+        let untrusted_server = untrusted_server.clone();
+        let trusted_cert = enclave_identity.cert_der.clone();
+        
+        untrusted_handles.push(thread::spawn(move || {
+            for mut rq in untrusted_server.incoming_requests() {
+                println!("Retrieve and send attestation report to client here");
+                //The report must include the enclave_identity.cert_der
+                //For now it returns the trusted server's cert
+                rq.respond(Response::from_data(trusted_cert.clone()));
+            }
+        }));
+    }
+
+
     let server = Arc::new(
         Server::https(
-        "0.0.0.0:9976",
+        "0.0.0.0:9924",
         tiny_http::SslConfig {
             certificate: enclave_identity.cert_der, 
             private_key: enclave_identity.private_key_der,
         },
     ).unwrap());
-    println!("Now listening on port 9979");
+    println!("Now listening on port 9923 and 9924");
 
     let mut handles = Vec::new();
 
@@ -63,6 +93,10 @@ fn main() {
                 }
             }
         }));
+    }
+
+    for u in untrusted_handles {
+        u.join().unwrap();
     }
 
     for h in handles {
