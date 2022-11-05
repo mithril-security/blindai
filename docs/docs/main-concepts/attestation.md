@@ -1,4 +1,4 @@
-# Authenticating a blindAI enclave
+# Attesting a BlindAI enclave
 
 How does a client know that he is communicating with an authentic enclave, and how does he know it's the right one?
 

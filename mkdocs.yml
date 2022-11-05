@@ -58,7 +58,7 @@ nav:
   - 'docs/main-concepts/overview.md'
   - 'Trusting BlindAI':
     - 'docs/main-concepts/privacy.md'
-    - 'docs/main-concepts/authentication.md'
+    - 'docs/main-concepts/attestation.md'
     - 'docs/main-concepts/tls.md'
   - 'docs/main-concepts/sealing.md'
 - 'docs/mithril-cloud.md'
