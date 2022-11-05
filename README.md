@@ -248,7 +248,7 @@ Our solution currently leverages Intel SGX enclaves to protect data.
 
 If you want to deploy our solution with real hardware protection and not only simulation, you can either deploy it on premise with the right hardware specs, or rent a machine adapted for Confidential Computing in the Cloud.
 
-You can go to [Azure Confidential Computing VMs to try](https://docs.microsoft.com/en-us/azure/confidential-computing/confidential-computing-enclaves), with our [guides available here](https://blindai.mithrilsecurity.io/en/latest/getting-started/cloud-deployment/) for deployment on DCsv2 and DCsv3.
+You can go to [Azure Confidential Computing VMs to try](https://docs.microsoft.com/en-us/azure/confidential-computing/confidential-computing-enclaves), with our [guides available here](https://blindai.mithrilsecurity.io/en/latest/docs/cloud-deployment/) for deployment on DCsv2 and DCsv3.
 
 ## :satellite: What next
 
