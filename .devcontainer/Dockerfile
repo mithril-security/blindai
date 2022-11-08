@@ -35,8 +35,9 @@ RUN echo "deb https://download.01.org/intel-sgx/sgx_repo/ubuntu $(lsb_release -c
     && apt-get install -y sgx-aesm-service libsgx-aesm-launch-plugin
 
 RUN rustup default nightly \
-    && rustup target add x86_64-fortanix-unknown-sgx --toolchain nightly
-
+    && rustup target add x86_64-fortanix-unknown-sgx --toolchain nightly \
+    && chmod -R g+r+w "${RUSTUP_HOME}"
+    
 RUN apt-get update \
     && apt-get install -y pkg-config libssl-dev protobuf-compiler
 
