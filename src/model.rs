@@ -18,13 +18,15 @@ use anyhow::{anyhow, Context, Result};
 use core::hash::Hash;
 use num_derive::FromPrimitive;
 use ring::digest::Digest;
-use tract_onnx::prelude::{tract_ndarray::IxDynImpl, DatumType, TVec, *};
+use serde_derive::{Deserialize, Serialize};
+use tract_onnx::prelude::{DatumType, TVec, *};
 use uuid::Uuid;
-use serde_derive::{Serialize, Deserialize};
 
 pub type OnnxModel = SimplePlan<TypedFact, Box<dyn TypedOp>, Graph<TypedFact, Box<dyn TypedOp>>>;
 
-#[derive(Debug, Default, FromPrimitive, PartialEq, Clone, Copy, Eq, Hash, Serialize, Deserialize)]
+#[derive(
+    Debug, Default, FromPrimitive, PartialEq, Clone, Copy, Eq, Hash, Serialize, Deserialize,
+)]
 pub enum ModelDatumType {
     #[default]
     F32 = 0,
@@ -62,7 +64,6 @@ macro_rules! dispatch_numbers {
         }
     } }
 }
-
 
 fn cbor_get_vec<A: serde::ser::Serialize>(v: Vec<A>) -> anyhow::Result<Vec<u8>> {
     serde_cbor::to_vec(&v).context("Failed to serialize inference data")
@@ -123,26 +124,23 @@ impl InferenceModel {
         let mut model_rec = tract_onnx::onnx()
             .with_ignore_output_shapes(true)
             .model_for_read(&mut model_data)?;
-        for (idx, (datum_input, input_fact)) in datum_inputs
-            .clone()
-            .iter()
-            .zip(input_facts.clone())
-            .enumerate()
+        for (idx, (datum_input, input_fact)) in
+            datum_inputs.iter().zip(input_facts.clone()).enumerate()
         {
             model_rec = model_rec.with_input_fact(
                 idx,
-                InferenceFact::dt_shape(datum_input.get_datum_type(), &input_fact),
+                InferenceFact::dt_shape(datum_input.get_datum_type(), input_fact),
             )?;
         }
 
         Ok(InferenceModel {
             onnx: model_rec.clone().into_optimized()?.into_runnable()?.into(),
-            datum_inputs: datum_inputs.clone(),
-            input_facts: input_facts.clone(),
+            datum_inputs,
+            input_facts,
             model_name,
             model_id,
             model_hash,
-            datum_outputs: datum_outputs.clone(),
+            datum_outputs,
         })
     }
 

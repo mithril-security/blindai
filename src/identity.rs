@@ -14,7 +14,6 @@
 
 use anyhow::{anyhow, Result};
 use der_parser::oid;
-use pkix::pem::{PEM_CERTIFICATE, PEM_PRIVATE_KEY};
 use rand::{rngs::OsRng, RngCore};
 use rcgen::{Certificate, CertificateParams, CustomExtension, SanType};
 use ring_compat::signature::ed25519::SigningKey;
@@ -22,12 +21,10 @@ use rsa::{
     pkcs1::{ToRsaPrivateKey, ToRsaPublicKey},
     RsaPrivateKey, RsaPublicKey,
 };
-use serde::{Deserialize, Serialize};
 use serde_derive::Deserialize;
 use serde_derive::Serialize;
 use std::borrow::Borrow;
 use x509_parser::{prelude::X509Certificate, traits::FromDer};
-
 
 impl<T> From<T> for TlsIdentity
 where
@@ -60,7 +57,7 @@ impl From<&TlsIdentity> for Identity {
 #[derive(Clone, Serialize, Deserialize)]
 pub(crate) struct TlsIdentity {
     // TLS certificate and private key
-    pub cert_der: Vec<u8>,    // DER encoded X509 certificate
+    pub cert_der: Vec<u8>,        // DER encoded X509 certificate
     pub private_key_der: Vec<u8>, // DER encoded private key
 }
 
@@ -78,7 +75,6 @@ pub(crate) struct RsaKeyPair {
 //     pub storage_identity: RsaKeyPair,
 //     pub signing_key_seed: Vec<u8>,
 // }
-
 
 pub(crate) struct MyIdentity {
     pub tls_identity: TlsIdentity,
@@ -120,7 +116,7 @@ pub(crate) fn create_certificate() -> Result<(Certificate, RsaKeyPair, Vec<u8>)>
     let subject_alt_names: &[_] = &["blindai-srv".to_string()];
 
     let subject_alt_names = subject_alt_names
-        .into_iter()
+        .iter()
         .map(|s| SanType::DnsName(s.to_string()))
         .collect::<Vec<_>>();
 
@@ -151,7 +147,7 @@ pub(crate) fn create_certificate() -> Result<(Certificate, RsaKeyPair, Vec<u8>)>
     /* convert the RSA public key to pkcs1 DER byte array */
     let rsa_public_key_doc = rsa_public_key.to_pkcs1_der()?;
     let rsa_public_key_bytes = rsa_public_key_doc.as_der().to_vec();
-    
+
     let rsa_key_pair = RsaKeyPair {
         public_key_der: rsa_public_key_bytes.clone(),
         private_key_der: rsa_private_key_bytes,

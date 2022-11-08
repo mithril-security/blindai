@@ -43,7 +43,7 @@ impl ModelStore {
         datum_outputs: Vec<ModelDatumType>,
     ) -> Result<(Uuid, Digest)> {
         let model_id = Uuid::new_v4();
-        let model_hash = digest::digest(&digest::SHA256, &model_bytes);
+        let model_hash = digest::digest(&digest::SHA256, model_bytes);
 
         let model_hash_vec = model_hash.as_ref().to_vec();
 
@@ -56,14 +56,14 @@ impl ModelStore {
             // followed with .insert()
 
             // deduplication support
-            let model = match models.onnx_by_hash.entry(model_hash_vec.clone()) {
+            let model = match models.onnx_by_hash.entry(model_hash_vec) {
                 Entry::Occupied(mut entry) => {
                     let (num, onnx) = entry.get_mut();
                     *num += 1;
                     info!("Reusing an existing ONNX entry for model. (n = {})", *num);
                     InferenceModel::from_onnx_loaded(
                         onnx.clone(),
-                        input_facts.clone(),
+                        input_facts,
                         model_id,
                         model_name,
                         model_hash,
@@ -76,8 +76,8 @@ impl ModelStore {
                     // FIXME(cchudant): this call may take a while to run, we may want to refactor
                     // this so that the lock  isn't taken here
                     let model = InferenceModel::load_model(
-                        &model_bytes,
-                        input_facts.clone(),
+                        model_bytes,
+                        input_facts,
                         model_id,
                         model_name,
                         model_hash,
@@ -109,10 +109,10 @@ impl ModelStore {
         // take a read lock
         let read_guard = self.inner.read().unwrap();
 
-        match read_guard.models_by_id.get(&model_id) {
-            Some(model) => Some(fun(model)),
-            None => None,
-        }
+        read_guard
+            .models_by_id
+            .get(&model_id)
+            .map(fun)
     }
 
     pub fn delete_model(&self, model_id: Uuid) -> Option<InferenceModel> {
@@ -123,18 +123,15 @@ impl ModelStore {
             Entry::Vacant(_) => return None,
         };
 
-        match write_guard
+        if let Entry::Occupied(mut entry) = write_guard
             .onnx_by_hash
             .entry(model.model_hash().as_ref().to_vec())
         {
-            Entry::Occupied(mut entry) => {
-                let (i, _) = entry.get_mut();
-                *i -= 1;
-                if *i == 0 {
-                    entry.remove();
-                }
+            let (i, _) = entry.get_mut();
+            *i -= 1;
+            if *i == 0 {
+                entry.remove();
             }
-            _ => {}
         }
 
         Some(model)
