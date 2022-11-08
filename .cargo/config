@@ -1,0 +1,18 @@
+[target.x86_64-fortanix-unknown-sgx]
+runner = "ftxsgx-runner-cargo"
+# -Cllvm-args=-x86-cmov-converter=false disables the x86-cmov-conversion pass
+# in the X86-backend of the LLVM library
+# This pass might introduce side channels, so it's better to disable it.
+# target-feature "aes" and "pclmulqdq" are used by ring (crypto library)
+rustflags = ["-Cllvm-args=-x86-cmov-converter=false", "-Ctarget-feature=+aes,+pclmulqdq"]
+# disable link time optimization to make binary analysis more tractable.
+# LTO can optimize and inline accross crates, which makes it hard to
+# test a "rlib" in isolation and ensure that the analysis result stays
+# true
+
+
+[profile.release]
+# By default, the stack is completely unwound after a panic before control reaches the runner, so the debugger can't inspect the panic.
+# In Cargo.toml you can configure panics to abort rather than unwind as follows, to preserve the call stack for the debugger:
+# panic = "abort"
+lto = false
