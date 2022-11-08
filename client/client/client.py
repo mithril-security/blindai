@@ -33,7 +33,7 @@ class TensorInfo:
         self.datum_type = datum_type
 
     
-class uploadModel:
+class UploadModel:
     model:List[int]
     input:List[TensorInfo]
     output:List[ModelDatumType]
@@ -50,39 +50,39 @@ class uploadModel:
         self.model_name = model_name
 
 
-class runModel:
-    modelID:str
+class RunModel:
+    model_id:str
     inputs:List[int]
     sign:bool
 
-    def __init__(self,modelID,inputs,sign):
-        self.modelID=modelID
+    def __init__(self,model_id,inputs,sign):
+        self.model_id=model_id
         self.inputs=inputs
         self.sign=sign
 
 
-class deleteModel:
-    modelID:str
+class DeleteModel:
+    model_id:str
 
-    def __init__(self,modelID):
-        self.modelID=modelID
+    def __init__(self,model_id):
+        self.model_id=model_id
 
 
-class sendModelPayload:
+class SendModelPayload:
     hash:List[int]
     inputfact: List[int]
-    modelID:str
+    model_id:str
 
     def __init__(self, **entries):
         self.__dict__.update(entries)
 
 
-class sendModelReply:
-    payload:sendModelPayload
+class SendModelReply:
+    payload: SendModelPayload
     signature: List[int]
 
 
-class runModelPayload:
+class RunModelPayload:
     output:List[int]
     datum_output: int
     input_hash: List[int]
@@ -92,19 +92,19 @@ class runModelPayload:
         self.__dict__.update(entries)
 
 
-class runModelReply:
-    payload:runModelPayload
+class RunModelReply:
+    payload: RunModelPayload
     signature: List[int]
 
-class signedResponse:
+class SignedResponse:
     payload: Optional[bytes] = None
     signature: Optional[bytes] = None
     #attestation: Optional[GetSgxQuoteWithCollateralReply] = None
 
-class uploadResponse(signedResponse):
+class UploadResponse(SignedResponse):
     model_id: str
 
-class runModelResponse(signedResponse):
+class RunModelResponse(SignedResponse):
     output: List[float]
     model_id: str
 
@@ -259,7 +259,7 @@ class BlindAiConnection(contextlib.AbstractContextManager):
 
             self.conn = http.client.HTTPSConnection("localhost", 9924, context = ssl._create_unverified_context()) 
 
-        except:
+        except RuntimeError:
             print("Error connecting to server")
             ###Get attestation report and validate it here
 
@@ -275,7 +275,7 @@ class BlindAiConnection(contextlib.AbstractContextManager):
             dtype: ModelDatumType = ModelDatumType.F32,
             dtype_out: ModelDatumType = ModelDatumType.F32,
             sign: bool = False,
-            model_name: Optional[str] = None, ) -> uploadResponse:
+            model_name: Optional[str] = None, ) -> UploadResponse:
         
         if model_name is None:
             model_name = os.path.basename(model)
@@ -291,15 +291,15 @@ class BlindAiConnection(contextlib.AbstractContextManager):
                     None, None, shape, dtype, dtype_out
                 )
 
-            data = uploadModel(model = model, input = inputs, output = outputs, length = length, sign = False, model_name = model_name)
+            data = UploadModel(model = model, input = inputs, output = outputs, length = length, sign = False, model_name = model_name)
             data = cbor2_dumps(data.__dict__)
             self.conn.request("POST","/upload",data)
             send_model_reply = self.conn.getresponse().read()
             send_model_reply = cbor2_loads(send_model_reply)
             payload = cbor2_loads(bytes(send_model_reply['payload']))
-            payload = sendModelPayload(**payload)
-            ret = uploadResponse()
-            ret.model_id = payload.modelID
+            payload = SendModelPayload(**payload)
+            ret = UploadResponse()
+            ret.model_id = payload.model_id
             if sign:
                 ret.payload = payload
                 ret.signature = send_model_reply.signature
@@ -307,7 +307,7 @@ class BlindAiConnection(contextlib.AbstractContextManager):
 
             return ret
 
-        except:
+        except RuntimeError:
             print("Could not read model file")
             #Should the connection be closed here?
             self.conn.close()
@@ -318,23 +318,23 @@ class BlindAiConnection(contextlib.AbstractContextManager):
             model_id: str,
             data_list: Union[List[List[Any]], List[Any]],
             sign: bool = False,
-        ) -> runModelResponse:
+        ) -> RunModelResponse:
 
         if type(data_list[0]) != list:
             data_list = [data_list]
 
         #Run Model Request and Response
         data_list=list(cbor2_dumps(data_list))
-        run_data = runModel(modelID=model_id,inputs=data_list,sign=False)
+        run_data = RunModel(model_id=model_id,inputs=data_list,sign=False)
         run_data = cbor2_dumps(run_data.__dict__)
         self.conn.request("POST","/run",run_data)
         resp = self.conn.getresponse()
         run_model_reply = resp.read()
         run_model_reply = cbor2_loads(run_model_reply)
         payload = cbor2_loads(bytes(run_model_reply['payload']))
-        payload = runModelPayload(**payload)
+        payload = RunModelPayload(**payload)
 
-        ret = runModelResponse()
+        ret = RunModelResponse()
         ret.output = payload.output
 
         if sign:
@@ -346,7 +346,7 @@ class BlindAiConnection(contextlib.AbstractContextManager):
 
 
     def delete_model(self,model_id:str):
-        delete_data = deleteModel(modelID=model_id)
+        delete_data = DeleteModel(model_id=model_id)
         delete_data = cbor2_dumps(delete_data.__dict__)
         self.conn.request("POST","/delete",delete_data)
         resp = self.conn.getresponse().read()

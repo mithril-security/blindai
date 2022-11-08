@@ -38,3 +38,9 @@ Now listening on port 9975
 $ curl -k https://localhost:9975
 hello world% 
 ``` 
+
+# Python Client
+
+Dependencies are managed with [Poetry](https://python-poetry.org/).
+Ressources:
+  * Jupyter as a dev dependency : https://hippocampus-garden.com/jupyter_poetry_pipenv/
