@@ -3,6 +3,10 @@
 default:
   @just --list
 
+# Check SGX target
+check *args:
+  cargo check --target=x86_64-fortanix-unknown-sgx {{args}}
+
 # Run on SGX hardware
 run-sgx *args:
   cargo run --target=x86_64-fortanix-unknown-sgx {{args}}

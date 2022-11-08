@@ -14,12 +14,8 @@ fn main() {
     // Make debugging easier by enabling rust backtrace inside enclave
     std::env::set_var("RUST_BACKTRACE", "full");
 
-    let (certificate, storage_identity, signing_key_seed) = identity::create_certificate().unwrap();
-    let my_identity = Arc::new(MyIdentity::from_cert(
-        certificate,
-        storage_identity,
-        signing_key_seed,
-    ));
+    let (certificate, signing_key_seed) = identity::create_certificate().unwrap();
+    let my_identity = Arc::new(MyIdentity::from_cert(certificate, signing_key_seed));
     let enclave_identity = my_identity.tls_identity.clone();
     let exchanger_temp = Arc::new(Exchanger::new(
         Arc::new(ModelStore::new()),

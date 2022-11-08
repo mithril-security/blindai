@@ -109,10 +109,7 @@ impl ModelStore {
         // take a read lock
         let read_guard = self.inner.read().unwrap();
 
-        read_guard
-            .models_by_id
-            .get(&model_id)
-            .map(fun)
+        read_guard.models_by_id.get(&model_id).map(fun)
     }
 
     pub fn delete_model(&self, model_id: Uuid) -> Option<InferenceModel> {
