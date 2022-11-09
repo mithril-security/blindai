@@ -12,6 +12,11 @@ target/
 # MSVC Windows builds of rustc generate these, which store debugging information
 *.pdb
 
+## Specific to the project
+
+# Ignore Onnx models
+**/*.onnx
+
 ## .gitignore for Python from 
 # https://github.com/github/gitignore/blob/main/Python.gitignore
 
