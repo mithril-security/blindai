@@ -25,7 +25,7 @@ run-simu *args:
     --heap-size 0x2000000 \
     --ssaframesize 1 \
     --stack-size 0x20000 \
-    --threads 10
+    --threads 20
 
   ftxsgx-simulator "$binpath.sgxs"
 
@@ -43,7 +43,7 @@ valgrind *args:
     --heap-size 0x2000000 \
     --ssaframesize 1 \
     --stack-size 0x20000 \
-    --threads 10
+    --threads 20
 
   valgrind --sigill-diagnostics=no --leak-check=no ftxsgx-simulator "$binpath.sgxs" 
 
