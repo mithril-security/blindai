@@ -62,8 +62,7 @@ python -m venv env
 ### Check pip version
 
 
-**pip >= 21** is needed, so make sure to check your pip version,**i**s and to update it in case a prior version was installed.
-
+**pip >= 21** is needed, so make sure to check what your pip version is and to update it in case a prior version was installed.
 
 * Check pip version
 
