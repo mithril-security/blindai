@@ -1,4 +1,36 @@
-# Generate CA and certificates with OpenSSL CLI : 
+# BlindAIv2
+
+## Setup
+
+First you need to connect to mithril docker registry (use the credentials you've received by email).
+```
+docker login registry.mithrilsecurity.io
+```
+
+Then run the "Remote-Containers: Open Folder in Container..." command from the Command Palette or if available click on ""Reopen in container" in the popup at the bottom-right of the window.
+
+### Cargo integration with Fortanix EDP
+
+`.cargo/config`  is already configured so that cargo can run SGX enclave. See the file for more information about the compilation options.
+
+## Just command runner
+
+Usual commands / recipes can be run with [just](https://just.systems/man/en/). 
+```
+$ just default
+Available recipes:
+    build *args        # Build for SGX target
+    build-no-sgx *args # Build for a Linux target (no SGX)
+    check *args        # Check for SGX target
+    default
+    run *args          # Run on SGX hardware
+    run-no-sgx *args   # Run on a Linux target (no SGX)
+    run-simu *args     # Run in the simulator
+    valgrind *args     # Execute with valgrind instrumentation
+```
+Please refer to the justfile for details.
+
+## Generate CA and certificates with OpenSSL CLI 
 ```
 ## Create a CA
 # Generate an ECDSA secp256p1 private key
@@ -26,7 +58,8 @@ openssl x509 -req \
 # Convert key into PCKS8 DER format 
 openssl pkcs8 -topk8 -inform PEM -outform PEM -in server.key -out server2.key -nocrypt
 ```
-# Run 
+
+## Run 
 
 ```
 # Launch server in a terminal
@@ -39,7 +72,7 @@ $ curl -k https://localhost:9975
 hello world% 
 ``` 
 
-# Python Client
+## Python Client
 
 Dependencies are managed with [Poetry](https://python-poetry.org/).
 Ressources:
