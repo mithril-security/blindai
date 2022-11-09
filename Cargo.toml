@@ -34,6 +34,7 @@ tiny_http = { version = "0.12.0", features = ["ssl-rustls"] }
 # tiny http uses ring which needs to be patched to work properly 
 # and securely in SGX target
 ring = {path="ring-fortanix"}
+serde_cbor = { git = "https://github.com/mithril-security/cbor.git" }
 # { git = 'ssh://git@github.com/mithril-security/ring.git', branch="fortanix-target"}
 
 

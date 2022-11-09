@@ -419,12 +419,6 @@ dependencies = [
 
 [[package]]
 name = "half"
-version = "1.8.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "eabb4a44450da02c90444cf74558da904edde8fb4e9035a9a6a4e15445af0bd7"
-
-[[package]]
-name = "half"
 version = "2.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ad6a9459c9c30b177b925162351f97e7d967c7ea8bab3b8352805327daf45554"
@@ -1150,10 +1144,9 @@ dependencies = [
 [[package]]
 name = "serde_cbor"
 version = "0.11.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2bef2ebfde456fb76bbcf9f59315333decc4fda0b2b44b420243c11e0f5ec1f5"
+source = "git+https://github.com/mithril-security/cbor.git#e9f4c9767991a7533d8a0ef6e73bc4b24ba97e11"
 dependencies = [
- "half 1.8.2",
+ "half",
  "serde",
 ]
 
@@ -1383,7 +1376,7 @@ version = "0.18.2-pre"
 dependencies = [
  "anyhow",
  "educe",
- "half 2.1.0",
+ "half",
  "itertools",
  "lazy_static",
  "maplit",
@@ -1413,7 +1406,7 @@ dependencies = [
  "derive-new",
  "downcast-rs",
  "dyn-clone",
- "half 2.1.0",
+ "half",
  "lazy_static",
  "liquid",
  "liquid-core",
