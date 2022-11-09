@@ -7,7 +7,7 @@ First you need to connect to mithril docker registry (use the credentials you've
 docker login registry.mithrilsecurity.io
 ```
 
-Then run the "Remote-Containers: Open Folder in Container..." command from the Command Palette or if available click on ""Reopen in container" in the popup at the bottom-right of the window.
+Then run the "Remote-Containers: Open Folder in Container..." command from the Command Palette or if available click on "Reopen in container" in the popup at the bottom-right of the window.
 
 ### Cargo integration with Fortanix EDP
 
