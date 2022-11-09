@@ -30,7 +30,7 @@ openssl pkcs8 -topk8 -inform PEM -outform PEM -in server.key -out server2.key -n
 
 ```
 # Launch server in a terminal
-$ cargo run --target=x86_64-fortanix-unknown-sgx 
+$ cargo run
 Now listening on port 9975
 # In another terminal make a request
 # -k option is to ignore certificate check since we signed the certificate

@@ -3,22 +3,34 @@
 default:
   @just --list
 
-# Check SGX target
-check *args:
-  cargo check --target=x86_64-fortanix-unknown-sgx {{args}}
-
 # Run on SGX hardware
-run-sgx *args:
-  cargo run --target=x86_64-fortanix-unknown-sgx {{args}}
+run *args:
+  cargo run {{args}}
+
+# Build for SGX target
+build *args:
+  cargo build {{args}}
+
+# Check for SGX target
+check *args:
+  cargo check {{args}}
+
+# Build for a Linux target (no SGX)
+build-no-sgx *args:
+  cargo build --target=x86_64-unknown-linux-gnu {{args}}
+
+# Run on a Linux target (no SGX)
+run-no-sgx *args:
+  cargo run --target=x86_64-unknown-linux-gnu {{args}}
 
 # Run in the simulator
 run-simu *args:
   #!/usr/bin/env bash
   set -e
 
-  cargo build --target=x86_64-fortanix-unknown-sgx {{args}}
+  cargo build {{args}}
 
-  binpath=`cargo build --target=x86_64-fortanix-unknown-sgx {{args}} --message-format json 2>/dev/null \
+  binpath=`cargo build {{args}} --message-format json 2>/dev/null \
     | jq -r 'select(.reason=="compiler-artifact" and .target.kind==["bin"]) | .executable'` 
   
   ftxsgx-elf2sgxs "$binpath" \
@@ -34,9 +46,9 @@ valgrind *args:
   #!/usr/bin/env bash
   set -e
 
-  cargo build --target=x86_64-fortanix-unknown-sgx {{args}}
+  cargo build {{args}}
 
-  binpath=`cargo build --target=x86_64-fortanix-unknown-sgx {{args}} --message-format json 2>/dev/null \
+  binpath=`cargo build {{args}} --message-format json 2>/dev/null \
     | jq -r 'select(.reason=="compiler-artifact" and .target.kind==["bin"]) | .executable'`
 
   ftxsgx-elf2sgxs "$binpath" \

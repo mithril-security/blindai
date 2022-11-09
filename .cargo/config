@@ -1,3 +1,6 @@
+[build]
+target = "x86_64-fortanix-unknown-sgx"
+
 [target.x86_64-fortanix-unknown-sgx]
 runner = "ftxsgx-runner-cargo"
 # -Cllvm-args=-x86-cmov-converter=false disables the x86-cmov-conversion pass
