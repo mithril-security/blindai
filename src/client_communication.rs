@@ -291,6 +291,10 @@ impl Exchanger {
         };
 
         let res = self.model_store.use_model(uuid, |model| {
+            // uncomment to run benches
+            // bench(3, 50, || {
+            //     model.run_inference(&mut run_model_body.inputs.clone()[..]);
+            // });
             (
                 model.run_inference(&mut run_model_body.inputs.clone()[..]),
                 model.model_name().map(|s| s.to_string()),
@@ -432,4 +436,37 @@ impl Exchanger {
         );
         rq.respond(response).unwrap();
     }
+}
+
+pub fn bench(repeats: usize, samples: usize, f: impl Fn()) -> Result<()> {
+    let mut results = vec![];
+    results.reserve(samples);
+
+    for i in 1..=samples {
+        let start = Instant::now();
+        for _ in 0..repeats {
+            f();
+        }
+        let elapsed = start.elapsed().as_micros() / repeats as u128;
+
+        println!(
+            "bench (sample {}/{}): {}us/iter, {} iter",
+            i, samples, elapsed, repeats
+        );
+
+        results.push(elapsed);
+    }
+
+    let mean = results.iter().copied().sum::<u128>() as f64 / results.len() as f64;
+    let variance: f64 = results
+        .iter()
+        .map(|res| (*res as f64 - mean).powf(2.0))
+        .sum::<f64>()
+        / results.len() as f64;
+    let std_deviation = variance.sqrt();
+    println!("Mean {}", mean / 1000.0);
+    println!("Variance {}", variance / 1000.0);
+    println!("Std deviation {}", std_deviation / 1000.0);
+
+    Ok(())
 }
