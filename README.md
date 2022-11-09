@@ -64,12 +64,26 @@ openssl pkcs8 -topk8 -inform PEM -outform PEM -in server.key -out server2.key -n
 ```
 # Launch server in a terminal
 $ cargo run
-Now listening on port 9975
-# In another terminal make a request
-# -k option is to ignore certificate check since we signed the certificate
-# with our own custom CA
-$ curl -k https://localhost:9975
-hello world% 
+Now listening on port 9923 and 9924
+-- (when running the python client)
+Retrieve and send attestation report to client here
+Retrieve and send attestation report to client here
+/upload
+Some("distilbert-base-uncased.onnx")
+Successfully saved model
+/run
+Successfully ran model
+/delete
+Deleted model successfully
+
+# In another terminal test the server with a sample client
+$ cd client
+# The first time you need to export the distilbert model in onnx with
+$ poetry run python client/distilbert_setup.py
+# Then run the client
+$ poetry run python client/sample_client.py
+WARNING:root:Untrusted server certificate check bypassed
+b'Deleted'
 ``` 
 
 ## Python Client
