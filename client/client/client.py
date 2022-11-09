@@ -152,6 +152,14 @@ def _get_input_output_tensors(
 
     return (inputs, tensor_outputs)
 
+def _handle_response(res):
+    if res.status == 200:
+        return res.read()
+    if res.status == 400:
+        raise ValueError("Server couldn\'t handle the request because :", res.read())
+    if res.status == 500:
+        raise ValueError("Server internal error")
+    raise ValueError("Unknown status code in request")
 
 class BlindAiConnection(contextlib.AbstractContextManager):
     conn: http.client.HTTPSConnection
@@ -279,39 +287,32 @@ class BlindAiConnection(contextlib.AbstractContextManager):
         
         if model_name is None:
             model_name = os.path.basename(model)
-            
-        try:
-            with open(model,"rb") as f:
-                model = f.read()
+        
+        with open(model,"rb") as f:
+            model = f.read()
 
-            model=list(model)
-            length = len(model)
+        model=list(model)
+        length = len(model)
 
-            (inputs, outputs) = _get_input_output_tensors(
-                    None, None, shape, dtype, dtype_out
-                )
+        (inputs, outputs) = _get_input_output_tensors(
+                None, None, shape, dtype, dtype_out
+            )
 
-            data = UploadModel(model = model, input = inputs, output = outputs, length = length, sign = False, model_name = model_name)
-            data = cbor2_dumps(data.__dict__)
-            self.conn.request("POST","/upload",data)
-            send_model_reply = self.conn.getresponse().read()
-            send_model_reply = cbor2_loads(send_model_reply)
-            payload = cbor2_loads(bytes(send_model_reply['payload']))
-            payload = SendModelPayload(**payload)
-            ret = UploadResponse()
-            ret.model_id = payload.model_id
-            if sign:
-                ret.payload = payload
-                ret.signature = send_model_reply.signature
-                #ret.attestation = 
+        data = UploadModel(model = model, input = inputs, output = outputs, length = length, sign = False, model_name = model_name)
+        data = cbor2_dumps(data.__dict__)
+        self.conn.request("POST","/upload",data)
+        send_model_reply = _handle_response(self.conn.getresponse())
+        send_model_reply = cbor2_loads(send_model_reply)
+        payload = cbor2_loads(bytes(send_model_reply['payload']))
+        payload = SendModelPayload(**payload)
+        ret = UploadResponse()
+        ret.model_id = payload.model_id
+        if sign:
+            ret.payload = payload
+            ret.signature = send_model_reply.signature
+            #ret.attestation = 
 
-            return ret
-
-        except RuntimeError:
-            print("Could not read model file")
-            #Should the connection be closed here?
-            self.conn.close()
-
+        return ret
 
     def run_model(
         self,
@@ -329,7 +330,7 @@ class BlindAiConnection(contextlib.AbstractContextManager):
         run_data = cbor2_dumps(run_data.__dict__)
         self.conn.request("POST","/run",run_data)
         resp = self.conn.getresponse()
-        run_model_reply = resp.read()
+        run_model_reply = _handle_response(resp)
         run_model_reply = cbor2_loads(run_model_reply)
         payload = cbor2_loads(bytes(run_model_reply['payload']))
         payload = RunModelPayload(**payload)
@@ -349,8 +350,7 @@ class BlindAiConnection(contextlib.AbstractContextManager):
         delete_data = DeleteModel(model_id=model_id)
         delete_data = cbor2_dumps(delete_data.__dict__)
         self.conn.request("POST","/delete",delete_data)
-        resp = self.conn.getresponse().read()
-        print(resp)
+        _handle_response(self.conn.getresponse())
 
 
     def close(self):

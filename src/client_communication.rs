@@ -56,7 +56,7 @@ struct SendModelPayload {
 }
 
 #[derive(Default, Serialize)]
-struct SendModelReply {
+pub struct SendModelReply {
     payload: Vec<u8>, //sendModelPayload,
     signature: Vec<u8>,
 }
@@ -70,7 +70,7 @@ struct RunModelPayload {
 }
 
 #[derive(Default, Serialize)]
-struct RunModelReply {
+pub struct RunModelReply {
     payload: Vec<u8>, //runModelPayload,
     signature: Vec<u8>,
 }
@@ -90,14 +90,14 @@ impl Exchanger {
         }
     }
 
-    pub fn send_model(&self, mut request: tiny_http::Request) -> Result<(), Error> {
+    pub fn send_model(&self, request: &mut tiny_http::Request) -> Result<SendModelReply, Error> {
         let start_time = Instant::now();
 
         let data_stream = request.as_reader();
         let mut data: Vec<u8> = vec![];
         data_stream.read_to_end(&mut data)?;
 
-        let mut upload_model_body: UploadModel = serde_cbor::from_slice(&data).unwrap();
+        let mut upload_model_body: UploadModel = serde_cbor::from_slice(&data)?;
 
         let convert_type = |t: i32| -> Result<_, Error> {
             num_traits::FromPrimitive::from_i32(t)
@@ -119,7 +119,7 @@ impl Exchanger {
         let client_info: std::option::Option<String> = None;
 
         if model_size == 0 {
-            model_size = upload_model_body.length.try_into().unwrap();
+            model_size = upload_model_body.length.try_into()?;
             //model_size=267874659;
             model_bytes.reserve_exact(model_size);
             //model_name=None;
@@ -128,9 +128,8 @@ impl Exchanger {
             } else {
                 None
             };
-            println!("{:?}", model_name);
             //client_info = uploadModelBody.client_info;
-
+            
             for tensor_info in &upload_model_body.input {
                 tensor_inputs.push(tensor_info.clone());
             }
@@ -144,6 +143,7 @@ impl Exchanger {
         if model_size > max_model_size || model_bytes.len() > max_model_size {
             return Err(Error::msg("Model is too big".to_string()));
         }
+
         model_bytes.append(&mut upload_model_body.model);
 
         if model_size == 0 {
@@ -167,20 +167,14 @@ impl Exchanger {
             input_facts.push(input_fact.clone());
         }
 
-        let (model_id, model_hash) = self
-            .model_store
-            .add_model(
-                &model_bytes,
-                input_facts.clone(),
-                model_name,
-                datum_inputs.clone(),
-                datum_outputs,
-            )
-            .map_err(|err| {
-                error!("Error while creating model: {}", err);
-                println!("Error storing model");
-            })
-            .unwrap();
+        let (model_id, model_hash) = self.model_store.add_model(
+            &model_bytes,
+            input_facts.clone(),
+            model_name,
+            datum_inputs.clone(),
+            datum_outputs,
+        )?;
+
 
         // Construct the return payload
 
@@ -194,6 +188,7 @@ impl Exchanger {
                 .collect();
         }
         payload.model_id = model_id.to_string();
+
         /*
         let payload_with_header = Payload {
             header: Some(PayloadHeader {
@@ -211,7 +206,7 @@ impl Exchanger {
         };
         */
 
-        reply.payload = serde_cbor::to_vec(&payload).unwrap();
+        reply.payload = serde_cbor::to_vec(&payload)?;
 
         if upload_model_body.sign {
             reply.signature = self
@@ -253,26 +248,10 @@ impl Exchanger {
             client_info,
         );
         */
-        //Ok(Response::new(reply))
-        println!("Successfully saved model");
-        let serialized_reply = serde_cbor::to_vec(&reply).unwrap();
-
-        let header =
-            tiny_http::Header::from_bytes(&b"Content-Type"[..], &b"text/plain"[..]).unwrap();
-        let response = tiny_http::Response::new(
-            tiny_http::StatusCode::from(200),
-            vec![header],
-            serialized_reply.as_slice(),
-            None,
-            None,
-        );
-
-        //let response = tiny_http::Response::from_string(model_id.to_string());
-        request.respond(response)?;
-        Ok(())
+        Ok(reply)
     }
 
-    pub fn run_model(&self, mut request: tiny_http::Request) -> Result<(), Error> {
+    pub fn run_model(&self, request: &mut tiny_http::Request) -> Result<RunModelReply, Error> {
         //Result<tiny_http::Response<std::io::Cursor<Vec<u8>>>, Error> {
         let start_time = Instant::now();
 
@@ -286,7 +265,7 @@ impl Exchanger {
         let mut data: Vec<u8> = vec![];
         data_stream.read_to_end(&mut data)?;
 
-        let run_model_body: RunModel = serde_cbor::from_slice(&data).unwrap();
+        let run_model_body: RunModel = serde_cbor::from_slice(&data)?;
 
         if run_model_body.inputs.len() * size_of::<u8>() > max_input_size
             || run_model_body.inputs.len() * size_of::<u8>() > max_input_size
@@ -369,7 +348,7 @@ impl Exchanger {
         */
 
         let mut reply = RunModelReply::default();
-        reply.payload = serde_cbor::to_vec(&payload).unwrap();
+        reply.payload = serde_cbor::to_vec(&payload)?;
 
         /*
         RunModelReply {
@@ -413,47 +392,44 @@ impl Exchanger {
             client_info,
         );
         */
-        println!("Successfully ran model");
-
-        let serialized_reply = serde_cbor::to_vec(&reply).unwrap();
-
-        let header =
-            tiny_http::Header::from_bytes(&b"Content-Type"[..], &b"text/plain"[..]).unwrap();
-        let response = tiny_http::Response::new(
-            tiny_http::StatusCode::from(200),
-            vec![header],
-            serialized_reply.as_slice(),
-            None,
-            None,
-        );
-
-        //let response = tiny_http::Response::from_string(model_id);
-        request.respond(response)?;
-        Ok(())
+        Ok(reply)
     }
 
-    pub fn delete_model(&self, mut request: tiny_http::Request) -> Result<(), Error> {
+    pub fn delete_model(&self, request: &mut tiny_http::Request) -> Result<()> {
         let data_stream = request.as_reader();
         let mut data: Vec<u8> = vec![];
         data_stream.read_to_end(&mut data)?;
 
-        let delete_model_body: DeleteModel = serde_cbor::from_slice(&data).unwrap();
+        let delete_model_body: DeleteModel = serde_cbor::from_slice(&data)?;
 
         if delete_model_body.model_id.is_empty() {
             return Err(Error::msg("Model doesn't exist".to_string()));
         }
 
-        let model_id = Uuid::from_str(&delete_model_body.model_id).unwrap();
+        let model_id = Uuid::from_str(&delete_model_body.model_id)?;
 
         // Delete the model
         if self.model_store.delete_model(model_id).is_none() {
             error!("Model doesn't exist");
             return Err(Error::msg("Model doesn't exist".to_string()));
         }
-
-        println!("Deleted model successfully");
-        let response = tiny_http::Response::from_string("Deleted".to_string());
-        request.respond(response)?;
         Ok(())
+    }
+
+    pub fn respond<Reply: serde::Serialize>(&self, rq: tiny_http::Request, reply: Result<Reply>) {
+        let (serialized_reply, code) = match reply {
+            Ok(reply) => (serde_cbor::to_vec(&reply).unwrap(), 200),
+            Err(e) => (serde_cbor::to_vec(&format!("{:?}", &e)).unwrap(), 400),
+        };
+        let header =
+            tiny_http::Header::from_bytes(&b"Content-Type"[..], &b"text/plain"[..]).unwrap();
+        let response = tiny_http::Response::new(
+            tiny_http::StatusCode::from(code),
+            vec![header],
+            serialized_reply.as_slice(),
+            None,
+            None,
+        );
+        rq.respond(response).unwrap();
     }
 }
