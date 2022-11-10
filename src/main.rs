@@ -5,12 +5,13 @@ use tiny_http::{Response, Server};
 mod identity;
 mod model;
 mod model_store;
+use anyhow::{anyhow, Error, Result};
 use model_store::ModelStore;
 
 use crate::client_communication::Exchanger;
 mod client_communication;
 
-fn main() {
+fn main() -> Result<()> {
     // Make debugging easier by enabling rust backtrace inside enclave
     std::env::set_var("RUST_BACKTRACE", "full");
 
@@ -21,7 +22,7 @@ fn main() {
         Arc::new(ModelStore::new()),
         my_identity,
         1000000000,
-        100000,
+        1000000,
     ));
 
     let untrusted_server = Arc::new(
@@ -32,7 +33,7 @@ fn main() {
                 private_key: include_bytes!("../host_server.key").to_vec(),
             },
         )
-        .unwrap(),
+        .map_err(|e| anyhow!(e))?,
     );
 
     let mut untrusted_handles = Vec::new();
@@ -60,7 +61,7 @@ fn main() {
                 private_key: enclave_identity.private_key_der,
             },
         )
-        .unwrap(),
+        .map_err(|e| anyhow!(e))?,
     );
     println!("Now listening on port 9923 and 9924");
 
@@ -70,16 +71,24 @@ fn main() {
         let server = server.clone();
         let exchanger_temp = Arc::clone(&exchanger_temp);
         handles.push(thread::spawn(move || {
-            for rq in server.incoming_requests() {
+            for mut rq in server.incoming_requests() {
                 println!("{}", rq.url());
-
-                if rq.url() == "/upload" {
-                    Exchanger::send_model(&exchanger_temp, rq).unwrap();
-                } else if rq.url() == "/run" {
-                    Exchanger::run_model(&exchanger_temp, rq).unwrap();
-                } else if rq.url() == "/delete" {
-                    Exchanger::delete_model(&exchanger_temp, rq).unwrap();
-                }
+                match rq.url() {
+                    "/upload" => {
+                        let reply = exchanger_temp.send_model(&mut rq);
+                        exchanger_temp.respond(rq, reply);
+                    }
+                    "/run" => {
+                        let reply = exchanger_temp.run_model(&mut rq);
+                        exchanger_temp.respond(rq, reply);
+                    }
+                    "/delete" => {
+                        let reply = exchanger_temp.delete_model(&mut rq);
+                        exchanger_temp.respond(rq, reply);
+                    }
+                    _ => exchanger_temp
+                        .respond::<()>(rq, Err(Error::msg("unknown request".to_string()))),
+                };
             }
         }));
     }
@@ -91,4 +100,6 @@ fn main() {
     for h in handles {
         h.join().unwrap();
     }
+
+    Ok(())
 }

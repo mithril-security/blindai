@@ -7,7 +7,7 @@ runner = "ftxsgx-runner-cargo"
 # in the X86-backend of the LLVM library
 # This pass might introduce side channels, so it's better to disable it.
 # target-feature "aes" and "pclmulqdq" are used by ring (crypto library)
-rustflags = ["-Cllvm-args=-x86-cmov-converter=false", "-Ctarget-feature=+aes,+pclmulqdq"]
+rustflags = ["-Cllvm-args=-x86-cmov-converter=false", "-Ctarget-feature=+aes,+pclmulqdq,+avx,+avx2,+fma"]
 # disable link time optimization to make binary analysis more tractable.
 # LTO can optimize and inline accross crates, which makes it hard to
 # test a "rlib" in isolation and ensure that the analysis result stays
