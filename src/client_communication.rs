@@ -129,7 +129,7 @@ impl Exchanger {
                 None
             };
             //client_info = uploadModelBody.client_info;
-            
+
             for tensor_info in &upload_model_body.input {
                 tensor_inputs.push(tensor_info.clone());
             }
@@ -174,7 +174,6 @@ impl Exchanger {
             datum_inputs.clone(),
             datum_outputs,
         )?;
-
 
         // Construct the return payload
 

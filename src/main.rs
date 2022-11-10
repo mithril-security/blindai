@@ -5,9 +5,8 @@ use tiny_http::{Response, Server};
 mod identity;
 mod model;
 mod model_store;
-use model_store::ModelStore;
 use anyhow::{anyhow, Error, Result};
-use std::sync::RwLock;
+use model_store::ModelStore;
 
 use crate::client_communication::Exchanger;
 mod client_communication;
@@ -78,16 +77,17 @@ fn main() -> Result<()> {
                     "/upload" => {
                         let reply = exchanger_temp.send_model(&mut rq);
                         exchanger_temp.respond(rq, reply);
-                    },
+                    }
                     "/run" => {
                         let reply = exchanger_temp.run_model(&mut rq);
                         exchanger_temp.respond(rq, reply);
-                    },
+                    }
                     "/delete" => {
                         let reply = exchanger_temp.delete_model(&mut rq);
                         exchanger_temp.respond(rq, reply);
-                    },
-                    _ => exchanger_temp.respond::<()>(rq, Err(Error::msg("unknown request".to_string()))),
+                    }
+                    _ => exchanger_temp
+                        .respond::<()>(rq, Err(Error::msg("unknown request".to_string()))),
                 };
             }
         }));
