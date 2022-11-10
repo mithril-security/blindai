@@ -1,3 +1,5 @@
+#![forbid(unsafe_code)]
+
 use identity::MyIdentity;
 use std::sync::Arc;
 use std::thread;
