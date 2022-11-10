@@ -2,10 +2,8 @@ use anyhow::{anyhow, Result};
 use log::*;
 use ring::digest::{self, Digest};
 
-//#[cfg(not(target_env = "sgx"))]
 use std::sync::RwLock;
-//#[cfg(target_env = "sgx")]
-//use std::sync::SgxRwLock as RwLock;
+
 use std::{
     collections::{hash_map::Entry, HashMap},
     sync::Arc,
