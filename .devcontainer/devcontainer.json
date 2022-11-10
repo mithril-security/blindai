@@ -27,5 +27,16 @@
 			}
 		},
 		"terminal.integrated.defaultProfile.linux": "zsh"
+	},
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"rust-lang.rust-analyzer",
+				"serayuzgur.crates",
+				"tamasfe.even-better-toml",
+				"ms-python.python",
+				"ms-toolsai.jupyter"
+			]
+		}
 	}
 }
