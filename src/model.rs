@@ -14,7 +14,8 @@
 
 use std::vec::Vec;
 
-use anyhow::{anyhow, Context, Result};
+use crate::client_communication::{SerializedTensor, TensorInfo};
+use anyhow::{anyhow, bail, Context, Result};
 use core::hash::Hash;
 use num_derive::FromPrimitive;
 use ring::digest::Digest;
@@ -50,6 +51,27 @@ impl ModelDatumType {
     }
 }
 
+impl TryFrom<DatumType> for ModelDatumType {
+    type Error = anyhow::Error;
+
+    fn try_from(value: DatumType) -> Result<Self, Self::Error> {
+        Ok(match value {
+            DatumType::F32 => ModelDatumType::F32,
+            DatumType::F64 => ModelDatumType::F64,
+            DatumType::I32 => ModelDatumType::I32,
+            DatumType::I64 => ModelDatumType::I64,
+            DatumType::U32 => ModelDatumType::U32,
+            DatumType::U64 => ModelDatumType::U64,
+            // DatumType::U8 => ModelDatumType::U8,
+            // DatumType::U16 => ModelDatumType::U16,
+            // DatumType::I8 => ModelDatumType::I8,
+            // DatumType::I16 => ModelDatumType::I16,
+            // DatumType::Bool => ModelDatumType::Bool,
+            _ => bail!("Unsupported datum type: {:?}", value),
+        })
+    }
+}
+
 macro_rules! dispatch_numbers {
     ($($path:ident)::* ($dt:expr) ($($args:expr),*)) => { {
         use tract_onnx::prelude::DatumType;
@@ -63,20 +85,6 @@ macro_rules! dispatch_numbers {
             _ => anyhow::bail!("{:?} is not a number", $dt)
         }
     } }
-}
-
-fn cbor_get_vec<A: serde::ser::Serialize>(v: Vec<A>) -> anyhow::Result<Vec<u8>> {
-    serde_cbor::to_vec(&v).context("Failed to serialize inference data")
-}
-fn create_inputs_for_tensor<
-    A: serde::ser::Serialize + tract_core::prelude::Datum + serde::de::DeserializeOwned,
->(
-    input: &mut [u8],
-) -> anyhow::Result<Vec<Vec<u8>>> {
-    let inputs_for_tensor: Result<Vec<Vec<u8>>>;
-    let input_vec: Vec<Vec<A>> = serde_cbor::from_slice::<Vec<Vec<A>>>(input)?;
-    inputs_for_tensor = input_vec.into_iter().map(cbor_get_vec).collect();
-    inputs_for_tensor
 }
 
 fn create_tensor<A: serde::de::DeserializeOwned + tract_core::prelude::Datum>(
@@ -144,26 +152,21 @@ impl InferenceModel {
         })
     }
 
-    pub fn run_inference(&self, input: &mut [u8]) -> Result<Vec<u8>> {
-        let input_datum_type = self.datum_inputs[0].get_datum_type();
-        let inputs_for_tensor: Vec<Vec<u8>> =
-            dispatch_numbers!(create_inputs_for_tensor(input_datum_type)(input))?;
-
+    pub fn run_inference(&self, inputs: &[SerializedTensor]) -> Result<Vec<SerializedTensor>> {
         let mut tensors: Vec<_> = vec![];
-        for (i, (datum_type, input_fact)) in self
-            .datum_inputs
-            .clone()
-            .into_iter()
-            .zip(self.input_facts.clone())
-            .enumerate()
-        {
-            let tensor = dispatch_numbers!(create_tensor(datum_type.get_datum_type())(
-                &inputs_for_tensor[i],
-                &input_fact.clone()
-            ))?;
-            tensors.push(tensor);
+        for tensor in inputs {
+            let tract_tensor =
+                dispatch_numbers!(create_tensor(tensor.info.datum_type.get_datum_type())(
+                    &tensor.bytes_data,
+                    tensor.info.fact.as_slice()
+                ))?;
+            if let Some(node_name) = &tensor.info.node_name {
+                let node_index = self.onnx.model.node_by_name(node_name)?.id;
+                tensors.insert(node_index, tract_tensor);
+            } else {
+                tensors.push(tract_tensor);
+            }
         }
-
         let mut result = self.onnx.run(TVec::from_vec(tensors.clone()))?;
         result = result
             .into_iter()
@@ -175,9 +178,19 @@ impl InferenceModel {
                 }
             })
             .collect::<TractResult<_>>()?;
-        let datum_output = self.datum_outputs[0];
-        let arr = dispatch_numbers!(convert_tensor(&datum_output.get_datum_type())(&result[0]))?;
-        Ok(arr)
+        let mut outputs: Vec<SerializedTensor> = vec![];
+        let output_names = self.get_output_names();
+        for (i, tensor) in result.iter().enumerate() {
+            outputs.push(SerializedTensor {
+                info: TensorInfo {
+                    datum_type: ModelDatumType::try_from(tensor.datum_type())?,
+                    fact: tensor.shape().to_owned(),
+                    node_name: Some(output_names[i].clone()),
+                },
+                bytes_data: dispatch_numbers!(convert_tensor(tensor.datum_type())(&tensor))?,
+            });
+        }
+        Ok(outputs)
     }
 
     pub fn from_onnx_loaded(
@@ -208,7 +221,18 @@ impl InferenceModel {
         self.model_hash
     }
 
-    pub fn datum_output(&self) -> ModelDatumType {
-        self.datum_outputs[0]
+    pub fn get_output_names(&self) -> Vec<String> {
+        self.onnx
+            .outputs
+            .iter()
+            .enumerate()
+            .map(|(i, outlet)| {
+                self.onnx
+                    .model
+                    .outlet_label(*outlet)
+                    .map(|e| e.to_owned())
+                    .unwrap_or_else(|| format!("output_{}", i))
+            })
+            .collect()
     }
 }

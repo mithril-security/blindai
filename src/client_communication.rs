@@ -12,10 +12,17 @@ use std::sync::Arc;
 use std::time::Instant;
 use uuid::Uuid;
 
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct TensorInfo {
-    fact: Vec<i64>,
-    datum_type: ModelDatumType,
+    pub fact: Vec<usize>,
+    pub datum_type: ModelDatumType,
+    pub node_name: Option<String>,
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct SerializedTensor {
+    pub info: TensorInfo,
+    pub bytes_data: Vec<u8>,
 }
 
 #[derive(Clone)]
@@ -32,9 +39,9 @@ struct DeleteModel {
 }
 
 #[derive(Deserialize)]
-struct RunModel {
+pub struct RunModel {
     model_id: String,
-    inputs: Vec<u8>,
+    pub inputs: Vec<SerializedTensor>,
     sign: bool,
 }
 
@@ -63,8 +70,7 @@ pub struct SendModelReply {
 
 #[derive(Default, Serialize)]
 struct RunModelPayload {
-    output: Vec<u8>,
-    datum_output: i32,
+    outputs: Vec<SerializedTensor>,
     input_hash: Vec<u8>,
     model_id: String,
 }
@@ -295,9 +301,8 @@ impl Exchanger {
             //     model.run_inference(&mut run_model_body.inputs.clone()[..]);
             // });
             (
-                model.run_inference(&mut run_model_body.inputs.clone()[..]),
+                model.run_inference(run_model_body.inputs.as_slice()),
                 model.model_name().map(|s| s.to_string()),
-                model.datum_output(),
             )
         });
 
@@ -309,9 +314,9 @@ impl Exchanger {
             }
         };
 
-        let (result, model_name, datum_output) = res;
+        let (result, model_name) = res;
 
-        let result = match result {
+        let outputs = match result {
             Ok(res) => res,
             Err(err) => {
                 error!("Error while running inference: {}", err);
@@ -325,9 +330,7 @@ impl Exchanger {
         //};
 
         let mut payload = RunModelPayload::default();
-        payload.output = result;
-        payload.datum_output = datum_output as i32;
-
+        payload.outputs = outputs;
         /*
         runModelPayload {
             output: result,
