@@ -354,6 +354,51 @@ def translate_tensor(tensor, or_dtype, or_shape, name = None):
     return Tensor(info.__dict__, list(cbor2_dumps(iterable)))
 
 def translate_tensors(tensors, dtypes, shapes):
+    """
+    >>> tensor1 = [1, 2, 3, 4]
+    >>> o = translate_tensors(tensor1, ModelDatumType.I64, (4,))
+    >>> cbor2_loads(bytes(o[0]["bytes_data"])), o[0]["info"]
+    ([1, 2, 3, 4], {'fact': (4,), 'datum_type': <ModelDatumType.I64: 3>, 'node_name': None})
+
+
+    >>> import numpy
+    >>> tensor2 = numpy.array([1, 2, 3, 4])
+    >>> o = translate_tensors(tensor2, None, None)
+    >>> cbor2_loads(bytes(o[0]["bytes_data"])), o[0]["info"]
+    ([1, 2, 3, 4], {'fact': (4,), 'datum_type': <ModelDatumType.I64: 3>, 'node_name': None})
+
+
+    >>> import torch
+    >>> tensor3 = torch.tensor([1, 2, 3, 4])
+    >>> o = translate_tensors(tensor3, None, None)
+    >>> cbor2_loads(bytes(o[0]["bytes_data"])), o[0]["info"]
+    ([1, 2, 3, 4], {'fact': torch.Size([4]), 'datum_type': <ModelDatumType.I64: 3>, 'node_name': None})
+
+
+    >>> o = translate_tensors([tensor1, tensor2, tensor3], [ModelDatumType.I64, None, None], [(4,), None, None])
+    >>> for t in o:
+    ...    t["bytes_data"] = cbor2_loads(bytes(t["bytes_data"]))
+    >>> o
+    [\
+{'info': {'fact': (4,), 'datum_type': <ModelDatumType.I64: 3>, 'node_name': None}, 'bytes_data': [1, 2, 3, 4]}, \
+{'info': {'fact': (4,), 'datum_type': <ModelDatumType.I64: 3>, 'node_name': None}, 'bytes_data': [1, 2, 3, 4]}, \
+{'info': {'fact': torch.Size([4]), 'datum_type': <ModelDatumType.I64: 3>, 'node_name': None}, 'bytes_data': [1, 2, 3, 4]}]
+
+
+    >>> o = translate_tensors(\
+        {"tensor1": tensor1, "tensor2": tensor2, "tensor3": tensor3}, \
+        {"tensor1": ModelDatumType.I64, "tensor2": None, "tensor3": None}, \
+        {"tensor1": (4,), "tensor2": None, "tensor3": None}\
+    )
+    >>> for t in o:
+    ...    t["bytes_data"] = cbor2_loads(bytes(t["bytes_data"]))
+    >>> o
+    [\
+{'info': {'fact': (4,), 'datum_type': <ModelDatumType.I64: 3>, 'node_name': 'tensor1'}, 'bytes_data': [1, 2, 3, 4]}, \
+{'info': {'fact': (4,), 'datum_type': <ModelDatumType.I64: 3>, 'node_name': 'tensor2'}, 'bytes_data': [1, 2, 3, 4]}, \
+{'info': {'fact': torch.Size([4]), 'datum_type': <ModelDatumType.I64: 3>, 'node_name': 'tensor3'}, 'bytes_data': [1, 2, 3, 4]}]
+    """
+
     serialized_tensors = []
 
     # dict of tensors is the safe mean of passing inputs
@@ -606,3 +651,6 @@ from functools import wraps
 def connect(*args, **kwargs):
     return BlindAiConnection(*args, **kwargs)
 
+if __name__ == "__main__":
+    from doctest import testmod
+    testmod()
