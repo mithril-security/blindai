@@ -321,12 +321,18 @@ def translate_dtype(dtype):
         f"DatumType instance {type(dtype).__module__}.{type(dtype).__name__} not supported"
     )
 
+def is_torch_tensor(tensor):
+    return type(tensor).__module__ == "torch" and type(tensor).__name__ == "Tensor"
+
+def is_numpy_array(tensor):
+    return type(tensor).__module__ == "numpy" and type(tensor).__name__ == "ndarray"
+
 def translate_tensor(tensor, or_dtype, or_shape, name = None):
-    if type(tensor).__module__ == "torch" and type(tensor).__name__ == "Tensor":
+    if is_torch_tensor(tensor):
         info = TensorInfo(tensor.shape, translate_dtype(tensor.dtype), name)
         iterable = tensor.flatten().tolist()
 
-    elif type(tensor).__module__ == "numpy" and type(tensor).__name__ == "ndarray":
+    elif is_numpy_array(tensor):
         info = TensorInfo(tensor.shape, translate_dtype(tensor.dtype), name)
         iterable = tensor.flatten().tolist()
 
@@ -417,9 +423,11 @@ def translate_tensors(tensors, dtypes, shapes):
             or_shape = shapes[name] if shapes is not None else None
             serialized_tensors.append(translate_tensor(tensor, or_dtype, or_shape, name).__dict__)
     else:
-        #if arg is not a list of list, wrap it into a list
+        #if arg is not a list of (list/numpy.array/torch.tensor), wrap it into a list
         if not isinstance(tensors, list) or (
-            len(tensors) > 0 and not isinstance(tensors[0], list)
+            len(tensors) > 0 and not (
+                isinstance(tensors[0], list) or is_torch_tensor(tensors[0]) or is_numpy_array(tensors[0])
+            )
         ):
             tensors = [tensors]
         if dtypes is not None and not isinstance(dtypes, list):
