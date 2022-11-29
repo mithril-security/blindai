@@ -7,8 +7,8 @@ import http.client
 import contextlib
 import ssl, socket
 import platform
-from utils import *
-from version import __version__ as app_version
+from .utils import *
+from .version import __version__ as app_version
 from hashlib import sha256
 import getpass
 import logging
@@ -653,7 +653,3 @@ from functools import wraps
 @wraps(BlindAiConnection.__init__, assigned=("__doc__", "__annotations__"))
 def connect(*args, **kwargs):
     return BlindAiConnection(*args, **kwargs)
-
-if __name__ == "__main__":
-    from doctest import testmod
-    testmod()

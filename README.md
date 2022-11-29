@@ -91,3 +91,17 @@ b'Deleted'
 Dependencies are managed with [Poetry](https://python-poetry.org/).
 Ressources:
   * Jupyter as a dev dependency : https://hippocampus-garden.com/jupyter_poetry_pipenv/
+
+### Setup
+
+```
+cd client
+poetry install --with=dev
+```
+
+### Run test
+
+```
+cd client
+poetry run pytest -v
+```

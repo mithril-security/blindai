@@ -11,6 +11,7 @@ cbor2 = "^5.4.3"
 cryptography = "^38.0.3"
 
 [tool.poetry.group.dev.dependencies]
+pytest = "^7.2.0"
 jupyter = "^1.0.0"
 transformers = "^4.24.0"
 torch = {url = "https://download.pytorch.org/whl/cpu/torch-1.11.0%2Bcpu-cp38-cp38-linux_x86_64.whl"}
