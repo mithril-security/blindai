@@ -235,15 +235,13 @@ def dtype_to_numpy(dtype: ModelDatumType) -> str:
 
 
 def dtype_to_torch(dtype: ModelDatumType) -> str:
+    # Torch does not support unsigned ints except u8.
     translation_map = {
         ModelDatumType.F32: "float32",
         ModelDatumType.F64: "float64",
         ModelDatumType.I32: "int32",
         ModelDatumType.I64: "int64",
-        # ModelDatumType.U32: "uint32",
-        # ModelDatumType.U64: "uint64",
         ModelDatumType.U8: "uint8",
-        # ModelDatumType.U16: "uint16",
         ModelDatumType.I8: "int8",
         ModelDatumType.I16: "int16",
         ModelDatumType.Bool: "bool",
@@ -282,10 +280,7 @@ def translate_dtype(dtype):
             "torch.float64": ModelDatumType.F64,
             "torch.int32": ModelDatumType.I32,
             "torch.int64": ModelDatumType.I64,
-            # "torch.uint32": ModelDatumType.U32,
-            # "torch.uint64": ModelDatumType.U64,
             "torch.uint8": ModelDatumType.U8,
-            # "torch.uint16": ModelDatumType.U16,
             "torch.int8": ModelDatumType.I8,
             "torch.int16": ModelDatumType.I16,
             "torch.bool": ModelDatumType.Bool,

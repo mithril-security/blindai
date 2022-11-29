@@ -36,6 +36,11 @@ pub enum ModelDatumType {
     I64 = 3,
     U32 = 4,
     U64 = 5,
+    U8 = 6,
+    U16 = 7,
+    I8 = 8,
+    I16 = 9,
+    Bool = 10,
 }
 
 impl ModelDatumType {
@@ -47,6 +52,11 @@ impl ModelDatumType {
             ModelDatumType::I64 => i64::datum_type(),
             ModelDatumType::U32 => u32::datum_type(),
             ModelDatumType::U64 => u64::datum_type(),
+            ModelDatumType::U8 => u8::datum_type(),
+            ModelDatumType::U16 => u16::datum_type(),
+            ModelDatumType::I8 => i8::datum_type(),
+            ModelDatumType::I16 => i16::datum_type(),
+            ModelDatumType::Bool => bool::datum_type(),
         }
     }
 }
@@ -62,11 +72,11 @@ impl TryFrom<DatumType> for ModelDatumType {
             DatumType::I64 => ModelDatumType::I64,
             DatumType::U32 => ModelDatumType::U32,
             DatumType::U64 => ModelDatumType::U64,
-            // DatumType::U8 => ModelDatumType::U8,
-            // DatumType::U16 => ModelDatumType::U16,
-            // DatumType::I8 => ModelDatumType::I8,
-            // DatumType::I16 => ModelDatumType::I16,
-            // DatumType::Bool => ModelDatumType::Bool,
+            DatumType::U8 => ModelDatumType::U8,
+            DatumType::U16 => ModelDatumType::U16,
+            DatumType::I8 => ModelDatumType::I8,
+            DatumType::I16 => ModelDatumType::I16,
+            DatumType::Bool => ModelDatumType::Bool,
             _ => bail!("Unsupported datum type: {:?}", value),
         })
     }
@@ -82,6 +92,11 @@ macro_rules! dispatch_numbers {
             DatumType::I64  => $($path)::*::<i64>($($args),*),
             DatumType::F32  => $($path)::*::<f32>($($args),*),
             DatumType::F64  => $($path)::*::<f64>($($args),*),
+            DatumType::I8   => $($path)::*::<i8>($($args),*),
+            DatumType::I16  => $($path)::*::<i16>($($args),*),
+            DatumType::U8   => $($path)::*::<u8>($($args),*),
+            DatumType::U16  => $($path)::*::<u16>($($args),*),
+            DatumType::Bool => $($path)::*::<bool>($($args),*),
             _ => anyhow::bail!("{:?} is not a number", $dt)
         }
     } }
