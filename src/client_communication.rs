@@ -1,8 +1,22 @@
+// Copyright 2022 Mithril Security. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//   http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 use crate::identity::MyIdentity;
 use crate::model::ModelDatumType;
 use crate::model_store::ModelStore;
 use anyhow::{Error, Result};
-use log::{error, info};
+use log::error;
 use ring::digest;
 use ring_compat::signature::Signer;
 use serde_derive::{Deserialize, Serialize};
@@ -97,13 +111,11 @@ impl Exchanger {
     }
 
     pub fn send_model(&self, request: &mut tiny_http::Request) -> Result<SendModelReply, Error> {
-        let start_time = Instant::now();
-
-        let data_stream = request.as_reader();
-        let mut data: Vec<u8> = vec![];
-        data_stream.read_to_end(&mut data)?;
-
-        let mut upload_model_body: UploadModel = serde_cbor::from_slice(&data)?;
+        let upload_model_body: UploadModel = {
+            let mut data: Vec<u8> = vec![];
+            request.as_reader().read_to_end(&mut data)?;
+            serde_cbor::from_slice(&data)?
+        };
 
         let convert_type = |t: i32| -> Result<_, Error> {
             num_traits::FromPrimitive::from_i32(t)
@@ -116,25 +128,18 @@ impl Exchanger {
         let mut datum_outputs: Vec<ModelDatumType> = Vec::new();
         let mut datum_inputs: Vec<ModelDatumType> = Vec::new();
         let mut input_facts: Vec<Vec<usize>> = Vec::new();
-        let mut model_bytes: Vec<u8> = Vec::new();
         let max_model_size = self.max_model_size;
         let mut model_size = 0usize;
-        let sign = false;
 
         let mut model_name: std::option::Option<String> = None;
-        let client_info: std::option::Option<String> = None;
 
         if model_size == 0 {
             model_size = upload_model_body.length.try_into()?;
-            //model_size=267874659;
-            model_bytes.reserve_exact(model_size);
-            //model_name=None;
             model_name = if !upload_model_body.model_name.is_empty() {
                 Some(upload_model_body.model_name)
             } else {
                 None
             };
-            //client_info = uploadModelBody.client_info;
 
             for tensor_info in &upload_model_body.input {
                 tensor_inputs.push(tensor_info.clone());
@@ -143,14 +148,10 @@ impl Exchanger {
             for output in &upload_model_body.output {
                 tensor_outputs.push((*output) as i32);
             }
-
-            //sign = uploadModelBody.sign;
         }
-        if model_size > max_model_size || model_bytes.len() > max_model_size {
+        if model_size > max_model_size {
             return Err(Error::msg("Model is too big".to_string()));
         }
-
-        model_bytes.append(&mut upload_model_body.model);
 
         if model_size == 0 {
             return Err(Error::msg("Received no data".to_string()));
@@ -174,7 +175,7 @@ impl Exchanger {
         }
 
         let (model_id, model_hash) = self.model_store.add_model(
-            &model_bytes,
+            &upload_model_body.model,
             input_facts.clone(),
             model_name,
             datum_inputs.clone(),
@@ -194,22 +195,7 @@ impl Exchanger {
         }
         payload.model_id = model_id.to_string();
 
-        /*
-        let payload_with_header = Payload {
-            header: Some(PayloadHeader {
-                issued_at: Some(SystemTime::now().into()),
-            }),
-            payload: Some(payload::Payload::SendModelPayload(payload)),
-        };
-        */
-
         let mut reply = SendModelReply::default();
-        /*
-        {
-            payload: payload_with_header.encode_to_vec(),
-
-        };
-        */
 
         reply.payload = serde_cbor::to_vec(&payload)?;
 
@@ -222,50 +208,15 @@ impl Exchanger {
                 .to_vec();
         }
 
-        // Logs and telemetry
-        let elapsed = start_time.elapsed();
-        info!(
-            "Sample message" /*
-                             [{} {}] SendModel successful in {}ms (model={}, size={}, sign={})",
-
-                             client_info
-                                 .as_ref()
-                                 .map(|c| c.user_agent.as_ref())
-                                 .unwrap_or("<unknown>"),
-                             client_info
-                                 .as_ref()
-                                 .map(|c| c.user_agent_version.as_ref())
-                                 .unwrap_or("<unknown>"),
-                             elapsed.as_millis(),
-                             model_name.as_deref().unwrap_or("<unknown>"),
-                             model_size,
-                             sign
-                             */
-        );
-        /*
-        telemetry::add_event(
-            TelemetryEventProps::SendModel {
-                model_size,
-                model_name,
-                sign,
-                time_taken: elapsed.as_secs_f64(),
-            },
-            client_info,
-        );
-        */
         Ok(reply)
     }
 
     pub fn run_model(&self, request: &mut tiny_http::Request) -> Result<RunModelReply, Error> {
-        //Result<tiny_http::Response<std::io::Cursor<Vec<u8>>>, Error> {
-        let start_time = Instant::now();
-
         let input: Vec<u8> = Vec::new();
         let sign = false;
         let max_input_size = self.max_input_size;
         let model_id = "".to_string();
 
-        //let mut client_info = None;
         let data_stream = request.as_reader();
         let mut data: Vec<u8> = vec![];
         data_stream.read_to_end(&mut data)?;
@@ -277,15 +228,6 @@ impl Exchanger {
         {
             return Err(Error::msg("Input too big".to_string()));
         }
-
-        /*
-        if runModelBody.inputs.is_empty() {
-            sign = runModelBody.sign;
-            model_id = runModelBody.modelID;
-        }
-        */
-
-        //input.append(&mut data_proto.input);
 
         let uuid = match Uuid::from_str(&run_model_body.model_id) {
             Ok(uuid) => uuid,
@@ -314,7 +256,7 @@ impl Exchanger {
             }
         };
 
-        let (result, model_name) = res;
+        let (result, _model_name) = res;
 
         let outputs = match result {
             Ok(res) => res,
@@ -325,43 +267,16 @@ impl Exchanger {
             }
         };
 
-        //let mut ret_payload:runModelReturn = {
-
-        //};
-
         let mut payload = RunModelPayload::default();
         payload.outputs = outputs;
-        /*
-        runModelPayload {
-            output: result,
-            datum_output: datum_output as i32,
-            ..Default::default()
-        };
-        */
 
         if run_model_body.sign {
             payload.input_hash = digest::digest(&digest::SHA256, &input).as_ref().to_vec();
             payload.model_id = model_id;
         }
 
-        /*
-        let payload_with_header = Payload {
-            header: Some(PayloadHeader {
-                issued_at: Some(SystemTime::now().into()),
-            }),
-            payload: Some(payload::Payload::RunModelPayload(payload)),
-        };
-        */
-
         let mut reply = RunModelReply::default();
         reply.payload = serde_cbor::to_vec(&payload)?;
-
-        /*
-        RunModelReply {
-            payload: payload_with_header.encode_to_vec(),
-            ..Default::default()
-        };
-        */
 
         if sign {
             reply.signature = self
@@ -372,32 +287,6 @@ impl Exchanger {
                 .to_vec();
         }
 
-        /*
-        // Log and telemetry
-        let elapsed = start_time.elapsed();
-        info!(
-            "[{} {}] RunModel successful in {}ms (model={}, sign={})",
-            client_info
-                .as_ref()
-                .map(|c| c.user_agent.as_ref())
-                .unwrap_or("<unknown>"),
-            client_info
-                .as_ref()
-                .map(|c| c.user_agent_version.as_ref())
-                .unwrap_or("<unknown>"),
-            elapsed.as_millis(),
-            model_name.as_deref().unwrap_or("<unknown>"),
-            sign
-        );
-        telemetry::add_event(
-            TelemetryEventProps::RunModel {
-                model_name: model_name.map(|e| e.to_string()),
-                sign,
-                time_taken: elapsed.as_secs_f64(),
-            },
-            client_info,
-        );
-        */
         Ok(reply)
     }
 
@@ -440,6 +329,7 @@ impl Exchanger {
     }
 }
 
+#[allow(dead_code)]
 pub fn bench(repeats: usize, samples: usize, f: impl Fn()) -> Result<()> {
     let mut results = vec![];
     results.reserve(samples);
