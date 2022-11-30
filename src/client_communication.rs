@@ -99,11 +99,11 @@ impl Exchanger {
     pub fn send_model(&self, request: &mut tiny_http::Request) -> Result<SendModelReply, Error> {
         let start_time = Instant::now();
 
-        let data_stream = request.as_reader();
-        let mut data: Vec<u8> = vec![];
-        data_stream.read_to_end(&mut data)?;
-
-        let mut upload_model_body: UploadModel = serde_cbor::from_slice(&data)?;
+        let upload_model_body: UploadModel = {
+            let mut data: Vec<u8> = vec![];
+            request.as_reader().read_to_end(&mut data)?;
+            serde_cbor::from_slice(&data)?
+        };
 
         let convert_type = |t: i32| -> Result<_, Error> {
             num_traits::FromPrimitive::from_i32(t)
@@ -116,7 +116,6 @@ impl Exchanger {
         let mut datum_outputs: Vec<ModelDatumType> = Vec::new();
         let mut datum_inputs: Vec<ModelDatumType> = Vec::new();
         let mut input_facts: Vec<Vec<usize>> = Vec::new();
-        let mut model_bytes: Vec<u8> = Vec::new();
         let max_model_size = self.max_model_size;
         let mut model_size = 0usize;
         let sign = false;
@@ -126,9 +125,6 @@ impl Exchanger {
 
         if model_size == 0 {
             model_size = upload_model_body.length.try_into()?;
-            //model_size=267874659;
-            model_bytes.reserve_exact(model_size);
-            //model_name=None;
             model_name = if !upload_model_body.model_name.is_empty() {
                 Some(upload_model_body.model_name)
             } else {
@@ -146,11 +142,9 @@ impl Exchanger {
 
             //sign = uploadModelBody.sign;
         }
-        if model_size > max_model_size || model_bytes.len() > max_model_size {
+        if model_size > max_model_size {
             return Err(Error::msg("Model is too big".to_string()));
         }
-
-        model_bytes.append(&mut upload_model_body.model);
 
         if model_size == 0 {
             return Err(Error::msg("Received no data".to_string()));
@@ -174,7 +168,7 @@ impl Exchanger {
         }
 
         let (model_id, model_hash) = self.model_store.add_model(
-            &model_bytes,
+            &upload_model_body.model,
             input_facts.clone(),
             model_name,
             datum_inputs.clone(),

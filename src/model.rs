@@ -157,7 +157,7 @@ impl InferenceModel {
         }
 
         Ok(InferenceModel {
-            onnx: model_rec.clone().into_optimized()?.into_runnable()?.into(),
+            onnx: model_rec.into_optimized()?.into_runnable()?.into(),
             datum_inputs,
             input_facts,
             model_name,
