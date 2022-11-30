@@ -16,7 +16,7 @@ use crate::identity::MyIdentity;
 use crate::model::ModelDatumType;
 use crate::model_store::ModelStore;
 use anyhow::{Error, Result};
-use log::{error};
+use log::error;
 use ring::digest;
 use ring_compat::signature::Signer;
 use serde_derive::{Deserialize, Serialize};
@@ -148,7 +148,6 @@ impl Exchanger {
             for output in &upload_model_body.output {
                 tensor_outputs.push((*output) as i32);
             }
-
         }
         if model_size > max_model_size {
             return Err(Error::msg("Model is too big".to_string()));
@@ -213,7 +212,6 @@ impl Exchanger {
     }
 
     pub fn run_model(&self, request: &mut tiny_http::Request) -> Result<RunModelReply, Error> {
-
         let input: Vec<u8> = Vec::new();
         let sign = false;
         let max_input_size = self.max_input_size;
