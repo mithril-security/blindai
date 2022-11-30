@@ -1,5 +1,3 @@
-
-
 from transformers import DistilBertTokenizer
 import torch
 from transformers import DistilBertForSequenceClassification
