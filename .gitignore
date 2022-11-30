@@ -17,6 +17,12 @@ target/
 # Ignore Onnx models
 **/*.onnx
 
+# Ignore npz files
+**/*.npz
+
+# Ignore tmp folders
+tmp
+
 ## .gitignore for Python from 
 # https://github.com/github/gitignore/blob/main/Python.gitignore
 

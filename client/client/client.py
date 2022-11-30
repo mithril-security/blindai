@@ -76,7 +76,10 @@ class Tensor:
 
     def as_torch(self):
         """Convert the prediction calculated by the server to a Torch Tensor."""
-        import torch
+        try:
+            import torch
+        except ImportError as e:
+            raise ImportError("torch not installed, please install with pip install blindai[torch]") from e
 
         arr = torch.asarray(
             [*self.as_flat()],
