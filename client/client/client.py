@@ -50,7 +50,7 @@ class TensorInfo:
 
     def __init__(self, fact, datum_type, node_name = None):
         self.fact = fact
-        self.datum_type = datum_type
+        self.datum_type = ModelDatumType[datum_type] if isinstance(datum_type, str) else ModelDatumType(datum_type)
         self.node_name = node_name
 
 
