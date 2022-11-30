@@ -15,7 +15,7 @@
 use std::vec::Vec;
 
 use crate::client_communication::{SerializedTensor, TensorInfo};
-use anyhow::{anyhow, bail, Context, Result};
+use anyhow::{anyhow, bail, Result};
 use core::hash::Hash;
 use num_derive::FromPrimitive;
 use ring::digest::Digest;
@@ -125,7 +125,6 @@ fn convert_tensor<A: serde::ser::Serialize + tract_core::prelude::Datum>(
 #[derive(Debug)]
 pub struct InferenceModel {
     pub datum_inputs: Vec<ModelDatumType>,
-    input_facts: Vec<Vec<usize>>,
     pub datum_outputs: Vec<ModelDatumType>,
     pub onnx: Arc<OnnxModel>,
     #[allow(unused)]
@@ -159,7 +158,6 @@ impl InferenceModel {
         Ok(InferenceModel {
             onnx: model_rec.into_optimized()?.into_runnable()?.into(),
             datum_inputs,
-            input_facts,
             model_name,
             model_id,
             model_hash,
@@ -210,7 +208,6 @@ impl InferenceModel {
 
     pub fn from_onnx_loaded(
         onnx: Arc<OnnxModel>,
-        input_facts: Vec<Vec<usize>>,
         model_id: Uuid,
         model_name: Option<String>,
         model_hash: Digest,
@@ -219,7 +216,6 @@ impl InferenceModel {
     ) -> Self {
         InferenceModel {
             onnx,
-            input_facts,
             model_id,
             model_name,
             model_hash,

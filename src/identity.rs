@@ -17,9 +17,6 @@ use der_parser::oid;
 use rand::{rngs::OsRng, RngCore};
 use rcgen::{Certificate, CertificateParams, CustomExtension, SanType};
 use ring_compat::signature::ed25519::SigningKey;
-use rsa::pkcs1::EncodeRsaPublicKey;
-use rsa::pkcs8::der::Document;
-use rsa::{RsaPrivateKey, RsaPublicKey};
 use serde_derive::Deserialize;
 use serde_derive::Serialize;
 use std::borrow::Borrow;
@@ -42,16 +39,6 @@ where
         }
     }
 }
-/*
-impl From<&TlsIdentity> for Identity {
-    fn from(identity: &TlsIdentity) -> Self {
-        // Convert from DER format to PEM
-        let cert_pem = pkix::pem::der_to_pem(&identity.cert_der, PEM_CERTIFICATE);
-        let private_key_pem = pkix::pem::der_to_pem(&identity.private_key_der, PEM_PRIVATE_KEY);
-        Identity::from_pem(cert_pem, private_key_pem)
-    }
-}
-*/
 
 #[derive(Clone, Serialize, Deserialize)]
 pub(crate) struct TlsIdentity {
@@ -66,14 +53,6 @@ pub(crate) struct RsaKeyPair {
     pub private_key_der: Vec<u8>,
     pub public_key_der: Vec<u8>,
 }
-
-// #[derive(Serialize, Deserialize)]
-// struct SerializableIdentity {
-//     pub tls_identity: TlsIdentity,
-//     // Key pair for secure storage
-//     pub storage_identity: RsaKeyPair,
-//     pub signing_key_seed: Vec<u8>,
-// }
 
 pub(crate) struct MyIdentity {
     pub tls_identity: TlsIdentity,
@@ -119,35 +98,6 @@ pub(crate) fn create_certificate() -> Result<(Certificate, Vec<u8>)> {
 
     let mut params = CertificateParams::default();
     params.subject_alt_names = subject_alt_names;
-
-    /* OIDs under the Internet Experimental OID arc (1.3.6.1.3.x) may be used for
-     * experimental purpose */
-    // let rsa_file_encryption_key_oid: Vec<_> = oid!(1.3.6 .1 .3 .1)
-    //     .iter()
-    //     .ok_or_else(|| anyhow!("At least one arc of the OID does not fit into `u64`"))?
-    //     .collect();
-
-    /* create random RSA key pair */
-    let mut rng = OsRng;
-    let bits = 2048;
-    // let rsa_private_key = RsaPrivateKey::new(&mut rng, bits)?;
-    // let rsa_public_key = RsaPublicKey::from(&rsa_private_key);
-
-    // let rsa_private_key_doc = rsa_private_key.to_pkcs1_der()?;
-    // let rsa_private_key_bytes = rsa_private_key_doc.as_der().to_vec();
-
-    /* convert the RSA public key to pkcs1 DER byte array */
-    // let rsa_public_key_doc = rsa_public_key.to_pkcs1_der()?;
-    // let rsa_public_key_bytes = rsa_public_key_doc.as_der().to_vec();
-
-    // let rsa_key_pair = RsaKeyPair {
-    //     public_key_der: rsa_public_key_bytes.clone(),
-    //     private_key_der: rsa_private_key_bytes,
-    // };
-
-    /* add the RSA public key as bytes to the certificate */
-    // let ext1 =
-    //     CustomExtension::from_oid_content(&rsa_file_encryption_key_oid, rsa_public_key_bytes);
 
     /* todo! : force the right params */
 

@@ -60,8 +60,7 @@ impl ModelStore {
                     *num += 1;
                     info!("Reusing an existing ONNX entry for model. (n = {})", *num);
                     InferenceModel::from_onnx_loaded(
-                        onnx.clone(),
-                        input_facts,
+                        Arc::clone(&onnx),
                         model_id,
                         model_name,
                         model_hash,
@@ -82,7 +81,7 @@ impl ModelStore {
                         datum_inputs,
                         datum_outputs,
                     )?;
-                    entry.insert((1, model.onnx.clone()));
+                    entry.insert((1, Arc::clone(&model.onnx)));
                     model
                 }
             };
