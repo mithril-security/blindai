@@ -104,14 +104,16 @@ class UploadModel:
     length:int
     sign:bool
     model_name:str
+    optimize:bool
 
-    def __init__(self,model,input,output,length,sign=False,model_name=""):
+    def __init__(self,model,input,output,length,sign=False,model_name="",optimize=True):
         self.model = model
         self.input = input
         self.output = output
         self.length = length
         self.sign = sign
         self.model_name = model_name
+        self.optimize = optimize
 
 
 class RunModel:
@@ -578,7 +580,8 @@ class BlindAiConnection(contextlib.AbstractContextManager):
             dtype: ModelDatumType = None,
             dtype_out: ModelDatumType = None,
             sign: bool = False,
-            model_name: Optional[str] = None, ) -> UploadResponse:
+            model_name: Optional[str] = None,
+            optimize: bool = True ) -> UploadResponse:
         
         if model_name is None:
             model_name = os.path.basename(model)
@@ -593,7 +596,7 @@ class BlindAiConnection(contextlib.AbstractContextManager):
                 tensor_inputs, tensor_outputs, shape, dtype, dtype_out
             )
 
-        data = UploadModel(model = model, input = inputs, output = outputs, length = length, sign = False, model_name = model_name)
+        data = UploadModel(model = model, input = inputs, output = outputs, length = length, sign = False, model_name = model_name, optimize=optimize)
         data = cbor2_dumps(data.__dict__)
         self.conn.request("POST","/upload",data)
         send_model_reply = _handle_response(self.conn.getresponse())

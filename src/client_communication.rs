@@ -67,6 +67,7 @@ struct UploadModel {
     length: u64,
     sign: bool,
     model_name: String,
+    optimize: bool,
 }
 
 #[derive(Default, Serialize)]
@@ -180,6 +181,7 @@ impl Exchanger {
             model_name,
             datum_inputs.clone(),
             datum_outputs,
+            upload_model_body.optimize
         )?;
 
         // Construct the return payload
