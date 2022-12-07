@@ -167,6 +167,7 @@ impl InferenceModel {
 
     pub fn run_inference(&self, inputs: &[SerializedTensor]) -> Result<Vec<SerializedTensor>> {
         let mut tensors: Vec<_> = vec![];
+        let outlets= self.onnx.model.input_outlets()?;
         for tensor in inputs {
             let tract_tensor =
                 dispatch_numbers!(create_tensor(tensor.info.datum_type.get_datum_type())(
@@ -174,8 +175,12 @@ impl InferenceModel {
                     tensor.info.fact.as_slice()
                 ))?;
             if let Some(node_name) = &tensor.info.node_name {
-                let node_index = self.onnx.model.node_by_name(node_name)?.id;
-                tensors.insert(node_index, tract_tensor);
+                let node_id = self.onnx.model.node_id_by_name(node_name)?;
+                let rank = outlets
+                    .iter()
+                    .position(|&outlet| outlet.node == node_id)
+                    .ok_or(anyhow!("no node with name {}", node_name))?;
+                tensors.insert(rank, tract_tensor);
             } else {
                 tensors.push(tract_tensor);
             }
