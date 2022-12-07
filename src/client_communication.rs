@@ -164,7 +164,7 @@ impl Exchanger {
             let mut input_fact: Vec<usize> = vec![];
 
             for x in &tensor_input.fact {
-                input_fact.push(*x as usize);
+                input_fact.push(*x);
             }
             let datum_input = convert_type(tensor_input.datum_type as i32)?; // TEMP-FIX, FIX THIS!//convert_type(tensor_input.datum_type.clone())?;
             datum_outputs = tensor_outputs
@@ -181,7 +181,7 @@ impl Exchanger {
             model_name,
             datum_inputs.clone(),
             datum_outputs,
-            upload_model_body.optimize
+            upload_model_body.optimize,
         )?;
 
         // Construct the return payload
@@ -197,9 +197,10 @@ impl Exchanger {
         }
         payload.model_id = model_id.to_string();
 
-        let mut reply = SendModelReply::default();
-
-        reply.payload = serde_cbor::to_vec(&payload)?;
+        let mut reply = SendModelReply {
+            payload: serde_cbor::to_vec(&payload)?,
+            ..Default::default()
+        };
 
         if upload_model_body.sign {
             reply.signature = self
@@ -269,16 +270,20 @@ impl Exchanger {
             }
         };
 
-        let mut payload = RunModelPayload::default();
-        payload.outputs = outputs;
+        let mut payload = RunModelPayload {
+            outputs,
+            ..Default::default()
+        };
 
         if run_model_body.sign {
             payload.input_hash = digest::digest(&digest::SHA256, &input).as_ref().to_vec();
             payload.model_id = model_id;
         }
 
-        let mut reply = RunModelReply::default();
-        reply.payload = serde_cbor::to_vec(&payload)?;
+        let mut reply = RunModelReply {
+            payload: serde_cbor::to_vec(&payload)?,
+            ..Default::default()
+        };
 
         if sign {
             reply.signature = self
@@ -343,10 +348,7 @@ pub fn bench(repeats: usize, samples: usize, f: impl Fn()) -> Result<()> {
         }
         let elapsed = start.elapsed().as_micros() / repeats as u128;
 
-        println!(
-            "bench (sample {}/{}): {}us/iter, {} iter",
-            i, samples, elapsed, repeats
-        );
+        println!("bench (sample {i}/{samples}): {elapsed}us/iter, {repeats} iter");
 
         results.push(elapsed);
     }

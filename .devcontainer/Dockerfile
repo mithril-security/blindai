@@ -14,7 +14,7 @@ RUN apt-get update \
     && make
 
 ## Final image
-FROM mcr.microsoft.com/vscode/devcontainers/base:0-${VARIANT}
+FROM mcr.microsoft.com/vscode/devcontainers/base:0-${VARIANT} AS development
 # [Optional] Uncomment this section to install additional OS packages.
 # RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
 #     && apt-get -y install --no-install-recommends <your-package-list-here>
@@ -22,7 +22,7 @@ FROM mcr.microsoft.com/vscode/devcontainers/base:0-${VARIANT}
 ENV CARGO_HOME=/usr/local/cargo \
     RUSTUP_HOME=/usr/local/rustup
 ENV PATH=${CARGO_HOME}/bin:${PATH}
-COPY library-scripts/rust-debian.sh /tmp/library-scripts/
+COPY .devcontainer/library-scripts/rust-debian.sh /tmp/library-scripts/
 
 # Enable default rustup profile instead of the minimal profile (default of the rust-debian.sh)
 # The default profile includes all of components in the minimal profile, and adds rust-docs, rustfmt, and clippy. 
@@ -78,4 +78,9 @@ RUN curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | d
 # Add examples dependencies
 RUN apt-get install -y ffmpeg
 
-COPY start-aesmd.sh /tmp/start-aesmd.sh
+COPY .devcontainer/start-aesmd.sh /tmp/start-aesmd.sh
+
+# ci tests
+FROM development AS test
+COPY . .
+RUN ./.devcontainer/ci_tests.sh
