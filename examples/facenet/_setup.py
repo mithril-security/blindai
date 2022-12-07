@@ -2,6 +2,8 @@ from facenet_pytorch import MTCNN, InceptionResnetV1
 import torch
 import numpy as np
 from PIL import Image
+import os
+path = os.path.dirname(os.path.realpath(__file__))
 
 workers = 1
 
@@ -15,7 +17,7 @@ def collate_fn(x):
 
 model = InceptionResnetV1(pretrained='vggface2').eval()
 
-img = Image.open("./tmp/woman_0.jpg")
+img = Image.open(path + "/tmp/woman_0.jpg")
 
 img_aligned = mtcnn(torch.tensor(np.asarray(img)))
 inputs = img_aligned.unsqueeze(0)
@@ -23,7 +25,7 @@ inputs = img_aligned.unsqueeze(0)
 torch.onnx.export(
     model,
     inputs,
-    "./tmp/facenet_nooptim.onnx",
+    path + "/tmp/facenet_nooptim.onnx",
     export_params=True,
 )
 
@@ -31,5 +33,5 @@ npz_inputs = {}
 
 npz_inputs["input.1"] = inputs
 
-np.savez("./facenet.npz", **npz_inputs)
+np.savez(path + "/facenet.npz", **npz_inputs)
 print(inputs.shape, inputs.type())
