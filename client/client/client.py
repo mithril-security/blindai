@@ -85,8 +85,7 @@ class Tensor:
             [*self.as_flat()],
             dtype=getattr(torch, dtype_to_torch(self.info.datum_type)),
         )
-        arr.view(self.shape)
-        return arr
+        return arr.view(self.shape)
 
     @property
     def shape(self) -> tuple:
