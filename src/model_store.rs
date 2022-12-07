@@ -53,6 +53,7 @@ impl ModelStore {
         model_name: Option<String>,
         datum_inputs: Vec<ModelDatumType>,
         datum_outputs: Vec<ModelDatumType>,
+        optimize: bool,
     ) -> Result<(Uuid, Digest)> {
         let model_id = Uuid::new_v4();
         let model_hash = digest::digest(&digest::SHA256, model_bytes);
@@ -94,6 +95,7 @@ impl ModelStore {
                         model_hash,
                         datum_inputs,
                         datum_outputs,
+                        optimize,
                     )?;
                     entry.insert((1, Arc::clone(&model.onnx)));
                     model

@@ -142,6 +142,7 @@ impl InferenceModel {
         model_hash: Digest,
         datum_inputs: Vec<ModelDatumType>,
         datum_outputs: Vec<ModelDatumType>,
+        optimize: bool,
     ) -> Result<Self> {
         let mut model_rec = tract_onnx::onnx()
             .with_ignore_output_shapes(true)
@@ -154,9 +155,13 @@ impl InferenceModel {
                 InferenceFact::dt_shape(datum_input.get_datum_type(), input_fact),
             )?;
         }
+        let onnx = match optimize {
+            true => model_rec.into_optimized()?,
+            false => model_rec.into_typed()?,
+        };
 
         Ok(InferenceModel {
-            onnx: model_rec.into_optimized()?.into_runnable()?.into(),
+            onnx: onnx.into_runnable()?.into(),
             datum_inputs,
             model_name,
             model_id,
