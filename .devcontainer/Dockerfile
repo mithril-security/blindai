@@ -20,8 +20,9 @@ FROM mcr.microsoft.com/vscode/devcontainers/base:0-${VARIANT} AS development
 #     && apt-get -y install --no-install-recommends <your-package-list-here>
 
 ENV CARGO_HOME=/usr/local/cargo \
-    RUSTUP_HOME=/usr/local/rustup
-ENV PATH=${CARGO_HOME}/bin:${PATH}
+    RUSTUP_HOME=/usr/local/rustup \
+    POETRY_HOME=/home/vscode/.local/bin
+ENV PATH=${CARGO_HOME}/bin:${POETRY_HOME}:${PATH}
 COPY .devcontainer/library-scripts/rust-debian.sh /tmp/library-scripts/
 
 # Enable default rustup profile instead of the minimal profile (default of the rust-debian.sh)
@@ -64,7 +65,7 @@ RUN apt-get install -y python3-dev python3-distutils \
     && sudo -u "vscode" zsh -c "\
     curl -sSL https://install.python-poetry.org | python3 - \
     && mkdir ~/.oh-my-zsh/custom/plugins/poetry \
-    && export PATH="/home/vscode/.local/bin:$PATH" \
+    && export PATH=${POETRY_HOME}:$PATH \
     && poetry completions zsh > ~/.oh-my-zsh/custom/plugins/poetry/_poetry \
     && sed -i -E 's/^plugins\=\(([a-zA-Z ]+)*\)/plugins=(\1 poetry)/' ~/.zshrc"
 
@@ -80,7 +81,56 @@ RUN apt-get install -y ffmpeg
 
 COPY .devcontainer/start-aesmd.sh /tmp/start-aesmd.sh
 
-# ci tests
+
+# CI tests
+
+# The goal is to handle the less likey and expensive file changes (dependency changes essentially) at the beginning of the build.
+# This allow us to reuse the dependencies and ressources needed in the majority of cases
+
 FROM development AS test
-COPY . .
-RUN ./.devcontainer/ci_tests.sh
+
+# build Rust dependencies
+RUN cargo new blindaiv2
+WORKDIR /blindaiv2
+COPY Cargo.toml Cargo.lock ./
+COPY .cargo .cargo
+COPY tar-rs-sgx tar-rs-sgx
+COPY tract tract
+COPY ring-fortanix ring-fortanix
+RUN cargo build \
+    && cargo build --release
+
+# install python depencies
+COPY client/pyproject.toml client/poetry.lock ./client/
+RUN poetry install --directory ./client --no-root
+
+# generate tests onnx models and inputs
+COPY tests tests
+RUN cd tests \
+    && bash setup.sh
+
+# compile Rust sources
+COPY src src
+COPY host_server.pem host_server.key ./
+RUN touch src/main.rs \
+    && cargo build \
+    && cargo build --release
+
+# fmt and clippy
+RUN cargo fmt --check \
+    && cargo clippy -p tinyhttp-fortanix -- --no-deps -Dwarnings
+
+# install python client
+COPY client client
+RUN cd client && poetry install --only-root
+
+# python tests
+RUN cd client && poetry run pytest
+
+# end-to-end tests
+CMD echo OK
+# CMD cargo run --release \
+#     & sleep 10 \
+#     && cd tests \
+#     && bash assert_all.sh
+    

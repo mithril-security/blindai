@@ -25,3 +25,5 @@ for x, y in zip(run_response.output, res):
 	results = torch.isclose(x.as_torch(), torch.tensor(y)).tolist()
 	if (isinstance(results, list) and not all(results)) or not results: #if tensor is singleton tolist returns scalar
 		raise ValueError("Error discrepency between blindai's and onnxruntime outputs")
+
+print(model_path, ": OK")

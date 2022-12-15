@@ -3,6 +3,9 @@ from transformers import DistilBertTokenizer
 from transformers import DistilBertForSequenceClassification
 import numpy as np
 import os
+from onnxsim import simplify
+import onnx
+
 path = os.path.dirname(os.path.realpath(__file__))
 
 # Load the model
@@ -20,6 +23,11 @@ torch.onnx.export(
 	input_names = ['input'], output_names = ['output'],
 	dynamic_axes={'input' : {0 : 'batch_size'},
 	'output' : {0 : 'batch_size'}})
+
+model = onnx.load(path + "/distilbert-base-uncased.onnx")
+model_simp, check = simplify(model)
+assert check, "Simplified ONNX model could not be validated"
+onnx.save(model_simp, path + "/distilbert-base-uncased.onnx")
 
 # save inputs to npz format
 inputs = {"input": tokenizer(sentence, padding = "max_length", max_length = 8, return_tensors="np")["input_ids"]}
