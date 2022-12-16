@@ -15,14 +15,18 @@ jobs:
         with:
           driver: docker-container
       
-      - name: Run tests in container
+      - name: Build test image
         uses: docker/build-push-action@v3
         with:
           push: false
           load: true
+          tag: blindaiv2-test:latest
           context: .
           file: .devcontainer/Dockerfile
           target: test
           cache-from: type=gha
           cache-to: type=gha,mode=max
+      
+      - name: Run end-to-end tests
+        run: docker run blindaiv2-test
 
