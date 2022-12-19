@@ -20,7 +20,7 @@ jobs:
         with:
           push: false
           load: true
-          tag: blindaiv2-test:latest
+          tags: blindaiv2-test:latest
           context: .
           file: .devcontainer/Dockerfile
           target: test
