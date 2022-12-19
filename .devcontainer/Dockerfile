@@ -130,7 +130,7 @@ RUN cd client && poetry run pytest
 # end-to-end tests
 COPY justfile .
 CMD just run-simu --release \
-    & sleep 10 \
+    & sleep 120 \
     && cd tests \
     && bash assert_all.sh
     
