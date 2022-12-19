@@ -134,6 +134,7 @@ pub struct InferenceModel {
 }
 
 impl InferenceModel {
+    #[allow(clippy::too_many_arguments)]
     pub fn load_model(
         mut model_data: &[u8],
         input_facts: Vec<Vec<usize>>,
@@ -147,9 +148,7 @@ impl InferenceModel {
         let mut model_rec = tract_onnx::onnx()
             .with_ignore_output_shapes(true)
             .model_for_read(&mut model_data)?;
-        for (idx, (datum_input, input_fact)) in
-            datum_inputs.iter().zip(input_facts.clone()).enumerate()
-        {
+        for (idx, (datum_input, input_fact)) in datum_inputs.iter().zip(input_facts).enumerate() {
             model_rec = model_rec.with_input_fact(
                 idx,
                 InferenceFact::dt_shape(datum_input.get_datum_type(), input_fact),
@@ -172,7 +171,7 @@ impl InferenceModel {
 
     pub fn run_inference(&self, inputs: &[SerializedTensor]) -> Result<Vec<SerializedTensor>> {
         let mut tensors: Vec<_> = vec![];
-        let outlets= self.onnx.model.input_outlets()?;
+        let outlets = self.onnx.model.input_outlets()?;
         for tensor in inputs {
             let tract_tensor =
                 dispatch_numbers!(create_tensor(tensor.info.datum_type.get_datum_type())(
@@ -184,7 +183,7 @@ impl InferenceModel {
                 let rank = outlets
                     .iter()
                     .position(|&outlet| outlet.node == node_id)
-                    .ok_or(anyhow!("no node with name {}", node_name))?;
+                    .ok_or_else(|| anyhow!("no node with name {}", node_name))?;
                 tensors.insert(rank, tract_tensor);
             } else {
                 tensors.push(tract_tensor);
@@ -210,7 +209,7 @@ impl InferenceModel {
                     fact: tensor.shape().to_owned(),
                     node_name: Some(output_names[i].clone()),
                 },
-                bytes_data: dispatch_numbers!(convert_tensor(tensor.datum_type())(&tensor))?,
+                bytes_data: dispatch_numbers!(convert_tensor(tensor.datum_type())(tensor))?,
             });
         }
         Ok(outputs)
@@ -252,7 +251,7 @@ impl InferenceModel {
                     .model
                     .outlet_label(*outlet)
                     .map(|e| e.to_owned())
-                    .unwrap_or_else(|| format!("output_{}", i))
+                    .unwrap_or_else(|| format!("output_{i}"))
             })
             .collect()
     }

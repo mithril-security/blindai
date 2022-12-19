@@ -42,7 +42,7 @@ serde_cbor = { git = "https://github.com/mithril-security/cbor.git" }
 # stack size (in bytes) for each thread, the default stack size is 0x20000.
 stack-size=0x400000
 # heap size (in bytes), the default heap size is 0x2000000.
-heap-size=0x7BA00000
+heap-size=0xFBA00000
 # the default number of threads is equal to the number of available CPUs of
 # the current system.
 # Gotcha: Don't forget to count the main thread when counting number of

@@ -1,12 +1,8 @@
-#
-# Export a simple onnx model and save its inputs in npz format
-#
-
 import numpy as np
 import onnx
-from onnx import numpy_helper
 from onnx.helper import *
 import os
+path = os.path.dirname(os.path.realpath(__file__))
 
 node1 = make_node(
     'Sub',
@@ -26,12 +22,9 @@ graph = make_graph(
 model = make_model(graph)
 model.opset_import[0].version = 12
 
-with open( "simple.onnx", "wb") as f:
+with open(path + "/simple.onnx", "wb") as f:
     f.write(model.SerializeToString())
-
-# print(model)
-# print(printable_graph(model.graph))
 
 inputs = {"input":np.array(42), "sub":np.array(40)}
 
-np.savez( "simple.npz", **inputs)
+np.savez(path + "/simple.npz", **inputs)

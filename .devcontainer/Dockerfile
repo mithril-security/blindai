@@ -14,15 +14,16 @@ RUN apt-get update \
     && make
 
 ## Final image
-FROM mcr.microsoft.com/vscode/devcontainers/base:0-${VARIANT}
+FROM mcr.microsoft.com/vscode/devcontainers/base:0-${VARIANT} AS development
 # [Optional] Uncomment this section to install additional OS packages.
 # RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
 #     && apt-get -y install --no-install-recommends <your-package-list-here>
 
 ENV CARGO_HOME=/usr/local/cargo \
-    RUSTUP_HOME=/usr/local/rustup
-ENV PATH=${CARGO_HOME}/bin:${PATH}
-COPY library-scripts/rust-debian.sh /tmp/library-scripts/
+    RUSTUP_HOME=/usr/local/rustup \
+    POETRY_HOME=/home/vscode/.local/bin
+ENV PATH=${CARGO_HOME}/bin:${POETRY_HOME}:${PATH}
+COPY .devcontainer/library-scripts/rust-debian.sh /tmp/library-scripts/
 
 # Enable default rustup profile instead of the minimal profile (default of the rust-debian.sh)
 # The default profile includes all of components in the minimal profile, and adds rust-docs, rustfmt, and clippy. 
@@ -60,11 +61,11 @@ RUN apt-get install -y gdb
 RUN curl --proto '=https' --tlsv1.2 -sSf https://just.systems/install.sh | bash -s -- --to /usr/bin
 
 # Add poetry
-RUN apt-get install -y python3-distutils \
+RUN apt-get install -y python3-dev python3-distutils \
     && sudo -u "vscode" zsh -c "\
     curl -sSL https://install.python-poetry.org | python3 - \
     && mkdir ~/.oh-my-zsh/custom/plugins/poetry \
-    && export PATH="/home/vscode/.local/bin:$PATH" \
+    && export PATH=${POETRY_HOME}:$PATH \
     && poetry completions zsh > ~/.oh-my-zsh/custom/plugins/poetry/_poetry \
     && sed -i -E 's/^plugins\=\(([a-zA-Z ]+)*\)/plugins=(\1 poetry)/' ~/.zshrc"
 
@@ -75,4 +76,61 @@ RUN curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | d
     && apt update \
     && apt install gh -y
 
-COPY start-aesmd.sh /tmp/start-aesmd.sh
+# Add examples dependencies
+RUN apt-get install -y ffmpeg
+
+COPY .devcontainer/start-aesmd.sh /tmp/start-aesmd.sh
+
+
+# CI tests
+
+# The goal is to handle the less likey and expensive file changes (dependency changes essentially) at the beginning of the build.
+# This allow us to reuse the dependencies and ressources needed in the majority of cases
+
+FROM development AS test
+
+# build Rust dependencies
+RUN cargo new blindaiv2
+WORKDIR /blindaiv2
+COPY Cargo.toml Cargo.lock ./
+COPY .cargo .cargo
+COPY tar-rs-sgx tar-rs-sgx
+COPY tract tract
+COPY ring-fortanix ring-fortanix
+RUN cargo build \
+    && cargo build --release
+
+# install python depencies
+COPY client/pyproject.toml client/poetry.lock ./client/
+RUN poetry install --directory ./client --no-root
+
+# generate tests onnx models and inputs
+COPY tests tests
+RUN cd tests \
+    && bash setup.sh
+
+# compile Rust sources
+COPY src src
+COPY host_server.pem host_server.key ./
+RUN touch src/main.rs \
+    && cargo build \
+    && cargo build --release
+
+# fmt and clippy
+RUN cargo fmt --check \
+    && cargo clippy -p tinyhttp-fortanix -- --no-deps -Dwarnings
+
+# install python client
+COPY client client
+RUN cd client && poetry install --only-root
+
+# python tests
+RUN cd client && poetry run pytest
+
+# end-to-end tests
+COPY justfile .
+CMD just run-simu --release \
+    & sleep 120 \
+    && cd tests \
+    && bash assert_all.sh
+    
