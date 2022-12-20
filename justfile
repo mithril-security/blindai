@@ -3,34 +3,76 @@
 default:
   @just --list
 
+
 # Run on SGX hardware
 run *args:
-  cargo run {{args}}
+  #!/usr/bin/env bash
+  set -e
+
+  cargo build --target x86_64-fortanix-unknown-sgx {{args}}
+
+  binpath=`cargo build --target x86_64-fortanix-unknown-sgx {{args}} --message-format json 2>/dev/null \
+    | jq -r 'select(.reason=="compiler-artifact" and .target.kind==["bin"]) | .executable'` 
+
+  ftxsgx-elf2sgxs "$binpath" \
+    --heap-size 0xFBA00000 \
+    --ssaframesize 1 \
+    --stack-size 0x20000 \
+    --threads 20
+
+  just generate-policy-dev "$binpath.sgxs" 
+
+  just generate-policy-prod "$binpath.sgxs" 
+
+  ( cd runner && cargo build --release )
+
+  # ftxsgx-runner "$binpath.sgxs" 
+
+  # Modify the normal runner to the new 
+  ./runner/target/release/runner "$binpath.sgxs"
+  
 
 # Build for SGX target
 build *args:
-  cargo build {{args}}
+  #!/usr/bin/env bash
+  set -e
+  cargo build --target x86_64-fortanix-unknown-sgx {{args}}
+
+  binpath=`cargo build --target x86_64-fortanix-unknown-sgx {{args}} --message-format json 2>/dev/null \
+    | jq -r 'select(.reason=="compiler-artifact" and .target.kind==["bin"]) | .executable'` 
+    
+  ftxsgx-elf2sgxs "$binpath" \
+    --heap-size 0x2000000 \
+    --ssaframesize 1 \
+    --stack-size 0x20000 \
+    --threads 20
+
+  just generate-policy-dev "$binpath.sgxs" 
+
+  just generate-policy-prod "$binpath.sgxs" 
+
+  ( cd runner && cargo build --release )
 
 # Check for SGX target
 check *args:
-  cargo check {{args}}
+  cargo check --target x86_64-fortanix-unknown-sgx {{args}}
 
 # Build for a Linux target (no SGX)
 build-no-sgx *args:
-  cargo build --target=x86_64-unknown-linux-gnu {{args}}
+  cargo build {{args}}
 
 # Run on a Linux target (no SGX)
 run-no-sgx *args:
-  cargo run --target=x86_64-unknown-linux-gnu {{args}}
+  cargo run {{args}}
 
 # Run in the simulator
 run-simu *args:
   #!/usr/bin/env bash
   set -e
 
-  cargo build {{args}}
+  cargo build --target x86_64-fortanix-unknown-sgx {{args}}
 
-  binpath=`cargo build {{args}} --message-format json 2>/dev/null \
+  binpath=`cargo build --target x86_64-fortanix-unknown-sgx {{args}} --message-format json 2>/dev/null \
     | jq -r 'select(.reason=="compiler-artifact" and .target.kind==["bin"]) | .executable'` 
   
   ftxsgx-elf2sgxs "$binpath" \
@@ -39,6 +81,10 @@ run-simu *args:
     --stack-size 0x40000 \
     --threads 20
 
+  just generate-policy-dev "$binpath.sgxs" 
+
+  just generate-policy-prod "$binpath.sgxs" 
+
   ftxsgx-simulator "$binpath.sgxs"
 
 # Execute with valgrind instrumentation
@@ -46,9 +92,9 @@ valgrind *args:
   #!/usr/bin/env bash
   set -e
 
-  cargo build {{args}}
+  cargo build --target x86_64-fortanix-unknown-sgx {{args}}
 
-  binpath=`cargo build {{args}} --message-format json 2>/dev/null \
+  binpath=`cargo build --target x86_64-fortanix-unknown-sgx {{args}} --message-format json 2>/dev/null \
     | jq -r 'select(.reason=="compiler-artifact" and .target.kind==["bin"]) | .executable'`
 
   ftxsgx-elf2sgxs "$binpath" \
@@ -57,8 +103,25 @@ valgrind *args:
     --stack-size 0x20000 \
     --threads 20
 
+  just generate-policy-dev "$binpath.sgxs" 
+
+  just generate-policy-prod "$binpath.sgxs" 
+
   valgrind --sigill-diagnostics=no --leak-check=no ftxsgx-simulator "$binpath.sgxs" 
 
+
+# generate a policy.toml for dev purposes, expects path to the sgxs file 
+generate-policy-dev input_sgxs:
+  #!/usr/bin/env bash
+  export mr_enclave=`sgxs-hash {{input_sgxs}}`
+  envsubst < policy.dev.template.toml > policy.dev.toml
+
+# generate a policy.toml for prod purposes expects path to the sgxs file
+generate-policy-prod input_sgxs:
+  #!/usr/bin/env bash
+  export mr_enclave=`sgxs-hash {{input_sgxs}}`
+  envsubst < policy.prod.template.toml > policy.prod.toml
+  
 # Build and serve locally the documentation
 doc:
   #!/usr/bin/env bash

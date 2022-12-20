@@ -13,14 +13,14 @@
 			"VARIANT": "ubuntu-20.04"
 		}
 	},
-	"runArgs": ["--device=/dev/sgx/enclave", "--device=/dev/sgx/provision"],
+	"runArgs": ["-v","/var/run/aesmd/aesm.socket:/var/run/aesmd/aesm.socket", "--device=/dev/sgx/enclave", "--device=/dev/sgx/provision"],
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
 	// "forwardPorts": [],
 	// Use 'postCreateCommand' to run commands after the container is created.
 	// "postCreateCommand": "uname -a",
 	// Comment out to connect as root instead. More info: https://aka.ms/vscode-remote/containers/non-root.
 	"remoteUser": "vscode",
-	"postStartCommand": "nohup sudo bash /tmp/start-aesmd.sh >/dev/null 2>&1 ",
+	"postStartCommand": "sudo /opt/intel/sgx-dcap-pccs/setup-pccs.sh",
 	
 	"settings": {
 		"terminal.integrated.profiles.linux": {

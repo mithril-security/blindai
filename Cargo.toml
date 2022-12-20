@@ -27,8 +27,10 @@ tract-core = {path="tract/core"} #{version = "0.17.2-pre", features=["untrusted_
 tract-onnx = {path="tract/onnx"} #{version = "0.17.2-pre", features=["untrusted_fs"]}
 tract-hir = {path="tract/hir"}  #{version = "0.17.2-pre"}
 x509-parser = "0.14.0"
-# enable TLS support via rustls
+# ssl feature is patched to enable TLS support via rustls
 rouille = { git = "https://github.com/mithril-security/rouille-sgx.git", features = ["ssl"] }
+sgx-isa = "0.4.0"
+ureq = "2.5.0"
 
 [dev-dependencies]
 lazy_static = "1.4.0"

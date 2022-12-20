@@ -13,6 +13,7 @@
 # limitations under the License.
 
 from enum import IntEnum
+import hashlib
 from typing import Any, Dict, List, Optional, Tuple, Union
 from cbor2 import dumps as cbor2_dumps
 from cbor2 import loads as cbor2_loads
@@ -578,6 +579,9 @@ class BlindAiConnection(contextlib.AbstractContextManager):
                 )
 
         s = requests.Session()
+        # Always raise an exception when HTTP returns an error code for the untrusted connection
+        # Note : we might want to do the same for the attested connection ?
+        s.hooks = {"response": lambda r, *args, **kwargs: r.raise_for_status()}
         if self._disable_untrusted_server_cert_check:
             logging.warning("Untrusted server certificate check bypassed")
             s.verify = False
@@ -597,21 +601,39 @@ class BlindAiConnection(contextlib.AbstractContextManager):
         s.mount(self._untrusted_url, CustomHostNameCheckingAdapter())
 
         retrieved_cert = s.get(self._untrusted_url).text
-        trusted_server_cert = ssl.get_server_certificate((addr, attested_port))
+        retrieved_quote = s.get(f"{self._untrusted_url}/quote").content
+        retrieved_collateral = s.get(f"{self._untrusted_url}/collateral").json()
+        retrieve_enclave_held_data = s.get(
+            f"{self._untrusted_url}/enclave-held-data"
+        ).content
+        hashed_enclave_held_data = hashlib.sha256(retrieve_enclave_held_data).digest()
 
-        # both certificates should match (up to the PEM encoding which might slightly differ)
-        assert cryptography.x509.load_pem_x509_certificate(
-            bytes(retrieved_cert, encoding="ascii")
-        ) == cryptography.x509.load_pem_x509_certificate(
-            bytes(trusted_server_cert, encoding="ascii")
-        )
+        # TODO: need to integrate the verification of the attestation
+
+        # ##### Verify the attestation collateral & quote claims
+        # policy = Policy.from_file("policy.toml")
+
+        # ##### Attestation / GetSgxQuoteWithCollateralReply type used with the _validate function
+        #     # contains the quote, the collateral and the enclave_held_data
+        # attestation = GetSgxQuoteWithCollateralReply (
+        #     quote=retrieve_quote,
+        #     collateral=collateral,
+        #     enclave_held_data=retrieve_enclave_held_data
+        # )
+        # print("enclave held data is : ")
+        # print(retrieve_enclave_held_data)
+        # # print(attestation)
+
+        # certificate_enclave = encode_certificate(retrieve_enclave_held_data)
+        # # context_enclave
+        # enclave_signing_key = _validate_quote(attestation, policy)
 
         # requests (http library) takes a path to a file containing the CA
         # there is no easy way to give the CA as a string/bytes directly
         # therefore a temporary file with the certificate content
         # has to be created.
         trusted_server_cert_file = tempfile.NamedTemporaryFile(mode="w")
-        trusted_server_cert_file.write(retrieved_cert)
+        trusted_server_cert_file.write(retrieve_enclave_held_data.decode("utf-8"))
         trusted_server_cert_file.flush()
         # the file should not be close until the end of BlindAiConnection
         # so we store it in the object (else it might get garbage collected)
@@ -761,6 +783,23 @@ class BlindAiConnection(contextlib.AbstractContextManager):
     def __exit__(self, *args):
         """Close the connection to BlindAI server and raise any exception triggered within the runtime context."""
         self.close()
+
+
+# def _validate_quote(
+#     attestation: GetSgxQuoteWithCollateralReply, policy: Policy
+# ) -> Ed25519PublicKey:
+#     """Returns the enclave signing key"""
+
+#     claims = verify_dcap_attestation(
+#         attestation.quote, attestation.collateral, attestation.enclave_held_data
+#     )
+
+#     verify_claims(claims, policy)
+#     server_cert = claims.get_server_cert()
+#     server_cert = claims.sgx_ehd
+#     enclave_signing_key = get_enclave_signing_key(server_cert)
+
+#     return enclave_signing_key
 
 
 from functools import wraps

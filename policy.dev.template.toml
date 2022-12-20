@@ -1,0 +1,53 @@
+# Enclave policy file
+# Determines which enclaves are to be accepted by
+# the client
+
+# Enclave measurement
+# MRENCLAVE represents the enclave's contents and build process
+mr_enclave = "${mr_enclave}"
+
+# Set to true to allow enclave running in DEBUG mode 
+# A production service should never allow debug-mode enclaves
+allow_debug = true
+
+# Enclave attributes are formed of : 
+#  * attributes_flags 
+#  * attributes_xfrm (XFRM for XSAVE Feature Request Mask)
+# The allowed attributes are described by bitmasks.
+# The layout of the structures are described in Intel documentation
+# See <https://www.intel.com/content/dam/www/public/us/en/documents/manuals/64-ia-32-architectures-software-developer-vol-3d-part-4-manual.pdf>
+
+# ATTTRIBUTE default : 0x4
+# 0x4 == MODE64BIT
+attributes_flags_hex = "0x4"
+# ATTTRIBUTEMASK default : ~0x2 = 0xfffffffffffffffd
+# Check everything match the selected attributes 
+# except for the DEBUG field
+# The DEBUG field value is checked separately 
+# via the `allow_debug` parameter
+attributes_mask_flags_hex = "0xfffffffffffffffd"
+# ATTRIBUTES.XFRM default : 0x3
+# Intel documentation
+# > Legal values for SECS.ATTRIBUTES.XFRM conform to these requirements:
+# >  * XFRM[1:0] must be set to 0x3.
+attributes_xfrm_hex = "0x3"
+# ATTRIBUTEMASK.XFRM default : ~0x0 = 0xffffffffffffffff
+# For our usage we need to allow CPU features related to AVX2/AVX512
+# So we disable the checks for the following bitfield :  
+#  * 2 => AVX (AVX enable, and XSAVE feature set can be used to manage YMM regs)
+#  * 5 => opmask (AVX-512 enable, and XSAVE feature set can be used for AVX opmask, AKA k-mask, regs)
+#  * 6 => ZMM_hi256 (AVX-512 enable, and XSAVE feature set can be used for upper-halves of the lower ZMM regs)
+#  * 7 => Hi16_ZMM (AVX-512 enable, and XSAVE feature set can be used for the upper ZMM regs)
+# Compute mask : ~(1 << 2 | 1 << 5 | 1 << 6 | 1 << 7) == 0xffffffffffffff1b
+attributes_mask_xfrm_hex = "0xfffffffffffffd1b"
+
+# From <https://01.org/sites/default/files/documentation/intel_sgx_sdk_developer_reference_for_linux_os_pdf.pdf>
+# > MiscSelect and MiscMask are for future functional extension. 
+# > Currently, MiscSelect must be 0. 
+# > Otherwise the corresponding enclave may not be loaded successfully
+# Note this is changing with SGX2, the MISCSELECT[0] bit will indicate
+# whether exception information on #GP or #PF that occurred inside 
+# an enclave can be written to the EXINFO structure
+misc_select_hex = "0x0"
+misc_mask_hex = "0xffffffff"
+

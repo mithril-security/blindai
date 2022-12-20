@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+
+## Careful: this file is unused at the moment.
+
 set -e
 
 if test $(id -u) -ne 0; then

@@ -16,7 +16,7 @@ use crate::identity::MyIdentity;
 use crate::model::ModelDatumType;
 use crate::model_store::ModelStore;
 use anyhow::{Error, Result};
-use log::error;
+use log::{error, info};
 use ring::digest;
 use ring_compat::signature::Signer;
 use serde_derive::{Deserialize, Serialize};
@@ -192,7 +192,7 @@ impl Exchanger {
         let uuid = match Uuid::from_str(&run_model_body.model_id) {
             Ok(uuid) => uuid,
             Err(_) => {
-                println!("Error in uuid");
+                info!("Error in uuid");
                 return Err(Error::msg("Model doesn't exist".to_string()));
             }
         };
@@ -222,7 +222,6 @@ impl Exchanger {
             Ok(res) => res,
             Err(err) => {
                 error!("Error while running inference: {}", err);
-                println!("Error in result");
                 return Err(Error::msg("Unknown error".to_string()));
             }
         };
