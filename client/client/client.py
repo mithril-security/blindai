@@ -17,7 +17,6 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 from cbor2 import dumps as cbor2_dumps
 from cbor2 import loads as cbor2_loads
 import os 
-import http.client
 import contextlib
 import ssl, socket
 import platform
@@ -26,7 +25,9 @@ from .version import __version__ as app_version
 from hashlib import sha256
 import getpass
 import logging
-
+import tempfile
+import requests
+from requests.adapters import HTTPAdapter
 
 CONNECTION_TIMEOUT = 10
 
@@ -222,15 +223,6 @@ def _get_input_output_tensors(
         inputs.append(TensorInfo(fact=tensor_input[0], datum_type=tensor_input[1]).__dict__)     #Required for correct cbor serialization
 
     return (inputs, tensor_outputs)
-
-def _handle_response(res):
-    if res.status == 200:
-        return res.read()
-    if res.status == 400:
-        raise ValueError("Server couldn\'t handle the request because :", res.read())
-    if res.status == 500:
-        raise ValueError("Server internal error")
-    raise ValueError("Unknown status code in request")
 
 
 def dtype_to_numpy(dtype: ModelDatumType) -> str:
@@ -461,7 +453,7 @@ def translate_tensors(tensors, dtypes, shapes):
     return serialized_tensors
 
 class BlindAiConnection(contextlib.AbstractContextManager):
-    conn: http.client.HTTPSConnection
+    conn: requests.Session
     #policy: Optional[Policy] = None
     #_stub: Optional[ExchangeStub] = None
     enclave_signing_key: Optional[bytes] = None
@@ -485,6 +477,9 @@ class BlindAiConnection(contextlib.AbstractContextManager):
         attested_port: int = 9924,
         debug_mode=False,
     ):
+        """
+        certificate: path to untrusted certificate in PEM format
+        """
         #if debug_mode:  # pragma: no cover
         #    os.environ["GRPC_TRACE"] = "transport_security,tsi"
         #    os.environ["GRPC_VERBOSITY"] = "DEBUG"
@@ -529,46 +524,77 @@ class BlindAiConnection(contextlib.AbstractContextManager):
 
         #addr = strip_https(addr)
 
-        untrusted_client_to_enclave = addr + ":" + str(untrusted_port)
-        attested_client_to_enclave = addr + ":" + str(attested_port)
+        self._untrusted_url = "https://" + addr + ":" + str(untrusted_port)
+        self._attested_url =  "https://" +  addr + ":" + str(attested_port)
 
         #if not self.simulation_mode:
         #    self.policy = Policy.from_file(policy)
 
+        # This adapter makes it possible to connect
+        # to the server via a different hostname 
+        # that the one included in the certificate i.e. blindai-srv
+        # For instance we can use it to connect to the server via the 
+        # domain / IP provided to connect(). See below 
+
+        # TODO: Document that in production one should not use that approach
+        # but instead include the real domain name in the certificate
+        class CustomHostNameCheckingAdapter(HTTPAdapter):
+            def cert_verify(self, conn, url, verify, cert):
+                conn.assert_hostname = "blindai-srv"
+                return super(CustomHostNameCheckingAdapter,
+                            self).cert_verify(conn, url, verify, cert)
+
+
+        s = requests.Session()
         if self._disable_untrusted_server_cert_check:
             logging.warning("Untrusted server certificate check bypassed")
-
-            #socket.setdefaulttimeout(CONNECTION_TIMEOUT)                
-            context = ssl._create_unverified_context()
-               
+            s.verify = False
         else:
-            context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
-            context.load_verify_locations("../host_server.pem")
-            context.check_hostname = False
-            
+            # verify is set to a path to the certificate CA
+            # It is used to pin the certificate
+            # Might not be needed in production
+            # Certificate pinning is a double edge sword
+            # It can prevent some MITM but it also make it more difficult
+            # to rotate the certificate...
+            # Anyway in our case as we'll do attestation verification 
+            # it would make sense to use a simpler cert validation
+            # maybe simply the default CA with domain validation 
+            # like the browser do.
+            # Can't be more boring (in a good way).
+            s.verify = certificate
+        s.mount(
+            self._untrusted_url,
+            CustomHostNameCheckingAdapter()
+        )
 
-        try:
-            
-            untrusted_conn = http.client.HTTPSConnection("localhost", 9923, context = context) #ssl._create_unverified_context())
-            untrusted_conn.request("GET","/")
+        retrieved_cert = s.get(self._untrusted_url).text
+        trusted_server_cert = ssl.get_server_certificate((addr, attested_port))
 
+        # both certificates should match (up to the PEM encoding which might slightly differ)
+        assert cryptography.x509.load_pem_x509_certificate(bytes(retrieved_cert, encoding="ascii")) == cryptography.x509.load_pem_x509_certificate(bytes(trusted_server_cert, encoding="ascii"))
 
-            # The response here should be a quote/report and not just the trusted cert
-            retrieved_cert = untrusted_conn.getresponse().read()
-            retrieved_cert = retrieved_cert.decode('utf-8').replace('\r','')
+        # requests (http library) takes a path to a file containing the CA 
+        # there is no easy way to give the CA as a string/bytes directly
+        # therefore a temporary file with the certificate content
+        # has to be created.
+        trusted_server_cert_file = tempfile.NamedTemporaryFile(mode="w")
+        trusted_server_cert_file.write(retrieved_cert)
+        trusted_server_cert_file.flush()
+        # the file should not be close until the end of BlindAiConnection
+        # so we store it in the object (else it might get garbage collected)
+        self.trusted_cert_file = trusted_server_cert_file
 
-            trusted_server_cert = ssl.get_server_certificate((addr, attested_port))
+        trusted_conn = requests.Session()
+        trusted_conn.verify = trusted_server_cert_file.name
+        trusted_conn.mount(
+            self._attested_url,
+            CustomHostNameCheckingAdapter()
+        )
 
-            #Stop if certs don't match
-            if(not(trusted_server_cert == retrieved_cert)):
-                print("Certificates do not match")
-                return
+        # finally try to connect to the enclave
+        trusted_conn.get(self._attested_url)
 
-            self.conn = http.client.HTTPSConnection("localhost", 9924, context = ssl._create_unverified_context()) 
-
-        except RuntimeError:
-            print("Error connecting to server")
-            ###Get attestation report and validate it here
+        self.conn = trusted_conn
 
     def upload_model(
             self,
@@ -597,9 +623,9 @@ class BlindAiConnection(contextlib.AbstractContextManager):
 
         data = UploadModel(model = model, input = inputs, output = outputs, length = length, sign = False, model_name = model_name, optimize=optimize)
         data = cbor2_dumps(data.__dict__)
-        self.conn.request("POST","/upload",data)
-        send_model_reply = _handle_response(self.conn.getresponse())
-        send_model_reply = cbor2_loads(send_model_reply)
+        r = self.conn.post(f"{self._attested_url}/upload", data = data)
+        r.raise_for_status()
+        send_model_reply = cbor2_loads(r.content)
         payload = cbor2_loads(bytes(send_model_reply['payload']))
         payload = SendModelPayload(**payload)
         ret = UploadResponse()
@@ -624,10 +650,9 @@ class BlindAiConnection(contextlib.AbstractContextManager):
         tensors = translate_tensors(input_tensors, dtypes, shapes)
         run_data = RunModel(model_id=model_id,inputs=tensors,sign=False)
         run_data = cbor2_dumps(run_data.__dict__)
-        self.conn.request("POST","/run",run_data)
-        resp = self.conn.getresponse()
-        run_model_reply = _handle_response(resp)
-        run_model_reply = cbor2_loads(run_model_reply)
+        r = self.conn.post(f"{self._attested_url}/run",data=run_data)
+        r.raise_for_status()
+        run_model_reply = cbor2_loads(r.content)
         payload = cbor2_loads(bytes(run_model_reply['payload']))
         payload = RunModelPayload(**payload)
 
@@ -645,8 +670,8 @@ class BlindAiConnection(contextlib.AbstractContextManager):
     def delete_model(self,model_id:str):
         delete_data = DeleteModel(model_id=model_id)
         delete_data = cbor2_dumps(delete_data.__dict__)
-        self.conn.request("POST","/delete",delete_data)
-        _handle_response(self.conn.getresponse())
+        r = self.conn.post(f"{self._attested_url}/delete",delete_data)
+        r.raise_for_status()
 
 
     def close(self):
