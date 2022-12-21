@@ -12,7 +12,7 @@ _, model_path, inputs_path = sys.argv
 inputs = dict(np.load(inputs_path))
 
 #blindai code
-client_v2 = connect(addr="0.0.0.0", simulation=True)
+client_v2 = connect(addr="localhost", simulation=True)
 response = client_v2.upload_model(model=model_path)
 run_response = client_v2.run_model(model_id=response.model_id, input_tensors=inputs, sign=False)
 client_v2.delete_model(model_id = response.model_id)
