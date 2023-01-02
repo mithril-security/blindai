@@ -4,32 +4,17 @@ on: push
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64]
     steps:
       - uses: actions/checkout@v3
         with:
           submodules: true
-
-      - name: Remove dotnet
-        run: sudo rm -rf /usr/share/dotnet
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
-        with:
-          driver: docker-container
+      
+      - name: Build dev-env image
+        run: docker build -f .devcontainer/Dockerfile --tag blindaiv2-dev:latest --target development .
       
       - name: Build test image
-        uses: docker/build-push-action@v3
-        with:
-          push: false
-          load: true
-          tags: blindaiv2-test:latest
-          context: .
-          file: .devcontainer/Dockerfile
-          target: test
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-      
-      - name: Run end-to-end tests
-        run: docker run blindaiv2-test
+        run: docker build -f tests/Dockerfile --tag blindaiv2-test:latest .
 
+      - name: Run end-to-end tests
+        run: docker run --device /dev/sgx/enclave --device /dev/sgx/provision blindaiv2-test
