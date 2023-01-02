@@ -59,3 +59,11 @@ valgrind *args:
 
   valgrind --sigill-diagnostics=no --leak-check=no ftxsgx-simulator "$binpath.sgxs" 
 
+# Build and serve locally the documentation
+doc:
+  #!/usr/bin/env bash
+  cd client \
+  && poetry install --no-root \
+  && poetry run pip install -r ../docs/requirements.txt \
+  && poetry run bash -c 'cd .. && . docs/generate_api_reference.sh' \
+  && poetry run mkdocs serve -f ../mkdocs.yml
