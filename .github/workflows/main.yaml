@@ -9,12 +9,12 @@ jobs:
       - uses: actions/checkout@v3
         with:
           submodules: true
-
-      - name: Set up Docker layer caching
-        uses: satackey/action-docker-layer-caching@v0.0.11
+      
+      - name: Build dev-env image
+        run: docker build -f .devcontainer/Dockerfile --tag blindaiv2-dev:latest --target development .
       
       - name: Build test image
-        run: docker build -f .devcontainer/Dockerfile --tag blindaiv2-test:latest --target test .
-      
+        run: docker build -f tests/Dockerfile --tag blindaiv2-test:latest .
+
       - name: Run end-to-end tests
         run: docker run --device /dev/sgx/enclave --device /dev/sgx/provision blindaiv2-test
