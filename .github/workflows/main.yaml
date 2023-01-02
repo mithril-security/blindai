@@ -28,5 +28,5 @@ jobs:
           cache-to: type=gha,mode=max
       
       - name: Run end-to-end tests
-        run: docker run blindaiv2-test
+        run: docker run --device /dev/sgx/enclave --device /dev/sgx/provision blindaiv2-test
 

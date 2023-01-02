@@ -128,8 +128,7 @@ RUN cd client && poetry install --only-root
 RUN cd client && poetry run pytest
 
 # end-to-end tests
-COPY justfile .
-CMD just run-simu --release \
+CMD cargo run --release \
     & sleep 120 \
     && cd tests \
     && bash assert_all.sh
