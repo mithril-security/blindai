@@ -42,8 +42,10 @@ RUN cargo fmt --check \
 COPY client client
 RUN cd client && poetry install --only-root
 
-# python tests
-RUN cd client && poetry run pytest
+# python formatting and checks
+RUN cd client \
+    && poetry run black --check . \
+    && poetry run pytest
 
 # end-to-end tests
 CMD cargo run --release \
