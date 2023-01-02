@@ -129,7 +129,7 @@ RUN cd client && poetry run pytest
 
 # end-to-end tests
 CMD cargo run --release \
-    & sleep 120 \
+    & sleep 15 \
     && cd tests \
     && bash assert_all.sh
     
