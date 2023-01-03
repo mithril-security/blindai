@@ -65,6 +65,18 @@ class TensorInfo:
 
 
 class Tensor:
+    """
+    Tensor class to convert serialized tensors into convenients objects
+
+    >>> serialized = {'info': {'fact': [1, 2], 'datum_type': 'F32', 'node_name': 'output'}, 'bytes_data': [130, 250, 60, 145, 103, 64, 250, 190, 46, 46, 234]}
+    >>> tensor = Tensor(TensorInfo(**serialized["info"]), serialized["bytes_data"])
+    >>> tensor.as_flat()
+    [0.017749428749084473, -0.1701008379459381]
+    >>> tensor.as_numpy()
+    array([[ 0.01774943, -0.17010084]], dtype=float32)
+    >>> tensor.as_torch()
+    tensor([[ 0.0177, -0.1701]])
+    """
     info: TensorInfo
     bytes_data: List[int]
 
@@ -707,7 +719,6 @@ class BlindAiConnection(contextlib.AbstractContextManager):
             Tensor(TensorInfo(**output["info"]), output["bytes_data"])
             for output in payload.outputs
         ]
-
         if sign:
             ret.payload = payload
             ret.signature = run_model_reply.signature
