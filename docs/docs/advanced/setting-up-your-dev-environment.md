@@ -32,8 +32,10 @@ If you don't want to use docker, you will need to install the following:
 * Intel SGX DCAP **1.41** Driver
 * Intel SGX SDK v2.15.1
 * Intel SGX PSW (version 2.15.101.1 for the PSW librairies and 1.12.101.1 for the PSW-DCAP librairies)
-* Rust nightly-2021-11-01 with Xargo
+* Fortanix EDP and its dependencies
 
 You can find the [installation guides](https://download.01.org/intel-sgx/sgx-linux/2.9/docs/) for Intel SGX software on the 01.org website.
+
+You can find the [installation guides](https://edp.fortanix.com/docs/installation/guide/) for fortanix EDP on their official website. 
 
 Note: if you are running on a machine without SGX support, you will need the simulation versions of the Intel PSW and SDK.

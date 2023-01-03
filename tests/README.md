@@ -4,4 +4,4 @@
 
 - In the client tab, run the setup script of the model you want to try to create the onnx and npz files. You can then run the tests of your choice.
 
-If you need to you can directly change the client's code and the changes will take effect, as if you installed with ```pip -e```.
+If you need to, you can directly change the client's code and the changes will take effect, as if you installed with ```pip -e```.
