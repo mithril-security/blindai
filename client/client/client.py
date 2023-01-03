@@ -1,11 +1,11 @@
 # Copyright 2022 Mithril Security. All rights reserved.
-# 
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-# 
+#
 #   http://www.apache.org/licenses/LICENSE-2.0
-# 
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,7 +16,7 @@ from enum import IntEnum
 from typing import Any, Dict, List, Optional, Tuple, Union
 from cbor2 import dumps as cbor2_dumps
 from cbor2 import loads as cbor2_loads
-import os 
+import os
 import contextlib
 import ssl, socket
 import platform
@@ -31,6 +31,7 @@ from requests.adapters import HTTPAdapter
 
 CONNECTION_TIMEOUT = 10
 
+
 class ModelDatumType(IntEnum):
     F32 = 0
     F64 = 1
@@ -38,20 +39,25 @@ class ModelDatumType(IntEnum):
     I64 = 3
     U32 = 4
     U64 = 5
-    U8 = 6,
-    U16 = 7,
-    I8 = 8,
-    I16 = 9,
+    U8 = 6
+    U16 = 7
+    I8 = 8
+    I16 = 9
     Bool = 10
 
-class TensorInfo:
-    fact:List[int]
-    datum_type:ModelDatumType
-    node_name:str
 
-    def __init__(self, fact, datum_type, node_name = None):
+class TensorInfo:
+    fact: List[int]
+    datum_type: ModelDatumType
+    node_name: str
+
+    def __init__(self, fact, datum_type, node_name=None):
         self.fact = fact
-        self.datum_type = ModelDatumType[datum_type] if isinstance(datum_type, str) else ModelDatumType(datum_type)
+        self.datum_type = (
+            ModelDatumType[datum_type]
+            if isinstance(datum_type, str)
+            else ModelDatumType(datum_type)
+        )
         self.node_name = node_name
 
 
@@ -80,7 +86,9 @@ class Tensor:
         try:
             import torch
         except ImportError as e:
-            raise ImportError("torch not installed, please install with pip install blindai[torch]") from e
+            raise ImportError(
+                "torch not installed, please install with pip install blindai[torch]"
+            ) from e
 
         arr = torch.asarray(
             [*self.as_flat()],
@@ -98,15 +106,17 @@ class Tensor:
 
 
 class UploadModel:
-    model:List[int]
-    input:List[TensorInfo]
-    output:List[ModelDatumType]
-    length:int
-    sign:bool
-    model_name:str
-    optimize:bool
+    model: List[int]
+    input: List[TensorInfo]
+    output: List[ModelDatumType]
+    length: int
+    sign: bool
+    model_name: str
+    optimize: bool
 
-    def __init__(self,model,input,output,length,sign=False,model_name="",optimize=True):
+    def __init__(
+        self, model, input, output, length, sign=False, model_name="", optimize=True
+    ):
         self.model = model
         self.input = input
         self.output = output
@@ -117,27 +127,27 @@ class UploadModel:
 
 
 class RunModel:
-    model_id:str
-    inputs:List[Tensor]
-    sign:bool
+    model_id: str
+    inputs: List[Tensor]
+    sign: bool
 
-    def __init__(self,model_id,inputs,sign):
-        self.model_id=model_id
-        self.inputs=inputs
-        self.sign=sign
+    def __init__(self, model_id, inputs, sign):
+        self.model_id = model_id
+        self.inputs = inputs
+        self.sign = sign
 
 
 class DeleteModel:
-    model_id:str
+    model_id: str
 
-    def __init__(self,model_id):
-        self.model_id=model_id
+    def __init__(self, model_id):
+        self.model_id = model_id
 
 
 class SendModelPayload:
-    hash:List[int]
+    hash: List[int]
     inputfact: List[int]
-    model_id:str
+    model_id: str
 
     def __init__(self, **entries):
         self.__dict__.update(entries)
@@ -152,7 +162,7 @@ class RunModelPayload:
     outputs: List[Tensor]
     datum_output: List[int]
     input_hash: List[int]
-    model_id:str
+    model_id: str
 
     def __init__(self, **entries):
         self.__dict__.update(entries)
@@ -162,13 +172,16 @@ class RunModelReply:
     payload: RunModelPayload
     signature: List[int]
 
+
 class SignedResponse:
     payload: Optional[bytes] = None
     signature: Optional[bytes] = None
-    #attestation: Optional[GetSgxQuoteWithCollateralReply] = None
+    # attestation: Optional[GetSgxQuoteWithCollateralReply] = None
+
 
 class UploadResponse(SignedResponse):
     model_id: str
+
 
 class RunModelResponse(SignedResponse):
     output: List[Tensor]
@@ -184,7 +197,16 @@ class ClientInfo:
     user_agent: str
     user_agent_version: str
 
-    def __init__(self, uid, platform_name, platform_arch, platform_version, platform_release, user_agent, user_agent_version ):
+    def __init__(
+        self,
+        uid,
+        platform_name,
+        platform_arch,
+        platform_version,
+        platform_release,
+        user_agent,
+        user_agent_version,
+    ):
         self.uid = uid
         self.platform_name = platform_name
         self.platform_arch = platform_arch
@@ -192,7 +214,6 @@ class ClientInfo:
         self.platform_release = platform_release
         self.user_agent = user_agent
         self.user_agent_version = user_agent_version
-
 
 
 def _get_input_output_tensors(
@@ -210,7 +231,9 @@ def _get_input_output_tensors(
 
     if tensor_inputs is None or tensor_outputs is None:
         tensor_inputs = [shape, dtype]
-        tensor_outputs = [dtype_out]     #Dict may be required for correct cbor serialization
+        tensor_outputs = [
+            dtype_out
+        ]  # Dict may be required for correct cbor serialization
 
     if len(tensor_inputs) > 0 and type(tensor_inputs[0]) != list:
         tensor_inputs = [tensor_inputs]
@@ -220,7 +243,9 @@ def _get_input_output_tensors(
 
     inputs = []
     for tensor_input in tensor_inputs:
-        inputs.append(TensorInfo(fact=tensor_input[0], datum_type=tensor_input[1]).__dict__)     #Required for correct cbor serialization
+        inputs.append(
+            TensorInfo(fact=tensor_input[0], datum_type=tensor_input[1]).__dict__
+        )  # Required for correct cbor serialization
 
     return (inputs, tensor_outputs)
 
@@ -331,13 +356,16 @@ def translate_dtype(dtype):
         f"DatumType instance {type(dtype).__module__}.{type(dtype).__name__} not supported"
     )
 
+
 def is_torch_tensor(tensor):
     return type(tensor).__module__ == "torch" and type(tensor).__name__ == "Tensor"
+
 
 def is_numpy_array(tensor):
     return type(tensor).__module__ == "numpy" and type(tensor).__name__ == "ndarray"
 
-def translate_tensor(tensor, or_dtype, or_shape, name = None):
+
+def translate_tensor(tensor, or_dtype, or_shape, name=None):
     if is_torch_tensor(tensor):
         info = TensorInfo(tensor.shape, translate_dtype(tensor.dtype), name)
         iterable = tensor.flatten().tolist()
@@ -363,6 +391,7 @@ def translate_tensor(tensor, or_dtype, or_shape, name = None):
 
     # todo validate tensor content, dtype and shape
     return Tensor(info.__dict__, list(cbor2_dumps(iterable)))
+
 
 def translate_tensors(tensors, dtypes, shapes):
     """
@@ -431,12 +460,17 @@ def translate_tensors(tensors, dtypes, shapes):
         for name, tensor in tensors.items():
             or_dtype = dtypes[name] if dtypes is not None else None
             or_shape = shapes[name] if shapes is not None else None
-            serialized_tensors.append(translate_tensor(tensor, or_dtype, or_shape, name).__dict__)
+            serialized_tensors.append(
+                translate_tensor(tensor, or_dtype, or_shape, name).__dict__
+            )
     else:
-        #if arg is not a list of (list/numpy.array/torch.tensor), wrap it into a list
+        # if arg is not a list of (list/numpy.array/torch.tensor), wrap it into a list
         if not isinstance(tensors, list) or (
-            len(tensors) > 0 and not (
-                isinstance(tensors[0], list) or is_torch_tensor(tensors[0]) or is_numpy_array(tensors[0])
+            len(tensors) > 0
+            and not (
+                isinstance(tensors[0], list)
+                or is_torch_tensor(tensors[0])
+                or is_numpy_array(tensors[0])
             )
         ):
             tensors = [tensors]
@@ -448,20 +482,23 @@ def translate_tensors(tensors, dtypes, shapes):
         for i, tensor in enumerate(tensors):
             or_dtype = dtypes[i] if dtypes is not None and len(dtypes) > i else None
             or_shape = shapes[i] if shapes is not None and len(shapes) > i else None
-            serialized_tensors.append(translate_tensor(tensor, or_dtype, or_shape).__dict__)
+            serialized_tensors.append(
+                translate_tensor(tensor, or_dtype, or_shape).__dict__
+            )
 
     return serialized_tensors
 
+
 class BlindAiConnection(contextlib.AbstractContextManager):
     conn: requests.Session
-    #policy: Optional[Policy] = None
-    #_stub: Optional[ExchangeStub] = None
+    # policy: Optional[Policy] = None
+    # _stub: Optional[ExchangeStub] = None
     enclave_signing_key: Optional[bytes] = None
     simulation_mode: bool = False
     _disable_untrusted_server_cert_check: bool = False
-    #attestation: Optional[GetSgxQuoteWithCollateralReply] = None
+    # attestation: Optional[GetSgxQuoteWithCollateralReply] = None
     server_version: Optional[str] = None
-    #client_info: ClientInfo
+    # client_info: ClientInfo
     tensor_inputs: Optional[List[List[Any]]]
     tensor_outputs: Optional[List[ModelDatumType]]
     closed: bool = False
@@ -470,7 +507,7 @@ class BlindAiConnection(contextlib.AbstractContextManager):
         self,
         addr: str,
         server_name: str = "blindai-srv",
-        #policy: Optional[str] = None,
+        # policy: Optional[str] = None,
         certificate: Optional[str] = None,
         simulation: bool = False,
         untrusted_port: int = 9923,
@@ -480,12 +517,12 @@ class BlindAiConnection(contextlib.AbstractContextManager):
         """
         certificate: path to untrusted certificate in PEM format
         """
-        #if debug_mode:  # pragma: no cover
+        # if debug_mode:  # pragma: no cover
         #    os.environ["GRPC_TRACE"] = "transport_security,tsi"
         #    os.environ["GRPC_VERBOSITY"] = "DEBUG"
 
         uname = platform.uname()
-        
+
         self.client_info = ClientInfo(
             uid=sha256((socket.gethostname() + "-" + getpass.getuser()).encode("utf-8"))
             .digest()
@@ -497,12 +534,11 @@ class BlindAiConnection(contextlib.AbstractContextManager):
             user_agent="blindai_python",
             user_agent_version=app_version,
         )
-        
 
         self.connect_server(
             addr,
             server_name,
-            #policy,
+            # policy,
             certificate,
             simulation,
             untrusted_port,
@@ -513,7 +549,7 @@ class BlindAiConnection(contextlib.AbstractContextManager):
         self,
         addr: str,
         server_name,
-        #policy,
+        # policy,
         certificate,
         simulation,
         untrusted_port,
@@ -522,28 +558,28 @@ class BlindAiConnection(contextlib.AbstractContextManager):
         self.simulation_mode = simulation
         self._disable_untrusted_server_cert_check = simulation
 
-        #addr = strip_https(addr)
+        # addr = strip_https(addr)
 
         self._untrusted_url = "https://" + addr + ":" + str(untrusted_port)
-        self._attested_url =  "https://" +  addr + ":" + str(attested_port)
+        self._attested_url = "https://" + addr + ":" + str(attested_port)
 
-        #if not self.simulation_mode:
+        # if not self.simulation_mode:
         #    self.policy = Policy.from_file(policy)
 
         # This adapter makes it possible to connect
-        # to the server via a different hostname 
+        # to the server via a different hostname
         # that the one included in the certificate i.e. blindai-srv
-        # For instance we can use it to connect to the server via the 
-        # domain / IP provided to connect(). See below 
+        # For instance we can use it to connect to the server via the
+        # domain / IP provided to connect(). See below
 
         # TODO: Document that in production one should not use that approach
         # but instead include the real domain name in the certificate
         class CustomHostNameCheckingAdapter(HTTPAdapter):
             def cert_verify(self, conn, url, verify, cert):
                 conn.assert_hostname = "blindai-srv"
-                return super(CustomHostNameCheckingAdapter,
-                            self).cert_verify(conn, url, verify, cert)
-
+                return super(CustomHostNameCheckingAdapter, self).cert_verify(
+                    conn, url, verify, cert
+                )
 
         s = requests.Session()
         if self._disable_untrusted_server_cert_check:
@@ -556,24 +592,25 @@ class BlindAiConnection(contextlib.AbstractContextManager):
             # Certificate pinning is a double edge sword
             # It can prevent some MITM but it also make it more difficult
             # to rotate the certificate...
-            # Anyway in our case as we'll do attestation verification 
+            # Anyway in our case as we'll do attestation verification
             # it would make sense to use a simpler cert validation
-            # maybe simply the default CA with domain validation 
+            # maybe simply the default CA with domain validation
             # like the browser do.
             # Can't be more boring (in a good way).
             s.verify = certificate
-        s.mount(
-            self._untrusted_url,
-            CustomHostNameCheckingAdapter()
-        )
+        s.mount(self._untrusted_url, CustomHostNameCheckingAdapter())
 
         retrieved_cert = s.get(self._untrusted_url).text
         trusted_server_cert = ssl.get_server_certificate((addr, attested_port))
 
         # both certificates should match (up to the PEM encoding which might slightly differ)
-        assert cryptography.x509.load_pem_x509_certificate(bytes(retrieved_cert, encoding="ascii")) == cryptography.x509.load_pem_x509_certificate(bytes(trusted_server_cert, encoding="ascii"))
+        assert cryptography.x509.load_pem_x509_certificate(
+            bytes(retrieved_cert, encoding="ascii")
+        ) == cryptography.x509.load_pem_x509_certificate(
+            bytes(trusted_server_cert, encoding="ascii")
+        )
 
-        # requests (http library) takes a path to a file containing the CA 
+        # requests (http library) takes a path to a file containing the CA
         # there is no easy way to give the CA as a string/bytes directly
         # therefore a temporary file with the certificate content
         # has to be created.
@@ -586,10 +623,7 @@ class BlindAiConnection(contextlib.AbstractContextManager):
 
         trusted_conn = requests.Session()
         trusted_conn.verify = trusted_server_cert_file.name
-        trusted_conn.mount(
-            self._attested_url,
-            CustomHostNameCheckingAdapter()
-        )
+        trusted_conn.mount(self._attested_url, CustomHostNameCheckingAdapter())
 
         # finally try to connect to the enclave
         trusted_conn.get(self._attested_url)
@@ -597,102 +631,111 @@ class BlindAiConnection(contextlib.AbstractContextManager):
         self.conn = trusted_conn
 
     def upload_model(
-            self,
-            model: str,
-            tensor_inputs: Optional[List[Tuple[List[int], ModelDatumType]]] = None,
-            tensor_outputs: Optional[List[ModelDatumType]] = None,
-            shape: Tuple = None,
-            dtype: ModelDatumType = None,
-            dtype_out: ModelDatumType = None,
-            sign: bool = False,
-            model_name: Optional[str] = None,
-            optimize: bool = True ) -> UploadResponse:
-        
+        self,
+        model: str,
+        tensor_inputs: Optional[List[Tuple[List[int], ModelDatumType]]] = None,
+        tensor_outputs: Optional[List[ModelDatumType]] = None,
+        shape: Tuple = None,
+        dtype: ModelDatumType = None,
+        dtype_out: ModelDatumType = None,
+        sign: bool = False,
+        model_name: Optional[str] = None,
+        optimize: bool = True,
+    ) -> UploadResponse:
+
         if model_name is None:
             model_name = os.path.basename(model)
-        
-        with open(model,"rb") as f:
+
+        with open(model, "rb") as f:
             model = f.read()
 
-        model=list(model)
+        model = list(model)
         length = len(model)
 
         (inputs, outputs) = _get_input_output_tensors(
-                tensor_inputs, tensor_outputs, shape, dtype, dtype_out
-            )
+            tensor_inputs, tensor_outputs, shape, dtype, dtype_out
+        )
 
-        data = UploadModel(model = model, input = inputs, output = outputs, length = length, sign = False, model_name = model_name, optimize=optimize)
+        data = UploadModel(
+            model=model,
+            input=inputs,
+            output=outputs,
+            length=length,
+            sign=False,
+            model_name=model_name,
+            optimize=optimize,
+        )
         data = cbor2_dumps(data.__dict__)
-        r = self.conn.post(f"{self._attested_url}/upload", data = data)
+        r = self.conn.post(f"{self._attested_url}/upload", data=data)
         r.raise_for_status()
         send_model_reply = cbor2_loads(r.content)
-        payload = cbor2_loads(bytes(send_model_reply['payload']))
+        payload = cbor2_loads(bytes(send_model_reply["payload"]))
         payload = SendModelPayload(**payload)
         ret = UploadResponse()
         ret.model_id = payload.model_id
         if sign:
             ret.payload = payload
             ret.signature = send_model_reply.signature
-            #ret.attestation = 
+            # ret.attestation =
 
         return ret
 
     def run_model(
         self,
-            model_id: str,
-            input_tensors: Optional[Union[List[List], Dict]] = None,
-            dtypes: Optional[List[ModelDatumType]] = None,
-            shapes: Optional[Union[List[List[int]], List[int]]] = None,
-            sign: bool = False,
-        ) -> RunModelResponse:
+        model_id: str,
+        input_tensors: Optional[Union[List[List], Dict]] = None,
+        dtypes: Optional[List[ModelDatumType]] = None,
+        shapes: Optional[Union[List[List[int]], List[int]]] = None,
+        sign: bool = False,
+    ) -> RunModelResponse:
 
-        #Run Model Request and Response
+        # Run Model Request and Response
         tensors = translate_tensors(input_tensors, dtypes, shapes)
-        run_data = RunModel(model_id=model_id,inputs=tensors,sign=False)
+        run_data = RunModel(model_id=model_id, inputs=tensors, sign=False)
         run_data = cbor2_dumps(run_data.__dict__)
-        r = self.conn.post(f"{self._attested_url}/run",data=run_data)
+        r = self.conn.post(f"{self._attested_url}/run", data=run_data)
         r.raise_for_status()
         run_model_reply = cbor2_loads(r.content)
-        payload = cbor2_loads(bytes(run_model_reply['payload']))
+        payload = cbor2_loads(bytes(run_model_reply["payload"]))
         payload = RunModelPayload(**payload)
 
         ret = RunModelResponse()
-        ret.output = [Tensor(TensorInfo(**output["info"]), output["bytes_data"]) for output in payload.outputs]
+        ret.output = [
+            Tensor(TensorInfo(**output["info"]), output["bytes_data"])
+            for output in payload.outputs
+        ]
 
         if sign:
             ret.payload = payload
             ret.signature = run_model_reply.signature
-            #ret.attestation = self.attestation
+            # ret.attestation = self.attestation
 
         return ret
 
-
-    def delete_model(self,model_id:str):
+    def delete_model(self, model_id: str):
         delete_data = DeleteModel(model_id=model_id)
         delete_data = cbor2_dumps(delete_data.__dict__)
-        r = self.conn.post(f"{self._attested_url}/delete",delete_data)
+        r = self.conn.post(f"{self._attested_url}/delete", delete_data)
         r.raise_for_status()
-
 
     def close(self):
         """Close the connection between the client and the inference server. This method has no effect if the file is already closed."""
         if not self.closed:
             self.closed = True
-            #self.policy = None
+            # self.policy = None
             self.server_version = None
-
 
     def __enter__(self):
         """Return the BlindAiConnection upon entering the runtime context."""
         return self
 
-    
     def __exit__(self, *args):
         """Close the connection to BlindAI server and raise any exception triggered within the runtime context."""
         self.close()
 
 
 from functools import wraps
+
 
 @wraps(BlindAiConnection.__init__, assigned=("__doc__", "__annotations__"))
 def connect(*args, **kwargs):
