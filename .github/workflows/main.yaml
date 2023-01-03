@@ -26,6 +26,8 @@ jobs:
     needs: test
     if: startsWith(github.ref, 'refs/tags/v')
     steps:
+      - uses: actions/checkout@v3
+
       - name: Extract version tag
         id: version
         run: echo value=$(echo ${{ github.ref }} | cut -f 3 -d / | tr -d 'v' ) >> $GITHUB_OUTPUT
@@ -42,3 +44,7 @@ jobs:
           name: ${{steps.version.outputs.value}}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create pypi release
+        run: |
+          docker run -e API_TOKEN_PYPI=${{ secrets.API_TOKEN_PYPI }} blindaiv2-test:latest bash scripts/publish_to_pypi.sh

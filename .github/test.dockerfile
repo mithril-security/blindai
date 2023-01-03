@@ -46,6 +46,8 @@ RUN cd client \
     && poetry run black --check . \
     && poetry run pytest
 
+COPY .github/scripts scripts
+
 # end-to-end tests
 CMD cargo run --release \
     & sleep 15 \
