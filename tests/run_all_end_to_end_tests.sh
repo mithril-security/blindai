@@ -1,3 +1,7 @@
+# Run generate_all_onnx_and_npz.sh before running this script
+# Use it to run all the correctness tests
+# You must have the server up
+
 cd ../client
 for d in ../tests/*/ ; do
 	onnx_files=($d*.onnx)

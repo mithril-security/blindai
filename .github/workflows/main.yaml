@@ -14,7 +14,7 @@ jobs:
         run: docker build -f .devcontainer/Dockerfile --tag blindaiv2-dev:latest --target development .
       
       - name: Build test image
-        run: docker build -f tests/Dockerfile --tag blindaiv2-test:latest .
+        run: docker build -f .github/test.dockerfile --tag blindaiv2-test:latest .
 
       - name: Run end-to-end tests
         run: |

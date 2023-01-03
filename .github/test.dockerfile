@@ -24,8 +24,7 @@ RUN poetry install --directory ./client --no-root
 
 # generate tests onnx models and inputs
 COPY tests tests
-RUN cd tests \
-    && bash setup.sh
+RUN cd tests && bash generate_all_onnx_and_npz.sh
 
 # compile Rust sources
 COPY src src
@@ -51,4 +50,4 @@ RUN cd client \
 CMD cargo run --release \
     & sleep 15 \
     && cd tests \
-    && bash assert_all.sh
+    && bash run_all_end_to_end_tests.sh
