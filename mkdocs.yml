@@ -1,0 +1,81 @@
+site_name: BlindAI
+
+# site_url: https://www.mithrilsecurity.io/
+
+repo_url: https://github.com/mithril-security/blindai
+
+theme:
+  name: material
+  custom_dir: docs/material_theme_customization
+  features:
+    - navigation.instant
+    - search.highlight
+    - content.tabs.link
+  logo: assets/logo.png
+  favicon: assets/logo.png
+  palette:
+    - scheme: slate
+      toggle:
+        icon: material/weather-sunny
+    - scheme: default
+      toggle:
+        icon: material/weather-night
+
+# extra:
+#   homepage: https://mithrilsecurity.io
+
+extra_css:
+  - stylesheets/extra.css
+
+extra_javascript:
+  - 'https://code.jquery.com/jquery-3.3.1.min.js'
+
+markdown_extensions:
+  - abbr
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - pymdownx.details
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.betterem:
+      smart_enable: all
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+
+plugins:
+- search
+- mkdocs-jupyter
+
+nav:
+- Getting Started: 'index.md'
+- 'Main concepts':
+  - 'docs/main-concepts/overview.md'
+  - 'Trusting BlindAI':
+    - 'docs/main-concepts/privacy.md'
+    - 'docs/main-concepts/attestation.md'
+    - 'docs/main-concepts/tls.md'
+  - 'docs/main-concepts/sealing.md'
+- 'docs/mithril-cloud.md'
+- 'docs/deploy-on-premise.md'
+- 'docs/cloud-deployment.md'
+- 'Advanced':
+  - 'Build from sources':
+    - 'docs/advanced/build-from-sources/client.md'
+    - 'docs/advanced/build-from-sources/server.md'
+  - 'docs/advanced/setting-up-your-dev-environment.md'
+  - 'docs/advanced/blindai-project-structure.md'
+- 'docs/telemetry.md'
+- 'Client API reference': 'client/client.html'
+# - 'Integrating AI models from other frameworks':
+#   - 'Example of BlindAI deployment with ResNet18': 'BlindAI_ResNet18.ipynb'
+#   - 'Example of BlindAI deployment with CovidNet': 'BlindAI-COVID-Net.ipynb'
+#   - 'Example of BlindAI deployment with DistilBERT': 'BlindAI-DistilBERT.ipynb'
+#   - 'Example of BlindAI deployment with Facenet': 'BlindAI-Facenet.ipynb'
+#   - 'Example of BlindAI deployment with Wav2vec2': 'BlindAI-Wav2vec2.ipynb'
+#   - 'Example of BlindAI deployement with Whisper': 'BlindAI_Whisper.ipynb'
