@@ -77,6 +77,7 @@ class Tensor:
     >>> tensor.as_torch()
     tensor([[ 0.0177, -0.1701]])
     """
+
     info: TensorInfo
     bytes_data: List[int]
 
