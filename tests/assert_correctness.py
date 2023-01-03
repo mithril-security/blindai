@@ -1,4 +1,4 @@
-from client.client import *
+from blindaiv2_client_alpha.client import *
 import onnxruntime as rt
 import numpy as np
 import sys
