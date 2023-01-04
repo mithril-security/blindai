@@ -5,7 +5,7 @@
 	path = tract
 	url = https://github.com/mithril-security/tract.git
 	branch = target-fortanix
-[submodule "tar-rs-sgx"]
+[submodule "tar-rs-fortanix"]
 	path = tar-rs-sgx
-	url = https://github.com/mithril-security/tar-rs-sgx.git
+	url = https://github.com/mithril-security/tar-rs-fortanix.git
 	branch = target-fortanix
