@@ -21,13 +21,16 @@ import contextlib
 import ssl, socket
 import platform
 from .utils import *
-from .version import __version__ as app_version
 from hashlib import sha256
 import getpass
 import logging
 import tempfile
 import requests
 from requests.adapters import HTTPAdapter
+from importlib_metadata import version
+
+app_version = version("blindaiv2-client-alpha")
+
 
 CONNECTION_TIMEOUT = 10
 
