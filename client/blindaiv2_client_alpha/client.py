@@ -123,19 +123,13 @@ class Tensor:
 
 class UploadModel:
     model: List[int]
-    input: List[TensorInfo]
-    output: List[ModelDatumType]
     length: int
     sign: bool
     model_name: str
     optimize: bool
 
-    def __init__(
-        self, model, input, output, length, sign=False, model_name="", optimize=True
-    ):
+    def __init__(self, model, length, sign=False, model_name="", optimize=True):
         self.model = model
-        self.input = input
-        self.output = output
         self.length = length
         self.sign = sign
         self.model_name = model_name
@@ -230,44 +224,6 @@ class ClientInfo:
         self.platform_release = platform_release
         self.user_agent = user_agent
         self.user_agent_version = user_agent_version
-
-
-def _get_input_output_tensors(
-    tensor_inputs: Optional[List[Tuple[List[int], ModelDatumType]]] = None,
-    tensor_outputs: Optional[ModelDatumType] = None,
-    shape: Tuple = None,
-    dtype: ModelDatumType = ModelDatumType.F32,
-    dtype_out: ModelDatumType = ModelDatumType.F32,
-) -> Tuple[List[List[Any]], List[ModelDatumType]]:
-    """
-    Returns info on input and output tensors
-
-    >>> _get_input_output_tensors()
-    ([{'fact': None, 'datum_type': <ModelDatumType.F32: 0>, 'node_name': None}], [<ModelDatumType.F32: 0>])
-    >>> _get_input_output_tensors([([1, 8], ModelDatumType.I32)], [ModelDatumType.I32, ModelDatumType.I64])
-    ([{'fact': [1, 8], 'datum_type': <ModelDatumType.I32: 2>, 'node_name': None}], [<ModelDatumType.I32: 2>, <ModelDatumType.I64: 3>])
-    >>> _get_input_output_tensors(shape=[1, 8], dtype=ModelDatumType.I32, dtype_out=ModelDatumType.I32)
-    ([{'fact': [1, 8], 'datum_type': <ModelDatumType.I32: 2>, 'node_name': None}], [<ModelDatumType.I32: 2>])
-    """
-    if tensor_inputs is None and (dtype is None or shape is None):
-        tensor_inputs = []
-
-    if tensor_outputs is None and dtype_out is None:
-        tensor_outputs = []
-
-    if tensor_inputs is None or tensor_outputs is None:
-        tensor_inputs = [(shape, dtype)]
-        tensor_outputs = [
-            dtype_out
-        ]  # Dict may be required for correct cbor serialization
-
-    inputs = []
-    for tensor_input in tensor_inputs:
-        inputs.append(
-            TensorInfo(fact=tensor_input[0], datum_type=tensor_input[1]).__dict__
-        )  # Required for correct cbor serialization
-
-    return (inputs, tensor_outputs)
 
 
 def dtype_to_numpy(dtype: ModelDatumType) -> str:
@@ -653,11 +609,6 @@ class BlindAiConnection(contextlib.AbstractContextManager):
     def upload_model(
         self,
         model: str,
-        tensor_inputs: Optional[List[Tuple[List[int], ModelDatumType]]] = None,
-        tensor_outputs: Optional[List[ModelDatumType]] = None,
-        shape: Tuple = None,
-        dtype: ModelDatumType = None,
-        dtype_out: ModelDatumType = None,
         sign: bool = False,
         model_name: Optional[str] = None,
         optimize: bool = True,
@@ -672,14 +623,8 @@ class BlindAiConnection(contextlib.AbstractContextManager):
         model = list(model)
         length = len(model)
 
-        (inputs, outputs) = _get_input_output_tensors(
-            tensor_inputs, tensor_outputs, shape, dtype, dtype_out
-        )
-
         data = UploadModel(
             model=model,
-            input=inputs,
-            output=outputs,
             length=length,
             sign=False,
             model_name=model_name,
