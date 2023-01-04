@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "blindaiv2-client-alpha"
+name = "blindai-preview"
 version = "0.0.0"
 description = ""
 authors = ["Corentin Lauverjat <corentin.lauverjat@mithrilsecurity.io>"]
