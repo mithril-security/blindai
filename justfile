@@ -67,3 +67,20 @@ doc:
   && poetry run pip install -r ../docs/requirements.txt \
   && poetry run bash -c 'cd .. && . docs/generate_api_reference.sh' \
   && poetry run mkdocs serve -f ../mkdocs.yml
+
+# Run all tests and display combined coverage (don't forget to generate the onnx and npz files before)
+test:
+  #!/usr/bin/env bash
+  set -e 
+  cd client
+  poetry run coverage run -m pytest
+  cargo run --release &
+  sleep 15
+  for d in ../tests/*/ ; do
+    onnx_files=($d*.onnx)
+    npz_files=($d*.npz)
+    poetry run coverage run --append ../tests/assert_correctness.py "${onnx_files[0]}" "${npz_files[0]}"
+  done
+  killall ftxsgx-runner
+  coverage html --include=client/client.py,client/utils.py -d coverage_html
+  poetry run python -m http.server 8000 --directory coverage_html/

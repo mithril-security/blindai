@@ -65,6 +65,19 @@ class TensorInfo:
 
 
 class Tensor:
+    """
+    Tensor class to convert serialized tensors into convenients objects
+
+    >>> serialized = {'info': {'fact': [1, 2], 'datum_type': 'F32', 'node_name': 'output'}, 'bytes_data': [130, 250, 60, 145, 103, 64, 250, 190, 46, 46, 234]}
+    >>> tensor = Tensor(TensorInfo(**serialized["info"]), serialized["bytes_data"])
+    >>> tensor.as_flat()
+    [0.017749428749084473, -0.1701008379459381]
+    >>> tensor.as_numpy()
+    array([[ 0.01774943, -0.17010084]], dtype=float32)
+    >>> tensor.as_torch()
+    tensor([[ 0.0177, -0.1701]])
+    """
+
     info: TensorInfo
     bytes_data: List[int]
 
@@ -220,12 +233,22 @@ class ClientInfo:
 
 
 def _get_input_output_tensors(
-    tensor_inputs: Optional[List[List[Any]]] = None,
+    tensor_inputs: Optional[List[Tuple[List[int], ModelDatumType]]] = None,
     tensor_outputs: Optional[ModelDatumType] = None,
     shape: Tuple = None,
     dtype: ModelDatumType = ModelDatumType.F32,
     dtype_out: ModelDatumType = ModelDatumType.F32,
 ) -> Tuple[List[List[Any]], List[ModelDatumType]]:
+    """
+    Returns info on input and output tensors
+
+    >>> _get_input_output_tensors()
+    ([{'fact': None, 'datum_type': <ModelDatumType.F32: 0>, 'node_name': None}], [<ModelDatumType.F32: 0>])
+    >>> _get_input_output_tensors([([1, 8], ModelDatumType.I32)], [ModelDatumType.I32, ModelDatumType.I64])
+    ([{'fact': [1, 8], 'datum_type': <ModelDatumType.I32: 2>, 'node_name': None}], [<ModelDatumType.I32: 2>, <ModelDatumType.I64: 3>])
+    >>> _get_input_output_tensors(shape=[1, 8], dtype=ModelDatumType.I32, dtype_out=ModelDatumType.I32)
+    ([{'fact': [1, 8], 'datum_type': <ModelDatumType.I32: 2>, 'node_name': None}], [<ModelDatumType.I32: 2>])
+    """
     if tensor_inputs is None and (dtype is None or shape is None):
         tensor_inputs = []
 
@@ -233,16 +256,10 @@ def _get_input_output_tensors(
         tensor_outputs = []
 
     if tensor_inputs is None or tensor_outputs is None:
-        tensor_inputs = [shape, dtype]
+        tensor_inputs = [(shape, dtype)]
         tensor_outputs = [
             dtype_out
         ]  # Dict may be required for correct cbor serialization
-
-    if len(tensor_inputs) > 0 and type(tensor_inputs[0]) != list:
-        tensor_inputs = [tensor_inputs]
-
-    if len(tensor_outputs) > 0 and type(tensor_outputs) != list:
-        tensor_outputs = [tensor_outputs]
 
     inputs = []
     for tensor_input in tensor_inputs:
@@ -707,7 +724,6 @@ class BlindAiConnection(contextlib.AbstractContextManager):
             Tensor(TensorInfo(**output["info"]), output["bytes_data"])
             for output in payload.outputs
         ]
-
         if sign:
             ret.payload = payload
             ret.signature = run_model_reply.signature
