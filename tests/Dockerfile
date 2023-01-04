@@ -36,7 +36,7 @@ RUN touch src/main.rs \
 
 # fmt and clippy
 RUN cargo fmt --check \
-    && cargo clippy -p tinyhttp-fortanix -- --no-deps -Dwarnings
+    && cargo clippy -p blindai_server -- --no-deps -Dwarnings
 
 # install python client
 COPY client client
