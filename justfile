@@ -82,5 +82,5 @@ test:
     poetry run coverage run --append ../tests/assert_correctness.py "${onnx_files[0]}" "${npz_files[0]}"
   done
   killall ftxsgx-runner
-  coverage html -d coverage_html
+  coverage html --include=client/client.py,client/utils.py -d coverage_html
   poetry run python -m http.server 8000 --directory coverage_html/
