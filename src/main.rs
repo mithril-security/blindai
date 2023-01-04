@@ -62,17 +62,17 @@ fn main() -> Result<()> {
             move |request| {
                 rouille::router!(request,
                     (POST) (/upload) => {
-                        let reply = exchanger_temp.send_model(&request);
+                        let reply = exchanger_temp.send_model(request);
                         exchanger_temp.respond(request, reply)
                     },
 
                     (POST) (/run) => {
-                        let reply = exchanger_temp.run_model(&request);
+                        let reply = exchanger_temp.run_model(request);
                         exchanger_temp.respond(request, reply)
                     },
 
                     (POST) (/delete) => {
-                        let reply = exchanger_temp.delete_model(&request);
+                        let reply = exchanger_temp.delete_model(request);
                         exchanger_temp.respond(request, reply)
                     },
 
@@ -86,6 +86,7 @@ fn main() -> Result<()> {
         let (_trusted_handle, _trusted_sender) = trusted_server.stoppable();
         _trusted_handle.join().unwrap();
     });
+    println!("Now listening on port 9923 and 9924");
     _untrusted_handle.join().unwrap();
 
     Ok(())
