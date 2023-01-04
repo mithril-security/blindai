@@ -20,6 +20,7 @@ use log::error;
 use ring::digest;
 use ring_compat::signature::Signer;
 use serde_derive::{Deserialize, Serialize};
+use std::io::Read;
 use std::mem::size_of;
 use std::str::FromStr;
 use std::sync::Arc;
@@ -111,10 +112,13 @@ impl Exchanger {
         }
     }
 
-    pub fn send_model(&self, request: &mut tiny_http::Request) -> Result<SendModelReply, Error> {
+    pub fn send_model(&self, request: &rouille::Request) -> Result<SendModelReply, Error> {
         let upload_model_body: UploadModel = {
             let mut data: Vec<u8> = vec![];
-            request.as_reader().read_to_end(&mut data)?;
+            request
+                .data()
+                .expect("Could not get input")
+                .read_to_end(&mut data)?;
             serde_cbor::from_slice(&data)?
         };
 
@@ -214,13 +218,13 @@ impl Exchanger {
         Ok(reply)
     }
 
-    pub fn run_model(&self, request: &mut tiny_http::Request) -> Result<RunModelReply, Error> {
+    pub fn run_model(&self, request: &rouille::Request) -> Result<RunModelReply, Error> {
         let input: Vec<u8> = Vec::new();
         let sign = false;
         let max_input_size = self.max_input_size;
         let model_id = "".to_string();
 
-        let data_stream = request.as_reader();
+        let mut data_stream = request.data().expect("Could not get the input");
         let mut data: Vec<u8> = vec![];
         data_stream.read_to_end(&mut data)?;
 
@@ -297,8 +301,8 @@ impl Exchanger {
         Ok(reply)
     }
 
-    pub fn delete_model(&self, request: &mut tiny_http::Request) -> Result<()> {
-        let data_stream = request.as_reader();
+    pub fn delete_model(&self, request: &rouille::Request) -> Result<()> {
+        let mut data_stream = request.data().expect("Could not get the input");
         let mut data: Vec<u8> = vec![];
         data_stream.read_to_end(&mut data)?;
 
@@ -318,21 +322,22 @@ impl Exchanger {
         Ok(())
     }
 
-    pub fn respond<Reply: serde::Serialize>(&self, rq: tiny_http::Request, reply: Result<Reply>) {
-        let (serialized_reply, code) = match reply {
-            Ok(reply) => (serde_cbor::to_vec(&reply).unwrap(), 200),
-            Err(e) => (serde_cbor::to_vec(&format!("{:?}", &e)).unwrap(), 400),
-        };
-        let header =
-            tiny_http::Header::from_bytes(&b"Content-Type"[..], &b"text/plain"[..]).unwrap();
-        let response = tiny_http::Response::new(
-            tiny_http::StatusCode::from(code),
-            vec![header],
-            serialized_reply.as_slice(),
-            None,
-            None,
-        );
-        rq.respond(response).unwrap();
+    pub fn respond<Reply: serde::Serialize>(
+        &self,
+        _rq: &rouille::Request,
+        reply: Result<Reply>,
+    ) -> rouille::Response {
+        match reply {
+            Ok(reply) => rouille::Response::from_data(
+                "application/octet-stream",
+                serde_cbor::to_vec(&reply).unwrap(),
+            ),
+            Err(e) => rouille::Response::from_data(
+                "application/octet-stream",
+                serde_cbor::to_vec(&format!("{:?}", &e)).unwrap(),
+            )
+            .with_status_code(400),
+        }
     }
 }
 
