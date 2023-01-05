@@ -63,8 +63,6 @@ pub struct RunModel {
 #[derive(Deserialize)]
 struct UploadModel {
     model: Vec<u8>,
-    input: Vec<TensorInfo>,
-    output: Vec<ModelDatumType>,
     length: u64,
     sign: bool,
     model_name: String,
@@ -74,7 +72,6 @@ struct UploadModel {
 #[derive(Default, Serialize)]
 struct SendModelPayload {
     hash: Vec<u8>,
-    input_fact: Vec<i32>,
     model_id: String,
 }
 
@@ -122,17 +119,6 @@ impl Exchanger {
             serde_cbor::from_slice(&data)?
         };
 
-        let convert_type = |t: i32| -> Result<_, Error> {
-            num_traits::FromPrimitive::from_i32(t)
-                .ok_or_else(|| Error::msg("Unknown datum type".to_string()))
-        };
-
-        let mut tensor_inputs: Vec<TensorInfo> = Vec::new();
-        let mut tensor_outputs: Vec<i32> = Vec::new();
-
-        let mut datum_outputs: Vec<ModelDatumType> = Vec::new();
-        let mut datum_inputs: Vec<ModelDatumType> = Vec::new();
-        let mut input_facts: Vec<Vec<usize>> = Vec::new();
         let max_model_size = self.max_model_size;
         let mut model_size = 0usize;
 
@@ -145,14 +131,6 @@ impl Exchanger {
             } else {
                 None
             };
-
-            for tensor_info in &upload_model_body.input {
-                tensor_inputs.push(tensor_info.clone());
-            }
-
-            for output in &upload_model_body.output {
-                tensor_outputs.push((*output) as i32);
-            }
         }
         if model_size > max_model_size {
             return Err(Error::msg("Model is too big".to_string()));
@@ -162,29 +140,9 @@ impl Exchanger {
             return Err(Error::msg("Received no data".to_string()));
         }
 
-        // Create datum_inputs, datum_outputs, and input_facts vector from tensor_inputs
-        // and tensor_outputs
-        for (_, tensor_input) in tensor_inputs.clone().iter().enumerate() {
-            let mut input_fact: Vec<usize> = vec![];
-
-            for x in &tensor_input.fact {
-                input_fact.push(*x);
-            }
-            let datum_input = convert_type(tensor_input.datum_type as i32)?; // TEMP-FIX, FIX THIS!//convert_type(tensor_input.datum_type.clone())?;
-            datum_outputs = tensor_outputs
-                .iter()
-                .map(|v| convert_type(*v).unwrap())
-                .collect();
-            datum_inputs.push(datum_input);
-            input_facts.push(input_fact.clone());
-        }
-
         let (model_id, model_hash) = self.model_store.add_model(
             &upload_model_body.model,
-            input_facts.clone(),
             model_name,
-            datum_inputs.clone(),
-            datum_outputs,
             upload_model_body.optimize,
         )?;
 
@@ -193,11 +151,6 @@ impl Exchanger {
         let mut payload = SendModelPayload::default();
         if upload_model_body.sign {
             payload.hash = model_hash.as_ref().to_vec();
-            payload.input_fact = input_facts
-                .into_iter()
-                .flatten()
-                .map(|i| i as i32)
-                .collect();
         }
         payload.model_id = model_id.to_string();
 
