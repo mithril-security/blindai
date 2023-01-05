@@ -33,11 +33,12 @@ The structures that will be used on the remote attestation are `TARGETINFO` & `R
 ### Measurement 
 
 The measurement represents the enclave's signature. In the design of the quote (signature) it includes the following data [4] :
+
 - Measurement of the code and data in the enclave. 
-- A hash of the public key in the ISV certificate presented at enclave initialization time. 
+- A hash of the public key in the ISV (independent software vendor) certificate presented at enclave initialization time. 
 - The Product ID and the Security Version Number (SVN) of the enclave. 
 - Attributes of the enclave (defining if it is in debug moded for instance).
-- hash of the user data included in the reportdata of the `REPORT`. 
+- 64 bytes of user data included in the reportdata of the `REPORT`. 
 
 
 Quote's information : `MRENCLAVE`, `REPORT`, `MRSIGNER`
@@ -92,7 +93,7 @@ The verification collateral is the data needed by the client to complete the quo
 - *The TCBInfo structure*<br />
 - *The QEIdentity structure* <br />
 
-The first step to get the verification collateral is to extract the FMSPc and CA from the computed quote [5]. 
+The first step to get the verification collateral is to extract the FMSPc and CA from the computed quote. 
 
 To be able to get the verification Collateral, we use the `sgx_ql_get_quote_verification_collateral` function present in QV lib API. And the function requires the `fmspc` data and the CA which are extracted from the computed quote [6]. 
 
@@ -162,19 +163,17 @@ If the verification is valid, another TLS connection is established to run the m
 
 - [2] Vinnie Scarlata, Simon Johnson, James Beaney, Piotr Zmijewski
 Intel Corporation 2018 *"Supporting Third Party Attestation for Intel® SGX
-with Intel® Data Center Attestation Primitives"* : *https://www.intel.com/content/dam/develop/external/us/en/documents/intel-sgx-support-for-third-party-attestation-801017.pdf*
+with Intel® Data Center Attestation Primitives"* : [(*https://www.intel.com/content/dam/develop/external/us/en/documents/intel-sgx-support-for-third-party-attestation-801017.pdf*](https://www.intel.com/content/dam/develop/external/us/en/documents/intel-sgx-support-for-third-party-attestation-801017.pdf)
 
-- [3] SSLab, Georgia Institute of Technology, 2017 *"Communication between Architectural and Application Enclaves"* : *https://sgx101.gitbook.io/sgx101/sgx-bootstrap/enclave/interaction-between-pse-and-application-enclaves*
+- [3] SSLab, Georgia Institute of Technology, 2017 *"Communication between Architectural and Application Enclaves"* : [*https://sgx101.gitbook.io/sgx101/sgx-bootstrap/enclave/interaction-between-pse-and-application-enclaves*](https://sgx101.gitbook.io/sgx101/sgx-bootstrap/enclave/interaction-between-pse-and-application-enclaves)
 
-- [4] Intel, *Intel® Software Guard Extensions Developer Guide* : *https://download.01.org/intel-sgx/linux-1.7/docs/Intel_SGX_Developer_Guide.pdf*
+- [4] Intel, *Intel® Software Guard Extensions Developer Guide* : [*https://download.01.org/intel-sgx/linux-1.7/docs/Intel_SGX_Developer_Guide.pdf*](https://download.01.org/intel-sgx/linux-1.7/docs/Intel_SGX_Developer_Guide.pdf)
 
-// Pas le bon ici
-- [5] intel/SGXDataCenterAttestationPrimitives : *https://github.com/intel/SGXDataCenterAttestationPrimitives/blob/master/QuoteVerification/QvE/Enclave/qve.cpp#L478* 
 
-- [6] Intel, Linux 1.15, *Intel SGX ECDSA QuoteLibReference DCAP API* : *https://download.01.org/intel-sgx/sgx-dcap/1.15/linux/docs/Intel_SGX_ECDSA_QuoteLibReference_DCAP_API.pdf*
+- [6] Intel, Linux 1.15, *Intel SGX ECDSA QuoteLibReference DCAP API* :  [*https://download.01.org/intel-sgx/sgx-dcap/1.15/linux/docs/Intel_SGX_ECDSA_QuoteLibReference_DCAP_API.pdf*](https://download.01.org/intel-sgx/sgx-dcap/1.15/linux/docs/Intel_SGX_ECDSA_QuoteLibReference_DCAP_API.pdf)
 
-- [7] Intel, *Intel SGX PCK Certificate CRL Spec-1.4*: *https://api.trustedservices.intel.com/documents/Intel_SGX_PCK_Certificate_CRL_Spec-1.4.pdf*
+- [7] Intel, *Intel SGX PCK Certificate CRL Spec-1.4*: [*https://api.trustedservices.intel.com/documents/Intel_SGX_PCK_Certificate_CRL_Spec-1.4.pdf*](https://api.trustedservices.intel.com/documents/Intel_SGX_PCK_Certificate_CRL_Spec-1.4.pdf)
 
-- [8] intel/SGXDataCenterAttestationPrimitives : https://github.com/intel/SGXDataCenterAttestationPrimitives/tree/master/QuoteVerification/QVL
+- [8] intel/SGXDataCenterAttestationPrimitives : [*https://github.com/intel/SGXDataCenterAttestationPrimitives/tree/master/QuoteVerification/QVL*](https://github.com/intel/SGXDataCenterAttestationPrimitives/tree/master/QuoteVerification/QVL)
 
-- [9] intel SGX developer Reference linux 2.9.1: *https://download.01.org/intel-sgx/sgx-linux/2.9.1/docs/Intel_SGX_Developer_Reference_Linux_2.9.1_Open_Source.pdf*
+- [9] intel SGX developer Reference linux 2.9.1: [*https://download.01.org/intel-sgx/sgx-linux/2.9.1/docs/Intel_SGX_Developer_Reference_Linux_2.9.1_Open_Source.pdf*](https://download.01.org/intel-sgx/sgx-linux/2.9.1/docs/Intel_SGX_Developer_Reference_Linux_2.9.1_Open_Source.pdf)

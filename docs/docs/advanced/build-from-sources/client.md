@@ -41,24 +41,6 @@ git submodule init
 git submodule update
 ```
 
-### Create and activate a virtual environment
-
-
-
-```bash
-python3 -m venv env
-source env/bin/activate
-```
-
-
-
-```powershell
-python -m venv env
-.\env\Scripts\activate.exe
-```
-
-
-
 ### Check pip version
 
 
@@ -76,16 +58,37 @@ $ pip --version
 $ pip install -U pip
 ```
 
+### Using Poetry virtual environment 
+
+On the client, we deployed a Poetry virtual environment to make it easier to build and run blindAI Client. 
+
+You just have to install poetry by using pip and run it by following these steps :
+
+
+```bash
+$ pip install poetry 
+
+(client-py)$ poetry shell 
+
+(client-py)$ poetry install
+
+```
+
+
+
+
+
+
 ### Install development dependencies
 
 ```bash
-$ pip install -r requirements.txt
+(client-py)$ pip install -r requirements.txt
 ```
 
 ### Trigger the Build process
 
 ```bash
-pip install . --use-feature=in-tree-build
+(client-py)$ pip install . 
 ```
 
 !!! info
