@@ -24,7 +24,7 @@ use std::{
 };
 use uuid::Uuid;
 
-use crate::model::{InferenceModel, ModelDatumType, OnnxModel};
+use crate::model::{InferenceModel, OnnxModel};
 
 struct InnerModelStore {
     models_by_id: HashMap<Uuid, InferenceModel>,
@@ -49,10 +49,7 @@ impl ModelStore {
     pub fn add_model(
         &self,
         model_bytes: &[u8],
-        input_facts: Vec<Vec<usize>>,
         model_name: Option<String>,
-        datum_inputs: Vec<ModelDatumType>,
-        datum_outputs: Vec<ModelDatumType>,
         optimize: bool,
     ) -> Result<(Uuid, Digest)> {
         let model_id = Uuid::new_v4();
@@ -79,8 +76,6 @@ impl ModelStore {
                         model_id,
                         model_name,
                         model_hash,
-                        datum_inputs,
-                        datum_outputs,
                     )
                 }
                 Entry::Vacant(entry) => {
@@ -89,12 +84,9 @@ impl ModelStore {
                     // this so that the lock  isn't taken here
                     let model = InferenceModel::load_model(
                         model_bytes,
-                        input_facts,
                         model_id,
                         model_name,
                         model_hash,
-                        datum_inputs,
-                        datum_outputs,
                         optimize,
                     )?;
                     entry.insert((1, Arc::clone(&model.onnx)));

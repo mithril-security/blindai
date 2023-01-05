@@ -14,7 +14,37 @@ jobs:
         run: docker build -f .devcontainer/Dockerfile --tag blindaiv2-dev:latest --target development .
       
       - name: Build test image
-        run: docker build -f tests/Dockerfile --tag blindaiv2-test:latest .
+        run: docker build -f .github/test.dockerfile --tag blindaiv2-test:latest .
 
       - name: Run end-to-end tests
-        run: docker run --device /dev/sgx/enclave --device /dev/sgx/provision blindaiv2-test
+        run: |
+          docker rm --force blindaiv2-test
+          docker run --device /dev/sgx/enclave --device /dev/sgx/provision --name blindaiv2-test blindaiv2-test
+
+  release:
+    runs-on: [self-hosted, linux, x64]
+    needs: test
+    if: startsWith(github.ref, 'refs/tags/v')
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Extract version tag
+        id: version
+        run: echo value=$(echo ${{ github.ref }} | cut -f 3 -d / | tr -d 'v' ) >> $GITHUB_OUTPUT
+      
+      - name: Extract binary
+        run: |
+          docker cp 'blindaiv2-test:/blindaiv2/target/x86_64-fortanix-unknown-sgx/release/blindai_server.sgxs' .
+          tar czf blindai_server-x86_64-fortanix-unknown-sgx-${{steps.version.outputs.value}}.tgz blindai_server.sgxs
+
+      - name: Create github release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: blindai_server-x86_64-fortanix-unknown-sgx-${{steps.version.outputs.value}}.tgz
+          name: ${{steps.version.outputs.value}}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create pypi release
+        run: |
+          docker run -e API_TOKEN_PYPI=${{ secrets.API_TOKEN_PYPI }} blindaiv2-test:latest bash scripts/publish_to_pypi.sh

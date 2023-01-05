@@ -21,13 +21,16 @@ import contextlib
 import ssl, socket
 import platform
 from .utils import *
-from .version import __version__ as app_version
 from hashlib import sha256
 import getpass
 import logging
 import tempfile
 import requests
 from requests.adapters import HTTPAdapter
+from importlib_metadata import version
+
+app_version = version("blindaiv2-client-alpha")
+
 
 CONNECTION_TIMEOUT = 10
 
@@ -62,6 +65,19 @@ class TensorInfo:
 
 
 class Tensor:
+    """
+    Tensor class to convert serialized tensors into convenients objects
+
+    >>> serialized = {'info': {'fact': [1, 2], 'datum_type': 'F32', 'node_name': 'output'}, 'bytes_data': [130, 250, 60, 145, 103, 64, 250, 190, 46, 46, 234]}
+    >>> tensor = Tensor(TensorInfo(**serialized["info"]), serialized["bytes_data"])
+    >>> tensor.as_flat()
+    [0.017749428749084473, -0.1701008379459381]
+    >>> tensor.as_numpy()
+    array([[ 0.01774943, -0.17010084]], dtype=float32)
+    >>> tensor.as_torch()
+    tensor([[ 0.0177, -0.1701]])
+    """
+
     info: TensorInfo
     bytes_data: List[int]
 
@@ -107,19 +123,13 @@ class Tensor:
 
 class UploadModel:
     model: List[int]
-    input: List[TensorInfo]
-    output: List[ModelDatumType]
     length: int
     sign: bool
     model_name: str
     optimize: bool
 
-    def __init__(
-        self, model, input, output, length, sign=False, model_name="", optimize=True
-    ):
+    def __init__(self, model, length, sign=False, model_name="", optimize=True):
         self.model = model
-        self.input = input
-        self.output = output
         self.length = length
         self.sign = sign
         self.model_name = model_name
@@ -214,40 +224,6 @@ class ClientInfo:
         self.platform_release = platform_release
         self.user_agent = user_agent
         self.user_agent_version = user_agent_version
-
-
-def _get_input_output_tensors(
-    tensor_inputs: Optional[List[List[Any]]] = None,
-    tensor_outputs: Optional[ModelDatumType] = None,
-    shape: Tuple = None,
-    dtype: ModelDatumType = ModelDatumType.F32,
-    dtype_out: ModelDatumType = ModelDatumType.F32,
-) -> Tuple[List[List[Any]], List[ModelDatumType]]:
-    if tensor_inputs is None and (dtype is None or shape is None):
-        tensor_inputs = []
-
-    if tensor_outputs is None and dtype_out is None:
-        tensor_outputs = []
-
-    if tensor_inputs is None or tensor_outputs is None:
-        tensor_inputs = [shape, dtype]
-        tensor_outputs = [
-            dtype_out
-        ]  # Dict may be required for correct cbor serialization
-
-    if len(tensor_inputs) > 0 and type(tensor_inputs[0]) != list:
-        tensor_inputs = [tensor_inputs]
-
-    if len(tensor_outputs) > 0 and type(tensor_outputs) != list:
-        tensor_outputs = [tensor_outputs]
-
-    inputs = []
-    for tensor_input in tensor_inputs:
-        inputs.append(
-            TensorInfo(fact=tensor_input[0], datum_type=tensor_input[1]).__dict__
-        )  # Required for correct cbor serialization
-
-    return (inputs, tensor_outputs)
 
 
 def dtype_to_numpy(dtype: ModelDatumType) -> str:
@@ -633,11 +609,6 @@ class BlindAiConnection(contextlib.AbstractContextManager):
     def upload_model(
         self,
         model: str,
-        tensor_inputs: Optional[List[Tuple[List[int], ModelDatumType]]] = None,
-        tensor_outputs: Optional[List[ModelDatumType]] = None,
-        shape: Tuple = None,
-        dtype: ModelDatumType = None,
-        dtype_out: ModelDatumType = None,
         sign: bool = False,
         model_name: Optional[str] = None,
         optimize: bool = True,
@@ -652,14 +623,8 @@ class BlindAiConnection(contextlib.AbstractContextManager):
         model = list(model)
         length = len(model)
 
-        (inputs, outputs) = _get_input_output_tensors(
-            tensor_inputs, tensor_outputs, shape, dtype, dtype_out
-        )
-
         data = UploadModel(
             model=model,
-            input=inputs,
-            output=outputs,
             length=length,
             sign=False,
             model_name=model_name,
@@ -704,7 +669,6 @@ class BlindAiConnection(contextlib.AbstractContextManager):
             Tensor(TensorInfo(**output["info"]), output["bytes_data"])
             for output in payload.outputs
         ]
-
         if sign:
             ret.payload = payload
             ret.signature = run_model_reply.signature

@@ -124,8 +124,6 @@ fn convert_tensor<A: serde::ser::Serialize + tract_core::prelude::Datum>(
 
 #[derive(Debug)]
 pub struct InferenceModel {
-    pub datum_inputs: Vec<ModelDatumType>,
-    pub datum_outputs: Vec<ModelDatumType>,
     pub onnx: Arc<OnnxModel>,
     #[allow(unused)]
     model_id: Uuid,
@@ -137,23 +135,14 @@ impl InferenceModel {
     #[allow(clippy::too_many_arguments)]
     pub fn load_model(
         mut model_data: &[u8],
-        input_facts: Vec<Vec<usize>>,
         model_id: Uuid,
         model_name: Option<String>,
         model_hash: Digest,
-        datum_inputs: Vec<ModelDatumType>,
-        datum_outputs: Vec<ModelDatumType>,
         optimize: bool,
     ) -> Result<Self> {
-        let mut model_rec = tract_onnx::onnx()
+        let model_rec = tract_onnx::onnx()
             .with_ignore_output_shapes(true)
             .model_for_read(&mut model_data)?;
-        for (idx, (datum_input, input_fact)) in datum_inputs.iter().zip(input_facts).enumerate() {
-            model_rec = model_rec.with_input_fact(
-                idx,
-                InferenceFact::dt_shape(datum_input.get_datum_type(), input_fact),
-            )?;
-        }
         let onnx = match optimize {
             true => model_rec.into_optimized()?,
             false => model_rec.into_typed()?,
@@ -161,11 +150,9 @@ impl InferenceModel {
 
         Ok(InferenceModel {
             onnx: onnx.into_runnable()?.into(),
-            datum_inputs,
             model_name,
             model_id,
             model_hash,
-            datum_outputs,
         })
     }
 
@@ -220,16 +207,12 @@ impl InferenceModel {
         model_id: Uuid,
         model_name: Option<String>,
         model_hash: Digest,
-        datum_inputs: Vec<ModelDatumType>,
-        datum_outputs: Vec<ModelDatumType>,
     ) -> Self {
         InferenceModel {
             onnx,
             model_id,
             model_name,
             model_hash,
-            datum_inputs,
-            datum_outputs,
         }
     }
 

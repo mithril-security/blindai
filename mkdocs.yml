@@ -70,10 +70,14 @@ nav:
     - 'docs/advanced/build-from-sources/server.md'
   - 'docs/advanced/setting-up-your-dev-environment.md'
   - 'docs/advanced/blindai-project-structure.md'
+
 - 'Security':
   - 'docs/advanced/security/remote_attestation.md'
   - 'docs/advanced/security/threat_model.md'
 - 'Client API reference': 'client/client.html'
+- 'docs/telemetry.md'
+- 'Client API reference': 'blindaiv2_client_alpha/client.html'
+
 # - 'Integrating AI models from other frameworks':
 #   - 'Example of BlindAI deployment with ResNet18': 'BlindAI_ResNet18.ipynb'
 #   - 'Example of BlindAI deployment with CovidNet': 'BlindAI-COVID-Net.ipynb'
