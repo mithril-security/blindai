@@ -82,7 +82,7 @@ impl TryFrom<DatumType> for ModelDatumType {
     }
 }
 
-macro_rules! dispatch_numbers {
+macro_rules! convert_datum {
     ($($path:ident)::* ($dt:expr) ($($args:expr),*)) => { {
         use tract_onnx::prelude::DatumType;
         match $dt {
@@ -161,7 +161,7 @@ impl InferenceModel {
         let outlets = self.onnx.model.input_outlets()?;
         for tensor in inputs {
             let tract_tensor =
-                dispatch_numbers!(create_tensor(tensor.info.datum_type.get_datum_type())(
+                convert_datum!(create_tensor(tensor.info.datum_type.get_datum_type())(
                     &tensor.bytes_data,
                     tensor.info.fact.as_slice()
                 ))?;
@@ -196,7 +196,7 @@ impl InferenceModel {
                     fact: tensor.shape().to_owned(),
                     node_name: Some(output_names[i].clone()),
                 },
-                bytes_data: dispatch_numbers!(convert_tensor(tensor.datum_type())(tensor))?,
+                bytes_data: convert_datum!(convert_tensor(tensor.datum_type())(tensor))?,
             });
         }
         Ok(outputs)
@@ -238,4 +238,112 @@ impl InferenceModel {
             })
             .collect()
     }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::model;
+    use crate::model_store::ModelStore;
+    use anyhow::{anyhow, bail, Result};
+    use tract_core::assert_close;
+
+    use std::{sync::Mutex, collections::HashMap};
+    use std::str::FromStr;
+
+    use lazy_static::lazy_static;
+
+    static MOBILENET: &[u8] = include_bytes!("../tests/mobilenet/mobilenetv2-7.onnx");
+    static GRACE_HOPPER_JPG: &[u8] = include_bytes!("../tests/mobilenet/grace_hopper.jpg");
+
+    lazy_static! {
+        static ref MODELSTORE: Mutex<ModelStore> = Mutex::new(ModelStore::new());
+    }
+
+    lazy_static! {
+        static ref UUID_HASHMAP: Mutex<HashMap<String, String>> = Mutex::new(HashMap::new());
+    }
+
+    fn get_uuid(name: String) -> String {
+        let mutex_guard = UUID_HASHMAP.lock().unwrap();
+        let uuid_res = mutex_guard.get(&name);
+        match uuid_res {
+            None => "".into(),
+            Some(uuid) => uuid.into()
+        }
+    }
+
+    fn add_uuid(name: String, uuid: String) {
+        UUID_HASHMAP.lock().unwrap().insert(name, uuid);
+    }
+
+    fn add_model(model_bytes: &[u8], model_name: String, optimize: bool) -> Result<(Uuid, Digest)> {
+        MODELSTORE.lock().unwrap().add_model(model_bytes, Some(model_name), optimize)
+    }
+
+    #[test]
+    fn load_mobilenet_optimized() {
+        let res = add_model(MOBILENET, "optimized".into(), true);
+        assert_eq!(res.is_ok(), true);
+        add_uuid("optimized".into(), res.unwrap().0.to_string())
+    }
+
+    #[test]
+    fn load_mobilenet_non_optimized() {
+        let res = add_model(MOBILENET, "non_optimized".into(), false);
+        assert_eq!(res.is_ok(), true);
+        add_uuid("non_optimized".into(), res.unwrap().0.to_string())
+    }
+
+    #[test]
+    fn run_mobilenet_optimized() {
+        let uuid = get_uuid("optimized".into());
+
+        // taken straight from tract example, will prepare a jpg for the inference
+        let image = image::load_from_memory(GRACE_HOPPER_JPG).unwrap().to_rgb8();
+        let resized =
+            image::imageops::resize(&image, 224, 224, ::image::imageops::FilterType::Triangle);
+        let image = tract_ndarray::Array4::from_shape_fn((1, 3, 224, 224), |(_, c, y, x)| {
+            let mean = [0.485, 0.456, 0.406][c];
+            let std = [0.229, 0.224, 0.225][c];
+            (resized[(x as _, y as _)][c] as f32 / 255.0 - mean) / std
+        });
+
+        // For tests purpose, the SerializedTensor object is created by hand
+        let image = serde_cbor::to_vec(&image.as_slice().unwrap()).unwrap();
+        let info = TensorInfo {
+            fact: vec![1, 3, 224, 224], 
+            datum_type: ModelDatumType::F32, 
+            node_name: None
+        };
+        let tensor = SerializedTensor {
+            info:info,
+            bytes_data: image,
+        };
+
+        let res = MODELSTORE.lock().unwrap().use_model(Uuid::from_str(&uuid).unwrap(), |model| {
+            (
+                model.run_inference(vec![tensor.clone()].as_slice()),
+            )
+        });
+        if let Some(tensor) = res {
+            let result = &tensor.0.expect("Failed to run inference")[0];
+            let tract_tensor = create_tensor::<f32>(&result.bytes_data , result.info.fact.as_slice()).unwrap();
+            let arr = tract_tensor
+            .to_array_view::<f32>().unwrap()
+            .iter()
+            .cloned()
+            .zip(2..)
+            .max_by(|a, b| a.0.partial_cmp(&b.0).unwrap());
+            if let Some(final_result) = arr {
+                assert_eq!(final_result.0, 12.316544)
+            }
+            else {
+                panic!("Inference failed");
+            }
+        } else {
+            panic!("Inference failed");
+        }
+    }
+
 }
