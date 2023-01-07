@@ -60,14 +60,15 @@ RUN apt-get install -y gdb
 # Add just
 RUN curl --proto '=https' --tlsv1.2 -sSf https://just.systems/install.sh | bash -s -- --to /usr/bin
 
-# Add poetry
-RUN apt-get install -y python3-dev python3-distutils \
+# Add poetry and python dev utilities
+RUN apt-get install -y python3-dev python3-distutils python3-pip \
     && sudo -u "vscode" zsh -c "\
     curl -sSL https://install.python-poetry.org | python3 - \
     && mkdir ~/.oh-my-zsh/custom/plugins/poetry \
     && export PATH=${POETRY_HOME}:$PATH \
     && poetry completions zsh > ~/.oh-my-zsh/custom/plugins/poetry/_poetry \
-    && sed -i -E 's/^plugins\=\(([a-zA-Z ]+)*\)/plugins=(\1 poetry)/' ~/.zshrc"
+    && sed -i -E 's/^plugins\=\(([a-zA-Z ]+)*\)/plugins=(\1 poetry)/' ~/.zshrc" \
+    && pip install black mypy
 
 # Add github cli
 RUN curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg \
@@ -75,6 +76,9 @@ RUN curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | d
     && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null \
     && apt update \
     && apt install gh -y
+
+# Add cargo audit
+RUN cargo install cargo-audit
 
 # Add examples dependencies
 RUN apt-get install -y ffmpeg

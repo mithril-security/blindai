@@ -33,17 +33,20 @@ RUN touch src/main.rs \
     && cargo build \
     && cargo build --release
 
-# fmt and clippy
+# cargo fmt, clippy and audit
 RUN cargo fmt --check \
-    && cargo clippy -p blindai_server -- --no-deps -Dwarnings
+    && cargo clippy -p blindai_server -- --no-deps -Dwarnings \
+    && cargo audit
 
-# install python client
+# install python client and type stubs
 COPY client client
-RUN cd client && poetry install --only-root
+RUN cd client \
+    && poetry install
 
-# python formatting and checks
+# python formatting checks and unit tests
 RUN cd client \
     && poetry run black --check . \
+    && poetry run mypy --install-types --non-interactive --ignore-missing-imports --follow-imports=skip \
     && poetry run pytest
 
 COPY .github/scripts scripts
