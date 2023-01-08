@@ -350,7 +350,7 @@ mod tests {
                 .max_by(|a, b| a.0.partial_cmp(&b.0).unwrap());
             if let Some(final_result) = arr {
                 // Uses result got from onnx-mobile example from tract
-                let diff = f32::abs(final_result.0 - 12.316545); 
+                let diff = f32::abs(final_result.0 - 12.316545);
                 assert_eq!(diff < 0.001, true); // Reproduce (or at least try to) assertLess from Python
                 assert_eq!(final_result.1, 654)
             } else {
