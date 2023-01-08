@@ -243,10 +243,8 @@ impl InferenceModel {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::model;
     use crate::model_store::ModelStore;
-    use anyhow::{anyhow, bail, Result};
-    use tract_core::assert_close;
+    use anyhow::Result;
 
     use std::str::FromStr;
     use std::{collections::HashMap, sync::Mutex};
@@ -301,7 +299,16 @@ mod tests {
     #[test]
     fn run_mobilenet_optimized() {
         let uuid = get_uuid("optimized".into());
+        common_runmodel(uuid)
+    }
 
+    #[test]
+    fn run_mobilenet_non_optimized() {
+        let uuid = get_uuid("non_optimized".into());
+        common_runmodel(uuid)
+    }
+
+    fn common_runmodel(uuid: String) {
         // taken straight from tract example, will prepare a jpg for the inference
         let image = image::load_from_memory(GRACE_HOPPER_JPG).unwrap().to_rgb8();
         let resized =
@@ -342,7 +349,10 @@ mod tests {
                 .zip(2..)
                 .max_by(|a, b| a.0.partial_cmp(&b.0).unwrap());
             if let Some(final_result) = arr {
-                assert_eq!(final_result.0, 12.316544)
+                // Uses result got from onnx-mobile example from tract
+                let diff = f32::abs(final_result.0 - 12.316545); 
+                assert_eq!(diff < 0.001, true); // Reproduce (or at least try to) assertLess from Python
+                assert_eq!(final_result.1, 654)
             } else {
                 panic!("Inference failed");
             }
