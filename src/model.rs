@@ -160,11 +160,11 @@ impl InferenceModel {
         let mut tensors: Vec<_> = vec![];
         let outlets = self.onnx.model.input_outlets()?;
         for tensor in inputs {
-            let tract_tensor =
-                convert_datum!(create_tensor(tensor.info.datum_type.get_datum_type())(
-                    &tensor.bytes_data,
-                    tensor.info.fact.as_slice()
-                ))?;
+            let tract_tensor = convert_datum!(create_tensor(
+                tensor.info.datum_type.get_datum_type()
+            )(
+                &tensor.bytes_data, tensor.info.fact.as_slice()
+            ))?;
             if let Some(node_name) = &tensor.info.node_name {
                 let node_id = self.onnx.model.node_id_by_name(node_name)?;
                 let rank = outlets
@@ -248,8 +248,8 @@ mod tests {
     use anyhow::{anyhow, bail, Result};
     use tract_core::assert_close;
 
-    use std::{sync::Mutex, collections::HashMap};
     use std::str::FromStr;
+    use std::{collections::HashMap, sync::Mutex};
 
     use lazy_static::lazy_static;
 
@@ -269,7 +269,7 @@ mod tests {
         let uuid_res = mutex_guard.get(&name);
         match uuid_res {
             None => "".into(),
-            Some(uuid) => uuid.into()
+            Some(uuid) => uuid.into(),
         }
     }
 
@@ -278,7 +278,10 @@ mod tests {
     }
 
     fn add_model(model_bytes: &[u8], model_name: String, optimize: bool) -> Result<(Uuid, Digest)> {
-        MODELSTORE.lock().unwrap().add_model(model_bytes, Some(model_name), optimize)
+        MODELSTORE
+            .lock()
+            .unwrap()
+            .add_model(model_bytes, Some(model_name), optimize)
     }
 
     #[test]
@@ -312,38 +315,39 @@ mod tests {
         // For tests purpose, the SerializedTensor object is created by hand
         let image = serde_cbor::to_vec(&image.as_slice().unwrap()).unwrap();
         let info = TensorInfo {
-            fact: vec![1, 3, 224, 224], 
-            datum_type: ModelDatumType::F32, 
-            node_name: None
+            fact: vec![1, 3, 224, 224],
+            datum_type: ModelDatumType::F32,
+            node_name: None,
         };
         let tensor = SerializedTensor {
-            info:info,
+            info: info,
             bytes_data: image,
         };
 
-        let res = MODELSTORE.lock().unwrap().use_model(Uuid::from_str(&uuid).unwrap(), |model| {
-            (
-                model.run_inference(vec![tensor.clone()].as_slice()),
-            )
-        });
+        let res = MODELSTORE
+            .lock()
+            .unwrap()
+            .use_model(Uuid::from_str(&uuid).unwrap(), |model| {
+                (model.run_inference(vec![tensor.clone()].as_slice()),)
+            });
         if let Some(tensor) = res {
             let result = &tensor.0.expect("Failed to run inference")[0];
-            let tract_tensor = create_tensor::<f32>(&result.bytes_data , result.info.fact.as_slice()).unwrap();
+            let tract_tensor =
+                create_tensor::<f32>(&result.bytes_data, result.info.fact.as_slice()).unwrap();
             let arr = tract_tensor
-            .to_array_view::<f32>().unwrap()
-            .iter()
-            .cloned()
-            .zip(2..)
-            .max_by(|a, b| a.0.partial_cmp(&b.0).unwrap());
+                .to_array_view::<f32>()
+                .unwrap()
+                .iter()
+                .cloned()
+                .zip(2..)
+                .max_by(|a, b| a.0.partial_cmp(&b.0).unwrap());
             if let Some(final_result) = arr {
                 assert_eq!(final_result.0, 12.316544)
-            }
-            else {
+            } else {
                 panic!("Inference failed");
             }
         } else {
             panic!("Inference failed");
         }
     }
-
 }
