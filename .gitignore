@@ -100,7 +100,7 @@ instance/
 docs/_build/
 
 # API reference
-docs/blindaiv2_client_alpha/
+docs/blindai_preview/
 
 # PyBuilder
 .pybuilder/

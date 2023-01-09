@@ -29,7 +29,7 @@ import requests
 from requests.adapters import HTTPAdapter
 from importlib_metadata import version
 
-app_version = version("blindaiv2-client-alpha")
+app_version = version("blindai-preview")
 
 
 CONNECTION_TIMEOUT = 10
