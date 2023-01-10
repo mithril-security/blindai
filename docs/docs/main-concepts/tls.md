@@ -52,4 +52,4 @@ blindai.connect(addr="addr", certificate="path/to/host_server.pem")
 ```
 
 !!! info
-    If you're not using simulation mode, you're required to pass a TLS certificate. [Mithril cloud](../mithril-cloud.md)'s certificate is directly in the python package, which is why you didn't have to specify it in the quick-start example.
+    If you're not using simulation mode, you're required to pass a TLS certificate. 

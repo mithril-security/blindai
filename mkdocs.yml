@@ -60,18 +60,24 @@ nav:
     - 'docs/main-concepts/privacy.md'
     - 'docs/main-concepts/attestation.md'
     - 'docs/main-concepts/tls.md'
-  - 'docs/main-concepts/sealing.md'
-- 'docs/mithril-cloud.md'
-- 'docs/deploy-on-premise.md'
-- 'docs/cloud-deployment.md'
+- 'Deployment':
+  - 'docs/cloud-deployment.md'
+  - 'docs/deploy-on-premise.md'
+
 - 'Advanced':
   - 'Build from sources':
     - 'docs/advanced/build-from-sources/client.md'
     - 'docs/advanced/build-from-sources/server.md'
   - 'docs/advanced/setting-up-your-dev-environment.md'
   - 'docs/advanced/blindai-project-structure.md'
+
+- 'Security':
+  - 'docs/advanced/security/remote_attestation.md'
+  - 'docs/advanced/security/threat_model.md'
+- 'Client API reference': 'client/client.html'
 - 'docs/telemetry.md'
 - 'Client API reference': 'blindai_preview/client.html'
+
 # - 'Integrating AI models from other frameworks':
 #   - 'Example of BlindAI deployment with ResNet18': 'BlindAI_ResNet18.ipynb'
 #   - 'Example of BlindAI deployment with CovidNet': 'BlindAI-COVID-Net.ipynb'

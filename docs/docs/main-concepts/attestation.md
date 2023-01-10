@@ -19,7 +19,7 @@ blindai.connect(addr="addr", policy="path/to/policy.toml")
 If the client connects, it means the remote enclave generation process produced an identical policy.toml.
 
 !!! info
-    If you're not using simulation mode, you're required to pass a policy.toml. [Mithril cloud](../mithril-cloud.md)'s policy.toml is directly in the python package, which is why you didn't have to specify it in the quick-start example.
+    If you're not using simulation mode, you're required to pass a policy.toml. If you're using the docker image, the policy.toml is already build into the python package. 
 
 ## Try it for yourself
 
