@@ -1,4 +1,4 @@
-from blindaiv2_client_alpha.client import *
+from blindai_preview.client import *
 import onnxruntime as rt
 import numpy as np
 import sys
