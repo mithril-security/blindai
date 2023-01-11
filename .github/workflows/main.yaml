@@ -16,6 +16,14 @@ jobs:
       - name: Build test image
         run: docker build -f .github/test.dockerfile --tag blindaiv2-test:latest .
 
+      - name: Build unit-test image
+        run: docker build -f .github/unit-tests.dockerfile --tag blindaiv2-unit-test:latest .
+
+      - name: Run unit-tests tests
+        run: |
+          docker rm --force blindaiv2-unit-test
+          docker run --device /dev/sgx/enclave --device /dev/sgx/provision --name blindaiv2-unit-test blindaiv2-unit-test
+
       - name: Run end-to-end tests
         run: |
           docker rm --force blindaiv2-test
