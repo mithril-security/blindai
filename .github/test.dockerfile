@@ -15,8 +15,8 @@ COPY .cargo .cargo
 COPY tar-rs-sgx tar-rs-sgx
 COPY tract tract
 COPY ring-fortanix ring-fortanix
-RUN cargo build \
-    && cargo build --release
+RUN cargo build --target x86_64-fortanix-unknown-sgx\
+    && cargo build --target x86_64-fortanix-unknown-sgx --release
 
 # install python depencies
 COPY client/pyproject.toml client/poetry.lock ./client/
@@ -30,8 +30,8 @@ RUN cd tests && bash generate_all_onnx_and_npz.sh
 COPY src src
 COPY host_server.pem host_server.key ./
 RUN touch src/main.rs \
-    && cargo build \
-    && cargo build --release
+    && cargo build --target x86_64-fortanix-unknown-sgx\
+    && cargo build --target x86_64-fortanix-unknown-sgx --release
 
 # cargo fmt, clippy and audit
 RUN cargo fmt --check \
@@ -52,7 +52,7 @@ RUN cd client \
 COPY .github/scripts scripts
 
 # end-to-end tests
-CMD cargo run --release \
+CMD cargo run --target x86_64-fortanix-unknown-sgx --release \
     & sleep 15 \
     && cd tests \
     && bash run_all_end_to_end_tests.sh

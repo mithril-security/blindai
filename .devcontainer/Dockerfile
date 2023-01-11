@@ -106,9 +106,9 @@ RUN git clone https://github.com/intel/SGXDataCenterAttestationPrimitives.git \
     && cp -R SGXDataCenterAttestationPrimitives/QuoteGeneration/pccs/ /opt/intel/sgx-dcap-pccs \
     && sed -i 's/"use_secure_cert": true/"use_secure_cert": false/g' /etc/sgx_default_qcnl.conf   
 
-COPY setup-pccs.sh /opt/intel/sgx-dcap-pccs/setup-pccs.sh
-COPY hw-start.sh /opt/intel/sgx-dcap-pccs/hw-start.sh
-COPY default.json /opt/intel/sgx-dcap-pccs/default.json
+COPY .devcontainer/setup-pccs.sh /opt/intel/sgx-dcap-pccs/setup-pccs.sh
+COPY .devcontainer/hw-start.sh /opt/intel/sgx-dcap-pccs/hw-start.sh
+COPY .devcontainer/default.json /opt/intel/sgx-dcap-pccs/default.json
 
 # Add examples dependencies
 RUN apt-get install -y ffmpeg
