@@ -18,12 +18,12 @@ COPY ring-fortanix ring-fortanix
 
 # generate tests onnx models and inputs
 COPY tests tests
-RUN cd tests && bash ./mobilenet/setup.sh
+RUN cd tests && cd mobilenet && bash ./setup.sh
 
 # compile Rust sources
 COPY src src
 COPY host_server.pem host_server.key ./
-RUN ls -lR tests && cargo test --release --no-run
+RUN cargo test --release --no-run
 
 # unit tests
 CMD cargo test --release
