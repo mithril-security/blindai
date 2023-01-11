@@ -119,71 +119,50 @@ fn main() -> Result<()> {
         .unwrap();
     debug!("Attestation : Quote is {:?} ", bytes_quote);
 
-    let get_collateral = ureq::get("http://127.0.0.1:11000/getcollateral")
+    let get_collateral = ureq::get("http://127.0.0.1:11000/get-collateral")
         .call()
         .or_any_status()
         .unwrap();
     let collateral = get_collateral.into_string().unwrap();
     debug!("Attestation : Collateral is {:?} ", collateral.clone());
 
+    let cert_untrusted = enclave_identity.cert_der.clone();
     let untrusted_server = rouille::Server::new_ssl(
-        "0.0.0.0:9923",
-        {
-            let _enclave_identity_cloned = enclave_identity.clone();
-            move |request: &Request| {
-                println!("Requested enclave TLS certificate");
-                rouille::Response::from_data("application/octet-stream", *b"")
-                // TODO: Yassine doit mettre sa version de l'untrusted serveur adapté à rouille
-                // let untrusted_server = untrusted_server.clone();
-                // let trusted_cert = enclave_identity.cert_der.clone(); //enclave_held_data
-                // let quote = bytes_quote.clone();
-                // let collateral_data = collateral.clone();
-                // let enclave_held_data_cert = enclave_held_data.clone();
-                // untrusted_handles.push(thread::spawn(move || {
-                //     for rq in untrusted_server.incoming_requests() {
-                //         match rq.url() {
-                //             "/" => {
-                //                 if rq.method() == &tiny_http::Method::Get {
-                //                     debug!("Attestation : Resquesting trusted cert");
-                //                     rq.respond(Response::from_data(trusted_cert.clone()))
-                //                         .unwrap();
-                //                 }
-                //             }
+        "0.0.0.0:9930", move |request| {
+            let quote = bytes_quote.clone();
+            let collateral_data = collateral.clone();
+            let enclave_held_data_cert = enclave_held_data.clone();
 
-                //             "/quote" => {
-                //                 if rq.method() == &tiny_http::Method::Get {
-                //                     let quote_slice = quote.as_slice();
-                //                     debug!("Attestation : Sending quote to client....");
-                //                     rq.respond(Response::from_data(quote_slice)).unwrap();
-                //                 }
-                //             }
-
-                //             "/collateral" => {
-                //                 if rq.method() == &tiny_http::Method::Get {
-                //                     let collateral_string = collateral_data.clone();
-                //                     debug!("Attestation : Sending collateral to client....");
-                //                     rq.respond(Response::from_string(collateral_string))
-                //                         .unwrap();
-                //                 }
-                //             }
-                //             "/enclave-held-data" => {
-                //                 if rq.method() == &tiny_http::Method::Get {
-                //                     let enclave_held_data_slice = enclave_held_data_cert.as_slice();
-                //                     debug!("Attestation : Sending enclave_held_data to client....");
-                //                     rq.respond(Response::from_data(enclave_held_data_slice))
-                //                         .unwrap();
-                //                 }
-                //             }
-                //              _ => panic!("need to return an error")
-                //         };
-                //     }
-            }
+            rouille::router!(request,
+                (GET)(/) => {
+                    debug!("Requested enclave TLS certificate");
+                    rouille::Response::from_data("application/octet-stream", cert_untrusted.clone())
+                },
+                (GET)(/quote) => {
+                    let quote_slice = quote.as_slice();
+                    debug!("Attestation : Sending quote to client.");
+                    rouille::Response::from_data("application/octet-stream", quote_slice)
+                },
+                (GET)(/collateral) => {
+                    debug!("Attestation : Sending collateral to client.");
+                    rouille::Response::json(&collateral_data)
+                },
+                (GET)(/enclave-held-data) => {
+                    let enclave_held_data_slice = enclave_held_data_cert.as_slice();
+                    debug!("Attestation : Sending enclave_held_data to client.");
+                    rouille::Response::from_data("application/octet-stream", enclave_held_data_slice)
+                },
+                _ => {
+                    rouille::Response::empty_404()
+                },
+            )
         },
         include_bytes!("../host_server.pem").to_vec(),
         include_bytes!("../host_server.key").to_vec(),
     )
     .expect("Failed to start untrusted server")
     .pool_size(4);
+
     let (_untrusted_handle, _untrusted_sender) = untrusted_server.stoppable();
 
     thread::spawn(move || {

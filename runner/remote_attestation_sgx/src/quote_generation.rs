@@ -98,4 +98,8 @@ impl RunnerContext {
     pub fn update_report(&mut self, report: Vec<u8>) {
         self.report_slice = report;
     }
+
+    pub fn get_report(&mut self) -> Vec<u8> {
+        self.report_slice.clone()
+    }
 }
