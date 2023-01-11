@@ -33,7 +33,6 @@ use ring::digest;
 use sgx_isa::{Report, Targetinfo};
 use std::io::prelude::*;
 
-
 fn main() -> Result<()> {
     // Make debugging easier by enabling rust backtrace inside enclave
     std::env::set_var("RUST_BACKTRACE", "full");
