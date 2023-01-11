@@ -251,8 +251,14 @@ mod tests {
 
     use lazy_static::lazy_static;
 
-    static MOBILENET: &[u8] = include_bytes!(concat!(env!("CARGO_MANIFEST_DIR"), "/tests/mobilenet/mobilenetv2-7.onnx"));
-    static GRACE_HOPPER_JPG: &[u8] = include_bytes!(concat!(env!("CARGO_MANIFEST_DIR"), "/tests/mobilenet/grace_hopper.jpg"));
+    static MOBILENET: &[u8] = include_bytes!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/tests/mobilenet/mobilenetv2-7.onnx"
+    ));
+    static GRACE_HOPPER_JPG: &[u8] = include_bytes!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/tests/mobilenet/grace_hopper.jpg"
+    ));
 
     lazy_static! {
         static ref MODELSTORE: Mutex<ModelStore> = Mutex::new(ModelStore::new());
