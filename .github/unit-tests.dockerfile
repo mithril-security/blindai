@@ -23,7 +23,7 @@ RUN cd tests && bash ./mobilenet/setup.sh
 # compile Rust sources
 COPY src src
 COPY host_server.pem host_server.key ./
-RUN cargo test --release --no-run
+RUN ls -lR tests && cargo test --release --no-run
 
 # unit tests
 CMD cargo test --release
