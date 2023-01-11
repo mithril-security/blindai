@@ -23,37 +23,16 @@ mod model_store;
 use crate::client_communication::Exchanger;
 use anyhow::Result;
 use model_store::ModelStore;
-use rouille::Request;
 mod client_communication;
-use log::{debug, error, info, log_enabled, Level};
-use ureq::Error::Status;
+use log::debug;
 use ureq::OrAnyStatus;
 
 // ra
 use env_logger::Env;
-use ring::{digest, digest::Digest};
+use ring::digest;
 use sgx_isa::{Report, Targetinfo};
 use std::io::prelude::*;
-use std::time;
-use std::time::Duration;
 
-struct EnclaveProperties {
-    quote: Vec<u8>,
-    collateral: Vec<u8>,
-}
-
-impl<'a> EnclaveProperties {
-    fn init(quote: Vec<u8>, collateral: Vec<u8>) -> Self {
-        Self { quote, collateral }
-    }
-
-    fn get_quote(&'a self) -> &'a [u8] {
-        &self.quote[..]
-    }
-    fn get_collateral(&'a self) -> &'a [u8] {
-        &self.collateral[..]
-    }
-}
 
 fn main() -> Result<()> {
     // Make debugging easier by enabling rust backtrace inside enclave
@@ -76,11 +55,11 @@ fn main() -> Result<()> {
 
     // Enclave held data hash
     let enclave_held_data = enclave_identity.cert_der.clone();
-    let mut report_binding = digest::digest(&digest::SHA256, &enclave_identity.cert_der.clone());
+    let report_binding = digest::digest(&digest::SHA256, &enclave_identity.cert_der);
     let report_data_slice: &[u8] = report_binding.as_ref();
     let mut report_data: Vec<u8> = vec![0; 32];
     report_data.extend_from_slice(report_data_slice);
-    let mut reportdata: [u8; 64] = report_data.try_into().unwrap();
+    let reportdata: [u8; 64] = report_data.try_into().unwrap();
 
     let get_ti = ureq::get("http://127.0.0.1:11000/target-info")
         .call()
@@ -104,7 +83,7 @@ fn main() -> Result<()> {
     );
     let report = Report::for_target(&targetinfo, &reportdata);
     debug!("Attestation : the report generated is : {:?}", report);
-    let send_report = ureq::post("http://127.0.0.1:11000/report").send_bytes(report.as_ref());
+    let _send_report = ureq::post("http://127.0.0.1:11000/report").send_bytes(report.as_ref());
 
     let get_quote = ureq::get("http://127.0.0.1:11000/get-quote")
         .call()
@@ -124,11 +103,11 @@ fn main() -> Result<()> {
         .or_any_status()
         .unwrap();
     let collateral = get_collateral.into_string().unwrap();
-    debug!("Attestation : Collateral is {:?} ", collateral.clone());
+    debug!("Attestation : Collateral is {:?} ", collateral);
 
     let cert_untrusted = enclave_identity.cert_der.clone();
     let untrusted_server = rouille::Server::new_ssl(
-        "0.0.0.0:9930", move |request| {
+        "0.0.0.0:9923", move |request| {
             let quote = bytes_quote.clone();
             let collateral_data = collateral.clone();
             let enclave_held_data_cert = enclave_held_data.clone();
