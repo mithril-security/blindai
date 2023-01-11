@@ -43,6 +43,8 @@ jobs:
       - name: Extract binary
         run: |
           docker build -f .github/sgxs-release.dockerfile --tag blindaiv2-enclave:latest .
+          docker rm --force blindaiv2-enclave
+          docker run --name blindaiv2-enclave blindaiv2-enclave
           docker cp 'blindaiv2-enclave:/blindaiv2/target/x86_64-fortanix-unknown-sgx/release/blindai_server.sgxs' .
           tar czf blindai_server-x86_64-fortanix-unknown-sgx-${{steps.version.outputs.value}}.tgz blindai_server.sgxs
 
@@ -57,4 +59,6 @@ jobs:
       - name: Create pypi release
         run: |
           docker build -f .github/pypi-release.dockerfile --tag blindaiv2-pypi:latest .
+          docker rm --force blindaiv2-pypi
+          docker run --name blindaiv2-pypi blindaiv2-pypi
           docker run -e API_TOKEN_PYPI=${{ secrets.API_TOKEN_PYPI }} blindaiv2-pypi:latest
