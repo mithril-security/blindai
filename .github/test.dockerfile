@@ -35,7 +35,7 @@ RUN touch src/main.rs \
 
 # cargo fmt, clippy and audit
 RUN cargo fmt --check \
-    && cargo clippy -p blindai_server -- --no-deps -Dwarnings \
+    && cargo clippy --target x86_64-fortanix-unknown-sgx -p blindai_server -- --no-deps -Dwarnings \
     && cargo audit
 
 # install python client and type stubs
