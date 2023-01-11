@@ -45,7 +45,7 @@ jobs:
           docker build -f .github/sgxs-release.dockerfile --tag blindaiv2-enclave:latest .
           docker rm --force blindaiv2-enclave
           docker run --name blindaiv2-enclave blindaiv2-enclave
-          docker cp 'blindaiv2-enclave:/blindaiv2/target/x86_64-fortanix-unknown-sgx/release/blindai_server.sgxs' .
+          docker cp 'blindaiv2-enclave:/blindai-preview/target/x86_64-fortanix-unknown-sgx/release/blindai_server.sgxs' .
           tar czf blindai_server-x86_64-fortanix-unknown-sgx-${{steps.version.outputs.value}}.tgz blindai_server.sgxs
 
       - name: Create github release
