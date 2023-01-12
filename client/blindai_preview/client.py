@@ -26,6 +26,7 @@ import getpass
 import logging
 import tempfile
 import requests
+import cryptography
 from requests.adapters import HTTPAdapter
 from importlib_metadata import version
 
@@ -83,7 +84,7 @@ class Tensor:
 
     def __init__(self, info: TensorInfo, bytes_data: bytes):
         self.info = info
-        self.bytes_data = bytes_data
+        self.bytes_data = list(bytes_data)
 
     def as_flat(self) -> list:
         """Convert the prediction calculated by the server to a flat python list."""
@@ -618,20 +619,19 @@ class BlindAiConnection(contextlib.AbstractContextManager):
             model_name = os.path.basename(model)
 
         with open(model, "rb") as f:
-            model = f.read()
+            model_bytes = f.read()
 
-        model = list(model)
-        length = len(model)
+        length = len(model_bytes)
 
         data = UploadModel(
-            model=model,
+            model=list(model_bytes),
             length=length,
             sign=False,
             model_name=model_name,
             optimize=optimize,
         )
-        data = cbor2_dumps(data.__dict__)
-        r = self.conn.post(f"{self._attested_url}/upload", data=data)
+        bytes_data = cbor2_dumps(data.__dict__)
+        r = self.conn.post(f"{self._attested_url}/upload", data=bytes_data)
         r.raise_for_status()
         send_model_reply = cbor2_loads(r.content)
         payload = cbor2_loads(bytes(send_model_reply["payload"]))
@@ -657,8 +657,8 @@ class BlindAiConnection(contextlib.AbstractContextManager):
         # Run Model Request and Response
         tensors = translate_tensors(input_tensors, dtypes, shapes)
         run_data = RunModel(model_id=model_id, inputs=tensors, sign=False)
-        run_data = cbor2_dumps(run_data.__dict__)
-        r = self.conn.post(f"{self._attested_url}/run", data=run_data)
+        bytes_run_data = cbor2_dumps(run_data.__dict__)
+        r = self.conn.post(f"{self._attested_url}/run", data=bytes_run_data)
         r.raise_for_status()
         run_model_reply = cbor2_loads(r.content)
         payload = cbor2_loads(bytes(run_model_reply["payload"]))
@@ -678,8 +678,8 @@ class BlindAiConnection(contextlib.AbstractContextManager):
 
     def delete_model(self, model_id: str):
         delete_data = DeleteModel(model_id=model_id)
-        delete_data = cbor2_dumps(delete_data.__dict__)
-        r = self.conn.post(f"{self._attested_url}/delete", delete_data)
+        bytes_delete_data = cbor2_dumps(delete_data.__dict__)
+        r = self.conn.post(f"{self._attested_url}/delete", bytes_delete_data)
         r.raise_for_status()
 
     def close(self):
