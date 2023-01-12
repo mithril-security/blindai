@@ -1,7 +1,8 @@
 # Minimal image to build the release version of the sgx enclave
 FROM rust:1.66-slim-bullseye
 WORKDIR blindai-preview
-RUN apt-get update && apt install protobuf-compiler pkg-config libssl-dev -y && rustup default nightly && rustup target add x86_64-fortanix-unknown-sgx
+RUN apt-get update && apt install protobuf-compiler=3.12.4-1 pkg-config=0.29.2-1 libssl-dev=1.1.1n-0+deb11u3 -y && \
+    rustup default nightly-2023-01-11 && rustup target add x86_64-fortanix-unknown-sgx
 COPY src src
 COPY Cargo.toml Cargo.lock ./
 COPY tar-rs-sgx tar-rs-sgx
