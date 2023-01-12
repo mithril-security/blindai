@@ -68,15 +68,6 @@ class TensorInfo:
 class Tensor:
     """
     Tensor class to convert serialized tensors into convenients objects
-
-    >>> serialized = {'info': {'fact': [1, 2], 'datum_type': 'F32', 'node_name': 'output'}, 'bytes_data': [130, 250, 60, 145, 103, 64, 250, 190, 46, 46, 234]}
-    >>> tensor = Tensor(TensorInfo(**serialized["info"]), serialized["bytes_data"])
-    >>> tensor.as_flat()
-    [0.017749428749084473, -0.1701008379459381]
-    >>> tensor.as_numpy()
-    array([[ 0.01774943, -0.17010084]], dtype=float32)
-    >>> tensor.as_torch()
-    tensor([[ 0.0177, -0.1701]])
     """
 
     info: TensorInfo
@@ -371,50 +362,6 @@ def translate_tensor(tensor, or_dtype, or_shape, name=None):
 
 
 def translate_tensors(tensors, dtypes, shapes):
-    """
-    >>> tensor1 = [1, 2, 3, 4]
-    >>> o = translate_tensors(tensor1, ModelDatumType.I64, (4,))
-    >>> cbor2_loads(bytes(o[0]["bytes_data"])), o[0]["info"]
-    ([1, 2, 3, 4], {'fact': (4,), 'datum_type': <ModelDatumType.I64: 3>, 'node_name': None})
-
-
-    >>> import numpy
-    >>> tensor2 = numpy.array([1, 2, 3, 4])
-    >>> o = translate_tensors(tensor2, None, None)
-    >>> cbor2_loads(bytes(o[0]["bytes_data"])), o[0]["info"]
-    ([1, 2, 3, 4], {'fact': (4,), 'datum_type': <ModelDatumType.I64: 3>, 'node_name': None})
-
-
-    >>> import torch
-    >>> tensor3 = torch.tensor([1, 2, 3, 4])
-    >>> o = translate_tensors(tensor3, None, None)
-    >>> cbor2_loads(bytes(o[0]["bytes_data"])), o[0]["info"]
-    ([1, 2, 3, 4], {'fact': torch.Size([4]), 'datum_type': <ModelDatumType.I64: 3>, 'node_name': None})
-
-
-    >>> o = translate_tensors([tensor1, tensor2, tensor3], [ModelDatumType.I64, None, None], [(4,), None, None])
-    >>> for t in o:
-    ...    t["bytes_data"] = cbor2_loads(bytes(t["bytes_data"]))
-    >>> o
-    [\
-{'info': {'fact': (4,), 'datum_type': <ModelDatumType.I64: 3>, 'node_name': None}, 'bytes_data': [1, 2, 3, 4]}, \
-{'info': {'fact': (4,), 'datum_type': <ModelDatumType.I64: 3>, 'node_name': None}, 'bytes_data': [1, 2, 3, 4]}, \
-{'info': {'fact': torch.Size([4]), 'datum_type': <ModelDatumType.I64: 3>, 'node_name': None}, 'bytes_data': [1, 2, 3, 4]}]
-
-
-    >>> o = translate_tensors(\
-        {"tensor1": tensor1, "tensor2": tensor2, "tensor3": tensor3}, \
-        {"tensor1": ModelDatumType.I64, "tensor2": None, "tensor3": None}, \
-        {"tensor1": (4,), "tensor2": None, "tensor3": None}\
-    )
-    >>> for t in o:
-    ...    t["bytes_data"] = cbor2_loads(bytes(t["bytes_data"]))
-    >>> o
-    [\
-{'info': {'fact': (4,), 'datum_type': <ModelDatumType.I64: 3>, 'node_name': 'tensor1'}, 'bytes_data': [1, 2, 3, 4]}, \
-{'info': {'fact': (4,), 'datum_type': <ModelDatumType.I64: 3>, 'node_name': 'tensor2'}, 'bytes_data': [1, 2, 3, 4]}, \
-{'info': {'fact': torch.Size([4]), 'datum_type': <ModelDatumType.I64: 3>, 'node_name': 'tensor3'}, 'bytes_data': [1, 2, 3, 4]}]
-    """
 
     serialized_tensors = []
 
@@ -489,14 +436,41 @@ class BlindAiConnection(contextlib.AbstractContextManager):
         simulation: bool = False,
         untrusted_port: int = 9923,
         attested_port: int = 9924,
-        debug_mode=False,
     ):
         """
-        certificate: path to untrusted certificate in PEM format
+        Connect to the server with the specified parameters.
+        You will have to specify here the expected policy (server identity, configuration...)
+        and the server TLS certificate, if you are using the hardware mode.
+        If you're using the simulation mode, you don't need to provide a policy and certificate,
+        but please keep in mind that this mode should NEVER be used in production as it doesn't
+        have most of the security provided by the hardware mode.
+        ***Security & confidentiality warnings:***
+           *policy: Defines the rules upon which enclaves are accepted (after quote data verification). Contains the hash of MRENCLAVE which helps identify code and data of an enclave. In the case of leakeage of this file, data & model confidentiality would not be affected as the information just serves as a verification check.
+           For more details, the attestation info is verified against the policy for the quote. In case of a leakage of the information of this file, code and data inside the secure enclave will remain inaccessible.
+           certificate:  The certificate file, which is also generated server side, is used to assigned the claims the policy is checked against. It serves to identify the server for creating a secure channel and begin the attestation process.*
+        Args:
+            addr (str): The address of BlindAI server you want to reach.
+            server_name (str, optional): Contains the CN expected by the server TLS certificate. Defaults to "blindai-srv".
+            policy (Optional[str], optional): Path to the toml file describing the policy of the server.
+                Generated in the server side. Defaults to None.
+                If left to none and if you are in hardware mode, the built-in policy will be used.
+            certificate (Optional[str], optional): Path to the public key of the untrusted inference server.
+                Generated in the server side. Defaults to None.
+                If left to none and if you are in hardware mode, the certificate verification will be disabled
+            simulation (bool, optional): Connect to the server in simulation mode.
+                If set to True, the args policy and certificate will be ignored. Defaults to False.
+            untrusted_port (int, optional): Untrusted connection server port. Defaults to 9923.
+            attested_port (int, optional): Attested connection server port. Defaults to 9924.
+        Raises:
+            AttestationError: Will be raised if the policy doesn't match the server configuration, or if the attestation is invalid.
+            NotAnEnclaveError: Will be raised if the enclave claims are not validated by the hardware provider, meaning that the claims cannot be verified using the hardware root of trust.
+            IdentityError: Will be raised if the enclave code signature hash does not match the signature hash provided in the policy.
+            DebugNotAllowedError: Will be raised if the enclave is in debug mode but the provided policy doesn't allow debug mode.
+            HardwareModeUnsupportedError: will be raised if the server is in simulation mode but an hardware mode attestation was requested from it.
+            ConnectionError: will be raised if the connection with the server fails.
+            VersionError: Will be raised if the version of the server is not supported by the client.
+            FileNotFoundError: will be raised if the policy file, or the certificate file is not found (in Hardware mode).
         """
-        # if debug_mode:  # pragma: no cover
-        #    os.environ["GRPC_TRACE"] = "transport_security,tsi"
-        #    os.environ["GRPC_VERBOSITY"] = "DEBUG"
 
         uname = platform.uname()
 
@@ -614,7 +588,25 @@ class BlindAiConnection(contextlib.AbstractContextManager):
         model_name: Optional[str] = None,
         optimize: bool = True,
     ) -> UploadResponse:
-
+        """
+        Upload an inference model to the server.
+        The provided model needs to be in the Onnx format.
+        ***Security & confidentiality warnings:***
+        *`model`: The model sent on a Onnx format is encrypted in transit via TLS (as all connections). It may be subject to inference Attacks if an adversary is able to query the trained model repeatedly to determine whether or not a particular example is part of the trained dataset model.
+        `sign` : by enabling sign, DCAP attestation is verified by the SGX attestation model. This attestation model relies on Elliptic Curve Digital Signature algorithm (ECDSA).*
+        Args:
+            model (str): Path to Onnx model file.
+            sign (bool, optional): Get signed responses from the server or not. Defaults to False.
+            model_name (Optional[str], optional): Name of the model. By default, the server will assign a random UUID. You can call the model with the name you specify here.
+            optimize (bool): Whether tract (our inference engine) should optimize the model or not. Optimzing should only be turned off when tract wasn't able to optimze the model.
+        Raises:
+            ConnectionError: Will be raised if the client is not connected.
+            FileNotFoundError: Will be raised if the model file is not found.
+            SignatureError: Will be raised if the response signature is invalid.
+            ValueError: Will be raised if the connection is closed.
+        Returns:
+            UploadModelResponse: The response object.
+        """
         if model_name is None:
             model_name = os.path.basename(model)
 
@@ -653,7 +645,26 @@ class BlindAiConnection(contextlib.AbstractContextManager):
         shapes: Optional[Union[List[List[int]], List[int]]] = None,
         sign: bool = False,
     ) -> RunModelResponse:
-
+        """
+        Send data to the server to make a secure inference.
+        The data provided must be in a list, as the tensor will be rebuilt inside the server.
+        ***Security & confidentiality warnings:***
+        *`model_id` : hash of the Onnx model uploaded. the given hash is return via gRPC through the proto files. It's a SHA-256 hash that is generated each time a model is uploaded.
+        `tensors`: protected in transit and protected when running it on the secure enclave. In the case of a compromised OS, the data is isolated and confidential by SGX design.
+        `sign`: by enabling sign, DCAP attestation is enabled to verify the SGX attestation model. This attestation model relies on Elliptic Curve Digital Signature algorithm (ECDSA).*
+        Args:
+            model_id (str): If set, will run a specific model.
+            input_tensors (Union[List[Any], List[List[Any]]))): The input data. It must be an array of numpy, tensors or flat list of the same type datum_type specified in `upload_model`.
+            dtypes (Union[List[ModelDatumType], ModelDatumType], optional): The type of data of the data you want to upload. Only required if you are uploading flat lists, will be ignored if you are uploading numpy or tensors (this info will be extracted directly from the tensors/numpys).
+            shapes (Union[List[List[int]], List[int]], optional): The shape of the data you want to upload. Only required if you are uploading flat lists, will be ignored if you are uploading numpy or tensors (this info will be extracted directly from the tensors/numpys).
+            sign (bool, optional): Get signed responses from the server or not. Defaults to False.
+        Raises:
+            ConnectionError: Will be raised if the client is not connected.
+            SignatureError: Will be raised if the response signature is invalid
+            ValueError: Will be raised if the connection is closed
+        Returns:
+            RunModelResponse: The response object.
+        """
         # Run Model Request and Response
         tensors = translate_tensors(input_tensors, dtypes, shapes)
         run_data = RunModel(model_id=model_id, inputs=tensors, sign=False)
@@ -677,6 +688,18 @@ class BlindAiConnection(contextlib.AbstractContextManager):
         return ret
 
     def delete_model(self, model_id: str):
+        """
+        Delete a model in the inference server.
+        This may be used to free up some memory.
+        If you did not specify that you wanted your model to be saved on the server, please note that the model will only be present in memory, and will disappear when the server close.
+        ***Security & confidentiality warnings:***
+            *model_id : If you are using this on the Mithril Security Cloud, you can only delete models that you uploaded. Otherwise, the deletion of a model does only relies on the `model_id`. It doesn't relies on a session token or anything, hence if the `model_id` is known, it's deletion is possible.*
+        Args:
+            model_id (str): The id of the model to remove.
+        Raises:
+            ConnectionError: Will be raised if the client is not connected or if an error happens during the connection.
+            ValueError: Will be raised if the connection is closed.
+        """
         delete_data = DeleteModel(model_id=model_id)
         bytes_delete_data = cbor2_dumps(delete_data.__dict__)
         r = self.conn.post(f"{self._attested_url}/delete", bytes_delete_data)
