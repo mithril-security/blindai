@@ -70,10 +70,10 @@ class Tensor:
     Tensor class to convert serialized tensors into convenients objects
     """
 
-    info: TensorInfo
+    info: Union[TensorInfo, dict]
     bytes_data: List[int]
 
-    def __init__(self, info: TensorInfo, bytes_data: bytes):
+    def __init__(self, info: Union[TensorInfo, dict], bytes_data: bytes):
         self.info = info
         self.bytes_data = list(bytes_data)
 
@@ -90,7 +90,12 @@ class Tensor:
         return arr
 
     def as_torch(self):
-        """Convert the prediction calculated by the server to a Torch Tensor."""
+        """
+        Convert the prediction calculated by the server to a Torch Tensor.
+        As torch is heavy it's an optional dependency of the project, and is imported only when needed.
+
+        Raises: ImportError if torch isn't installed
+        """
         try:
             import torch
         except ImportError as e:
@@ -106,11 +111,15 @@ class Tensor:
 
     @property
     def shape(self) -> tuple:
-        return tuple(self.info.fact)
+        if isinstance(self.info, TensorInfo):
+            return tuple(self.info.fact)
+        return self.info["fact"]
 
     @property
     def datum_type(self) -> ModelDatumType:
-        return self.info.datum_type
+        if isinstance(self.info, TensorInfo):
+            return self.info.datum_type
+        return self.info["datum_type"]
 
 
 class UploadModel:
@@ -219,6 +228,12 @@ class ClientInfo:
 
 
 def dtype_to_numpy(dtype: ModelDatumType) -> str:
+    """
+    Convert a ModelDatumType to a numpy type
+
+    Raises:
+        ValueError: if numpy doesn't support dtype
+    """
     translation_map = {
         ModelDatumType.F32: "float32",
         ModelDatumType.F64: "float64",
@@ -238,6 +253,12 @@ def dtype_to_numpy(dtype: ModelDatumType) -> str:
 
 
 def dtype_to_torch(dtype: ModelDatumType) -> str:
+    """
+    Convert a ModelDatumType to a torch type
+
+    Raises:
+        ValueError: if torch doesn't dtype
+    """
     # Torch does not support unsigned ints except u8.
     translation_map = {
         ModelDatumType.F32: "float32",
@@ -254,7 +275,13 @@ def dtype_to_torch(dtype: ModelDatumType) -> str:
     return translation_map[dtype]
 
 
-def translate_dtype(dtype):
+def translate_dtype(dtype: Any) -> ModelDatumType:
+    """
+    Convert torch, numpy or litteral types to ModelDatumType
+    Raises:
+        ValueError: if dtype is erroneous or not supported
+    """
+
     if isinstance(dtype, ModelDatumType):
         return dtype
 
@@ -325,15 +352,30 @@ def translate_dtype(dtype):
     )
 
 
-def is_torch_tensor(tensor):
+def is_torch_tensor(tensor) -> bool:
     return type(tensor).__module__ == "torch" and type(tensor).__name__ == "Tensor"
 
 
-def is_numpy_array(tensor):
+def is_numpy_array(tensor) -> bool:
     return type(tensor).__module__ == "numpy" and type(tensor).__name__ == "ndarray"
 
 
-def translate_tensor(tensor, or_dtype, or_shape, name=None):
+def translate_tensor(
+    tensor: Any, or_dtype: ModelDatumType, or_shape: Tuple, name=None
+) -> Tensor:
+    """
+    Put the flat/numpy/torch tensor into a Tensor object
+
+    Args:
+        tensor: flat/numpy/torch tensor
+        or_dtype: ignored if tensor isn't flat. dtype of the tensor.
+        or_shape: ignored if tensor isn't flat. shape of the tensor.
+    Raises:
+        ValueError: if tensor format is not one of flat/numpy/torch
+        ValueError: if tensor's dtype is not supported
+    Returns:
+        Tensor: the serialized tensor
+    """
     if is_torch_tensor(tensor):
         info = TensorInfo(tensor.shape, translate_dtype(tensor.dtype), name)
         iterable = tensor.flatten().tolist()
@@ -358,11 +400,20 @@ def translate_tensor(tensor, or_dtype, or_shape, name=None):
         )
 
     # todo validate tensor content, dtype and shape
-    return Tensor(info.__dict__, list(cbor2_dumps(iterable)))
+    return Tensor(info.__dict__, cbor2_dumps(iterable))
 
 
-def translate_tensors(tensors, dtypes, shapes):
+def translate_tensors(tensors, dtypes, shapes) -> List[dict]:
+    """
+    Put the flat/numpy/torch tensors into a list of Tensor objects
 
+    Args:
+        tensor: list or dict of flat/numpy/torch tensors
+        dtypes: ignored if tensors aren't flat. list or dict of dtypes of the tensors.
+        or_shape: ignored if tensor aren't flat. list or dict of shapes of the tensors.
+    Returns:
+        List[dict]: the serialized tensors as a list of dicts.
+    """
     serialized_tensors = []
 
     # dict of tensors is the safe mean of passing inputs
@@ -462,14 +513,8 @@ class BlindAiConnection(contextlib.AbstractContextManager):
             untrusted_port (int, optional): Untrusted connection server port. Defaults to 9923.
             attested_port (int, optional): Attested connection server port. Defaults to 9924.
         Raises:
-            AttestationError: Will be raised if the policy doesn't match the server configuration, or if the attestation is invalid.
-            NotAnEnclaveError: Will be raised if the enclave claims are not validated by the hardware provider, meaning that the claims cannot be verified using the hardware root of trust.
-            IdentityError: Will be raised if the enclave code signature hash does not match the signature hash provided in the policy.
-            DebugNotAllowedError: Will be raised if the enclave is in debug mode but the provided policy doesn't allow debug mode.
-            HardwareModeUnsupportedError: will be raised if the server is in simulation mode but an hardware mode attestation was requested from it.
-            ConnectionError: will be raised if the connection with the server fails.
-            VersionError: Will be raised if the version of the server is not supported by the client.
-            FileNotFoundError: will be raised if the policy file, or the certificate file is not found (in Hardware mode).
+            HttpError: raised by the requests lib to relay server side errors
+            ValueError: raised when inputs sanity checks fail
         """
 
         uname = platform.uname()
@@ -486,7 +531,7 @@ class BlindAiConnection(contextlib.AbstractContextManager):
             user_agent_version=app_version,
         )
 
-        self.connect_server(
+        self._connect_server(
             addr,
             server_name,
             # policy,
@@ -496,7 +541,7 @@ class BlindAiConnection(contextlib.AbstractContextManager):
             attested_port,
         )
 
-    def connect_server(
+    def _connect_server(
         self,
         addr: str,
         server_name,
@@ -600,12 +645,10 @@ class BlindAiConnection(contextlib.AbstractContextManager):
             model_name (Optional[str], optional): Name of the model. By default, the server will assign a random UUID. You can call the model with the name you specify here.
             optimize (bool): Whether tract (our inference engine) should optimize the model or not. Optimzing should only be turned off when tract wasn't able to optimze the model.
         Raises:
-            ConnectionError: Will be raised if the client is not connected.
-            FileNotFoundError: Will be raised if the model file is not found.
-            SignatureError: Will be raised if the response signature is invalid.
-            ValueError: Will be raised if the connection is closed.
+            HttpError: raised by the requests lib to relay server side errors
+            ValueError: raised when inputs sanity checks fail
         Returns:
-            UploadModelResponse: The response object.
+            UploadResponse: The response object.
         """
         if model_name is None:
             model_name = os.path.basename(model)
@@ -659,9 +702,8 @@ class BlindAiConnection(contextlib.AbstractContextManager):
             shapes (Union[List[List[int]], List[int]], optional): The shape of the data you want to upload. Only required if you are uploading flat lists, will be ignored if you are uploading numpy or tensors (this info will be extracted directly from the tensors/numpys).
             sign (bool, optional): Get signed responses from the server or not. Defaults to False.
         Raises:
-            ConnectionError: Will be raised if the client is not connected.
-            SignatureError: Will be raised if the response signature is invalid
-            ValueError: Will be raised if the connection is closed
+            HttpError: raised by the requests lib to relay server side errors
+            ValueError: raised when inputs sanity checks fail
         Returns:
             RunModelResponse: The response object.
         """
@@ -697,8 +739,8 @@ class BlindAiConnection(contextlib.AbstractContextManager):
         Args:
             model_id (str): The id of the model to remove.
         Raises:
-            ConnectionError: Will be raised if the client is not connected or if an error happens during the connection.
-            ValueError: Will be raised if the connection is closed.
+            HttpError: raised by the requests lib to relay server side errors
+            ValueError: raised when inputs sanity checks fail
         """
         delete_data = DeleteModel(model_id=model_id)
         bytes_delete_data = cbor2_dumps(delete_data.__dict__)

@@ -74,8 +74,6 @@ nav:
 - 'Security':
   - 'docs/advanced/security/remote_attestation.md'
   - 'docs/advanced/security/threat_model.md'
-- 'Client API reference': 'client/client.html'
-- 'docs/telemetry.md'
 - 'Client API reference': 'blindai_preview/client.html'
 
 # - 'Integrating AI models from other frameworks':
