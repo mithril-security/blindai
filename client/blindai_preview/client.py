@@ -600,13 +600,9 @@ class BlindAiConnection(contextlib.AbstractContextManager):
             s.verify = certificate
         s.mount(self._untrusted_url, CustomHostNameCheckingAdapter())
 
-        retrieved_cert = s.get(self._untrusted_url).text
-        retrieved_quote = s.get(f"{self._untrusted_url}/quote").content
-        retrieved_collateral = s.get(f"{self._untrusted_url}/collateral").json()
-        retrieve_enclave_held_data = s.get(
-            f"{self._untrusted_url}/enclave-held-data"
-        ).content
-        hashed_enclave_held_data = hashlib.sha256(retrieve_enclave_held_data).digest()
+        cert = cbor2_loads(s.get(self._untrusted_url).content)
+        quote = cbor2_loads(s.get(f"{self._untrusted_url}/quote").content)
+        collateral = cbor2_loads(s.get(f"{self._untrusted_url}/collateral").content)
 
         # TODO: need to integrate the verification of the attestation
 
@@ -632,8 +628,9 @@ class BlindAiConnection(contextlib.AbstractContextManager):
         # there is no easy way to give the CA as a string/bytes directly
         # therefore a temporary file with the certificate content
         # has to be created.
+
         trusted_server_cert_file = tempfile.NamedTemporaryFile(mode="w")
-        trusted_server_cert_file.write(retrieve_enclave_held_data.decode("utf-8"))
+        trusted_server_cert_file.write(cert)
         trusted_server_cert_file.flush()
         # the file should not be close until the end of BlindAiConnection
         # so we store it in the object (else it might get garbage collected)

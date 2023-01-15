@@ -16,75 +16,6 @@ use std::{
 };
 use x509_parser::{oid_registry::Oid, prelude::FromDer, prelude::X509Certificate};
 
-#[derive(Debug)]
-pub struct VerificationContext {
-    pub quote_slice: Vec<u8>,
-    pub fmspc: [u8; 6],
-    pub ca_from_quote: CString,
-    pub pck_certificate: String,
-    pub pck_signing_chain: String,
-}
-
-#[derive(Debug)]
-pub enum VerificationError {
-    IO(std::io::Error),
-    Serialization(std::boxed::Box<bincode::ErrorKind>),
-    IntegrityError,
-    SigstructMismatched,
-    EnclaveInDebugMode,
-    EnclaveNotTrusted,
-}
-
-impl From<anyhow::Error> for VerificationError {
-    fn from(err: anyhow::Error) -> Self {
-        err.into()
-    }
-}
-
-impl std::convert::From<std::io::Error> for VerificationError {
-    fn from(e: std::io::Error) -> Self {
-        Self::IO(e)
-    }
-}
-
-impl std::convert::From<std::boxed::Box<bincode::ErrorKind>> for VerificationError {
-    fn from(e: std::boxed::Box<bincode::ErrorKind>) -> Self {
-        Self::Serialization(e)
-    }
-}
-impl std::fmt::Display for VerificationError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> Result<(), std::fmt::Error> {
-        write!(f, "{self:?}")
-    }
-}
-impl std::error::Error for VerificationError {}
-
-pub type VerificationResult<T> = Result<T, VerificationError>;
-
-impl VerificationContext {
-    pub fn init(quote: &[u8]) -> VerificationResult<Self> {
-        let (fmspc, ca_from_quote, pck_certificate, pck_signing_chain) =
-            get_fmspc_ca_from_quote(quote)?;
-        Ok(Self {
-            quote_slice: quote.to_vec(),
-            fmspc,
-            ca_from_quote,
-            pck_certificate,
-            pck_signing_chain,
-        })
-    }
-
-    // l'erreur du result doit être modifiée sur Quote3Error
-    pub fn get_quote_verification_collateral(
-        &self,
-    ) -> Result<SgxQlQveCollateral, VerificationError> {
-        Ok(sgx_get_quote_verification_collateral(
-            &self.fmspc,
-            &self.ca_from_quote,
-        )?)
-    }
-}
-
 /// Get SGX ECDSA attestation collateral from an SGX quote
 ///
 /// The verification collateral is the data required needed by the client to
@@ -96,8 +27,9 @@ impl VerificationContext {
 /// * The signing cert chain for the QEIdentity structure
 /// * The TCBInfo structure
 /// * The QEIdentity structure
-pub fn get_collateral_from_quote(quote: &[u8]) -> Result<SgxCollateral> {
-    let verificationcontext = VerificationContext::init(quote)?;
+pub fn get_quote_verification_collateral(quote: &[u8]) -> Result<SgxCollateral> {
+    let (fmspc, ca_from_quote, pck_certificate, pck_signing_chain) =
+        get_fmspc_ca_from_quote(quote)?;
 
     let SgxQlQveCollateral {
         version,
@@ -108,7 +40,8 @@ pub fn get_collateral_from_quote(quote: &[u8]) -> Result<SgxCollateral> {
         tcb_info,
         qe_identity_issuer_chain,
         qe_identity,
-    } = verificationcontext.get_quote_verification_collateral()?;
+    } = sgx_get_quote_verification_collateral(&fmspc, &ca_from_quote)?;
+
     Ok(SgxCollateral {
         version,
         pck_crl_issuer_chain,
@@ -118,8 +51,8 @@ pub fn get_collateral_from_quote(quote: &[u8]) -> Result<SgxCollateral> {
         tcb_info,
         qe_identity_issuer_chain,
         qe_identity,
-        pck_certificate: verificationcontext.pck_certificate,
-        pck_signing_chain: verificationcontext.pck_signing_chain,
+        pck_certificate: pck_certificate,
+        pck_signing_chain: pck_signing_chain,
     })
 }
 
@@ -239,7 +172,7 @@ fn parse_sgx_extension(i: &[u8]) -> BerResult<Option<SgxExtension>> {
             Some(SgxExtension::Fmspc(
                 fmspc
                     .try_into()
-                    .map_err(|_| BerError::Custom(FMSPC_PARSING_ERROR))?,
+                    .map_err(|_| BerError::BerValueError)?,
             ))
         } else {
             None
@@ -263,7 +196,7 @@ pub struct SgxCollateral {
     pub pck_signing_chain: String,     // PCK signing chain in PEM format
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct SgxQlQveCollateral {
     pub version: u32,                  // version = 1.  PCK Cert chain is in the Quote.
     pub pck_crl_issuer_chain: String,  // PCK CRL Issuer Chain in PEM format
@@ -420,8 +353,12 @@ pub fn get_fmspc_ca_from_quote(quote: &[u8]) -> Result<([u8; 6], CString, String
 
     //transforming the certification into pems
     let cert_chain_data = certification_data.unwrap();
-    let cert_chain : Vec<String> = cert_chain_data.certs.iter().map(|c| c.to_string()).collect();
-    
+    let cert_chain: Vec<String> = cert_chain_data
+        .certs
+        .iter()
+        .map(|c| c.to_string())
+        .collect();
+
     ensure!(
         cert_chain.len() == 3,
         "Wrong number of certificates in the CertChain"
