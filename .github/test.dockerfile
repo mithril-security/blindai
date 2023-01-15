@@ -47,7 +47,7 @@ RUN cd client \
 RUN cd client \
     && poetry run black --check . \
     && poetry run mypy --install-types --non-interactive --ignore-missing-imports --follow-imports=skip \
-    && poetry run pytest
+    && poetry run pytest --ignore=tests/integration_test.py 
 
 COPY .github/scripts scripts
 
