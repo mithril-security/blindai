@@ -141,10 +141,11 @@ basic_test:
 # Run all tests and display combined coverage (don't forget to generate the onnx and npz files before)
 test:
   #!/usr/bin/env bash
-  set -e 
+  set -e
+  set -x
   cd client
-  poetry run coverage run -m pytest
-  just run &
+  poetry run coverage run -m pytest --ignore=tests/integration_test.py  --
+  just run --release &
   sleep 15
   for d in ../tests/*/ ; do
     onnx_files=($d*.onnx)

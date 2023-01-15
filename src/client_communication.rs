@@ -65,6 +65,7 @@ struct UploadModel {
 
 #[derive(Serialize)]
 pub(crate) struct SendModelReply {
+    #[serde(with = "serde_bytes")]
     hash: Vec<u8>,
     model_id: String,
 }

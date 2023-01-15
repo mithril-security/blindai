@@ -29,6 +29,7 @@ use log::debug;
 use env_logger::Env;
 use ring::digest;
 use serde::{Deserialize, Serialize};
+use serde_bytes::Bytes;
 use sgx_isa::{Report, Targetinfo};
 
 #[derive(Serialize)]
@@ -111,14 +112,12 @@ fn main() -> Result<()> {
 
     // Enclave held data hash
     let report_binding = digest::digest(&digest::SHA256, enclave_cert_pem.as_bytes());
-    let report_data_slice: &[u8] = report_binding.as_ref();
-    let mut report_data: Vec<u8> = vec![0; 32];
-    report_data.extend_from_slice(report_data_slice);
-    let reportdata: [u8; 64] = report_data.try_into().unwrap();
+    let mut report_data = [0u8; 64];
+    report_data[0..32].copy_from_slice(report_binding.as_ref());
 
     let target_info = get_target_info()?;
     debug!("target info = {:?} ", &target_info);
-    let report = Report::for_target(&target_info, &reportdata);
+    let report = Report::for_target(&target_info, &report_data);
 
     let quote = get_quote(report)?;
     debug!("Attestation : Quote is {:?} ", &quote);
@@ -135,7 +134,7 @@ fn main() -> Result<()> {
                     respond(enclave_cert_pem.as_ref())                },
                 (GET)(/quote) => {
                     debug!("Attestation : Sending quote to client.");
-                    respond(&quote)
+                    respond(Bytes::new(&quote))
                 },
                 (GET)(/collateral) => {
                     debug!("Attestation : Sending collateral to client.");

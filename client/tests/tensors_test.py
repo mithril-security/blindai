@@ -23,7 +23,7 @@ def testTensorDeserialization():
 def testTensorSerialization():
     tensor1 = [1, 2, 3, 4]
     o = translate_tensors(tensor1, ModelDatumType.I64, (4,))
-    assert tensor1 == cbor2_loads(bytes(o[0]["bytes_data"]))
+    assert tensor1 == cbor.loads(bytes(o[0]["bytes_data"]))
     assert o[0]["info"] == {
         "fact": (4,),
         "datum_type": ModelDatumType.I64,
@@ -34,7 +34,7 @@ def testTensorSerialization():
 
     tensor2 = numpy.array([1, 2, 3, 4])
     o = translate_tensors(tensor2, None, None)
-    assert tensor2.tolist() == cbor2_loads(bytes(o[0]["bytes_data"])), o[0]["info"]
+    assert tensor2.tolist() == cbor.loads(bytes(o[0]["bytes_data"])), o[0]["info"]
     assert o[0]["info"] == {
         "fact": (4,),
         "datum_type": ModelDatumType.I64,
@@ -45,7 +45,7 @@ def testTensorSerialization():
 
     tensor3 = torch.tensor([1, 2, 3, 4])
     o = translate_tensors(tensor3, None, None)
-    assert tensor3.tolist() == cbor2_loads(bytes(o[0]["bytes_data"])), o[0]["info"]
+    assert tensor3.tolist() == cbor.loads(bytes(o[0]["bytes_data"])), o[0]["info"]
     assert o[0]["info"] == {
         "fact": torch.Size([4]),
         "datum_type": ModelDatumType.I64,
@@ -58,7 +58,7 @@ def testTensorSerialization():
         [(4,), None, None],
     )
     for t in o:
-        t["bytes_data"] = cbor2_loads(bytes(t["bytes_data"]))
+        t["bytes_data"] = cbor.loads(bytes(t["bytes_data"]))
     assert o == [
         {
             "info": {"fact": (4,), "datum_type": ModelDatumType.I64, "node_name": None},
@@ -84,7 +84,7 @@ def testTensorSerialization():
         {"tensor1": (4,), "tensor2": None, "tensor3": None},
     )
     for t in o:
-        t["bytes_data"] = cbor2_loads(bytes(t["bytes_data"]))
+        t["bytes_data"] = cbor.loads(bytes(t["bytes_data"]))
     assert o == [
         {
             "info": {

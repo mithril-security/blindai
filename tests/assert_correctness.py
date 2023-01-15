@@ -14,7 +14,7 @@ inputs = dict(np.load(inputs_path))
 #blindai code
 client_v2 = connect(addr="localhost", simulation=True)
 response = client_v2.upload_model(model=model_path)
-run_response = client_v2.run_model(model_id=response.model_id, input_tensors=inputs, sign=False)
+run_response = client_v2.run_model(model_id=response.model_id, input_tensors=inputs)
 client_v2.delete_model(model_id = response.model_id)
 
 #ort code
