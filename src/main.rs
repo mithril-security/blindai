@@ -31,7 +31,6 @@ use ring::digest;
 use serde::{Deserialize, Serialize};
 use sgx_isa::{Report, Targetinfo};
 
-
 #[derive(Serialize)]
 struct GetQuoteRequest {
     enclave_report: Report,
@@ -61,7 +60,7 @@ const RUNNER_ADDRESS: &str = "http://127.0.0.1:11000";
 
 fn get_target_info() -> Result<Targetinfo> {
     Ok(ureq::post(&format!("{RUNNER_ADDRESS}/get_target_info"))
-        .send_string(&"")?
+        .call()?
         .into_json()?)
 }
 
@@ -111,7 +110,7 @@ fn main() -> Result<()> {
     // Connecting to the runner
 
     // Enclave held data hash
-    let report_binding =  digest::digest(&digest::SHA256, enclave_cert_pem.as_bytes());
+    let report_binding = digest::digest(&digest::SHA256, enclave_cert_pem.as_bytes());
     let report_data_slice: &[u8] = report_binding.as_ref();
     let mut report_data: Vec<u8> = vec![0; 32];
     report_data.extend_from_slice(report_data_slice);
@@ -128,26 +127,26 @@ fn main() -> Result<()> {
     debug!("Attestation : Collateral is {:?} ", collateral);
 
     let router = {
-        let enclave_cert_pem = enclave_cert_pem.clone();
+        let enclave_cert_pem = Arc::clone(&enclave_cert_pem);
         move |request: &rouille::Request| {
-        rouille::router!(request,
-            (GET)(/) => {
-                debug!("Requested enclave TLS certificate");
-                respond(enclave_cert_pem.as_ref())                },
-            (GET)(/quote) => {
-                debug!("Attestation : Sending quote to client.");
-                respond(&quote)
-            },
-            (GET)(/collateral) => {
-                debug!("Attestation : Sending collateral to client.");
-                respond(&collateral)
-            },
-            _ => {
-                rouille::Response::empty_404()
-            },
-        )
-    }
-};
+            rouille::router!(request,
+                (GET)(/) => {
+                    debug!("Requested enclave TLS certificate");
+                    respond(enclave_cert_pem.as_ref())                },
+                (GET)(/quote) => {
+                    debug!("Attestation : Sending quote to client.");
+                    respond(&quote)
+                },
+                (GET)(/collateral) => {
+                    debug!("Attestation : Sending collateral to client.");
+                    respond(&collateral)
+                },
+                _ => {
+                    rouille::Response::empty_404()
+                },
+            )
+        }
+    };
 
     let untrusted_server = rouille::Server::new_ssl(
         "0.0.0.0:9923",
@@ -178,20 +177,22 @@ fn main() -> Result<()> {
             },
 
             _ => rouille::Response::empty_404()
-        )};
-    thread::spawn({
-        let enclave_cert_pem = enclave_cert_pem.clone();
-        move || {
-        let trusted_server = rouille::Server::new_ssl(
-            "0.0.0.0:9924",
-            router,
-            enclave_cert_pem.as_bytes().to_vec(),
-            enclave_private_key_pem.into_bytes(),
         )
-        .expect("Failed to start trusted server");
-        let (_trusted_handle, _trusted_sender) = trusted_server.stoppable();
-        _trusted_handle.join().unwrap();
-    }});
+    };
+    thread::spawn({
+        let enclave_cert_pem = Arc::clone(&enclave_cert_pem);
+        move || {
+            let trusted_server = rouille::Server::new_ssl(
+                "0.0.0.0:9924",
+                router,
+                enclave_cert_pem.as_bytes().to_vec(),
+                enclave_private_key_pem.into_bytes(),
+            )
+            .expect("Failed to start trusted server");
+            let (_trusted_handle, _trusted_sender) = trusted_server.stoppable();
+            _trusted_handle.join().unwrap();
+        }
+    });
     println!("Now listening on port 9923 and 9924");
     _untrusted_handle.join().unwrap();
 

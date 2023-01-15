@@ -63,28 +63,19 @@ struct UploadModel {
     optimize: bool,
 }
 
-
 #[derive(Serialize)]
 pub(crate) struct SendModelReply {
     hash: Vec<u8>,
     model_id: String,
 }
 
-
-
 #[derive(Default, Serialize)]
 pub(crate) struct RunModelReply {
     outputs: Vec<SerializedTensor>,
 }
 
-
-
 impl Exchanger {
-    pub fn new(
-        model_store: Arc<ModelStore>,
-        max_model_size: usize,
-        max_input_size: usize,
-    ) -> Self {
+    pub fn new(model_store: Arc<ModelStore>, max_model_size: usize, max_input_size: usize) -> Self {
         Self {
             model_store,
             max_model_size,
@@ -130,9 +121,10 @@ impl Exchanger {
         )?;
 
         // Construct the return payload
-        Ok(SendModelReply { 
-             hash: model_hash.as_ref().to_vec(),
-             model_id: model_id.to_string() })
+        Ok(SendModelReply {
+            hash: model_hash.as_ref().to_vec(),
+            model_id: model_id.to_string(),
+        })
     }
 
     pub fn run_model(&self, request: &rouille::Request) -> Result<RunModelReply, Error> {
@@ -187,9 +179,7 @@ impl Exchanger {
             }
         };
 
-        Ok(RunModelReply {
-            outputs,
-        })
+        Ok(RunModelReply { outputs })
     }
 
     pub fn delete_model(&self, request: &rouille::Request) -> Result<()> {
