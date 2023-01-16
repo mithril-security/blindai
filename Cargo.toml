@@ -8,27 +8,27 @@ edition = "2021"
 [dependencies]
 anyhow = "1.0.66"
 bytes = "1.2.1"
-der-parser = "8.1.0"
-env_logger = {version = "0.9.3", default-features = false}
-hex = "0.4.3"
+env_logger = {version = "0.10.0", default-features = false}
 log = {version = "0.4.17", features = ["release_max_level_trace"]}
 num-derive = "0.3.3"
 num-traits = "0.2.15"
 rand = "0.8.5"
 rcgen = {version = "0.10.0", default-features = false, features=["pem"]}
 ring = "0.16.20"
-ring-compat = "0.4.1"
-rsa = "0.6.1"
+digest = "0.10.6"
 serde = "1.0.147"
 serde_cbor = "0.11.2"
+serde_json = "1.0.91"
 serde_derive = "1.0.147"
 uuid = {version="1.2.1", features=["v4", "serde"]}
 tract-core = {path="tract/core"} #{version = "0.17.2-pre", features=["untrusted_fs"]}
 tract-onnx = {path="tract/onnx"} #{version = "0.17.2-pre", features=["untrusted_fs"]}
 tract-hir = {path="tract/hir"}  #{version = "0.17.2-pre"}
-x509-parser = "0.14.0"
-# enable TLS support via rustls
+# ssl feature is patched to enable TLS support via rustls
 rouille = { git = "https://github.com/mithril-security/rouille-sgx.git", features = ["ssl"] }
+sgx-isa = { version = "0.4.0", features = ["serde"] }
+ureq = {version = "2.5.0", features = ["json"]}
+serde_bytes = "0.11.8"
 
 [dev-dependencies]
 lazy_static = "1.4.0"

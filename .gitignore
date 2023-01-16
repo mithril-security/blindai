@@ -189,3 +189,9 @@ cython_debug/
 #  and can be added to the global gitignore or merged into this file.  For a more nuclear
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
+
+## Specific to BlindAI
+
+# Policy after they have been processed by the template engine : 
+policy.dev.toml
+policy.prod.toml

@@ -1,0 +1,12 @@
+{
+    "rust-analyzer.linkedProjects": [
+        "runner/Cargo.toml",
+        "Cargo.toml"
+    ],
+    "python.testing.pytestArgs": [
+        "client"
+    ],
+    "python.testing.unittestEnabled": false,
+    "python.testing.pytestEnabled": true,
+    "python.analysis.typeCheckingMode": "basic",
+}

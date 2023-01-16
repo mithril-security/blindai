@@ -12,13 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use crate::identity::MyIdentity;
 use crate::model::ModelDatumType;
 use crate::model_store::ModelStore;
 use anyhow::{Error, Result};
-use log::error;
-use ring::digest;
-use ring_compat::signature::Signer;
+use log::{error, info};
 use serde_derive::{Deserialize, Serialize};
 use std::io::Read;
 use std::mem::size_of;
@@ -43,7 +40,6 @@ pub struct SerializedTensor {
 #[derive(Clone)]
 pub(crate) struct Exchanger {
     model_store: Arc<ModelStore>,
-    identity: Arc<MyIdentity>,
     max_model_size: usize,
     max_input_size: usize,
 }
@@ -54,55 +50,34 @@ struct DeleteModel {
 }
 
 #[derive(Deserialize)]
-pub struct RunModel {
+pub(crate) struct RunModel {
     model_id: String,
     pub inputs: Vec<SerializedTensor>,
-    sign: bool,
 }
 
 #[derive(Deserialize)]
 struct UploadModel {
     model: Vec<u8>,
     length: u64,
-    sign: bool,
     model_name: String,
     optimize: bool,
 }
 
-#[derive(Default, Serialize)]
-struct SendModelPayload {
+#[derive(Serialize)]
+pub(crate) struct SendModelReply {
+    #[serde(with = "serde_bytes")]
     hash: Vec<u8>,
     model_id: String,
 }
 
 #[derive(Default, Serialize)]
-pub struct SendModelReply {
-    payload: Vec<u8>, //sendModelPayload,
-    signature: Vec<u8>,
-}
-
-#[derive(Default, Serialize)]
-struct RunModelPayload {
+pub(crate) struct RunModelReply {
     outputs: Vec<SerializedTensor>,
-    input_hash: Vec<u8>,
-    model_id: String,
-}
-
-#[derive(Default, Serialize)]
-pub struct RunModelReply {
-    payload: Vec<u8>, //runModelPayload,
-    signature: Vec<u8>,
 }
 
 impl Exchanger {
-    pub fn new(
-        model_store: Arc<ModelStore>,
-        identity: Arc<MyIdentity>,
-        max_model_size: usize,
-        max_input_size: usize,
-    ) -> Self {
+    pub fn new(model_store: Arc<ModelStore>, max_model_size: usize, max_input_size: usize) -> Self {
         Self {
-            identity,
             model_store,
             max_model_size,
             max_input_size,
@@ -147,35 +122,14 @@ impl Exchanger {
         )?;
 
         // Construct the return payload
-
-        let mut payload = SendModelPayload::default();
-        if upload_model_body.sign {
-            payload.hash = model_hash.as_ref().to_vec();
-        }
-        payload.model_id = model_id.to_string();
-
-        let mut reply = SendModelReply {
-            payload: serde_cbor::to_vec(&payload)?,
-            ..Default::default()
-        };
-
-        if upload_model_body.sign {
-            reply.signature = self
-                .identity
-                .signing_key
-                .sign(&reply.payload)
-                .to_bytes()
-                .to_vec();
-        }
-
-        Ok(reply)
+        Ok(SendModelReply {
+            hash: model_hash.as_ref().to_vec(),
+            model_id: model_id.to_string(),
+        })
     }
 
     pub fn run_model(&self, request: &rouille::Request) -> Result<RunModelReply, Error> {
-        let input: Vec<u8> = Vec::new();
-        let sign = false;
         let max_input_size = self.max_input_size;
-        let model_id = "".to_string();
 
         let mut data_stream = request.data().expect("Could not get the input");
         let mut data: Vec<u8> = vec![];
@@ -192,7 +146,7 @@ impl Exchanger {
         let uuid = match Uuid::from_str(&run_model_body.model_id) {
             Ok(uuid) => uuid,
             Err(_) => {
-                println!("Error in uuid");
+                info!("Error in uuid");
                 return Err(Error::msg("Model doesn't exist".to_string()));
             }
         };
@@ -222,36 +176,11 @@ impl Exchanger {
             Ok(res) => res,
             Err(err) => {
                 error!("Error while running inference: {}", err);
-                println!("Error in result");
                 return Err(Error::msg("Unknown error".to_string()));
             }
         };
 
-        let mut payload = RunModelPayload {
-            outputs,
-            ..Default::default()
-        };
-
-        if run_model_body.sign {
-            payload.input_hash = digest::digest(&digest::SHA256, &input).as_ref().to_vec();
-            payload.model_id = model_id;
-        }
-
-        let mut reply = RunModelReply {
-            payload: serde_cbor::to_vec(&payload)?,
-            ..Default::default()
-        };
-
-        if sign {
-            reply.signature = self
-                .identity
-                .signing_key
-                .sign(&reply.payload)
-                .to_bytes()
-                .to_vec();
-        }
-
-        Ok(reply)
+        Ok(RunModelReply { outputs })
     }
 
     pub fn delete_model(&self, request: &rouille::Request) -> Result<()> {
@@ -282,14 +211,14 @@ impl Exchanger {
     ) -> rouille::Response {
         match reply {
             Ok(reply) => rouille::Response::from_data(
-                "application/octet-stream",
+                "application/cbor",
                 serde_cbor::to_vec(&reply).unwrap(),
             ),
             Err(e) => rouille::Response::from_data(
-                "application/octet-stream",
+                "application/cbor",
                 serde_cbor::to_vec(&format!("{:?}", &e)).unwrap(),
             )
-            .with_status_code(400),
+            .with_status_code(500),
         }
     }
 }

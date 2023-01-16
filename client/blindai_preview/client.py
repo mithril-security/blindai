@@ -12,21 +12,26 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+
+from ._dcap_attestation import validate_attestation
+from .utils import *
+
+from dataclasses import dataclass
 from enum import IntEnum
 from typing import Any, Dict, List, Optional, Tuple, Union
-from cbor2 import dumps as cbor2_dumps
-from cbor2 import loads as cbor2_loads
+
 import os
 import contextlib
-import ssl, socket
-import platform
-from .utils import *
+import socket
+
+import cbor2 as cbor
+
 from hashlib import sha256
+import platform
 import getpass
 import logging
 import tempfile
 import requests
-import cryptography
 from requests.adapters import HTTPAdapter
 from importlib_metadata import version
 
@@ -79,7 +84,7 @@ class Tensor:
 
     def as_flat(self) -> list:
         """Convert the prediction calculated by the server to a flat python list."""
-        return cbor2_loads(bytes(self.bytes_data))
+        return cbor.loads(bytes(self.bytes_data))
 
     def as_numpy(self):
         """Convert the prediction calculated by the server to a numpy array."""
@@ -122,32 +127,31 @@ class Tensor:
         return self.info["datum_type"]
 
 
+@dataclass
 class UploadModel:
     model: List[int]
     length: int
-    sign: bool
     model_name: str
     optimize: bool
 
-    def __init__(self, model, length, sign=False, model_name="", optimize=True):
+    def __init__(self, model, length, model_name="", optimize=True):
         self.model = model
         self.length = length
-        self.sign = sign
         self.model_name = model_name
         self.optimize = optimize
 
 
+@dataclass
 class RunModel:
     model_id: str
     inputs: List[Tensor]
-    sign: bool
 
-    def __init__(self, model_id, inputs, sign):
+    def __init__(self, model_id, inputs):
         self.model_id = model_id
         self.inputs = inputs
-        self.sign = sign
 
 
+@dataclass
 class DeleteModel:
     model_id: str
 
@@ -155,48 +159,31 @@ class DeleteModel:
         self.model_id = model_id
 
 
-class SendModelPayload:
-    hash: List[int]
-    inputfact: List[int]
-    model_id: str
-
-    def __init__(self, **entries):
-        self.__dict__.update(entries)
-
-
+@dataclass
 class SendModelReply:
-    payload: SendModelPayload
-    signature: List[int]
-
-
-class RunModelPayload:
-    outputs: List[Tensor]
-    datum_output: List[int]
-    input_hash: List[int]
+    hash: bytes
     model_id: str
 
     def __init__(self, **entries):
         self.__dict__.update(entries)
 
 
+@dataclass
 class RunModelReply:
-    payload: RunModelPayload
-    signature: List[int]
+    outputs: List[Any]
+
+    def __init__(self, **entries):
+        self.__dict__.update(entries)
 
 
-class SignedResponse:
-    payload: Optional[bytes] = None
-    signature: Optional[bytes] = None
-    # attestation: Optional[GetSgxQuoteWithCollateralReply] = None
-
-
-class UploadResponse(SignedResponse):
+@dataclass
+class UploadResponse:
     model_id: str
 
 
-class RunModelResponse(SignedResponse):
+@dataclass
+class RunModelResponse:
     output: List[Tensor]
-    model_id: str
 
 
 class ClientInfo:
@@ -400,7 +387,7 @@ def translate_tensor(
         )
 
     # todo validate tensor content, dtype and shape
-    return Tensor(info.__dict__, cbor2_dumps(iterable))
+    return Tensor(info.__dict__, cbor.dumps(iterable))
 
 
 def translate_tensors(tensors, dtypes, shapes) -> List[dict]:
@@ -466,17 +453,9 @@ def translate_tensors(tensors, dtypes, shapes) -> List[dict]:
 
 class BlindAiConnection(contextlib.AbstractContextManager):
     conn: requests.Session
-    # policy: Optional[Policy] = None
-    # _stub: Optional[ExchangeStub] = None
-    enclave_signing_key: Optional[bytes] = None
-    simulation_mode: bool = False
+
+    _disable_attestation_checks: bool = False
     _disable_untrusted_server_cert_check: bool = False
-    # attestation: Optional[GetSgxQuoteWithCollateralReply] = None
-    server_version: Optional[str] = None
-    # client_info: ClientInfo
-    tensor_inputs: Optional[List[List[Any]]]
-    tensor_outputs: Optional[List[ModelDatumType]]
-    closed: bool = False
 
     def __init__(
         self,
@@ -578,6 +557,9 @@ class BlindAiConnection(contextlib.AbstractContextManager):
                 )
 
         s = requests.Session()
+        # Always raise an exception when HTTP returns an error code for the untrusted connection
+        # Note : we might want to do the same for the attested connection ?
+        s.hooks = {"response": lambda r, *args, **kwargs: r.raise_for_status()}
         if self._disable_untrusted_server_cert_check:
             logging.warning("Untrusted server certificate check bypassed")
             s.verify = False
@@ -596,22 +578,19 @@ class BlindAiConnection(contextlib.AbstractContextManager):
             s.verify = certificate
         s.mount(self._untrusted_url, CustomHostNameCheckingAdapter())
 
-        retrieved_cert = s.get(self._untrusted_url).text
-        trusted_server_cert = ssl.get_server_certificate((addr, attested_port))
+        cert = cbor.loads(s.get(self._untrusted_url).content)
+        quote = cbor.loads(s.get(f"{self._untrusted_url}/quote").content)
+        collateral = cbor.loads(s.get(f"{self._untrusted_url}/collateral").content)
 
-        # both certificates should match (up to the PEM encoding which might slightly differ)
-        assert cryptography.x509.load_pem_x509_certificate(
-            bytes(retrieved_cert, encoding="ascii")
-        ) == cryptography.x509.load_pem_x509_certificate(
-            bytes(trusted_server_cert, encoding="ascii")
-        )
+        validate_attestation(quote, collateral, cert.encode("ascii"))
 
         # requests (http library) takes a path to a file containing the CA
         # there is no easy way to give the CA as a string/bytes directly
         # therefore a temporary file with the certificate content
         # has to be created.
+
         trusted_server_cert_file = tempfile.NamedTemporaryFile(mode="w")
-        trusted_server_cert_file.write(retrieved_cert)
+        trusted_server_cert_file.write(cert)
         trusted_server_cert_file.flush()
         # the file should not be close until the end of BlindAiConnection
         # so we store it in the object (else it might get garbage collected)
@@ -629,7 +608,6 @@ class BlindAiConnection(contextlib.AbstractContextManager):
     def upload_model(
         self,
         model: str,
-        sign: bool = False,
         model_name: Optional[str] = None,
         optimize: bool = True,
     ) -> UploadResponse:
@@ -638,10 +616,8 @@ class BlindAiConnection(contextlib.AbstractContextManager):
         The provided model needs to be in the Onnx format.
         ***Security & confidentiality warnings:***
         *`model`: The model sent on a Onnx format is encrypted in transit via TLS (as all connections). It may be subject to inference Attacks if an adversary is able to query the trained model repeatedly to determine whether or not a particular example is part of the trained dataset model.
-        `sign` : by enabling sign, DCAP attestation is verified by the SGX attestation model. This attestation model relies on Elliptic Curve Digital Signature algorithm (ECDSA).*
         Args:
             model (str): Path to Onnx model file.
-            sign (bool, optional): Get signed responses from the server or not. Defaults to False.
             model_name (Optional[str], optional): Name of the model. By default, the server will assign a random UUID. You can call the model with the name you specify here.
             optimize (bool): Whether tract (our inference engine) should optimize the model or not. Optimzing should only be turned off when tract wasn't able to optimze the model.
         Raises:
@@ -661,23 +637,14 @@ class BlindAiConnection(contextlib.AbstractContextManager):
         data = UploadModel(
             model=list(model_bytes),
             length=length,
-            sign=False,
             model_name=model_name,
             optimize=optimize,
         )
-        bytes_data = cbor2_dumps(data.__dict__)
+        bytes_data = cbor.dumps(data.__dict__)
         r = self.conn.post(f"{self._attested_url}/upload", data=bytes_data)
         r.raise_for_status()
-        send_model_reply = cbor2_loads(r.content)
-        payload = cbor2_loads(bytes(send_model_reply["payload"]))
-        payload = SendModelPayload(**payload)
-        ret = UploadResponse()
-        ret.model_id = payload.model_id
-        if sign:
-            ret.payload = payload
-            ret.signature = send_model_reply.signature
-            # ret.attestation =
-
+        send_model_reply = SendModelReply(**cbor.loads(r.content))
+        ret = UploadResponse(model_id=send_model_reply.model_id)
         return ret
 
     def run_model(
@@ -686,7 +653,6 @@ class BlindAiConnection(contextlib.AbstractContextManager):
         input_tensors: Optional[Union[List[List], Dict]] = None,
         dtypes: Optional[List[ModelDatumType]] = None,
         shapes: Optional[Union[List[List[int]], List[int]]] = None,
-        sign: bool = False,
     ) -> RunModelResponse:
         """
         Send data to the server to make a secure inference.
@@ -694,13 +660,11 @@ class BlindAiConnection(contextlib.AbstractContextManager):
         ***Security & confidentiality warnings:***
         *`model_id` : hash of the Onnx model uploaded. the given hash is return via gRPC through the proto files. It's a SHA-256 hash that is generated each time a model is uploaded.
         `tensors`: protected in transit and protected when running it on the secure enclave. In the case of a compromised OS, the data is isolated and confidential by SGX design.
-        `sign`: by enabling sign, DCAP attestation is enabled to verify the SGX attestation model. This attestation model relies on Elliptic Curve Digital Signature algorithm (ECDSA).*
         Args:
             model_id (str): If set, will run a specific model.
             input_tensors (Union[List[Any], List[List[Any]]))): The input data. It must be an array of numpy, tensors or flat list of the same type datum_type specified in `upload_model`.
             dtypes (Union[List[ModelDatumType], ModelDatumType], optional): The type of data of the data you want to upload. Only required if you are uploading flat lists, will be ignored if you are uploading numpy or tensors (this info will be extracted directly from the tensors/numpys).
             shapes (Union[List[List[int]], List[int]], optional): The shape of the data you want to upload. Only required if you are uploading flat lists, will be ignored if you are uploading numpy or tensors (this info will be extracted directly from the tensors/numpys).
-            sign (bool, optional): Get signed responses from the server or not. Defaults to False.
         Raises:
             HttpError: raised by the requests lib to relay server side errors
             ValueError: raised when inputs sanity checks fail
@@ -709,24 +673,18 @@ class BlindAiConnection(contextlib.AbstractContextManager):
         """
         # Run Model Request and Response
         tensors = translate_tensors(input_tensors, dtypes, shapes)
-        run_data = RunModel(model_id=model_id, inputs=tensors, sign=False)
-        bytes_run_data = cbor2_dumps(run_data.__dict__)
+        run_data = RunModel(model_id=model_id, inputs=tensors)
+        bytes_run_data = cbor.dumps(run_data.__dict__)
         r = self.conn.post(f"{self._attested_url}/run", data=bytes_run_data)
         r.raise_for_status()
-        run_model_reply = cbor2_loads(r.content)
-        payload = cbor2_loads(bytes(run_model_reply["payload"]))
-        payload = RunModelPayload(**payload)
+        run_model_reply = RunModelReply(**cbor.loads(r.content))
 
-        ret = RunModelResponse()
-        ret.output = [
-            Tensor(TensorInfo(**output["info"]), output["bytes_data"])
-            for output in payload.outputs
-        ]
-        if sign:
-            ret.payload = payload
-            ret.signature = run_model_reply.signature
-            # ret.attestation = self.attestation
-
+        ret = RunModelResponse(
+            output=[
+                Tensor(TensorInfo(**output["info"]), output["bytes_data"])
+                for output in run_model_reply.outputs
+            ]
+        )
         return ret
 
     def delete_model(self, model_id: str):
@@ -743,16 +701,9 @@ class BlindAiConnection(contextlib.AbstractContextManager):
             ValueError: raised when inputs sanity checks fail
         """
         delete_data = DeleteModel(model_id=model_id)
-        bytes_delete_data = cbor2_dumps(delete_data.__dict__)
+        bytes_delete_data = cbor.dumps(delete_data.__dict__)
         r = self.conn.post(f"{self._attested_url}/delete", bytes_delete_data)
         r.raise_for_status()
-
-    def close(self):
-        """Close the connection between the client and the inference server. This method has no effect if the file is already closed."""
-        if not self.closed:
-            self.closed = True
-            # self.policy = None
-            self.server_version = None
 
     def __enter__(self):
         """Return the BlindAiConnection upon entering the runtime context."""
@@ -760,7 +711,7 @@ class BlindAiConnection(contextlib.AbstractContextManager):
 
     def __exit__(self, *args):
         """Close the connection to BlindAI server and raise any exception triggered within the runtime context."""
-        self.close()
+        self.conn.close()
 
 
 from functools import wraps

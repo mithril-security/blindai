@@ -23,7 +23,7 @@ RUN cd tests && cd mobilenet && bash ./setup.sh
 # compile Rust sources
 COPY src src
 COPY host_server.pem host_server.key ./
-RUN cargo test --release --no-run
+RUN cargo test --target x86_64-fortanix-unknown-sgx --release --no-run
 
 # unit tests
-CMD cargo test --release
+CMD cargo test --target x86_64-fortanix-unknown-sgx --release

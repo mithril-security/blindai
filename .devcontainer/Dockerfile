@@ -77,10 +77,43 @@ RUN curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | d
     && apt update \
     && apt install gh -y
 
-# Add cargo audit
-RUN cargo install cargo-audit
+RUN apt-get install -y software-properties-common \
+    && curl -fsSL  https://download.01.org/intel-sgx/sgx_repo/ubuntu/intel-sgx-deb.key | apt-key add - \
+    && add-apt-repository "deb https://download.01.org/intel-sgx/sgx_repo/ubuntu $(lsb_release -cs) main" \
+    && apt-get install -y libsgx-dcap-ql-dev libsgx-dcap-default-qpl-dev libsgx-uae-service libsgx-dcap-default-qpl
+    # TODO: Do we still need the symbolic link hack ?
+    # sudo ln -s /usr/lib/x86_64-linux-gnu/libdcap_quoteprov.so.1 /usr/lib/x86_64-linux-gnu/libdcap_quoteprov.so 
+    # Remove temp dependencies
+    # apt-get remove -y $TEMP_DEPENDENCIES && apt-get autoremove -y && \
+    # rm -rf /var/lib/apt/lists/* && rm -rf /var/cache/apt/archives/*
+
+RUN apt-get install -y \
+    libcurl4 \
+    libssl1.1 \
+    make \
+    cmake \
+    libpython3.8-dev
+
+# PCCS 
+RUN curl -sL https://deb.nodesource.com/setup_16.x | bash - \
+    && apt-get install -y nodejs cracklib-runtime \
+    && npm install -g esm pm2 
+
+RUN git clone https://github.com/intel/SGXDataCenterAttestationPrimitives.git \
+    && make -C SGXDataCenterAttestationPrimitives/tools/PCKCertSelection/ \
+    && mkdir -p SGXDataCenterAttestationPrimitives/QuoteGeneration/pccs/lib/ \
+    && cp SGXDataCenterAttestationPrimitives/tools/PCKCertSelection/out/libPCKCertSelection.so SGXDataCenterAttestationPrimitives/QuoteGeneration/pccs/lib/ \
+    && cp -R SGXDataCenterAttestationPrimitives/QuoteGeneration/pccs/ /opt/intel/sgx-dcap-pccs \
+    && sed -i 's/"use_secure_cert": true/"use_secure_cert": false/g' /etc/sgx_default_qcnl.conf   
+
+COPY .devcontainer/setup-pccs.sh /opt/intel/sgx-dcap-pccs/setup-pccs.sh
+COPY .devcontainer/hw-start.sh /opt/intel/sgx-dcap-pccs/hw-start.sh
+COPY .devcontainer/default.json /opt/intel/sgx-dcap-pccs/default.json
+
+RUN /opt/intel/sgx-dcap-pccs/setup-pccs.sh
 
 # Add examples dependencies
 RUN apt-get install -y ffmpeg
 
-COPY .devcontainer/start-aesmd.sh /tmp/start-aesmd.sh
+# Add cargo audit
+RUN cargo install cargo-audit

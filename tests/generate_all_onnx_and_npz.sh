@@ -1,3 +1,7 @@
+#!/bin/bash
+
+set -e
+
 # Generates onnx and inputs files for end to end tests
 
 cd ../client

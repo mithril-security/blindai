@@ -14,77 +14,183 @@
 
 #![forbid(unsafe_code)]
 
-use identity::MyIdentity;
 use std::sync::Arc;
 use std::thread;
 mod identity;
 mod model;
 mod model_store;
+use crate::client_communication::Exchanger;
 use anyhow::Result;
 use model_store::ModelStore;
-
-use crate::client_communication::Exchanger;
 mod client_communication;
+use log::debug;
+
+// ra
+use env_logger::Env;
+use ring::digest;
+use serde::{Deserialize, Serialize};
+use serde_bytes::Bytes;
+use sgx_isa::{Report, Targetinfo};
+
+#[derive(Serialize)]
+struct GetQuoteRequest {
+    enclave_report: Report,
+}
+
+#[derive(Serialize)]
+struct GetCollateralRequest {
+    quote: Vec<u8>,
+}
+
+// "Native" Rust type for sgx_ql_qve_collateral_t
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct SgxCollateral {
+    pub version: u32,                  // version = 1.  PCK Cert chain is in the Quote.
+    pub pck_crl_issuer_chain: String,  // PCK CRL Issuer Chain in PEM format
+    pub root_ca_crl: String,           // Root CA CRL in PEM format
+    pub pck_crl: String,               // PCK Cert CRL in PEM format
+    pub tcb_info_issuer_chain: String, // PEM
+    pub tcb_info: String,              // TCB Info structure
+    pub qe_identity_issuer_chain: String, // PEM
+    pub qe_identity: String,           // QE Identity Structure
+    pub pck_certificate: String,       // PCK certificate in PEM format
+    pub pck_signing_chain: String,     // PCK signing chain in PEM format
+}
+
+const RUNNER_ADDRESS: &str = "http://127.0.0.1:11000";
+
+fn get_target_info() -> Result<Targetinfo> {
+    Ok(ureq::post(&format!("{RUNNER_ADDRESS}/get_target_info"))
+        .call()?
+        .into_json()?)
+}
+
+fn get_quote(report: Report) -> Result<Vec<u8>> {
+    Ok(ureq::post(&format!("{RUNNER_ADDRESS}/get_quote"))
+        .send_json(GetQuoteRequest {
+            enclave_report: report,
+        })?
+        .into_json()?)
+}
+
+fn get_collateral(quote: &[u8]) -> Result<SgxCollateral> {
+    Ok(ureq::post(&format!("{RUNNER_ADDRESS}/get_collateral"))
+        .send_json(GetCollateralRequest {
+            quote: quote.to_vec(),
+        })?
+        .into_json()?)
+}
 
 fn main() -> Result<()> {
     // Make debugging easier by enabling rust backtrace inside enclave
     std::env::set_var("RUST_BACKTRACE", "full");
+    env_logger::Builder::from_env(Env::default().default_filter_or("debug")).init();
 
-    let (certificate, signing_key_seed) = identity::create_certificate().unwrap();
-    let my_identity = Arc::new(MyIdentity::from_cert(certificate, signing_key_seed));
-    let enclave_identity = my_identity.tls_identity.clone();
+    let certificate_with_secret = identity::create_tls_certificate()?;
+    let enclave_cert_pem = Arc::new(certificate_with_secret.serialize_pem()?);
+    let enclave_private_key_pem = certificate_with_secret.serialize_private_key_pem();
+
     let exchanger_temp = Arc::new(Exchanger::new(
         Arc::new(ModelStore::new()),
-        my_identity,
-        1000000000,
-        1000000,
+        1_000_000_000,
+        1_000_000,
     ));
 
-    let cert_untrusted = enclave_identity.cert_der.clone();
+    fn respond(x: &(impl Serialize + ?Sized)) -> rouille::Response {
+        match serde_cbor::to_vec(&x) {
+            Ok(ser_data) => rouille::Response::from_data("application/cbor", ser_data),
+            Err(e) => rouille::Response::from_data(
+                "application/cbor",
+                serde_cbor::to_vec(&format!("{:?}", &e)).unwrap(),
+            )
+            .with_status_code(500),
+        }
+    }
+
+    // Remote attestation
+    // Connecting to the runner
+
+    // Enclave held data hash
+    let report_binding = digest::digest(&digest::SHA256, enclave_cert_pem.as_bytes());
+    let mut report_data = [0u8; 64];
+    report_data[0..32].copy_from_slice(report_binding.as_ref());
+
+    let target_info = get_target_info()?;
+    debug!("target info = {:?} ", &target_info);
+    let report = Report::for_target(&target_info, &report_data);
+
+    let quote = get_quote(report)?;
+    debug!("Attestation : Quote is {:?} ", &quote);
+
+    let collateral = get_collateral(&quote)?;
+    debug!("Attestation : Collateral is {:?} ", collateral);
+
+    let router = {
+        let enclave_cert_pem = Arc::clone(&enclave_cert_pem);
+        move |request: &rouille::Request| {
+            rouille::router!(request,
+                (GET)(/) => {
+                    debug!("Requested enclave TLS certificate");
+                    respond(enclave_cert_pem.as_ref())                },
+                (GET)(/quote) => {
+                    debug!("Attestation : Sending quote to client.");
+                    respond(Bytes::new(&quote))
+                },
+                (GET)(/collateral) => {
+                    debug!("Attestation : Sending collateral to client.");
+                    respond(&collateral)
+                },
+                _ => {
+                    rouille::Response::empty_404()
+                },
+            )
+        }
+    };
 
     let untrusted_server = rouille::Server::new_ssl(
         "0.0.0.0:9923",
-        move |_request| {
-            println!("Requested enclave TLS certificate");
-            rouille::Response::from_data("application/octet-stream", cert_untrusted.clone())
-            // TODO: Change it to something more appropriate?
-        },
+        router,
         include_bytes!("../host_server.pem").to_vec(),
         include_bytes!("../host_server.key").to_vec(),
     )
     .expect("Failed to start untrusted server")
     .pool_size(4);
+
     let (_untrusted_handle, _untrusted_sender) = untrusted_server.stoppable();
 
-    thread::spawn(move || {
-        let trusted_server = rouille::Server::new_ssl(
-            "0.0.0.0:9924",
-            move |request| {
-                rouille::router!(request,
-                    (POST) (/upload) => {
-                        let reply = exchanger_temp.send_model(request);
-                        exchanger_temp.respond(request, reply)
-                    },
-
-                    (POST) (/run) => {
-                        let reply = exchanger_temp.run_model(request);
-                        exchanger_temp.respond(request, reply)
-                    },
-
-                    (POST) (/delete) => {
-                        let reply = exchanger_temp.delete_model(request);
-                        exchanger_temp.respond(request, reply)
-                    },
-
-                    _ => rouille::Response::empty_404()
-                )
+    let router = move |request: &rouille::Request| {
+        rouille::router!(request,
+            (POST) (/upload) => {
+                let reply = exchanger_temp.send_model(request);
+                exchanger_temp.respond(request, reply)
             },
-            enclave_identity.cert_der,
-            enclave_identity.private_key_der,
+
+            (POST) (/run) => {
+                let reply = exchanger_temp.run_model(request);
+                exchanger_temp.respond(request, reply)
+            },
+
+            (POST) (/delete) => {
+                let reply = exchanger_temp.delete_model(request);
+                exchanger_temp.respond(request, reply)
+            },
+
+            _ => rouille::Response::empty_404()
         )
-        .expect("Failed to start trusted server");
-        let (_trusted_handle, _trusted_sender) = trusted_server.stoppable();
-        _trusted_handle.join().unwrap();
+    };
+    thread::spawn({
+        let enclave_cert_pem = Arc::clone(&enclave_cert_pem);
+        move || {
+            let trusted_server = rouille::Server::new_ssl(
+                "0.0.0.0:9924",
+                router,
+                enclave_cert_pem.as_bytes().to_vec(),
+                enclave_private_key_pem.into_bytes(),
+            )
+            .expect("Failed to start trusted server");
+            let (_trusted_handle, _trusted_sender) = trusted_server.stoppable();
+            _trusted_handle.join().unwrap();
+        }
     });
     println!("Now listening on port 9923 and 9924");
     _untrusted_handle.join().unwrap();
