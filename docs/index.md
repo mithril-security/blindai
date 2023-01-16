@@ -8,9 +8,7 @@ To interact with an AI model hosted on a remote secure enclave, we provide the `
 - upload an AI model that was previously converted to ONNX
 - query the model securely
 
-BlindAI is configured by default to connect to our [managed Cloud backend](docs/mithril-cloud.md) to make it easy for users to upload and query models inside our secure enclaves. Even though we managed users AI models, thanks to the protection provided by the use of secure enclaves, data and models sent to our Cloud remain private. 
-
-You can also deploy BlindAI on [your own infra](docs/deploy-on-premise.md).
+You can deploy BlindAI on [your own infra](docs/deploy-on-premise.md).
 
 ### Installing BlindAI
 
