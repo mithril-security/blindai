@@ -177,3 +177,4 @@ with Intel® Data Center Attestation Primitives"* : [(*https://www.intel.com/con
 - [8] intel/SGXDataCenterAttestationPrimitives : [*https://github.com/intel/SGXDataCenterAttestationPrimitives/tree/master/QuoteVerification/QVL*](https://github.com/intel/SGXDataCenterAttestationPrimitives/tree/master/QuoteVerification/QVL)
 
 - [9] intel SGX developer Reference linux 2.9.1: [*https://download.01.org/intel-sgx/sgx-linux/2.9.1/docs/Intel_SGX_Developer_Reference_Linux_2.9.1_Open_Source.pdf*](https://download.01.org/intel-sgx/sgx-linux/2.9.1/docs/Intel_SGX_Developer_Reference_Linux_2.9.1_Open_Source.pdf)
+
