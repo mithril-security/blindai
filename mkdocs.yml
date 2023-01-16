@@ -1,8 +1,8 @@
 site_name: BlindAI
 
-# site_url: https://www.mithrilsecurity.io/
+site_url: https://www.mithrilsecurity.io/
 
-repo_url: https://github.com/mithril-security/blindai
+repo_url: https://github.com/mithril-security/blindai-preview
 
 theme:
   name: material
