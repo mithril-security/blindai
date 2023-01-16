@@ -10,7 +10,7 @@ FROM blindaiv2-dev
 # build Rust dependencies
 RUN cargo new blindaiv2
 WORKDIR /blindaiv2
-COPY Cargo.toml Cargo.lock ./
+COPY justfile Cargo.toml Cargo.lock ./
 COPY .cargo .cargo
 COPY tar-rs-sgx tar-rs-sgx
 COPY tract tract
@@ -52,7 +52,7 @@ RUN cd client \
 COPY .github/scripts scripts
 
 # end-to-end tests
-CMD cargo run --target x86_64-fortanix-unknown-sgx --release \
+CMD just run --release \
     & sleep 15 \
     && cd tests \
     && bash run_all_end_to_end_tests.sh
