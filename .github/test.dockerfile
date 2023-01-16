@@ -26,12 +26,18 @@ RUN poetry install --directory ./client --no-root
 COPY tests tests
 RUN cd tests && bash generate_all_onnx_and_npz.sh
 
-# compile Rust sources
+# compile Rust sources for the enclave
 COPY src src
 COPY host_server.pem host_server.key ./
 RUN touch src/main.rs \
-    && cargo build --target x86_64-fortanix-unknown-sgx\
+    && cargo build --target x86_64-fortanix-unknown-sgx \
     && cargo build --target x86_64-fortanix-unknown-sgx --release
+
+# compile Rust sources for the runner
+COPY runner runner
+RUN cd runner \
+    && cargo check \
+    && cargo build --release
 
 # cargo fmt, clippy and audit
 RUN cargo fmt --check \
