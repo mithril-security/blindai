@@ -21,4 +21,4 @@ python:
     install:
     - requirements: docs/requirements.txt
     - method: pip
-      path: client/blindai_preview
+      path: client/
