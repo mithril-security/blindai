@@ -153,3 +153,4 @@ webencodings==0.5.1
     #   tinycss2
 zipp==3.8.1
     # via importlib-metadata
+pdoc3==0.10.0
