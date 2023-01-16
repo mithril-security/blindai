@@ -23,5 +23,6 @@ mkdocs:
 python:
     install:
     - requirements: docs/requirements.txt
+    - requirements: client/blindai_preview/requirements.txt
     - method: pip
-      # path: client
+      path: client/blindai_preview
