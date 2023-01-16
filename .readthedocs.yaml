@@ -10,9 +10,6 @@ build:
   apt_packages:
   - cmake
   jobs:
-    pre_create_environment: 
-    - cp examples/*/*.ipynb docs
-    - bash .github/scripts/cleanup_notebook_name.sh
     post_install:
     - bash docs/generate_api_reference.sh
 
