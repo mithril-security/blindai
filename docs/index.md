@@ -1,3 +1,7 @@
+!!! info
+    This is a preview version of BlindAI named blindai-preview. It is still under development and has not yet all the features of the the current BlindAI. 
+    
+
 # 👋 Welcome
 
 **BlindAI** is a **fast, easy-to-use,** and **confidential inference server**, allowing you to easily and quickly deploy your AI models with privacy, **all in Python**. Thanks to the **end-to-end protection guarantees**, data owners can send private data to be analyzed by AI models, without fearing exposing their data to anyone else.
@@ -15,7 +19,7 @@ You can deploy BlindAI on [your own infra](docs/deploy-on-premise.md).
 BlindAI can easily be installed from [PyPI](https://pypi.org/project/blindai/):
 
 ```bash
-pip install blindai
+pip install blindai-preview
 ```
 
 This package is enough for the deployment and querying of models on our managed infrastructure. For on-premise deployment, you will have to deploy our [Docker](https://hub.docker.com/u/mithrilsecuritysas) images, while you can build them yourself as demonstrated in [this section](docs/advanced/build-from-sources/server.md), it is recommanded to start with the prebuilt images.
@@ -32,7 +36,7 @@ Once you have the API key, you just have to provide it to our backend.
 
 ```python
 import torch
-import blindai
+import blindai-preview
 
 # Get the model and export it locally in ONNX format
 model = torch.hub.load('pytorch/vision:v0.10.0', 'resnet18', pretrained=True)
@@ -62,7 +66,7 @@ We will first pull the dog image, and preprocess it before sending it our enclav
 
 ```python
 # Source: https://pytorch.org/hub/pytorch_vision_resnet/
-import blindai
+import blindai-preview
 import urllib
 from PIL import Image
 from torchvision import transforms
@@ -87,7 +91,7 @@ input_batch = input_tensor.unsqueeze(0) # create a mini-batch as expected by the
 Now we that we have the input tensor, we simply need to send it to the pre-uploaded ResNet18 model inside our secure enclave:
 
 ```python
-with blindai.connect() as client:
+with blindai-preview.connect() as client:
   # Send data to the GPT2 model
   response = client.predict("resnet18", input_batch)
 
