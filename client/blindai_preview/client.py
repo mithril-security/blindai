@@ -461,7 +461,7 @@ class BlindAiConnection(contextlib.AbstractContextManager):
         self,
         addr: str,
         server_name: str = "blindai-srv",
-        # policy: Optional[str] = None,
+        # manifest: Optional[str] = None,
         certificate: Optional[str] = None,
         simulation: bool = False,
         untrusted_port: int = 9923,
@@ -469,26 +469,26 @@ class BlindAiConnection(contextlib.AbstractContextManager):
     ):
         """
         Connect to the server with the specified parameters.
-        You will have to specify here the expected policy (server identity, configuration...)
+        You will have to specify here the expected manifest (server identity, configuration...)
         and the server TLS certificate, if you are using the hardware mode.
-        If you're using the simulation mode, you don't need to provide a policy and certificate,
+        If you're using the simulation mode, you don't need to provide a manifest and certificate,
         but please keep in mind that this mode should NEVER be used in production as it doesn't
         have most of the security provided by the hardware mode.
         ***Security & confidentiality warnings:***
-           *policy: Defines the rules upon which enclaves are accepted (after quote data verification). Contains the hash of MRENCLAVE which helps identify code and data of an enclave. In the case of leakeage of this file, data & model confidentiality would not be affected as the information just serves as a verification check.
-           For more details, the attestation info is verified against the policy for the quote. In case of a leakage of the information of this file, code and data inside the secure enclave will remain inaccessible.
-           certificate:  The certificate file, which is also generated server side, is used to assigned the claims the policy is checked against. It serves to identify the server for creating a secure channel and begin the attestation process.*
+           *manifest: Defines the rules upon which enclaves are accepted (after quote data verification). Contains the hash of MRENCLAVE which helps identify code and data of an enclave. In the case of leakeage of this file, data & model confidentiality would not be affected as the information just serves as a verification check.
+           For more details, the attestation info is verified against the manifest for the quote. In case of a leakage of the information of this file, code and data inside the secure enclave will remain inaccessible.
+           certificate:  The certificate file, which is also generated server side, is used to assigned the claims the manifest is checked against. It serves to identify the server for creating a secure channel and begin the attestation process.*
         Args:
             addr (str): The address of BlindAI server you want to reach.
             server_name (str, optional): Contains the CN expected by the server TLS certificate. Defaults to "blindai-srv".
-            policy (Optional[str], optional): Path to the toml file describing the policy of the server.
+            manifest (Optional[str], optional): Path to the toml file describing the manifest of the server.
                 Generated in the server side. Defaults to None.
-                If left to none and if you are in hardware mode, the built-in policy will be used.
+                If left to none and if you are in hardware mode, the built-in manifest will be used.
             certificate (Optional[str], optional): Path to the public key of the untrusted inference server.
                 Generated in the server side. Defaults to None.
                 If left to none and if you are in hardware mode, the certificate verification will be disabled
             simulation (bool, optional): Connect to the server in simulation mode.
-                If set to True, the args policy and certificate will be ignored. Defaults to False.
+                If set to True, the args manifest and certificate will be ignored. Defaults to False.
             untrusted_port (int, optional): Untrusted connection server port. Defaults to 9923.
             attested_port (int, optional): Attested connection server port. Defaults to 9924.
         Raises:
@@ -513,7 +513,7 @@ class BlindAiConnection(contextlib.AbstractContextManager):
         self._connect_server(
             addr,
             server_name,
-            # policy,
+            # manifest,
             certificate,
             simulation,
             untrusted_port,
@@ -524,7 +524,7 @@ class BlindAiConnection(contextlib.AbstractContextManager):
         self,
         addr: str,
         server_name,
-        # policy,
+        # manifest,
         certificate,
         simulation,
         untrusted_port,
@@ -535,11 +535,11 @@ class BlindAiConnection(contextlib.AbstractContextManager):
 
         # addr = strip_https(addr)
 
-        self._untrusted_url = "https://" + addr + ":" + str(untrusted_port)
+        self._untrusted_url = "http://" + addr + ":" + str(untrusted_port)
         self._attested_url = "https://" + addr + ":" + str(attested_port)
 
         # if not self.simulation_mode:
-        #    self.policy = Policy.from_file(policy)
+        #    self.manifest = manifest.from_file(manifest)
 
         # This adapter makes it possible to connect
         # to the server via a different hostname
@@ -560,23 +560,23 @@ class BlindAiConnection(contextlib.AbstractContextManager):
         # Always raise an exception when HTTP returns an error code for the untrusted connection
         # Note : we might want to do the same for the attested connection ?
         s.hooks = {"response": lambda r, *args, **kwargs: r.raise_for_status()}
-        if self._disable_untrusted_server_cert_check:
-            logging.warning("Untrusted server certificate check bypassed")
-            s.verify = False
-        else:
-            # verify is set to a path to the certificate CA
-            # It is used to pin the certificate
-            # Might not be needed in production
-            # Certificate pinning is a double edge sword
-            # It can prevent some MITM but it also make it more difficult
-            # to rotate the certificate...
-            # Anyway in our case as we'll do attestation verification
-            # it would make sense to use a simpler cert validation
-            # maybe simply the default CA with domain validation
-            # like the browser do.
-            # Can't be more boring (in a good way).
-            s.verify = certificate
-        s.mount(self._untrusted_url, CustomHostNameCheckingAdapter())
+        # if self._disable_untrusted_server_cert_check:
+        #     logging.warning("Untrusted server certificate check bypassed")
+        #     s.verify = False
+        # else:
+        #     # verify is set to a path to the certificate CA
+        #     # It is used to pin the certificate
+        #     # Might not be needed in production
+        #     # Certificate pinning is a double edge sword
+        #     # It can prevent some MITM but it also make it more difficult
+        #     # to rotate the certificate...
+        #     # Anyway in our case as we'll do attestation verification
+        #     # it would make sense to use a simpler cert validation
+        #     # maybe simply the default CA with domain validation
+        #     # like the browser do.
+        #     # Can't be more boring (in a good way).
+        #     s.verify = certificate
+        # s.mount(self._untrusted_url, CustomHostNameCheckingAdapter())
 
         cert = cbor.loads(s.get(self._untrusted_url).content)
         quote = cbor.loads(s.get(f"{self._untrusted_url}/quote").content)

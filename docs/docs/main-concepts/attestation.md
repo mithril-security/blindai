@@ -8,18 +8,18 @@ When communicating with the client, the enclave issues its signed, hardware-back
 
 ## Verifying the enclave
 
-The enclave building process will generate a policy file that contains a hash of the compilation process and some attributes like debug mode, authorized instructions and so on. This is also referred as the MRENCLAVE and it is sufficient to safely authenticate an enclave. In BlindAI's case, each time our client interacts with our server, the server gives out its MRENCLAVE so that the client can compare it against the policy file passed by the user. This way he can attest that the secure enclave he is connected to is running the right code, with the right options.
+The enclave building process will generate a manifest file that contains a hash of the compilation process and some attributes like debug mode, authorized instructions and so on. This is also referred as the MRENCLAVE and it is sufficient to safely authenticate an enclave. In BlindAI's case, each time our client interacts with our server, the server gives out its MRENCLAVE so that the client can compare it against the manifest file passed by the user. This way he can attest that the secure enclave he is connected to is running the right code, with the right options.
 
-Once again the client handles this verification process so you only have to be sure that the client gets the correct policy file. To do so, you should [build the server from source](../advanced/build-from-sources/server.md) in hardware mode, and follow the instruction to extract the policy file. Once you have it, you can pass it to the client during the connection like so :
+Once again the client handles this verification process so you only have to be sure that the client gets the correct manifest file. To do so, you should [build the server from source](../advanced/build-from-sources/server.md) in hardware mode, and follow the instruction to extract the manifest file. Once you have it, you can pass it to the client during the connection like so :
 
 ```py
-blindai.connect(addr="addr", policy="path/to/policy.toml")
+blindai.connect(addr="addr", manifest="path/to/manifest.toml")
 ```
 
-If the client connects, it means the remote enclave generation process produced an identical policy.toml.
+If the client connects, it means the remote enclave generation process produced an identical manifest.toml.
 
 !!! info
-    If you're not using simulation mode, you're required to pass a policy.toml. If you're using the docker image, the policy.toml is already build into the python package. 
+    If you're not using simulation mode, you're required to pass a manifest.toml. If you're using the docker image, the manifest.toml is already build into the python package. 
 
 ## Try it for yourself
 
@@ -29,8 +29,8 @@ If you want to test the authenticating property of the MRENCLAVE, you can do the
 - Add a line of code anywhere in the server part (it could be a malicious log of the input data, for example.)
 - Rebuild.
 
-You will get 2 policy.toml files with different MRENCLAVE, which means that although the two builds are similar they will create enclaves with different identities.
+You will get 2 manifest.toml files with different MRENCLAVE, which means that although the two builds are similar they will create enclaves with different identities.
 
-To go further you can [deploy one of the 2 builds](../deploy-on-premise.md) and try to connect it with the client by passing the policy.toml file of the other build, which will generate an error. This confirms that if you successfully connect to a remote BlindAI instance, its code and attributes are the ones specified in the policy.toml.
+To go further you can [deploy one of the 2 builds](../deploy-on-premise.md) and try to connect it with the client by passing the manifest.toml file of the other build, which will generate an error. This confirms that if you successfully connect to a remote BlindAI instance, its code and attributes are the ones specified in the manifest.toml.
 
-You therefore **cannot** connect to a malicious BlindAI instance as long as you correctly generate the policy.toml.
+You therefore **cannot** connect to a malicious BlindAI instance as long as you correctly generate the manifest.toml.

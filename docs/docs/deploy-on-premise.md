@@ -85,25 +85,25 @@ Please make sure you have [Docker ](https://docs.docker.com/get-docker/)installe
     ```
 
 !!! info
-    If you built this image locally you can allow debug by running with -e POLICY_ALLOW_DEBUG=true. Building from sources is documented [here](advanced/build-from-sources/server.md)
+    If you built this image locally you can allow debug by running with -e manifest_ALLOW_DEBUG=true. Building from sources is documented [here](advanced/build-from-sources/server.md)
 
 !!! warning
-    You should only allow debug if your policy.toml allows debug.
+    You should only allow debug if your manifest.toml allows debug.
 
-### Extract Policy and default TLS Certificate from the Hardware docker image
+### Extract manifest and default TLS Certificate from the Hardware docker image
 
-You can extract the policy directly from the prebuilt Docker Image using:
+You can extract the manifest directly from the prebuilt Docker Image using:
 
 === "Hardware mode"
 
     ```bash
-    docker run --rm mithrilsecuritysas/blindai-server:latest /bin/cat /root/policy.toml > policy.toml
+    docker run --rm mithrilsecuritysas/blindai-server:latest /bin/cat /root/manifest.toml > manifest.toml
     ```
 
 === "Hardware mode (Azure DCsv3 VMs)"
 
     ```bash
-    docker run --rm mithrilsecuritysas/blindai-server-dcsv3:latest /bin/cat /root/policy.toml > policy.toml
+    docker run --rm mithrilsecuritysas/blindai-server-dcsv3:latest /bin/cat /root/manifest.toml > manifest.toml
     ```
 
 You can also extract the default TLS certificate like this:
@@ -130,10 +130,10 @@ client = BlindAiConnection(addr="localhost", simulation=True)
 by
 
 ```py
-client = BlindaiConnection(addr="localhost", policy="/path/to/policy.toml", certificate="/path/to/host_server.pem")
+client = BlindaiConnection(addr="localhost", manifest="/path/to/manifest.toml", certificate="/path/to/host_server.pem")
 ```
 
-Your client will use your TLS certificate and will only be able to connect to an enclave generated with the exact same policy.toml.
+Your client will use your TLS certificate and will only be able to connect to an enclave generated with the exact same manifest.toml.
 
 !!! note
-    If you want to deploy for production you should check out [the privacy section](main-concepts/privacy.md). You will learn how to check the authenticity of the policy and how to inject your own TLS certificate.
+    If you want to deploy for production you should check out [the privacy section](main-concepts/privacy.md). You will learn how to check the authenticity of the manifest and how to inject your own TLS certificate.

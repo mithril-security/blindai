@@ -149,11 +149,11 @@ Using this, we retrieve the structure `SgxQlQveCollateral` that is used to popul
 
 The goal here was to be able to have a python client that can verify the quote and collateral received from the server. So we had to rebuild the Quote Verification library with python bindings to be able to use the verification API functions. 
 
-Moreover, when the server part is launched, a policy file is generated. This policy file includes some information (such as the `mrenclave`) that is needed in the verification process.  
+Moreover, when the server part is launched, a manifest file is generated. This manifest file includes some information (such as the `mrenclave`) that is needed in the verification process.  
 
 When the unsecure TLS is established, the server calculate the quote and collateral of the current platform. The remote attestation process begin by sending the quote and collateral to the client through the insecure TLS connection. 
 
-The client then verifies the quote and collateral against the policy file. It does so by requesting the QvL (Quote Verification Library).
+The client then verifies the quote and collateral against the manifest file. It does so by requesting the QvL (Quote Verification Library).
 
 If the verification is valid, another TLS connection is established to run the models with the data securely.
 

@@ -147,14 +147,9 @@ fn main() -> Result<()> {
         }
     };
 
-    let untrusted_server = rouille::Server::new_ssl(
-        "0.0.0.0:9923",
-        router,
-        include_bytes!("../host_server.pem").to_vec(),
-        include_bytes!("../host_server.key").to_vec(),
-    )
-    .expect("Failed to start untrusted server")
-    .pool_size(4);
+    let untrusted_server = rouille::Server::new("0.0.0.0:9923", router)
+        .expect("Failed to start untrusted server")
+        .pool_size(4);
 
     let (_untrusted_handle, _untrusted_sender) = untrusted_server.stoppable();
 
