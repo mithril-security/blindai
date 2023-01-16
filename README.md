@@ -1,107 +1,99 @@
-# BlindAIv2
+!!! info
+    This is a preview version of BlindAI named blindai-preview. It is still under development and has not yet all the features of the the current BlindAI. 
+    
 
-## Setup
+# 👋 Welcome
 
-First you need to connect to mithril docker registry (use the credentials you've received by email).
-```
-docker login registry.mithrilsecurity.io
-```
+**BlindAI** is a **fast, easy-to-use,** and **confidential inference server**, allowing you to easily and quickly deploy your AI models with privacy, **all in Python**. Thanks to the **end-to-end protection guarantees**, data owners can send private data to be analyzed by AI models, without fearing exposing their data to anyone else.
 
-Then run the "Remote-Containers: Open Folder in Container..." command from the Command Palette or if available click on "Reopen in container" in the popup at the bottom-right of the window.
+To interact with an AI model hosted on a remote secure enclave, we provide the `blindai.client` API. This client will:
 
-### Cargo integration with Fortanix EDP
+- check that we are talking to a genuine secure enclave with the right security features
+- upload an AI model that was previously converted to ONNX
+- query the model securely
 
-`.cargo/config`  is already configured so that cargo can run SGX enclave. See the file for more information about the compilation options.
+You can deploy BlindAI on [your own infra](docs/deploy-on-premise.md).
 
-## Just command runner
+### Installing BlindAI
 
-Usual commands / recipes can be run with [just](https://just.systems/man/en/). 
-```
-$ just default
-Available recipes:
-    build *args        # Build for SGX target
-    build-no-sgx *args # Build for a Linux target (no SGX)
-    check *args        # Check for SGX target
-    default
-    run *args          # Run on SGX hardware
-    run-no-sgx *args   # Run on a Linux target (no SGX)
-    run-simu *args     # Run in the simulator
-    valgrind *args     # Execute with valgrind instrumentation
-```
-Please refer to the justfile for details.
+BlindAI can easily be installed from [PyPI](https://pypi.org/project/blindai/):
 
-## Generate CA and certificates with OpenSSL CLI 
-```
-## Create a CA
-# Generate an ECDSA secp256p1 private key
-openssl ecparam -genkey -name prime256v1 -out ca.key
-# Create a CA 
-openssl req -x509 -new -nodes -subj "/C=US/O=_Development CA/CN=Development certificates" -key ca.key -sha256 -days 3650 -out ca.pem 
-
-## Create server certificate
-# Generate server private key
-openssl ecparam -genkey -name prime256v1 -out server.key
-
-# Create a certificate signing request (CSR)
-openssl req -new -subj "/C=US/O=Local Development/CN=localhost" -key "server.key" -out "server.csr"
-# Use the previously created CA to sign the CSR to get the server certificate
-# 
-openssl x509 -req \
-    -in "server.csr" \
-    -extfile "server.ext" \
-    -CA ca.pem \
-    -CAkey ca.key \
-    -CAcreateserial \
-    -out "server.pem" \
-    -days 365 \
-    -sha256
-# Convert key into PCKS8 DER format 
-openssl pkcs8 -topk8 -inform PEM -outform PEM -in server.key -out server2.key -nocrypt
+```bash
+pip install blindai-preview
 ```
 
-## Run 
+This package is enough for the deployment and querying of models on our managed infrastructure. For on-premise deployment, you will have to deploy our [Docker](https://hub.docker.com/u/mithrilsecuritysas) images, while you can build them yourself as demonstrated in [this section](docs/advanced/build-from-sources/server.md), it is recommanded to start with the prebuilt images.
 
-```
-# Launch server in a terminal
-$ cargo run
-Now listening on port 9923 and 9924
--- (when running the python client)
-Retrieve and send attestation report to client here
-Retrieve and send attestation report to client here
-/upload
-Some("distilbert-base-uncased.onnx")
-Successfully saved model
-/run
-Successfully ran model
-/delete
-Deleted model successfully
+### Uploading a ResNet18
 
-# In another terminal test the server with a sample client
-$ cd client
-# The first time you need to export the distilbert model in onnx with
-$ poetry run python client/distilbert_setup.py
-# Then run the client
-$ poetry run python client/sample_client.py
-WARNING:root:Untrusted server certificate check bypassed
-b'Deleted'
-``` 
+The model in the GPT2 example had already been loaded by us, but BlindAI also allows you to upload your own models to our managed Cloud solution. 
 
-## Python Client
+You can find a [Colab notebook](https://colab.research.google.com/drive/1c8pBM5gN5zL_AT0s4kBZjEGdivWW3hSt?usp=sharing) showing how to deploy and query a ResNet18 on BlindAI.
 
-Dependencies are managed with [Poetry](https://python-poetry.org/).
-Ressources:
-  * Jupyter as a dev dependency : https://hippocampus-garden.com/jupyter_poetry_pipenv/
+To be able to upload your model to our Cloud, you will need to [first register](https://cloud.mithrilsecurity.io/) to get an API key.
 
-### Setup
+Once you have the API key, you just have to provide it to our backend. 
 
-```
-cd client
-poetry install --with=dev
+```python
+import torch
+import blindai-preview
+
+# Get the model and export it locally in ONNX format
+model = torch.hub.load('pytorch/vision:v0.10.0', 'resnet18', pretrained=True)
+dummy_inputs = torch.zeros(1,3,224,224)
+torch.onnx.export(model, dummy_inputs, "resnet18.onnx")
+
+# Upload the ONNX file along with specs and model name
+with blindai.connect(api_key=...) as client:
+    client.upload_model(
+      model="resnet18.onnx",
+    )
 ```
 
-### Run test
+The first block of code pulls a model from [PyTorch Hub](https://pytorch.org/hub/), and export it in ONNX format. Because [tracing](https://pytorch.org/tutorials/advanced/super_resolution_with_onnxruntime.html) is used, we need to provide a dummy input for the model to know the shape of inputs used live.
 
+Before uploading, we need to provide information on the expected inputs and outputs.
+
+Finally, we can connect to the managed backend and upload the model. You can provide a model name to know which one to query, for instance with `model_name="resnet18"`. Because we have already uploaded a model with the name `"resnet18"`, you should not try to upload a model with that exact name as it is already taken on our main server.
+
+### Querying a ResNet18
+
+Now we can consume this model securely. We can now have a ResNet18 analyze an image of our dog, without showing the image of the dog in clear. 
+
+<img src="https://github.com/pytorch/hub/raw/master/images/dog.jpg" alt="Dog to analyze" width="200"/>
+
+We will first pull the dog image, and preprocess it before sending it our enclave. The code is similar to [PyTorch ResNet18 example](https://pytorch.org/hub/pytorch_vision_resnet/):
+
+```python
+# Source: https://pytorch.org/hub/pytorch_vision_resnet/
+import blindai-preview
+import urllib
+from PIL import Image
+from torchvision import transforms
+
+# Download an example image from the pytorch website
+url, filename = ("https://github.com/pytorch/hub/raw/master/images/dog.jpg", "dog.jpg")
+try: urllib.URLopener().retrieve(url, filename)
+except: urllib.request.urlretrieve(url, filename)
+
+# sample execution (requires torchvision)
+input_image = Image.open(filename)
+preprocess = transforms.Compose([
+    transforms.Resize(256),
+    transforms.CenterCrop(224),
+    transforms.ToTensor(),
+    transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+])
+input_tensor = preprocess(input_image)
+input_batch = input_tensor.unsqueeze(0) # create a mini-batch as expected by the model
 ```
-cd client
-poetry run pytest -v
+
+Now we that we have the input tensor, we simply need to send it to the pre-uploaded ResNet18 model inside our secure enclave:
+
+```python
+with blindai-preview.connect() as client:
+  # Send data to the GPT2 model
+  response = client.predict("resnet18", input_batch)
+
+>>> response.output[0].argmax()
 ```
