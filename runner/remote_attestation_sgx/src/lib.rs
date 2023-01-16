@@ -72,5 +72,7 @@ struct GetCollateralRequest {
 async fn get_collateral(
     Json(GetCollateralRequest { quote }): Json<GetCollateralRequest>,
 ) -> WebResult {
-    Ok(Json(json! { get_quote_verification_collateral(&quote)? }))
+    let x = get_quote_verification_collateral(&quote)?;
+    println!("Sending collateral!");
+    Ok(Json(json! { x }))
 }

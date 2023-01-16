@@ -110,6 +110,8 @@ COPY .devcontainer/setup-pccs.sh /opt/intel/sgx-dcap-pccs/setup-pccs.sh
 COPY .devcontainer/hw-start.sh /opt/intel/sgx-dcap-pccs/hw-start.sh
 COPY .devcontainer/default.json /opt/intel/sgx-dcap-pccs/default.json
 
+RUN /opt/intel/sgx-dcap-pccs/setup-pccs.sh
+
 # Add examples dependencies
 RUN apt-get install -y ffmpeg
 

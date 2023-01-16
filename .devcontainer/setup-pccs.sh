@@ -40,7 +40,3 @@ echo $INSTALL'\n'$HTTP_PROXY'\n'$HTTPs_PROXY'\n'$CONFIGURE'\n' \
         $GENERATE_CERT'\n'$COUNTRY_CODE'\n'$STATE'\n'$CITY'\n' \
         $ORGANIZATION'\n'$UNIT'\n'$COMMON_NAME'\n'$EMAIL'\n' \
         $CHALLENGE_PSW'\n'$OPTIONAL_COMPANY_NAME'\n' | ./install.sh
-
-cd /opt/intel/sgx-dcap-pccs
-sed -i '/ApiKey/c\   \"ApiKey\" : \"'$1'\",' default.json 
-npm start pm2 

@@ -27,7 +27,7 @@ jobs:
       - name: Run end-to-end tests
         run: |
           docker rm --force blindaiv2-test
-          docker run --device /dev/sgx/enclave --device /dev/sgx/provision --name blindaiv2-test blindaiv2-test
+          docker run -v "/var/run/aesmd/aesm.socket:/var/run/aesmd/aesm.socket" --device /dev/sgx/enclave --device /dev/sgx/provision --name blindaiv2-test blindaiv2-test
 
   release:
     runs-on: [self-hosted, linux, x64]

@@ -59,7 +59,8 @@ COPY .github/scripts scripts
 COPY policy.dev.template.toml policy.prod.template.toml ./
 
 # end-to-end tests
-CMD just run --release \
-    & sleep 15 \
+CMD ( cd /opt/intel/sgx-dcap-pccs && npm start pm2 ) & \
+    just run --release & \ 
+    sleep 10 \
     && cd tests \
     && bash run_all_end_to_end_tests.sh
