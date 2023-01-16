@@ -1,5 +1,6 @@
-!!! info
-    This is a preview version of BlindAI named blindai-preview. It is still under development and has not yet all the features of the the current BlindAI. 
+> **Warning : BlindAI Preview**
+>  This is a preview version of BlindAI named blindai-preview. It is still under development and has not yet all the features of the current BlindAI. 
+> You can found the current blindAI [here](https://github.com/mithril-security/blindai).
     
 
 # 👋 Welcome
