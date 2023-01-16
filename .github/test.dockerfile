@@ -50,6 +50,7 @@ RUN cd client \
     && poetry run pytest --ignore=tests/integration_test.py 
 
 COPY .github/scripts scripts
+COPY policy.dev.template.toml policy.prod.template.toml ./
 
 # end-to-end tests
 CMD just run --release \
