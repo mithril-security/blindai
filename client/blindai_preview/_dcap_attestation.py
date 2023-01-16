@@ -56,11 +56,11 @@ class EnclaveHeldDataError(QuoteValidationError):
         got_hash (str): Enclave held data hash obtained from the quote's report
     """
 
-    def __init__(self, expected_hash, measured_hash):
-        self.expected_hash = expected_hash
-        self.measured_hash = measured_hash
+    def __init__(self, expected: bytes, got: bytes):
+        self.expected_hash = expected
+        self.measured_hash = got
         super().__init__(
-            f"Enclave Held Data hash doesn't match with the report data from the quote. Expected {expected_hash}, got {measured_hash} instead."
+            f"Hash of enclave held data doesn't match with the report data from the quote. Expected {expected.hex()}, got {got.hex()} instead."
         )
 
     pass
@@ -73,11 +73,11 @@ class IdentityError(Exception):
         got_hash (str): hash obtained from the quote's report
     """
 
-    def __init__(self, expected_hash, got_hash):
-        self.expected_hash = expected_hash
-        self.got_hash = got_hash
+    def __init__(self, expected: bytes, got: bytes):
+        self.expected_hash = expected
+        self.got_hash = got
         super().__init__(
-            f"Error invalid MRENCLAVE. Expected {expected_hash.hex()}, got {got_hash.hex()} instead."
+            f"Error invalid MRENCLAVE. Expected {expected.hex()}, got {got.hex()} instead."
         )
 
 
@@ -104,7 +104,8 @@ def validate_attestation(quote: bytes, collateral, enclave_held_data: bytes):
 
     # TODO: Handle the case where the retuned quote status is STATUS_TCB_SW_HARDENING_NEEDED
     # We must do more cautious checks in this case in order to determine whether or not to accept the quote
-    trusted_root_ca_certificate = importlib.resources.read_text(
+
+    trusted_root_ca_certificate = importlib.resources.read_text(  # type: ignore
         __package__, "Intel_SGX_Provisioning_Certification_RootCA.pem"
     )
 
@@ -122,17 +123,17 @@ def validate_attestation(quote: bytes, collateral, enclave_held_data: bytes):
     )
     if attestation_result.pck_certificate_status != VerificationStatus.STATUS_OK:
         raise QuoteValidationError(
-            "Wrong PCK Certificate Status {}", attestation_result.pckCertificateStatus
+            f"Invalid PCK certificate status {attestation_result.pck_certificate_status.name}"
         )
 
     if attestation_result.tcb_info_status != VerificationStatus.STATUS_OK:
         raise QuoteValidationError(
-            "Wrong TCB Info Status {}", attestation_result.tcbInfoStatus
+            f"Invalid TCB info Status {attestation_result.tcb_info_status.name}"
         )
 
     if attestation_result.qe_identity_status != VerificationStatus.STATUS_OK:
         raise QuoteValidationError(
-            "Wrong QE Identity Status {}", attestation_result.qeIdentityStatus
+            f"Invalid QE identity status {attestation_result.qe_identity_status.name}"
         )
 
     if attestation_result.quote_status not in [
@@ -140,16 +141,17 @@ def validate_attestation(quote: bytes, collateral, enclave_held_data: bytes):
         VerificationStatus.STATUS_TCB_SW_HARDENING_NEEDED,
     ]:
         raise QuoteValidationError(
-            "Wrong Quote Status {}", attestation_result.quoteStatus
+            f"Invalid quote status {attestation_result.quote_status.name}",
         )
 
+    assert attestation_result.enclave_report is not None
     if (
         hashlib.sha256(enclave_held_data).digest()
         != attestation_result.enclave_report.report_data[:32]
     ):
         raise EnclaveHeldDataError(
-            hashlib.sha256(enclave_held_data).hexdigest(),
-            attestation_result.enclave_report.report_data[:32].hex(),
+            expected=hashlib.sha256(enclave_held_data).digest(),
+            got=attestation_result.enclave_report.report_data[:32],
         )
 
     manifest = EnclaveManifest.from_file(
@@ -157,8 +159,8 @@ def validate_attestation(quote: bytes, collateral, enclave_held_data: bytes):
     )
     if attestation_result.enclave_report.mr_enclave != manifest.mr_enclave:
         raise IdentityError(
-            expected_hash=manifest.mr_enclave,
-            got_hash=attestation_result.enclave_report.mr_enclave,
+            expected=manifest.mr_enclave,
+            got=attestation_result.enclave_report.mr_enclave,
         )
 
     # Attributes data structures is made of two fields : two 64-bits bitvectors
@@ -182,7 +184,7 @@ def validate_attestation(quote: bytes, collateral, enclave_held_data: bytes):
         != manifest.attributes_flags | SgxAttributesFlags.INIT
     ):
         raise AttestationError(
-            "SGX_ATTRIBUTES.FLAGS do not conform to the enclave manifest",
+            "SGX_ATTRIBUTES.FLAGS does not conform to the enclave manifest",
             SgxAttributesFlags(enclave_attributes_flags),
             SgxAttributesFlags(manifest.attributes_flags),
         )
@@ -192,14 +194,14 @@ def validate_attestation(quote: bytes, collateral, enclave_held_data: bytes):
         != manifest.attributes_xfrm
     ):
         raise AttestationError(
-            "SGX_ATTRIBUTES.XFRM do not conform to the enclave manifest",
+            "SGX_ATTRIBUTES.XFRM does not conform to the enclave manifest",
             enclave_attributes_xfrm,
             manifest.attributes_xfrm,
         )
     enclave_misc_select = attestation_result.enclave_report.misc_select.value
     if enclave_misc_select & manifest.misc_mask != manifest.misc_select:
         raise AttestationError(
-            "SGX_MISC_SELECT do not conform to the enclave manifest",
+            "SGX_MISC_SELECT does not conform to the enclave manifest",
             SgxMiscSelect(attestation_result.enclave_report.misc_select.value),
             SgxMiscSelect(manifest.misc_select),
         )
@@ -207,15 +209,15 @@ def validate_attestation(quote: bytes, collateral, enclave_held_data: bytes):
 
 def hex_to_u64(hex_string: str) -> int:
     int_value = int(hex_string, 16)
-    assert int_value >= 0
-    assert int_value < 2**64
+    if int_value < 0 or int_value >= 2**64:
+        raise ValueError("Not a valid unsigned 64-bit integer")
     return int_value
 
 
 def hex_to_u32(hex_string: str) -> int:
     int_value = int(hex_string, 16)
-    assert int_value >= 0
-    assert int_value < 2**32
+    if int_value < 0 or int_value >= 2**32:
+        raise ValueError("Not a valid unsigned 32-bit integer")
     return int_value
 
 
@@ -241,7 +243,8 @@ class EnclaveManifest:
                     f"The field `{name}` was assigned by `{current_type}` instead of `{field_type}`"
                 )
 
-    def from_str(s: str) -> Self:
+    @staticmethod
+    def from_str(s: str) -> "EnclaveManifest":
         """Load a policy from the content of a Policy.toml
         Args:
             s (str): The content of the policy.
@@ -250,7 +253,8 @@ class EnclaveManifest:
         """
         return EnclaveManifest.from_dict(toml.loads(s))
 
-    def from_file(path: str) -> Self:
+    @staticmethod
+    def from_file(path: str) -> "EnclaveManifest":
         """Load a policy from a file.
 
         Args:
@@ -260,7 +264,8 @@ class EnclaveManifest:
         """
         return EnclaveManifest.from_dict(toml.load(path))
 
-    def from_dict(obj: dict) -> Self:
+    @staticmethod
+    def from_dict(obj: dict) -> "EnclaveManifest":
         """Load an enclave manifest from the dict obtained after Policy.toml
         decoding.
 
