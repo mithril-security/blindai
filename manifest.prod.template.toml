@@ -1,4 +1,4 @@
-# Enclave policy file for production
+# Enclave manifest file for production
 # Determines which enclaves are to be accepted by
 # the client
 

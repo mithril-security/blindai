@@ -4,6 +4,14 @@ default:
   @just --list
 
 
+run_pccs:
+  #!/usr/bin/env bash
+  set -e
+  cd /opt/intel/sgx-dcap-pccs
+  sudo sed -i '/ApiKey/c\   \"ApiKey\" : \"'$1'\",' default.json 
+  sudo npm start pm2 
+
+
 # Run on SGX hardware
 run *args:
   #!/usr/bin/env bash
@@ -20,9 +28,10 @@ run *args:
     --stack-size 0x20000 \
     --threads 20
 
-  just generate-policy-dev "$binpath.sgxs" 
+  just generate-manifest-dev "$binpath.sgxs" 
+  cp manifest.dev.toml client/blindai_preview/manifest.toml
 
-  just generate-policy-prod "$binpath.sgxs" 
+  just generate-manifest-prod "$binpath.sgxs" 
 
   ( cd runner && cargo build --release )
 
@@ -47,9 +56,9 @@ build *args:
     --stack-size 0x20000 \
     --threads 20
 
-  just generate-policy-dev "$binpath.sgxs" 
+  just generate-manifest-dev "$binpath.sgxs" 
 
-  just generate-policy-prod "$binpath.sgxs" 
+  just generate-manifest-prod "$binpath.sgxs" 
 
   ( cd runner && cargo build --release )
 
@@ -81,9 +90,9 @@ run-simu *args:
     --stack-size 0x40000 \
     --threads 20
 
-  just generate-policy-dev "$binpath.sgxs" 
+  just generate-manifest-dev "$binpath.sgxs" 
 
-  just generate-policy-prod "$binpath.sgxs" 
+  just generate-manifest-prod "$binpath.sgxs" 
 
   ftxsgx-simulator "$binpath.sgxs"
 
@@ -103,24 +112,24 @@ valgrind *args:
     --stack-size 0x20000 \
     --threads 20
 
-  just generate-policy-dev "$binpath.sgxs" 
+  just generate-manifest-dev "$binpath.sgxs" 
 
-  just generate-policy-prod "$binpath.sgxs" 
+  just generate-manifest-prod "$binpath.sgxs" 
 
   valgrind --sigill-diagnostics=no --leak-check=no ftxsgx-simulator "$binpath.sgxs" 
 
 
-# generate a policy.toml for dev purposes, expects path to the sgxs file 
-generate-policy-dev input_sgxs:
+# generate a manifest.toml for dev purposes, expects path to the sgxs file 
+generate-manifest-dev input_sgxs:
   #!/usr/bin/env bash
   export mr_enclave=`sgxs-hash {{input_sgxs}}`
-  envsubst < policy.dev.template.toml > policy.dev.toml
+  envsubst < manifest.dev.template.toml > manifest.dev.toml
 
-# generate a policy.toml for prod purposes expects path to the sgxs file
-generate-policy-prod input_sgxs:
+# generate a manifest.toml for prod purposes expects path to the sgxs file
+generate-manifest-prod input_sgxs:
   #!/usr/bin/env bash
   export mr_enclave=`sgxs-hash {{input_sgxs}}`
-  envsubst < policy.prod.template.toml > policy.prod.toml
+  envsubst < manifest.prod.template.toml > manifest.prod.toml
   
 # Build and serve locally the documentation
 doc:

@@ -192,6 +192,7 @@ cython_debug/
 
 ## Specific to BlindAI
 
-# Policy after they have been processed by the template engine : 
-policy.dev.toml
-policy.prod.toml
+# Manifest after they have been processed by the template engine : 
+manifest.dev.toml
+manifest.prod.toml
+manifest.toml

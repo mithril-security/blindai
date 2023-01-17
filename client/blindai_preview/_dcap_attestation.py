@@ -69,7 +69,7 @@ class EnclaveHeldDataError(QuoteValidationError):
 class IdentityError(Exception):
     """This exception is raised when the enclave code digest (MRENCLAVE is SGX terminology) does not match the digest provided in the manifest
     Args:
-        expected_hash (str): hash from policy
+        expected_hash (str): hash from manifest
         got_hash (str): hash obtained from the quote's report
     """
 
@@ -154,8 +154,8 @@ def validate_attestation(quote: bytes, collateral, enclave_held_data: bytes):
             got=attestation_result.enclave_report.report_data[:32],
         )
 
-    manifest = EnclaveManifest.from_file(
-        os.path.join(os.path.dirname(__file__), "../../policy.dev.toml")
+    manifest = EnclaveManifest.from_str(
+        importlib.resources.read_text(__package__, "manifest.toml")  # type: ignore
     )
     if attestation_result.enclave_report.mr_enclave != manifest.mr_enclave:
         raise IdentityError(
@@ -176,7 +176,7 @@ def validate_attestation(quote: bytes, collateral, enclave_held_data: bytes):
         and not manifest.allow_debug
     ):
         raise AttestationError(
-            "Enclave is running in debug mode but the policy forbids debug mode",
+            "Enclave is running in debug mode but the manifest forbids debug mode",
         )
 
     if (
@@ -245,28 +245,28 @@ class EnclaveManifest:
 
     @staticmethod
     def from_str(s: str) -> "EnclaveManifest":
-        """Load a policy from the content of a Policy.toml
+        """Load a manifest from the content of a manifest.toml
         Args:
-            s (str): The content of the policy.
+            s (str): The content of the manifest.
         Returns:
-            Policy: The policy.
+            manifest: The manifest.
         """
         return EnclaveManifest.from_dict(toml.loads(s))
 
     @staticmethod
     def from_file(path: str) -> "EnclaveManifest":
-        """Load a policy from a file.
+        """Load a manifest from a file.
 
         Args:
             path (str): The path of the file.
         Returns:
-            Policy: The policy.
+            manifest: The manifest.
         """
         return EnclaveManifest.from_dict(toml.load(path))
 
     @staticmethod
     def from_dict(obj: dict) -> "EnclaveManifest":
-        """Load an enclave manifest from the dict obtained after Policy.toml
+        """Load an enclave manifest from the dict obtained after manifest.toml
         decoding.
 
         Args:

@@ -25,7 +25,7 @@ tract-core = {path="tract/core"} #{version = "0.17.2-pre", features=["untrusted_
 tract-onnx = {path="tract/onnx"} #{version = "0.17.2-pre", features=["untrusted_fs"]}
 tract-hir = {path="tract/hir"}  #{version = "0.17.2-pre"}
 # ssl feature is patched to enable TLS support via rustls
-rouille = { git = "https://github.com/mithril-security/rouille-sgx.git", features = ["ssl"] }
+rouille = { git = "https://github.com/mithril-security/rouille-sgx.git", tag = "v3.6.1-sgx", features = ["ssl"] }
 sgx-isa = { version = "0.4.0", features = ["serde"] }
 ureq = {version = "2.5.0", features = ["json"]}
 serde_bytes = "0.11.8"
@@ -38,7 +38,7 @@ image = "0.24.1"
 # tiny http uses ring which needs to be patched to work properly 
 # and securely in SGX target
 ring = {path="ring-fortanix"}
-serde_cbor = { git = "https://github.com/mithril-security/cbor.git" }
+serde_cbor = { git = "https://github.com/mithril-security/cbor.git", tag="v0.11.2-edited" }
 # { git = 'ssh://git@github.com/mithril-security/ring.git', branch="fortanix-target"}
 
 

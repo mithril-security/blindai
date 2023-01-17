@@ -56,7 +56,7 @@ RUN cd client \
     && poetry run pytest --ignore=tests/integration_test.py 
 
 COPY .github/scripts scripts
-COPY policy.dev.template.toml policy.prod.template.toml ./
+COPY manifest.dev.template.toml manifest.prod.template.toml ./
 
 # end-to-end tests
 CMD ( cd /opt/intel/sgx-dcap-pccs && npm start pm2 ) & \

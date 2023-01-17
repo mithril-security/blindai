@@ -42,17 +42,26 @@ jobs:
       
       - name: Extract binary
         run: |
-          docker cp 'blindaiv2-test:/blindaiv2/target/x86_64-fortanix-unknown-sgx/release/blindai_server.sgxs' .
+          docker build -f .github/sgxs-release.dockerfile --tag blindaiv2-enclave:latest .
+          id=$(docker create blindaiv2-enclave:latest)
+          docker cp "$id:/blindai-preview/target/x86_64-fortanix-unknown-sgx/release/blindai_server.sgxs" .
+          docker cp "$id:/blindai-preview/manifest.toml" .
+          docker rm -v $id
           tar czf blindai_server-x86_64-fortanix-unknown-sgx-${{steps.version.outputs.value}}.tgz blindai_server.sgxs
 
       - name: Create github release
         uses: softprops/action-gh-release@v1
         with:
-          files: blindai_server-x86_64-fortanix-unknown-sgx-${{steps.version.outputs.value}}.tgz
+          files: |
+            blindai_server-x86_64-fortanix-unknown-sgx-${{steps.version.outputs.value}}.tgz
+            manifest.toml
           name: ${{steps.version.outputs.value}}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Create pypi release
         run: |
-          docker run -e API_TOKEN_PYPI=${{ secrets.API_TOKEN_PYPI }} blindaiv2-test:latest bash scripts/publish_to_pypi.sh
+          cp manifest.toml client/blindai_preview/
+          docker build -f .github/pypi-release.dockerfile --tag blindaiv2-pypi:latest .
+          docker rm --force blindaiv2-pypi
+          docker run --name blindaiv2-pypi  -e API_TOKEN_PYPI=${{ secrets.API_TOKEN_PYPI }} blindaiv2-pypi:latest
