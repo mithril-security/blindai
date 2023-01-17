@@ -110,7 +110,6 @@ sgx-detect
 Two files will be generated after the building process:
 
 * `manifest.toml`: the enclave security manifest that defines which enclave is trusted.
-* `host_server.pem`: TLS certificate for the connection to the untrusted (app) part of the server.
 
 You will need these two files for running the client in non-simulation mode.
 
