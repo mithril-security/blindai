@@ -15,7 +15,9 @@ use std::{
     ptr, slice, str,
 };
 use x509_parser::{oid_registry::Oid, prelude::FromDer, prelude::X509Certificate};
-
+use ureq;
+use urlencoding;
+use hex;
 /// Get SGX ECDSA attestation collateral from an SGX quote
 ///
 /// The verification collateral is the data required needed by the client to
@@ -36,11 +38,37 @@ pub fn get_quote_verification_collateral(quote: &[u8]) -> Result<SgxCollateral> 
         pck_crl_issuer_chain,
         root_ca_crl,
         pck_crl,
-        tcb_info_issuer_chain,
-        tcb_info,
-        qe_identity_issuer_chain,
-        qe_identity,
+        mut tcb_info_issuer_chain,
+        mut tcb_info,
+        mut qe_identity_issuer_chain,
+        mut qe_identity,
     } = sgx_get_quote_verification_collateral(&fmspc, &ca_from_quote)?;
+
+    if std::env::var("BLINDAI_AZURE_DCS3_PATCH").is_ok() {
+        println!("The patch for Azure DCsv3 and DCdsv3-series VMs is enabled. Requesting collateral directly from Intel, bypassing the PCS.");
+
+        let api_tcb_info_response = ureq::get("https://api.trustedservices.intel.com/sgx/certification/v3/tcb").query("fmspc", &hex::encode(fmspc)).call()?;
+
+        tcb_info_issuer_chain = urlencoding::decode(
+            api_tcb_info_response
+                .header("SGX-TCB-Info-Issuer-Chain")
+                .unwrap(),
+        )?
+        .to_string();
+
+        tcb_info = api_tcb_info_response.into_string()?;
+
+        let api_qe_identity_response = ureq::get("https://api.trustedservices.intel.com/sgx/certification/v3/qe/identity").call()?;
+        qe_identity_issuer_chain = urlencoding::decode(
+            api_qe_identity_response
+                .header("SGX-Enclave-Identity-Issuer-Chain")
+                .unwrap(),
+        )?
+        .to_string();
+
+        qe_identity = api_qe_identity_response.into_string()?;
+    }
+
 
     Ok(SgxCollateral {
         version,
