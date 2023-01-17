@@ -45,7 +45,7 @@ dummy_inputs = torch.zeros(1,3,224,224)
 torch.onnx.export(model, dummy_inputs, "resnet18.onnx")
 
 # Upload the ONNX file along with specs and model name
-with blindai.connect(api_key=...) as client:
+with blindai-preview.connect() as client:
     client.upload_model(
       model="resnet18.onnx",
     )
@@ -94,7 +94,7 @@ Now we that we have the input tensor, we simply need to send it to the pre-uploa
 ```python
 with blindai-preview.connect() as client:
   # Send data to the GPT2 model
-  response = client.predict("resnet18", input_batch)
+  response = client.run_model("resnet18", input_batch)
 
 >>> response.output[0].argmax()
 ```
