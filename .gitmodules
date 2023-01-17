@@ -1,11 +1,12 @@
+[submodule "tar-rs-sgx"]
+	path = tar-rs-sgx
+	url = https://github.com/mithril-security/tar-rs-fortanix.git
+	branch = target-fortanix
 [submodule "ring-fortanix"]
 	path = ring-fortanix
 	url = https://github.com/mithril-security/ring-fortanix.git
+	branch = target-fortanix
 [submodule "tract"]
 	path = tract
 	url = https://github.com/mithril-security/tract.git
-	branch = target-fortanix
-[submodule "tar-rs-fortanix"]
-	path = tar-rs-sgx
-	url = https://github.com/mithril-security/tar-rs-fortanix.git
 	branch = target-fortanix
