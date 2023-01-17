@@ -2,6 +2,9 @@
 
 The docker images used here are prebuilt ones from our dockerhub, you can take a look at the [build the server from source section]('build-from-sources/server.md')
 
+!!! warning
+    The unsecure connection is on HTTP only. In production mode, it is highly recommended to connect it to a **reverse-proxy** that creates a TLS connection between the end user and the server.  
+
 ## Simulation mode
 
 This section explains how to work with the simulation mode. This simulates Intel SGX in software and enables you to run this on any hardware you want.
@@ -24,8 +27,6 @@ docker run -it \
 
 === "Hardware mode"
 
-    !!! info
-        If you are using Azure DCsV2 VMs, you can ignore all of this. The drivers and the PCCS server are built-in the VMs.
 
     You will need to have an Intel SGX-ready device, with `SGX+FLC` (Flexible Launch Control) support. Read [this Intel documentation page](https://www.intel.com/content/www/us/en/support/articles/000057420/software/intel-security-products.html) to see if your Intel processor supports it.
 

@@ -1,85 +1,44 @@
 # Cloud deployment
 
-You will find here some tutorials to deploy **BlindAI** easily on some cloud providers.
+You will find here some tutorials to deploy **BlindAI** on Azure DCsv3.
 
 ### Create the VM
 
-=== "Azure DCsv2"
+You can easily deploy BlindAI on [Azure DCsv3 VMs](https://docs.microsoft.com/en-us/azure/virtual-machines/dcv3-series). BlindAI works out of the box, all you need to do is to follow those steps to deploy a VM :&#x20;
 
-    You can easily deploy BlindAI on [Azure DCsv2 VMs](https://docs.microsoft.com/en-us/azure/virtual-machines/dcv2-series). BlindAI works out of the box, all you need to do is to follow those steps to deploy a VM :&#x20;
+First thing first, you need to create an account on Azure. If you want to try the service for free, it is strongly advised to subscribe [to the free trial.](https://azure.microsoft.com/en-us/free/) Click on the link to have more information.
 
-    First thing first, you need to create an account on Azure. If you want to try the service for free, it is strongly advised to subscribe [to the free trial.](https://azure.microsoft.com/en-us/free/) Click on the link to have more information.
+Once you created your account and activated the free credits of $200, you can start searching for `Azure Confidential Computing` and then click on "Create".
 
-    Once you created your account and activated the free credits of $200, you can start searching for `Azure Confidential Computing` and then click on "Create".
+![Confidential Computing VM](../assets/2022-02-24 11_09_07.png)
 
-    ![Confidential Computing VM](../assets/2022-02-24 11_09_07.png)
+![Start the creation process.](../assets/2022-02-24 11_09_26.png)
 
-    ![Start the creation process.](../assets/2022-02-24 11_09_26.png)
+After this, you will start to see a configuration screen. Please select either **Ubuntu 18.04 or 20.04. For security reasons, it is strongly advised to use a SSH public key in order to use the VM.**
 
-    After this, you will start to see a configuration screen. Please select either **Ubuntu 18.04 or 20.04. For security reasons, it is strongly advised to use a SSH public key in order to use the VM.**
+![Basic configuration](../assets/2022-02-24 11_57_19.png)
 
-    ![Basic configuration](../assets/2022-02-24 11_57_19.png)
+On the next page, you will choose the VM you want to use. We strongly advise you to pick the **DC2s v3 VM** to test BlindAI. Before going to the next page, please remember to **allow the connection from SSH**.
 
-    On the next page, you will choose the VM you want to use. We strongly advise you to pick the **DC2s v2 VM** to test BlindAI. Before going to the next page, please remember to **allow the connection from SSH**.
+![VM settings](../assets/2022-02-24 11_12_12.png)
 
-    ![VM settings](../assets/2022-02-24 11_12_05.png)
+![Choose a VM](../assets/2022-02-24 11_10_26.png)
 
-    ![Choose a VM](../assets/2022-02-24 11_10_20.png)
+After this screen, please validate and create the VM.
 
-    After this screen, please validate and create the VM.
+![Validate and create the VM.](../assets/2022-03-02 16_41_19.png)
 
-    ![Validate and create the VM.](../assets/2022-02-24 11_13_40-2.png)
+After a few minutes, the VM will be successfully deployed. Before connecting to the VM, **it is strongly advised to set up a DNS name, in order to simplify the connection as much as possible.**
 
-    After a few minutes, the VM will be successfully deployed. Before connecting to the VM, **it is strongly advised to set up a DNS name, in order to simplify the connection as much as possible.**
+![Setting up DNS name - 1](../assets/2022-03-02 16_38_31.png)
 
-    ![Setting up DNS name - 1](../assets/2022-02-24 12_09_56.png)
+![Setting up DNS name - 2](../assets/2022-02-24 12_07_22.png)
 
-    ![Setting up DNS name - 2](../assets/2022-02-24 12_07_22.png)
-    
-    Once you are done with this, we have to **open the ports used by BlindAI.** You need to open the ports **50051 and 50052.**
+Once you are done with this, we have to **open the ports used by BlindAI.** You need to open the ports **50051 and 50052.**
 
-    ![](../assets/image.png)
+![](../assets/image.png)
 
-    ![](../assets/image_1.png)
-
-
-=== "Azure DCsv3"
-
-    You can easily deploy BlindAI on [Azure DCsv3 VMs](https://docs.microsoft.com/en-us/azure/virtual-machines/dcv3-series). BlindAI works out of the box, all you need to do is to follow those steps to deploy a VM :&#x20;
-
-    First thing first, you need to create an account on Azure. If you want to try the service for free, it is strongly advised to subscribe [to the free trial.](https://azure.microsoft.com/en-us/free/) Click on the link to have more information.
-
-    Once you created your account and activated the free credits of $200, you can start searching for `Azure Confidential Computing` and then click on "Create".
-
-    ![Confidential Computing VM](../assets/2022-02-24 11_09_07.png)
-
-    ![Start the creation process.](../assets/2022-02-24 11_09_26.png)
-
-    After this, you will start to see a configuration screen. Please select either **Ubuntu 18.04 or 20.04. For security reasons, it is strongly advised to use a SSH public key in order to use the VM.**
-
-    ![Basic configuration](../assets/2022-02-24 11_57_19.png)
-
-    On the next page, you will choose the VM you want to use. We strongly advise you to pick the **DC2s v3 VM** to test BlindAI. Before going to the next page, please remember to **allow the connection from SSH**.
-
-    ![VM settings](../assets/2022-02-24 11_12_12.png)
-
-    ![Choose a VM](../assets/2022-02-24 11_10_26.png)
-
-    After this screen, please validate and create the VM.
-
-    ![Validate and create the VM.](../assets/2022-03-02 16_41_19.png)
-
-    After a few minutes, the VM will be successfully deployed. Before connecting to the VM, **it is strongly advised to set up a DNS name, in order to simplify the connection as much as possible.**
-
-    ![Setting up DNS name - 1](../assets/2022-03-02 16_38_31.png)
-
-    ![Setting up DNS name - 2](../assets/2022-02-24 12_07_22.png)
-
-    Once you are done with this, we have to **open the ports used by BlindAI.** You need to open the ports **50051 and 50052.**
-
-    ![](../assets/image.png)
-
-    ![](../assets/image_1.png)
+![](../assets/image_1.png)
 
 ### Using the VM
 
