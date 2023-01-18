@@ -49,7 +49,7 @@ Setting up a SSH connection is fairly easy in Visual Studio Code. All you need t
 
 ![](../assets/2022-02-24_12_15_41.png)
 
-![The DNS name shows its usefulness here as you won't need to update the host after the first configuration.](../assets/2022-02-24 12_15_35.png)
+![The DNS name shows its usefulness here as you won't need to update the host after the first configuration.](../assets/2022-02-24_12_15_35.png)
 
 After that, you need to select "Connect to Host" in **the Command Palette** and select your DNS name.
 
