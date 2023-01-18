@@ -582,15 +582,15 @@ class BlindAiConnection(contextlib.AbstractContextManager):
         quote = cbor.loads(s.get(f"{self._untrusted_url}/quote").content)
         collateral = cbor.loads(s.get(f"{self._untrusted_url}/collateral").content)
 
-        validate_attestation(quote, collateral, cert.encode("ascii"))
+        validate_attestation(quote, collateral, cert)
 
         # requests (http library) takes a path to a file containing the CA
         # there is no easy way to give the CA as a string/bytes directly
         # therefore a temporary file with the certificate content
         # has to be created.
 
-        trusted_server_cert_file = tempfile.NamedTemporaryFile(mode="w")
-        trusted_server_cert_file.write(cert)
+        trusted_server_cert_file = tempfile.NamedTemporaryFile(mode="wb")
+        trusted_server_cert_file.write(cert_der_to_pem(cert))
         trusted_server_cert_file.flush()
         # the file should not be close until the end of BlindAiConnection
         # so we store it in the object (else it might get garbage collected)

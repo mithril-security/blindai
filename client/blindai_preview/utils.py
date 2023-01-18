@@ -27,7 +27,7 @@ def strip_https(url: str) -> str:
     return re.sub(r"^https:\/\/", "", url)
 
 
-def encode_certificate(cert: bytes):
+def cert_der_to_pem(cert: bytes) -> bytes:
     return cryptography.x509.load_der_x509_certificate(cert).public_bytes(Encoding.PEM)
 
 

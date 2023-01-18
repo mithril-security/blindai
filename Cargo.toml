@@ -13,7 +13,8 @@ log = {version = "0.4.17", features = ["release_max_level_trace"]}
 num-derive = "0.3.3"
 num-traits = "0.2.15"
 rand = "0.8.5"
-rcgen = {version = "0.10.0", default-features = false, features=["pem"]}
+# Do NOT enable features=["pem"] pem-encoding provided by the crate is NOT side channel resistant
+rcgen = {version = "0.10.0", default-features = false}
 ring = "0.16.20"
 digest = "0.10.6"
 serde = "1.0.147"
@@ -25,10 +26,11 @@ tract-core = {path="tract/core"} #{version = "0.17.2-pre", features=["untrusted_
 tract-onnx = {path="tract/onnx"} #{version = "0.17.2-pre", features=["untrusted_fs"]}
 tract-hir = {path="tract/hir"}  #{version = "0.17.2-pre"}
 # ssl feature is patched to enable TLS support via rustls
-rouille = { git = "https://github.com/mithril-security/rouille-sgx.git", tag = "v3.6.1-sgx", features = ["ssl"] }
+rouille = { path = "rouille", features = ["ssl"] }
 sgx-isa = { version = "0.4.0", features = ["serde"] }
 ureq = {version = "2.5.0", features = ["json"]}
 serde_bytes = "0.11.8"
+tiny_http = { path = "tiny-http" }
 
 [dev-dependencies]
 lazy_static = "1.4.0"

@@ -106,6 +106,7 @@ dependencies = [
  "serde_derive",
  "serde_json",
  "sgx-isa",
+ "tiny_http",
  "tract-core",
  "tract-hir",
  "tract-onnx",
@@ -981,15 +982,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d01a5bd0424d00070b0098dd17ebca6f961a959dead1dbcbbbc1d1cd8d3deeba"
 
 [[package]]
-name = "pem"
-version = "1.1.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a8835c273a76a90455d7344889b0964598e3316e2a79ede8e36f16bdcf2228b8"
-dependencies = [
- "base64",
-]
-
-[[package]]
 name = "percent-encoding"
 version = "2.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1218,7 +1210,6 @@ version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ffbe84efe2f38dea12e9bfc1f65377fdf03e53a18cb3b995faedf7934c7e785b"
 dependencies = [
- "pem",
  "ring",
  "time",
  "yasna",
@@ -1275,7 +1266,6 @@ dependencies = [
 [[package]]
 name = "rouille"
 version = "3.6.1"
-source = "git+https://github.com/mithril-security/rouille-sgx.git?tag=v3.6.1-sgx#ff83153bb5870efdcf6401511f844713af6828db"
 dependencies = [
  "base64",
  "chrono",
@@ -1611,8 +1601,6 @@ dependencies = [
 [[package]]
 name = "tiny_http"
 version = "0.12.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "389915df6413a2e74fb181895f933386023c71110878cd0825588928e64cdc82"
 dependencies = [
  "ascii",
  "chunked_transfer",
