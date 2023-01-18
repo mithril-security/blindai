@@ -274,8 +274,11 @@ class EnclaveManifest:
         Returns:
             EnclaveManifest:
         """
+        mr_enclave = bytes.fromhex(obj["mr_enclave"])
+        if len(mr_enclave) != hashlib.sha256().digest_size:
+            raise ValueError("Invalid mr_enclave in Manifest")
         return EnclaveManifest(
-            mr_enclave=bytes.fromhex(obj["mr_enclave"]),
+            mr_enclave=mr_enclave,
             allow_debug=obj["allow_debug"],
             attributes_flags=hex_to_u64(obj["attributes_flags_hex"]),
             attributes_mask_flags=hex_to_u64(obj["attributes_mask_flags_hex"]),

@@ -122,12 +122,14 @@ valgrind *args:
 # generate a manifest.toml for dev purposes, expects path to the sgxs file 
 generate-manifest-dev input_sgxs:
   #!/usr/bin/env bash
+  set -e
   export mr_enclave=`sgxs-hash {{input_sgxs}}`
   envsubst < manifest.dev.template.toml > manifest.dev.toml
 
 # generate a manifest.toml for prod purposes expects path to the sgxs file
 generate-manifest-prod input_sgxs:
   #!/usr/bin/env bash
+  set -e
   export mr_enclave=`sgxs-hash {{input_sgxs}}`
   envsubst < manifest.prod.template.toml > manifest.prod.toml
   
