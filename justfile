@@ -33,7 +33,7 @@ run *args:
 
   just generate-manifest-prod "$binpath.sgxs" 
 
-  ( cd runner && cargo build --release )
+  ( cd runner && cargo build {{args}} )
 
   # ftxsgx-runner "$binpath.sgxs" 
 

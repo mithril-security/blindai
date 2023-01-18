@@ -84,8 +84,11 @@ fn get_collateral(quote: &[u8]) -> Result<SgxCollateral> {
 fn main() -> Result<()> {
     // Make debugging easier by enabling rust backtrace inside enclave
     std::env::set_var("RUST_BACKTRACE", "full");
+    #[cfg(debug_assertions)]
     env_logger::Builder::from_env(Env::default().default_filter_or("debug")).init();
-
+    #[cfg(not(debug_assertions))]
+    env_logger::Builder::from_env(Env::default().default_filter_or("error")).init();
+    
     let certificate_with_secret = identity::create_tls_certificate()?;
     let enclave_cert_pem = Arc::new(certificate_with_secret.serialize_pem()?);
     let enclave_private_key_pem = certificate_with_secret.serialize_private_key_pem();
