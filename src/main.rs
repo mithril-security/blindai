@@ -87,8 +87,8 @@ fn main() -> Result<()> {
     env_logger::Builder::from_env(Env::default().default_filter_or("debug")).init();
 
     let certificate_with_secret = identity::create_tls_certificate()?;
-    let enclave_cert_pem = Arc::new(certificate_with_secret.serialize_pem()?);
-    let enclave_private_key_pem = certificate_with_secret.serialize_private_key_pem();
+    let enclave_cert_der = Arc::new(certificate_with_secret.serialize_der()?);
+    let enclave_private_key_der = certificate_with_secret.serialize_private_key_der();
 
     let exchanger_temp = Arc::new(Exchanger::new(
         Arc::new(ModelStore::new()),
@@ -111,7 +111,7 @@ fn main() -> Result<()> {
     // Connecting to the runner
 
     // Enclave held data hash
-    let report_binding = digest::digest(&digest::SHA256, enclave_cert_pem.as_bytes());
+    let report_binding = digest::digest(&digest::SHA256, &enclave_cert_der);
     let mut report_data = [0u8; 64];
     report_data[0..32].copy_from_slice(report_binding.as_ref());
 
@@ -126,12 +126,13 @@ fn main() -> Result<()> {
     debug!("Attestation : Collateral is {:?} ", collateral);
 
     let router = {
-        let enclave_cert_pem = Arc::clone(&enclave_cert_pem);
+        let enclave_cert_der = Arc::clone(&enclave_cert_der);
         move |request: &rouille::Request| {
             rouille::router!(request,
                 (GET)(/) => {
                     debug!("Requested enclave TLS certificate");
-                    respond(enclave_cert_pem.as_ref())                },
+                    respond(Bytes::new(&enclave_cert_der))
+                },
                 (GET)(/quote) => {
                     debug!("Attestation : Sending quote to client.");
                     respond(Bytes::new(&quote))
@@ -174,13 +175,15 @@ fn main() -> Result<()> {
         )
     };
     thread::spawn({
-        let enclave_cert_pem = Arc::clone(&enclave_cert_pem);
+        let enclave_cert_der = Arc::clone(&enclave_cert_der);
         move || {
             let trusted_server = rouille::Server::new_ssl(
                 "0.0.0.0:9924",
                 router,
-                enclave_cert_pem.as_bytes().to_vec(),
-                enclave_private_key_pem.into_bytes(),
+                tiny_http::SslConfig::Der(tiny_http::SslConfigDer {
+                    certificates: vec![enclave_cert_der.to_vec()],
+                    private_key: enclave_private_key_der,
+                }),
             )
             .expect("Failed to start trusted server");
             let (_trusted_handle, _trusted_sender) = trusted_server.stoppable();

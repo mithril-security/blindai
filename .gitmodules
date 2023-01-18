@@ -9,3 +9,9 @@
 	path = tar-rs-sgx
 	url = https://github.com/mithril-security/tar-rs-fortanix.git
 	branch = target-fortanix
+[submodule "tiny-http"]
+	path = tiny-http
+	url = https://github.com/mithril-security/tiny-http.git
+[submodule "rouille-sgx"]
+	path = rouille
+	url = https://github.com/mithril-security/rouille-sgx.git

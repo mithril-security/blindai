@@ -15,6 +15,8 @@ COPY .cargo .cargo
 COPY tar-rs-sgx tar-rs-sgx
 COPY tract tract
 COPY ring-fortanix ring-fortanix
+COPY rouille rouille
+COPY tiny-http tiny-http
 
 # generate tests onnx models and inputs
 COPY tests tests
