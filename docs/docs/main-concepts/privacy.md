@@ -13,7 +13,7 @@ To achieve this we are relying on Intel SGX enabled CPUs. These CPUs have the ab
 As a user wanting privacy guarantees, here is a step-by-step list of what you should do to securely deploy or connect to BlindAI:
 
 - Inspect the commit of the BlindAI instance, and make sure that data is not exposed. If you don’t want to, it's ok, we will have external independent auditors do it for you.
-- Build the commit's enclave, and generate its policy.toml, then pass it to the client.
+- Build the commit's enclave, and generate its `manifest.toml`, then pass it to the client.
 - If you're deploying your own BlindAI instance you should also generate new TLS certificates.
 
 The next sections explain how to achieve the last two steps.

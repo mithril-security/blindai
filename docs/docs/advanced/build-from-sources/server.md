@@ -20,7 +20,7 @@ You can build the whole project by using our Docker image. We have set up the Do
         -f ./docker/build.dockerfile \
         .
     ```
-    This will create a policy file with `allow_debug = false`. To change that, use `-e POLICY_ALLOW_DEBUG=true` when building.
+    This will create a manifest file with `allow_debug = false`. To change that, use `-e MANIFEST_ALLOW_DEBUG=true` when building.
 
 === "Hardware mode (Azure DCsv3 VMs)"
     ```bash
@@ -32,12 +32,12 @@ You can build the whole project by using our Docker image. We have set up the Do
         -f ./docker/build.dockerfile \
         .
     ```
-    This will create a policy file with `allow_debug = false`. To change that, use `-e POLICY_ALLOW_DEBUG=true` when building.
+    This will create a manifest file with `allow_debug = false`. To change that, use `-e MANIFEST_ALLOW_DEBUG=true` when building.
 
 !!! info
-    If your goal is to obtain a policy.toml file to connect to a distant server. You should build the image in hardware mode (sgx support isn't needed for compilation). You can then extract it by running:
+    If your goal is to obtain a manifest.toml file to connect to a distant server. You should build the image in hardware mode (sgx support isn't needed for compilation). You can then extract it by running:
     ```bash
-    docker run --rm <image_name> cat /root/policy.toml > policy.toml
+    docker run --rm <image_name> cat /root/manifest.toml > manifest.toml
     ```
 
 ### Running
@@ -82,8 +82,8 @@ sgx-detect
     cd server
     just build 
 
-    # for generating the policy file 
-    just generate-policy-dev 
+    # for generating the manifest file 
+    just generate-manifest-dev 
     ```
 
 === "Azure DCsv3 VMs mode"
@@ -103,13 +103,13 @@ sgx-detect
     cd server
     just build 
 
-    # for generating the policy file 
-    just generate-policy-dev 
+    # for generating the manifest file 
+    just generate-manifest-dev 
     ```
 
 Two files will be generated after the building process:
 
-* `policy.toml`: the enclave security policy that defines which enclave is trusted.
+* `manifest.toml`: the enclave security manifest that defines which enclave is trusted.
 * `host_server.pem`: TLS certificate for the connection to the untrusted (app) part of the server.
 
 You will need these two files for running the client in non-simulation mode.

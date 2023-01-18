@@ -3,7 +3,7 @@
 The docker images used here are prebuilt ones from our dockerhub, you can take a look at the [build the server from source section]('build-from-sources/server.md')
 
 !!! warning
-    The unsecure connection is on HTTP only. In production mode, it is highly recommended to connect it to a **reverse-proxy** that creates a TLS connection between the end user and the server.  
+    The unsecure connection is on HTTP only. In production mode, it is highly recommended to connect it to a **reverse-proxy** that creates a TLS connection between the end user and the BlindAI server.  
 
 ## Simulation mode
 
@@ -48,14 +48,17 @@ docker run -it \
 
     The binary file contains the drivers signed by Intel and will proceed to the installation transparently.
 
+    In some cases (Linux kernel >5.15) the execution of the binary returns `in-kernel drivers support`, and it means that the drivers are already installed and must appear in `/dev/sgx/`
+
 
 === "Hardware mode (Azure DCsv3 VMs)"
 
     There is no need to do anything, the drivers are already installed.
 
+
 ### Running the server
 
-Please make sure you have [Docker ](https://docs.docker.com/get-docker/)installed on your machine.
+Please make sure you have [Docker](https://docs.docker.com/get-docker/) installed on your machine.
 
 === "Hardware mode"
 
@@ -63,8 +66,8 @@ Please make sure you have [Docker ](https://docs.docker.com/get-docker/)installe
 
     ```bash
     docker run -it \
-        -p 50051:50051 \
-        -p 50052:50052 \
+        -p 9923:9923 \
+        -p 9924:9924 \
         --device /dev/sgx/enclave \
         --device /dev/sgx/provision \
         mithrilsecuritysas/blindai-server:latest /root/start.sh PCCS_API_KEY
@@ -78,33 +81,33 @@ Please make sure you have [Docker ](https://docs.docker.com/get-docker/)installe
     ```bash
     docker run -it \
         -v $(pwd)/bin/tls:/root/tls \
-        -p 50051:50051 \
-        -p 50052:50052 \
+        -p 9923:9923 \
+        -p 9924:9924 \
         --device /dev/sgx/enclave \
         --device /dev/sgx/provision \
         mithrilsecuritysas/blindai-server-dcsv3:latest
     ```
 
 !!! info
-    If you built this image locally you can allow debug by running with -e POLICY_ALLOW_DEBUG=true. Building from sources is documented [here](advanced/build-from-sources/server.md)
+    If you built this image locally you can allow debug by running with -e MANIFEST_ALLOW_DEBUG=true. Building from sources is documented [here](advanced/build-from-sources/server.md).
 
 !!! warning
-    You should only allow debug if your policy.toml allows debug.
+    You should only allow debug if your manifest.toml allows debug.
 
-### Extract Policy and default TLS Certificate from the Hardware docker image
+### Extract manifest and default TLS Certificate from the Hardware docker image
 
-You can extract the policy directly from the prebuilt Docker Image using:
+You can extract the manifest directly from the prebuilt Docker Image using:
 
 === "Hardware mode"
 
     ```bash
-    docker run --rm mithrilsecuritysas/blindai-server:latest /bin/cat /root/policy.toml > policy.toml
+    docker run --rm mithrilsecuritysas/blindai-server:latest /bin/cat /root/manifest.toml > manifest.toml
     ```
 
 === "Hardware mode (Azure DCsv3 VMs)"
 
     ```bash
-    docker run --rm mithrilsecuritysas/blindai-server-dcsv3:latest /bin/cat /root/policy.toml > policy.toml
+    docker run --rm mithrilsecuritysas/blindai-server-dcsv3:latest /bin/cat /root/manifest.toml > manifest.toml
     ```
 
 You can also extract the default TLS certificate like this:
@@ -131,10 +134,10 @@ client = BlindAiConnection(addr="localhost", simulation=True)
 by
 
 ```py
-client = BlindaiConnection(addr="localhost", policy="/path/to/policy.toml", certificate="/path/to/host_server.pem")
+client = BlindaiConnection(addr="localhost", manifest="/path/to/manifest.toml")
 ```
 
-Your client will use your TLS certificate and will only be able to connect to an enclave generated with the exact same policy.toml.
+Your client will use your TLS certificate and will only be able to connect to an enclave generated with the exact same manifest.toml.
 
 !!! note
-    If you want to deploy for production you should check out [the privacy section](main-concepts/privacy.md). You will learn how to check the authenticity of the policy and how to inject your own TLS certificate.
+    If you want to deploy for production you should check out [the privacy section](main-concepts/privacy.md). You will learn how to check the authenticity of the manifest and how to inject your own TLS certificate.
