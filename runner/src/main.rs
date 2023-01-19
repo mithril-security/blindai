@@ -1,6 +1,5 @@
 use aesm_client::AesmClient;
 use enclave_runner::EnclaveBuilder;
-use env_logger::Env;
 use sgxs_loaders::isgx::Device as IsgxDevice;
 use std::thread;
 

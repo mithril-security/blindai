@@ -35,7 +35,7 @@ class AttestationError(Exception):
     pass
 
 
-class QuoteValidationError(Exception):
+class QuoteValidationError(AttestationError):
     """This exception is raised when the returned quote is invalid (TCB
     outdated, not signed by the hardware provider...).
 
@@ -66,7 +66,7 @@ class EnclaveHeldDataError(QuoteValidationError):
     pass
 
 
-class IdentityError(Exception):
+class IdentityError(QuoteValidationError):
     """This exception is raised when the enclave code digest (MRENCLAVE is SGX terminology) does not match the digest provided in the manifest
     Args:
         expected_hash (str): hash from manifest
