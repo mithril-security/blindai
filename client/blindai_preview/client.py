@@ -495,7 +495,9 @@ class BlindAiConnection(contextlib.AbstractContextManager):
             HttpError: raised by the requests lib to relay server side errors
             ValueError: raised when inputs sanity checks fail
             IdentityError: raised when the enclave signature does not match the enclave signature expected in the manifest
-            EnclaveHeldDataError: raised when the enclave signature does not match the enclave signature expected in the manifest
+            EnclaveHeldDataError: raised when the expected enclave held data does not match the one in the quote
+            QuoteValidationError: raised when the returned quote is invalid (TCB outdated, not signed by the hardware provider...).
+            AttestationError: raised when the attestation is not valid (enclave settings mismatching, debug mode unallowed...)
         """
 
         uname = platform.uname()

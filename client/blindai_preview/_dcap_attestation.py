@@ -28,18 +28,18 @@ class AttestationError(Exception):
     """This exception is raised when the returned quote is invalid (TCB
     outdated, not signed by the hardware provider...).
 
-    Used a master exception for all other sub exceptions on the quote
+    Used as master exception for all other sub exceptions on the quote
     validation
     """
 
     pass
 
 
-class QuoteValidationError(AttestationError):
+class QuoteValidationError(Exception):
     """This exception is raised when the returned quote is invalid (TCB
     outdated, not signed by the hardware provider...).
 
-    Used a master exception for all other sub exceptions on the quote
+    Used as master exception for all other sub exceptions on the quote
     validation
     """
 
