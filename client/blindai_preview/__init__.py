@@ -8,7 +8,7 @@ __all__ = [
     "AttestationError",
     "QuoteValidationError",
     "EnclaveHeldDataError",
-    "IdentityError"
+    "IdentityError",
 ]
 
 from .client import (

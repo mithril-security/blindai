@@ -1,4 +1,4 @@
-from blindai_preview import connect
+from blindai_preview import *
 import onnxruntime as rt
 import numpy as np
 import sys
