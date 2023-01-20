@@ -244,7 +244,7 @@ def dtype_to_torch(dtype: ModelDatumType) -> str:
     Convert a ModelDatumType to a torch type
 
     Raises:
-        ValueError: if torch doesn't dtype
+        ValueError: if torch doesn't support dtype
     """
     # Torch does not support unsigned ints except u8.
     translation_map = {
@@ -418,6 +418,7 @@ def translate_tensors(tensors, dtypes, shapes) -> List[dict]:
     # - anything not list should be wrapped into [X]
     # - list[int] should be wrapped into [X]
     # - but! list[list[int]] is should be unchanged
+    
     if isinstance(tensors, dict):
         for name, tensor in tensors.items():
             or_dtype = dtypes[name] if dtypes is not None else None
