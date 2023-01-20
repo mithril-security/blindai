@@ -418,7 +418,7 @@ def translate_tensors(tensors, dtypes, shapes) -> List[dict]:
     # - anything not list should be wrapped into [X]
     # - list[int] should be wrapped into [X]
     # - but! list[list[int]] is should be unchanged
-    
+
     if isinstance(tensors, dict):
         for name, tensor in tensors.items():
             or_dtype = dtypes[name] if dtypes is not None else None
