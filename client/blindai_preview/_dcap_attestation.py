@@ -25,7 +25,7 @@ import toml
 
 
 class AttestationError(Exception):
-    """This exception is raised when the attestation is invalid (enclave 
+    """This exception is raised when the attestation is invalid (enclave
     settings mismatching, debug mode unallowed...).
 
     Used as master exception for all other sub exceptions on the attestation
