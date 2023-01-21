@@ -186,7 +186,7 @@ class RunModelResponse:
     output: List[Tensor]
 
 
-class ClientInfo:
+class _ClientInfo:
     uid: str
     platform_name: str
     platform_arch: str
@@ -244,7 +244,7 @@ def dtype_to_torch(dtype: ModelDatumType) -> str:
     Convert a ModelDatumType to a torch type
 
     Raises:
-        ValueError: if torch doesn't dtype
+        ValueError: if torch doesn't support dtype
     """
     # Torch does not support unsigned ints except u8.
     translation_map = {
@@ -339,11 +339,11 @@ def translate_dtype(dtype: Any) -> ModelDatumType:
     )
 
 
-def is_torch_tensor(tensor) -> bool:
+def _is_torch_tensor(tensor) -> bool:
     return type(tensor).__module__ == "torch" and type(tensor).__name__ == "Tensor"
 
 
-def is_numpy_array(tensor) -> bool:
+def _is_numpy_array(tensor) -> bool:
     return type(tensor).__module__ == "numpy" and type(tensor).__name__ == "ndarray"
 
 
@@ -363,11 +363,11 @@ def translate_tensor(
     Returns:
         Tensor: the serialized tensor
     """
-    if is_torch_tensor(tensor):
+    if _is_torch_tensor(tensor):
         info = TensorInfo(tensor.shape, translate_dtype(tensor.dtype), name)
         iterable = tensor.flatten().tolist()
 
-    elif is_numpy_array(tensor):
+    elif _is_numpy_array(tensor):
         info = TensorInfo(tensor.shape, translate_dtype(tensor.dtype), name)
         iterable = tensor.flatten().tolist()
 
@@ -418,6 +418,7 @@ def translate_tensors(tensors, dtypes, shapes) -> List[dict]:
     # - anything not list should be wrapped into [X]
     # - list[int] should be wrapped into [X]
     # - but! list[list[int]] is should be unchanged
+
     if isinstance(tensors, dict):
         for name, tensor in tensors.items():
             or_dtype = dtypes[name] if dtypes is not None else None
@@ -431,8 +432,8 @@ def translate_tensors(tensors, dtypes, shapes) -> List[dict]:
             len(tensors) > 0
             and not (
                 isinstance(tensors[0], list)
-                or is_torch_tensor(tensors[0])
-                or is_numpy_array(tensors[0])
+                or _is_torch_tensor(tensors[0])
+                or _is_numpy_array(tensors[0])
             )
         ):
             tensors = [tensors]
@@ -494,11 +495,15 @@ class BlindAiConnection(contextlib.AbstractContextManager):
         Raises:
             HttpError: raised by the requests lib to relay server side errors
             ValueError: raised when inputs sanity checks fail
+            IdentityError: raised when the enclave signature does not match the enclave signature expected in the manifest
+            EnclaveHeldDataError: raised when the expected enclave held data does not match the one in the quote
+            QuoteValidationError: raised when the returned quote is invalid (TCB outdated, not signed by the hardware provider...).
+            AttestationError: raised when the attestation is not valid (enclave settings mismatching, debug mode unallowed...)
         """
 
         uname = platform.uname()
 
-        self.client_info = ClientInfo(
+        self.client_info = _ClientInfo(
             uid=sha256((socket.gethostname() + "-" + getpass.getuser()).encode("utf-8"))
             .digest()
             .hex(),

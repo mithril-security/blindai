@@ -146,7 +146,7 @@ impl Exchanger {
         let uuid = match Uuid::from_str(&run_model_body.model_id) {
             Ok(uuid) => uuid,
             Err(_) => {
-                info!("Error in uuid");
+                error!("Error in uuid");
                 return Err(Error::msg("Model doesn't exist".to_string()));
             }
         };
@@ -165,7 +165,7 @@ impl Exchanger {
         let res = match res {
             Some(res) => res,
             None => {
-                println!("Error in model match");
+                error!("Error in model match");
                 return Err(Error::msg("Model doesn't exist".to_string()));
             }
         };
@@ -235,7 +235,7 @@ pub fn bench(repeats: usize, samples: usize, f: impl Fn()) -> Result<()> {
         }
         let elapsed = start.elapsed().as_micros() / repeats as u128;
 
-        println!("bench (sample {i}/{samples}): {elapsed}us/iter, {repeats} iter");
+        info!("bench (sample {i}/{samples}): {elapsed}us/iter, {repeats} iter");
 
         results.push(elapsed);
     }
@@ -247,9 +247,9 @@ pub fn bench(repeats: usize, samples: usize, f: impl Fn()) -> Result<()> {
         .sum::<f64>()
         / results.len() as f64;
     let std_deviation = variance.sqrt();
-    println!("Mean {}", mean / 1000.0);
-    println!("Variance {}", variance / 1000.0);
-    println!("Std deviation {}", std_deviation / 1000.0);
+    info!("Mean {}", mean / 1000.0);
+    info!("Variance {}", variance / 1000.0);
+    info!("Std deviation {}", std_deviation / 1000.0);
 
     Ok(())
 }

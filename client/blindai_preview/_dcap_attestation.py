@@ -25,10 +25,10 @@ import toml
 
 
 class AttestationError(Exception):
-    """This exception is raised when the returned quote is invalid (TCB
-    outdated, not signed by the hardware provider...).
+    """This exception is raised when the attestation is invalid (enclave
+    settings mismatching, debug mode unallowed...).
 
-    Used a master exception for all other sub exceptions on the quote
+    Used as master exception for all other sub exceptions on the attestation
     validation
     """
 
@@ -39,7 +39,7 @@ class QuoteValidationError(Exception):
     """This exception is raised when the returned quote is invalid (TCB
     outdated, not signed by the hardware provider...).
 
-    Used a master exception for all other sub exceptions on the quote
+    Used as master exception for all other sub exceptions on the quote
     validation
     """
 
@@ -66,7 +66,7 @@ class EnclaveHeldDataError(QuoteValidationError):
     pass
 
 
-class IdentityError(Exception):
+class IdentityError(QuoteValidationError):
     """This exception is raised when the enclave code digest (MRENCLAVE is SGX terminology) does not match the digest provided in the manifest
     Args:
         expected_hash (str): hash from manifest

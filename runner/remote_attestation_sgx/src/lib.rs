@@ -12,6 +12,7 @@ use serde::Deserialize;
 use serde_json::json;
 use sgx_isa::Report;
 use std::{net::SocketAddr, sync::Arc};
+use log::info;
 
 #[tokio::main(flavor = "current_thread")]
 pub async fn start_remote_attestation() {
@@ -73,6 +74,6 @@ async fn get_collateral(
     Json(GetCollateralRequest { quote }): Json<GetCollateralRequest>,
 ) -> WebResult {
     let x = get_quote_verification_collateral(&quote)?;
-    println!("Sending collateral!");
+    info!("Sending collateral!");
     Ok(Json(json! { x }))
 }

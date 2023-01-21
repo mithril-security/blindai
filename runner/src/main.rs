@@ -1,6 +1,5 @@
 use aesm_client::AesmClient;
 use enclave_runner::EnclaveBuilder;
-use env_logger::Env;
 use sgxs_loaders::isgx::Device as IsgxDevice;
 use std::thread;
 
@@ -21,7 +20,6 @@ fn parse_args() -> Result<String, ()> {
 }
 
 fn main() {
-    env_logger::Builder::from_env(Env::default().default_filter_or("debug")).init();
     // Running the remote attestation thread
     let remote_att_sgx = thread::spawn(|| remote_attestation_sgx::start_remote_attestation());
 
