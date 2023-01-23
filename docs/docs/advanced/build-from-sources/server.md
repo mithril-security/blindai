@@ -84,11 +84,13 @@ cargo install just
     sudo add-apt-repository "deb https://download.01.org/intel-sgx/sgx_repo/ubuntu $(lsb_release -cs) main" 
     sudo apt-get install -y libsgx-dcap-ql-dev libsgx-dcap-default-qpl-dev libsgx-uae-service libsgx-dcap-default-qpl
     ```    
-    You will also need to install the Provisioning Certificate Caching Service (PCCS) [by following this documentation](https://github.com/intel/SGXDataCenterAttestationPrimitives/blob/master/QuoteGeneration/pccs/README.md)(The PCCS must be installed directly from the Github repo as it is not yet updated by Intel on their repo).
+    You will also need to install the Provisioning Certificate Caching Service (PCCS) [by following this documentation](https://github.com/intel/SGXDataCenterAttestationPrimitives/blob/master/QuoteGeneration/pccs/README.md) (The PCCS must be installed directly from the Github repo as it is not yet updated by Intel on their repo). During installation, a PCCS Key will be asked. This key is delivered by Intel [here](https://api.portal.trustedservices.intel.com/provisioning-certification). 
 
-    We can then build the server using :
+    We can clone the BlindAi repo on Github then build the server using the following steps:
 
     ```bash
+    git submodule init
+    git submodule update
 
     cd server
     just build 
