@@ -30,8 +30,8 @@ Before proceeding to build the client, make sure the following requirements are 
 ### **Clone the repository**
 
 ```bash
-git clone https://github.com/mithril-security/blindai
-cd blindai/client
+git clone https://github.com/mithril-security/blindai-preview
+cd blindai-preview/client
 ```
 
 ### Install third party libraries
