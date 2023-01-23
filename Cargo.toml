@@ -29,7 +29,6 @@ rouille = { git = "https://github.com/mithril-security/rouille-sgx.git", feature
 sgx-isa = { version = "0.4.0", features = ["serde"] }
 ureq = {version = "2.5.0", features = ["json"]}
 serde_bytes = "0.11.8"
-hex = "0.4.3"
 
 [dev-dependencies]
 lazy_static = "1.4.0"
