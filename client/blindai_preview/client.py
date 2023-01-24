@@ -24,6 +24,7 @@ import os
 import contextlib
 import socket
 
+import numpy as np
 import cbor2 as cbor
 
 from hashlib import sha256
@@ -54,6 +55,25 @@ class ModelDatumType(IntEnum):
     I16 = 9
     Bool = 10
 
+format_per_item = {
+    ModelDatumType.F32: "<f4",
+    ModelDatumType.F64: "<f8",
+    ModelDatumType.I32: "<i4",
+    ModelDatumType.I64: "<i8",
+    ModelDatumType.U32: "<u4",
+    ModelDatumType.U64: "<u8",
+    ModelDatumType.U8: "<u1",
+    ModelDatumType.U16: "<u2",
+    ModelDatumType.I8: "<i1",
+    ModelDatumType.I16: "<i2",
+    ModelDatumType.Bool: "?",
+}
+
+def serialize_tensor(tensor: np.ndarray, type: ModelDatumType) -> bytes:
+    return np.array(tensor).astype(format_per_item[type], casting="equiv").tobytes()
+
+def deserialize_tensor(data: bytes, type: ModelDatumType) -> np.ndarray:
+    return np.frombuffer(data, dtype = format_per_item[type])
 
 class TensorInfo:
     fact: List[int]
@@ -76,21 +96,20 @@ class Tensor:
     """
 
     info: Union[TensorInfo, dict]
-    bytes_data: List[int]
+    bytes_data: bytes
 
     def __init__(self, info: Union[TensorInfo, dict], bytes_data: bytes):
         self.info = info
-        self.bytes_data = list(bytes_data)
+        self.bytes_data = bytes_data
 
     def as_flat(self) -> list:
         """Convert the prediction calculated by the server to a flat python list."""
-        return cbor.loads(bytes(self.bytes_data))
+        return self.as_numpy().tolist()
 
     def as_numpy(self):
         """Convert the prediction calculated by the server to a numpy array."""
-        import numpy
 
-        arr = numpy.array([*self.as_flat()], dtype=dtype_to_numpy(self.info.datum_type))
+        arr = deserialize_tensor(self.bytes_data, self.info.datum_type)
         arr.shape = self.shape
         return arr
 
@@ -107,11 +126,7 @@ class Tensor:
             raise ImportError(
                 "torch not installed, please install with pip install blindai[torch]"
             ) from e
-
-        arr = torch.asarray(
-            [*self.as_flat()],
-            dtype=getattr(torch, dtype_to_torch(self.info.datum_type)),
-        )
+        arr = torch.tensor(self.as_numpy())
         return arr.view(self.shape)
 
     @property
@@ -365,11 +380,11 @@ def translate_tensor(
     """
     if _is_torch_tensor(tensor):
         info = TensorInfo(tensor.shape, translate_dtype(tensor.dtype), name)
-        iterable = tensor.flatten().tolist()
+        iterable = tensor.flatten().numpy()
 
     elif _is_numpy_array(tensor):
         info = TensorInfo(tensor.shape, translate_dtype(tensor.dtype), name)
-        iterable = tensor.flatten().tolist()
+        iterable = tensor.flatten()
 
     else:
         # Input is flatten tensor.
@@ -379,7 +394,7 @@ def translate_tensor(
             )
 
         info = TensorInfo(or_shape, translate_dtype(or_dtype), name)
-        iterable = tensor
+        iterable = np.array(tensor, dtype=dtype_to_numpy(or_dtype))
 
     if or_dtype is not None and or_dtype != info.datum_type:
         raise ValueError(
@@ -387,7 +402,7 @@ def translate_tensor(
         )
 
     # todo validate tensor content, dtype and shape
-    return Tensor(info.__dict__, cbor.dumps(iterable))
+    return Tensor(info.__dict__, serialize_tensor(iterable, info.datum_type))
 
 
 def translate_tensors(tensors, dtypes, shapes) -> List[dict]:

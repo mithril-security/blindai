@@ -147,7 +147,7 @@ basic_test:
   set -e 
   set -x
   cd client/tests
-  poetry run pytest
+  poetry run pytest --ignore=integration_test.py
 
 # Run all tests and display combined coverage (don't forget to generate the onnx and npz files before)
 test:
