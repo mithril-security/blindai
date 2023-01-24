@@ -11,6 +11,9 @@ Choose: "Open folder in container".
 
 It will build and run the image present in the [`.devcontainer` folder](https://github.com/mithril-security/blindai-preview/tree/main/.devcontainer) and it will run the dev environment directly on VSCode.
 
+!!! Warning 
+    there is a different one for Azure and could be found in : `devcontainer-azure/` folder
+
 ## Without Docker
 
 If you don't want to use docker, you will need to install the following:
