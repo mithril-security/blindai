@@ -9,19 +9,12 @@
 
 Before proceeding to build the client, make sure the following requirements are installed in your environment.&#x20;
 
-=== "Linux / Mac OS"
-    * CMake >= 3.12
-    * Make >= 4.0
-    * g++ >= 7.1
-    * python >= 3.6.8
-    * python3-dev package (or python-devel in CentOs based distros) - The version of python3-dev depends on the version of python you are using.
-
-
-=== "Windows"
-    * Microsoft visual Studio 2017 15 with CMake installed
-    * Windows PowerShell
-    * Perl
-    * python >= 3.6.8
+* CMake >= 3.12
+* Make >= 4.0
+* g++ >= 7.1
+* python >= 3.6.8
+* python3-dev package (or python-devel in CentOs based distros) - The version of python3-dev depends on the version of python you are using.
+* poetry
 
 
 
@@ -58,7 +51,7 @@ $ pip --version
 $ pip install -U pip
 ```
 
-### Using Poetry virtual environment 
+### Installing the client using Poetry
 
 On the client, we deployed a Poetry virtual environment to make it easier to build and run blindAI Client. 
 
@@ -66,7 +59,7 @@ You just have to install poetry by using pip and run it by following these steps
 
 
 ```bash
-$ pip install poetry 
+$ pip install poetry && cd client/
 
 (client-py)$ poetry shell 
 
@@ -74,24 +67,5 @@ $ pip install poetry
 
 ```
 
-
-
-
-
-
-### Install development dependencies
-
-```bash
-(client-py)$ pip install -r requirements.txt
-```
-
-### Trigger the Build process
-
-```bash
-(client-py)$ pip install . 
-```
-
-!!! info
-    If you are building on windows, administrator access will be needed at a certain point of the build process.
 
 BlindAI Client SDK will be then built and installed in the virtual environment.

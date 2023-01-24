@@ -83,20 +83,17 @@ sudo usermod -a -G aesmd $USER
 
 ### Running the server
 
-Please make sure you have [Docker](https://docs.docker.com/get-docker/) installed on your machine.
-
 === "Hardware mode"
 
     A [Quote Provisioning Certificate Caching Service (PCCS)](https://github.com/intel/SGXDataCenterAttestationPrimitives/blob/master/QuoteGeneration/pccs/README.md) is built-in inside the Docker Image in order to generate the DCAP attestation from the enclave. You need to provide an API Key in order for the PCCS server to function. [You can get one from Intel here.](https://api.portal.trustedservices.intel.com/provisioning-certification)
 
+
+    After running the PCCS, you can directly run the BlindAi server by using : 
     ```bash
-    docker run -it \
-        -p 9923:9923 \
-        -p 9924:9924 \
-        --device /dev/sgx/enclave \
-        --device /dev/sgx/provision \
-        -v /var/run/aesmd:/var/run/aesmd \
-        mithrilsecuritysas/blindai-server:latest /root/start.sh PCCS_API_KEY
+    just release 
+
+    #or 
+    just run 
     ```
 
     !!! info
@@ -104,16 +101,13 @@ Please make sure you have [Docker](https://docs.docker.com/get-docker/) installe
 
 === "Hardware mode (Azure DCsv3 VMs)"
 
+    To run the server on azure, and after installing all the dependencies needed :
     ```bash
-    docker run -it \
-        -v $(pwd)/bin/tls:/root/tls \
-        -p 9923:9923 \
-        -p 9924:9924 \
-        --device /dev/sgx/enclave \
-        --device /dev/sgx/provision \
-        -v /var/run/aesmd:/var/run/aesmd \
-        mithrilsecuritysas/blindai-server-dcsv3:latest
+    BLINDAI_AZURE_DCS3_PATCH=1 just release 
+    # or 
+    BLINDAI_AZURE_DCS3_PATCH=1 just release 
     ```
+
 
 !!! info
     If you built this image locally you can allow debug by running with -e MANIFEST_ALLOW_DEBUG=true. Building from sources is documented [here](advanced/build-from-sources/server.md).

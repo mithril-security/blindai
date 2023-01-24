@@ -3,7 +3,7 @@
 !!! info
     If you're building the client because you want to change it, you should first go to [the setting up your dev environment guide](../setting-up-your-dev-environment.md) and then build without docker.
 
-## Using Docker 🐳
+<!-- ## Using Docker 🐳
 
 ### Build process
 
@@ -38,11 +38,11 @@ You can build the whole project by using our Docker image. We have set up the Do
     If your goal is to obtain a manifest.toml file to connect to a distant server. You should build the image in hardware mode (sgx support isn't needed for compilation). You can then extract it by running:
     ```bash
     docker run --rm <image_name> cat /root/manifest.toml > manifest.toml
-    ```
-
+    ``` -->
+<!-- 
 ### Running
 You can use these images by following the instructions of either the [deploy on premise guide](../../deploy-on-premise.md) or the [cloud deployment guide](../../cloud-deployment.md).
-
+ -->
 
 ## Without docker
 
