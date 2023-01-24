@@ -1,6 +1,8 @@
 # Deploy on premise
 
-The docker images used here are prebuilt ones from our dockerhub, you can take a look at the [build the server from source section]('build-from-sources/server.md')
+<!-- 
+    The docker images used here are prebuilt ones from our dockerhub, you can take a look at the [build the server from source section]('build-from-sources/server.md')
+-->
 
 !!! warning
     The unsecure connection is on HTTP only. In production mode, it is highly recommended to connect it to a **reverse-proxy** that creates a TLS connection between the end user and the BlindAI server.  
@@ -81,12 +83,9 @@ The current user must also be added to the aesm group to be able to function pro
 sudo usermod -a -G aesmd $USER
 ```
 
-### Running the server
+<!-- ### Running the server
 
 === "Hardware mode"
-
-    A [Quote Provisioning Certificate Caching Service (PCCS)](https://github.com/intel/SGXDataCenterAttestationPrimitives/blob/master/QuoteGeneration/pccs/README.md) is built-in inside the Docker Image in order to generate the DCAP attestation from the enclave. You need to provide an API Key in order for the PCCS server to function. [You can get one from Intel here.](https://api.portal.trustedservices.intel.com/provisioning-certification)
-
 
     After running the PCCS, you can directly run the BlindAi server by using : 
     ```bash
@@ -105,7 +104,7 @@ sudo usermod -a -G aesmd $USER
     ```bash
     BLINDAI_AZURE_DCS3_PATCH=1 just release 
     # or 
-    BLINDAI_AZURE_DCS3_PATCH=1 just run 
+    BLINDAI_AZURE_DCS3_PATCH=1 just run
     ```
 
 ### manifest Generation
@@ -125,4 +124,6 @@ client = connect(addr="localhost")
 Your client will only be able to connect to an enclave generated with the exact same manifest.toml.
 
 !!! note
-    If you want to deploy for production you should check out [the privacy section](main-concepts/privacy.md). You will learn how to check the authenticity of the manifest and how to build a secure communication channel.
+    If you want to deploy for production you should check out [the privacy section](main-concepts/privacy.md). You will learn how to check the authenticity of the manifest and how to build a secure communication channel. -->
+
+Next you can [set up your dev environment](advanced/setting-up-your-dev-environment.md)

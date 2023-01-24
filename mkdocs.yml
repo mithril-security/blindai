@@ -65,9 +65,9 @@ nav:
   - 'docs/deploy-on-premise.md'
 
 - 'Advanced':
-  - 'Build from sources':
-    - 'docs/advanced/build-from-sources/client.md'
-    - 'docs/advanced/build-from-sources/server.md'
+  # - 'Build from sources':
+  #   - 'docs/advanced/build-from-sources/client.md'
+  #   - 'docs/advanced/build-from-sources/server.md'
   - 'docs/advanced/setting-up-your-dev-environment.md'
   - 'docs/advanced/blindai-project-structure.md'
 

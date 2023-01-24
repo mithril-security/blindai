@@ -79,4 +79,4 @@ If you are good to go, you just need to install Docker on the VM. [Please follow
 !!! Warning
     The unsecure port must be linked to a predefined ***reverse-proxy*** that manages the ingress and egress traffic and also that will be responsible of encrypting the traffic from the client to the blindAI server. Multiple reverse-proxy implementations exist, among them **Nginx** and **Apache**. 
 
-Once Docker is installed, refer to [the deployment guide](deploy-on-premise.md).
+Once Docker is installed, [set up your dev-environment](advanced/setting-up-your-dev-environment.md).

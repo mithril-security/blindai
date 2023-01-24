@@ -17,7 +17,10 @@ To interact with an AI model hosted on a remote secure enclave, we provide the `
 
 Start by cloning the repo with --recursive to get the submodules.
 
-Open it in vscode and `Reopen in Container`.
+!!! warning
+    If you are on an Azure machine, you should replace the .devcontainer folder by the devcontainer-azure/.devcontainer folder.
+
+Open the repo in vscode and `Reopen in Container`.
 
 Then, at the root of the project:
 
