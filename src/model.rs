@@ -451,7 +451,7 @@ mod tests {
         });
 
         // For tests purpose, the SerializedTensor object is created by hand
-        let image = serde_cbor::to_vec(&image.as_slice().unwrap()).unwrap();
+        let image = image.as_slice().unwrap().to_le_bytes();
         let info = TensorInfo {
             fact: vec![1, 3, 224, 224],
             datum_type: ModelDatumType::F32,
