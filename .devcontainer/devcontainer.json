@@ -20,7 +20,7 @@
 	// "postCreateCommand": "uname -a",
 	// Comment out to connect as root instead. More info: https://aka.ms/vscode-remote/containers/non-root.
 	"remoteUser": "vscode",
-	"postStartCommand": "sudo /opt/intel/sgx-dcap-pccs/setup-pccs.sh",
+	"postStartCommand": "cd /opt/intel/sgx-dcap-pccs && sudo npm start pm2",
 	
 	"settings": {
 		"terminal.integrated.profiles.linux": {
