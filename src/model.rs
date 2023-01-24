@@ -211,7 +211,7 @@ impl_vec_from_to_le_bytes!(f64);
 
 impl FromLeBytes for Vec<bool> {
     fn from_le_bytes(bytes: &[u8]) -> Result<Self> {
-        Ok(bytes.into_iter().map(|b| *b != 0).collect())
+        Ok(bytes.iter().map(|b| *b != 0).collect())
     }
 }
 
