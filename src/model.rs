@@ -102,7 +102,7 @@ macro_rules! convert_datum {
     } }
 }
 
-trait FromLeBytes :Sized {
+trait FromLeBytes: Sized {
     fn from_le_bytes(bytes: &[u8]) -> anyhow::Result<Self>;
 }
 
@@ -112,35 +112,50 @@ trait ToLeBytes {
 
 #[test]
 fn test_deserialize_array_bool() {
-    assert_eq!(&Vec::<bool>::from_le_bytes(b"\x00\x01\x00").unwrap(), &[false, true, false]);
+    assert_eq!(
+        &Vec::<bool>::from_le_bytes(b"\x00\x01\x00").unwrap(),
+        &[false, true, false]
+    );
 }
 
 #[test]
 fn test_deserialize_array_u16() {
-    assert_eq!(&Vec::<u16>::from_le_bytes(b"\x01\x00\x02\x00\x03\x00").unwrap(), &[1u16,2,3]);
+    assert_eq!(
+        &Vec::<u16>::from_le_bytes(b"\x01\x00\x02\x00\x03\x00").unwrap(),
+        &[1u16, 2, 3]
+    );
 }
 
 #[test]
 fn test_deserialize_array_u32() {
-    assert_eq!(&Vec::<u32>::from_le_bytes(b"\x01\x00\x00\x00\x02\x00\x00\x00\x03\x00\x00\x00").unwrap(), &[1u32,2,3]);
+    assert_eq!(
+        &Vec::<u32>::from_le_bytes(b"\x01\x00\x00\x00\x02\x00\x00\x00\x03\x00\x00\x00").unwrap(),
+        &[1u32, 2, 3]
+    );
 }
 
 #[test]
 fn test_deserialize_array_f32() {
-    assert_eq!(&Vec::<f32>::from_le_bytes(b"\x00\x00\x80?\x00\x00\x00@\x00\x00@@").unwrap(), &[1.0f32,2.0,3.0]);
+    assert_eq!(
+        &Vec::<f32>::from_le_bytes(b"\x00\x00\x80?\x00\x00\x00@\x00\x00@@").unwrap(),
+        &[1.0f32, 2.0, 3.0]
+    );
 }
 
 #[test]
 fn test_deserialize_array_i32() {
-    assert_eq!(&Vec::<i32>::from_le_bytes(b"\xce\xff\xff\xff\n\x00\x00\x00\xe8\x03\x00\x00").unwrap(), &[-50i32,10,1000]);
+    assert_eq!(
+        &Vec::<i32>::from_le_bytes(b"\xce\xff\xff\xff\n\x00\x00\x00\xe8\x03\x00\x00").unwrap(),
+        &[-50i32, 10, 1000]
+    );
 }
 
 #[test]
 fn test_deserialize_array_i32_corrupted() {
-    let e = Vec::<i32>::from_le_bytes(b"\xce\xff\xff\xff\n\x00\x00\x00\xe8\x03\x00\x00\x03").unwrap_err();
+    let e = Vec::<i32>::from_le_bytes(b"\xce\xff\xff\xff\n\x00\x00\x00\xe8\x03\x00\x00\x03")
+        .unwrap_err();
     assert_eq!(e.to_string(), "Could not deserialize input");
 }
-
 
 #[test]
 fn test_serialize_i32() {
@@ -165,7 +180,7 @@ macro_rules! impl_vec_from_to_le_bytes {
     ($t:ident) => {
         impl FromLeBytes for Vec<$t> {
             fn from_le_bytes(bytes: &[u8]) -> Result<Self> {
-                let mut v = Vec::<$t>::with_capacity(bytes.len()/std::mem::size_of::<$t>());
+                let mut v = Vec::<$t>::with_capacity(bytes.len() / std::mem::size_of::<$t>());
                 if bytes.len() % std::mem::size_of::<$t>() != 0 {
                     bail!("Could not deserialize input");
                 }
@@ -180,9 +195,8 @@ macro_rules! impl_vec_from_to_le_bytes {
                 self.iter().flat_map(|e| e.to_le_bytes()).collect()
             }
         }
-    }
+    };
 }
-
 
 impl_vec_from_to_le_bytes!(u8);
 impl_vec_from_to_le_bytes!(u16);
@@ -197,7 +211,7 @@ impl_vec_from_to_le_bytes!(f64);
 
 impl FromLeBytes for Vec<bool> {
     fn from_le_bytes(bytes: &[u8]) -> Result<Self> {
-        Ok(bytes.into_iter().map(|b| *b!=0).collect())
+        Ok(bytes.into_iter().map(|b| *b != 0).collect())
     }
 }
 
@@ -207,21 +221,25 @@ impl ToLeBytes for &[bool] {
     }
 }
 
-
-
 fn create_tensor<A: tract_core::prelude::Datum>(
     input: &[u8],
     input_fact: &[usize],
-) -> Result<Tensor> where Vec<A>: FromLeBytes{
+) -> Result<Tensor>
+where
+    Vec<A>: FromLeBytes,
+{
     let dim = tract_ndarray::IxDynImpl::from(input_fact);
-    let vec  = Vec::<A>::from_le_bytes(input)?;
+    let vec = Vec::<A>::from_le_bytes(input)?;
     let tensor = tract_ndarray::ArrayD::from_shape_vec(dim, vec)?.into();
     Ok(tensor)
 }
 
 fn convert_tensor<A: serde::ser::Serialize + tract_core::prelude::Datum>(
     input: &tract_core::prelude::Tensor,
-) -> Result<Vec<u8>> where for<'a> &'a[A]: ToLeBytes {
+) -> Result<Vec<u8>>
+where
+    for<'a> &'a [A]: ToLeBytes,
+{
     let arr = input.to_array_view::<A>()?;
     let slice = arr
         .as_slice()
