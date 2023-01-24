@@ -105,60 +105,24 @@ sudo usermod -a -G aesmd $USER
     ```bash
     BLINDAI_AZURE_DCS3_PATCH=1 just release 
     # or 
-    BLINDAI_AZURE_DCS3_PATCH=1 just release 
+    BLINDAI_AZURE_DCS3_PATCH=1 just run 
     ```
 
+### manifest Generation
 
-!!! info
-    If you built this image locally you can allow debug by running with -e MANIFEST_ALLOW_DEBUG=true. Building from sources is documented [here](advanced/build-from-sources/server.md).
+The manifest is automatically extracted via the `just run` or `just release` command depending on what mode you're in.
 
-!!! warning
-    You should only allow debug if your manifest.toml allows debug.
-
-### Extract manifest and default TLS Certificate from the Hardware docker image
-
-You can extract the manifest directly from the prebuilt Docker Image using:
-
-=== "Hardware mode"
-
-    ```bash
-    docker run --rm mithrilsecuritysas/blindai-server:latest /bin/cat /root/manifest.toml > manifest.toml
-    ```
-
-=== "Hardware mode (Azure DCsv3 VMs)"
-
-    ```bash
-    docker run --rm mithrilsecuritysas/blindai-server-dcsv3:latest /bin/cat /root/manifest.toml > manifest.toml
-    ```
-
-You can also extract the default TLS certificate like this:
-
-=== "Hardware mode"
-
-    ```bash
-    docker run --rm mithrilsecuritysas/blindai-server:latest /bin/cat /root/tls/host_server.pem > host_server.pem
-    ```
-
-=== "Hardware mode (Azure DCsv3 VMs)"
-
-    ```bash
-    docker run --rm mithrilsecuritysas/blindai-server-dcsv3:latest /bin/cat /root/tls/host_server.pem > host_server.pem
-    ```
+This manifest.toml file is generated at the root of the repo and is based on the templates present on the repo. 
 
 ### Connect to the hardware mode server
 
-You can start from the python code of [the quick-start section](../index.md). You should then replace the instances of :
+You can start from the python code of [the quick-start section](../index.md). and copy the manifest.toml containing the mrenclave to `/client/`folder (an argument will be added in the next releases to take into account the manifest file directly into the connect function).
 ```py
-client = BlindAiConnection(addr="localhost", simulation=True)
+client = connect(addr="localhost")
 ```
 
-by
 
-```py
-client = BlindaiConnection(addr="localhost", manifest="/path/to/manifest.toml")
-```
-
-Your client will use your TLS certificate and will only be able to connect to an enclave generated with the exact same manifest.toml.
+Your client will only be able to connect to an enclave generated with the exact same manifest.toml.
 
 !!! note
-    If you want to deploy for production you should check out [the privacy section](main-concepts/privacy.md). You will learn how to check the authenticity of the manifest and how to inject your own TLS certificate.
+    If you want to deploy for production you should check out [the privacy section](main-concepts/privacy.md). You will learn how to check the authenticity of the manifest and how to build a secure communication channel.
