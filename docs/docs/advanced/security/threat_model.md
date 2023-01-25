@@ -33,7 +33,7 @@ The figure below shows a high-level data flow diagram for the BlindAI app. The d
 
 | Diagram Element | Description   |
 | ---       | --------------|
-| **DF1**   | Initiate a unsecure TLS connection between the client API and the server. this TLS connection serves as a way to encrypt to first requests and transport the verification data |
+| **DF1**   | Initiate a unsecure HTTP connection between the client API and the server. This connection must be linked to a reverse proxy that encrypts the traffic sent |
 | **DF2**   | The enclave and the runner initiate a simple HTTP communication. |
 | **DF3**   | Initialization of the runner context by calling to the quoting enclave via the AESM service and computing the targetInfo |
 | **DF4**   | providing the targetinfo to the enclave, and returning the signed report | 
@@ -147,8 +147,8 @@ From the standard risk assessment level documentation, the below table represent
 | Impact                |  Low (2)     |
 | Likelihood            |  Low (2)     |
 | Total risk rating     |  Low (4)     |
-| Mitigations           |  Using a TLS connection to encrypt the data sent by the client. <br /> Using the remote attestation to verify that the enclave we are running on is valid.     |
-| Mitigations implemented?| Yes.     |
+| Mitigations           |  Associating BlindAi with a reverse-proxy is necessary on a Production Mode. <br /> Using the remote attestation to verify that the enclave we are running on is valid.     |
+| Mitigations implemented?| Partially. Remote attestation implemented and robust and triggers and secure TLS communication with the client   |
 
 <br />
 
