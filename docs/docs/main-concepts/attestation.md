@@ -21,6 +21,20 @@ If the client connects, it means the remote enclave generation process produced 
 !!! info
     If you're not using simulation mode, you're required to pass a manifest.toml. If you're using the docker image, the manifest.toml is already build into the python package. 
 
+
+## Reproduce the enclave binary
+
+The enclave binary and the corresponding manifest are built using this [dockerfile](https://github.com/mithril-security/blindai-preview/blob/main/.github/sgxs-release.dockerfile). You can inspect the dockerfile and run it to build the artifacts using the following commands :
+```bash
+docker build -f .github/sgxs-release.dockerfile --tag blindaiv2-enclave:latest .
+id=$(docker create blindaiv2-enclave:latest)
+docker cp "$id:/blindai-preview/target/x86_64-fortanix-unknown-sgx/release/blindai_server.sgxs" .
+docker cp "$id:/blindai-preview/manifest.toml" .
+docker rm -v $id
+```
+
+
+
 ## Try it for yourself
 
 If you want to test the authenticating property of the MRENCLAVE, you can do the following:

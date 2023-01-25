@@ -5,7 +5,7 @@
 -->
 
 !!! warning
-    The unsecure connection is on HTTP only. In production mode, it is highly recommended to connect it to a **reverse-proxy** that creates a TLS connection between the end user and the BlindAI server.  
+    The unsecure connection is on HTTP only. In production mode, it is highly recommended to connect it to a **reverse-proxy** that creates a TLS connection between the end user and the BlindAI server.  You can achieve this using [Caddy](https://caddyserver.com/) or [Nginx](https://www.nginx.com/) for instance.
 
 <!-- ## Simulation mode
 
