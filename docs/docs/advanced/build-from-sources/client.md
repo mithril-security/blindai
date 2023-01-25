@@ -9,10 +9,7 @@
 
 Before proceeding to build the client, make sure the following requirements are installed in your environment.&#x20;
 
-* CMake >= 3.12
-* Make >= 4.0
-* g++ >= 7.1
-* python >= 3.6.8
+* python >= 3.7
 * python3-dev package (or python-devel in CentOs based distros) - The version of python3-dev depends on the version of python you are using.
 * poetry
 
