@@ -10,7 +10,7 @@ To interact with an AI model hosted on a remote secure enclave, we provide the `
 - upload an ML model that was previously converted to ONNX
 - query the model securely
 
-## Getting Started
+## Set up
 
 !!! info
     The following instructions assume you already have access to a configured SGX enabled machine, such as one provided by Mithril Security. If that is not the case, you can either ask for one, or read [the Documentation](docs/cloud-deployment.md).
@@ -35,6 +35,32 @@ poetry shell
 
 Which creates a virtual environment and install the client sdk.
 
+
+## Getting Started
+
+Now let's run a simple example to check everything is correctly set up.
+
+At the root of the project, run
+```
+python tests/simple/simple.py
+```
+which generates the onnx file for a very minimal model which only does one thing: subbing one monovalue tensor to another.
+
+Then, on one tab, start the server
+```
+just run --release # blindai_server is extremely slow in debug build
+```
+
+And on another, connect to it with a client (once it is up)
+```
+cd client/examples
+python simple.py
+```
+
+Here is the code of simple.py
+```py
+--8<-- "../client/examples/simple.py"
+```
 
 ## justfile overview
 

@@ -674,7 +674,7 @@ class BlindAiConnection(contextlib.AbstractContextManager):
     def run_model(
         self,
         model_id: str,
-        input_tensors: Optional[Union[List[List], Dict]] = None,
+        input_tensors: Optional[Union[List, Dict]] = None,
         dtypes: Optional[List[ModelDatumType]] = None,
         shapes: Optional[Union[List[List[int]], List[int]]] = None,
     ) -> RunModelResponse:
