@@ -17,11 +17,13 @@ import enum
 import hashlib
 import importlib
 import os
+from typing import Optional
 from typing_extensions import Self
 from dataclasses import dataclass
 import sgx_dcap_quote_verify
 from sgx_dcap_quote_verify import VerificationStatus
 import toml
+from pathlib import Path
 
 
 class AttestationError(Exception):
@@ -81,7 +83,12 @@ class IdentityError(QuoteValidationError):
         )
 
 
-def validate_attestation(quote: bytes, collateral, enclave_held_data: bytes):
+def validate_attestation(
+    quote: bytes,
+    collateral,
+    enclave_held_data: bytes,
+    manifest_path: Optional[Path] = None,
+):
     """Verifies if the enclave evidence is valid.
 
     * Validates if the quote is trustworthy (issued by an approved Intel CPU) with the
@@ -154,9 +161,15 @@ def validate_attestation(quote: bytes, collateral, enclave_held_data: bytes):
             got=attestation_result.enclave_report.report_data[:32],
         )
 
-    manifest = EnclaveManifest.from_str(
-        importlib.resources.read_text(__package__, "manifest.toml")  # type: ignore
-    )
+    if manifest_path is None:
+        manifest = EnclaveManifest.from_str(
+            importlib.resources.read_text(__package__, "manifest.toml")  # type: ignore
+        )
+    else:
+        if not isinstance(manifest_path, Path):
+            raise ValueError("manifest_path should be a pathlib.Path")
+        manifest = EnclaveManifest.from_str(manifest_path.read_text())
+
     if attestation_result.enclave_report.mr_enclave != manifest.mr_enclave:
         raise IdentityError(
             expected=manifest.mr_enclave,
