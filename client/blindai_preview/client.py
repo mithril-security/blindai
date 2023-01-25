@@ -13,6 +13,7 @@
 # limitations under the License.
 
 
+import pathlib
 from ._dcap_attestation import validate_attestation
 from .utils import *
 
@@ -480,35 +481,24 @@ class BlindAiConnection(contextlib.AbstractContextManager):
     def __init__(
         self,
         addr: str,
-        server_name: str = "blindai-srv",
-        # manifest: Optional[str] = None,
-        certificate: Optional[str] = None,
-        simulation: bool = False,
         untrusted_port: int = 9923,
         attested_port: int = 9924,
+        hazmat_manifest_path: Optional[pathlib.Path] = None,
+        hazmat_http_on_untrusted_port=False,
     ):
         """
-        Connect to the server with the specified parameters.
-        You will have to specify here the expected manifest (server identity, configuration...)
-        and the server TLS certificate, if you are using the hardware mode.
-        If you're using the simulation mode, you don't need to provide a manifest and certificate,
-        but please keep in mind that this mode should NEVER be used in production as it doesn't
-        have most of the security provided by the hardware mode.
-        ***Security & confidentiality warnings:***
-           *manifest: Defines the rules upon which enclaves are accepted (after quote data verification). Contains the hash of MRENCLAVE which helps identify code and data of an enclave. In the case of leakeage of this file, data & model confidentiality would not be affected as the information just serves as a verification check.
-           For more details, the attestation info is verified against the manifest for the quote. In case of a leakage of the information of this file, code and data inside the secure enclave will remain inaccessible.
-           certificate:  The certificate file, which is also generated server side, is used to assigned the claims the manifest is checked against. It serves to identify the server for creating a secure channel and begin the attestation process.*
+        Connect to the BlindAi server
+
         Args:
-            addr (str): The address of BlindAI server you want to reach.
-            server_name (str, optional): Contains the CN expected by the server TLS certificate. Defaults to "blindai-srv".
-            manifest (Optional[str], optional): Path to the toml file describing the manifest of the server.
-                Generated in the server side. Defaults to None.
-                If left to none and if you are in hardware mode, the built-in manifest will be used.
-            certificate (Optional[str], optional): Path to the public key of the untrusted inference server.
-                Generated in the server side. Defaults to None.
-                If left to none and if you are in hardware mode, the certificate verification will be disabled
-            simulation (bool, optional): Connect to the server in simulation mode.
-                If set to True, the args manifest and certificate will be ignored. Defaults to False.
+            addr (str): The address of BlindAI server you want to connect to. It can be a domain (such as `example.com` or `localhost`) or an IP
+            hazmat_manifest_path: By default the built-in Manifest.toml provided by Mithril Security will be use.
+                You can override the default Manifest.toml by providing a path to your custom Manifest.toml
+                Caution: The manifest describes which enclave are trustworthy, changing the Manifest.toml can impact the security of the solution.
+            hazmat_http_on_untrusted_port: By default, the client fetch the attestation elements from the untrusted port of the server
+                using an HTTPS connection. The certificate should be validated according to your OS defaults.
+                You can opt out of a HTTPS connection and instead ask the client to connect via HTTP by setting this param to True
+                Caution: This parameter should never be set to True in production. Using a HTTPS connection is critical to
+                get a graceful degradation in case of a failure of Intel SGX attestation.
             untrusted_port (int, optional): Untrusted connection server port. Defaults to 9923.
             attested_port (int, optional): Attested connection server port. Defaults to 9924.
         Raises:
@@ -536,43 +526,33 @@ class BlindAiConnection(contextlib.AbstractContextManager):
 
         self._connect_server(
             addr,
-            server_name,
-            # manifest,
-            certificate,
-            simulation,
             untrusted_port,
             attested_port,
+            hazmat_manifest_path,
+            hazmat_http_on_untrusted_port,
         )
 
     def _connect_server(
         self,
         addr: str,
-        server_name,
-        # manifest,
-        certificate,
-        simulation,
         untrusted_port,
         attested_port,
+        manifest_path,
+        http_on_untrusted_port,
     ):
-        self.simulation_mode = simulation
-        self._disable_untrusted_server_cert_check = simulation
 
-        # addr = strip_https(addr)
+        if http_on_untrusted_port:
+            self._untrusted_url = "http://" + addr + ":" + str(untrusted_port)
+        else:
+            self._untrusted_url = "https://" + addr + ":" + str(untrusted_port)
 
-        self._untrusted_url = "http://" + addr + ":" + str(untrusted_port)
         self._attested_url = "https://" + addr + ":" + str(attested_port)
-
-        # if not self.simulation_mode:
-        #    self.manifest = manifest.from_file(manifest)
 
         # This adapter makes it possible to connect
         # to the server via a different hostname
         # that the one included in the certificate i.e. blindai-srv
         # For instance we can use it to connect to the server via the
         # domain / IP provided to connect(). See below
-
-        # TODO: Document that in production one should not use that approach
-        # but instead include the real domain name in the certificate
         class CustomHostNameCheckingAdapter(HTTPAdapter):
             def cert_verify(self, conn, url, verify, cert):
                 conn.assert_hostname = "blindai-srv"
@@ -584,29 +564,12 @@ class BlindAiConnection(contextlib.AbstractContextManager):
         # Always raise an exception when HTTP returns an error code for the untrusted connection
         # Note : we might want to do the same for the attested connection ?
         s.hooks = {"response": lambda r, *args, **kwargs: r.raise_for_status()}
-        # if self._disable_untrusted_server_cert_check:
-        #     logging.warning("Untrusted server certificate check bypassed")
-        #     s.verify = False
-        # else:
-        #     # verify is set to a path to the certificate CA
-        #     # It is used to pin the certificate
-        #     # Might not be needed in production
-        #     # Certificate pinning is a double edge sword
-        #     # It can prevent some MITM but it also make it more difficult
-        #     # to rotate the certificate...
-        #     # Anyway in our case as we'll do attestation verification
-        #     # it would make sense to use a simpler cert validation
-        #     # maybe simply the default CA with domain validation
-        #     # like the browser do.
-        #     # Can't be more boring (in a good way).
-        #     s.verify = certificate
-        # s.mount(self._untrusted_url, CustomHostNameCheckingAdapter())
 
         cert = cbor.loads(s.get(self._untrusted_url).content)
         quote = cbor.loads(s.get(f"{self._untrusted_url}/quote").content)
         collateral = cbor.loads(s.get(f"{self._untrusted_url}/collateral").content)
 
-        validate_attestation(quote, collateral, cert)
+        validate_attestation(quote, collateral, cert, manifest_path=manifest_path)
 
         # requests (http library) takes a path to a file containing the CA
         # there is no easy way to give the CA as a string/bytes directly

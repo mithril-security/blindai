@@ -10,16 +10,13 @@ When communicating with the client, the enclave issues its signed, hardware-back
 
 The enclave building process will generate a manifest file that contains a hash of the compilation process and some attributes like debug mode, authorized instructions and so on. This is also referred as the MRENCLAVE and it is sufficient to safely authenticate an enclave. In BlindAI's case, each time our client interacts with our server, the server gives out its MRENCLAVE so that the client can compare it against the manifest file passed by the user. This way he can attest that the secure enclave he is connected to is running the right code, with the right options.
 
-Once again the client handles this verification process so you only have to be sure that the client gets the correct manifest file. To do so, you should build the server from source in hardware mode, and follow the instruction to extract the manifest file. Once you have it, you can pass it to the client during the connection like so :
-
-```py
-blindai.connect(addr="addr", manifest="path/to/manifest.toml")
-```
-
-If the client connects, it means the remote enclave generation process produced an identical manifest.toml.
-
 !!! info
-    If you're not using simulation mode, you're required to pass a manifest.toml. If you're using the docker image, the manifest.toml is already build into the python package. 
+    To offer good and secure defaults, each client release comes with a builtin Manifest.toml corresponding to the latest release of BlindAI, this Manifest is used by default. Most users are expected to just use the default Manifest.toml. 
+    
+If you want to modify the server, you will need to override the Manifest file.To do that you can use the `hazmat_manifest_path` argument of the connect function. 
+
+
+The client handles this verification process so you only have to make sure that the client gets the correct manifest file. If the client connects, it means the remote enclave is compliant to the enclave description from the Manifest.
 
 
 ## Reproduce the enclave binary
