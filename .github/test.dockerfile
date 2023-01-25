@@ -56,7 +56,6 @@ RUN cd client \
     && poetry run mypy --install-types --non-interactive --ignore-missing-imports --follow-imports=skip \
     && poetry run pytest --ignore=tests/integration_test.py 
 
-COPY .github/scripts scripts
 COPY manifest.dev.template.toml manifest.prod.template.toml ./
 
 # end-to-end tests

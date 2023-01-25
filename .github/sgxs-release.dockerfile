@@ -21,6 +21,8 @@ COPY src src
 COPY tar-rs-sgx tar-rs-sgx
 COPY tract tract
 COPY ring-fortanix ring-fortanix
+COPY tiny-http tiny-http
+COPY rouille rouille
 
 RUN cargo build --locked --release --target "x86_64-fortanix-unknown-sgx"
 
