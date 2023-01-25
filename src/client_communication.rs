@@ -34,6 +34,7 @@ pub struct TensorInfo {
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct SerializedTensor {
     pub info: TensorInfo,
+    #[serde(with = "serde_bytes")]
     pub bytes_data: Vec<u8>,
 }
 
@@ -57,6 +58,7 @@ pub(crate) struct RunModel {
 
 #[derive(Deserialize)]
 struct UploadModel {
+    #[serde(with = "serde_bytes")]
     model: Vec<u8>,
     length: u64,
     model_name: String,

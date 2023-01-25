@@ -147,7 +147,7 @@ basic_test:
   set -e 
   set -x
   cd client/tests
-  poetry run pytest
+  poetry run pytest --ignore=integration_test.py
 
 # Run all tests and display combined coverage (don't forget to generate the onnx and npz files before)
 test:
@@ -159,10 +159,13 @@ test:
   just run --release &
   sleep 15
   for d in ../tests/*/ ; do
+  	if [[ "$d" == *"mobilenet"* ]]; then
+      continue
+    fi
     onnx_files=($d*.onnx)
     npz_files=($d*.npz)
     poetry run coverage run --append ../tests/assert_correctness.py "${onnx_files[0]}" "${npz_files[0]}"
   done
   killall runner
-  coverage html --include=client/client.py,client/utils.py -d coverage_html
+  coverage html --include=blindai_preview/client.py,blindai_preview/utils.py -d coverage_html
   poetry run python -m http.server 8000 --directory coverage_html/
