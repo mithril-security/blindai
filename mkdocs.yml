@@ -1,8 +1,8 @@
 site_name: BlindAI
 
-# site_url: https://www.mithrilsecurity.io/
+site_url: https://www.mithrilsecurity.io/
 
-repo_url: https://github.com/mithril-security/blindai
+repo_url: https://github.com/mithril-security/blindai-preview
 
 theme:
   name: material
@@ -65,16 +65,16 @@ nav:
   - 'docs/deploy-on-premise.md'
 
 - 'Advanced':
-  - 'Build from sources':
-    - 'docs/advanced/build-from-sources/client.md'
-    - 'docs/advanced/build-from-sources/server.md'
+  # - 'Build from sources':
+  #   - 'docs/advanced/build-from-sources/client.md'
+  #   - 'docs/advanced/build-from-sources/server.md'
   - 'docs/advanced/setting-up-your-dev-environment.md'
   - 'docs/advanced/blindai-project-structure.md'
 
 - 'Security':
   - 'docs/advanced/security/remote_attestation.md'
   - 'docs/advanced/security/threat_model.md'
-- 'Client API reference': 'blindai_preview/index.html'
+- 'Client API reference': 'blindai_preview/client.html'
 
 # - 'Integrating AI models from other frameworks':
 #   - 'Example of BlindAI deployment with ResNet18': 'BlindAI_ResNet18.ipynb'

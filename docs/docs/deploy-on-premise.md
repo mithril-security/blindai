@@ -1,8 +1,13 @@
 # Deploy on premise
 
-The docker images used here are prebuilt ones from our dockerhub, you can take a look at the [build the server from source section]('build-from-sources/server.md')
+<!-- 
+    The docker images used here are prebuilt ones from our dockerhub, you can take a look at the [build the server from source section]('build-from-sources/server.md')
+-->
 
-## Simulation mode
+!!! warning
+    The unsecure connection is on HTTP only. In production mode, it is highly recommended to connect it to a **reverse-proxy** that creates a TLS connection between the end user and the BlindAI server.  You can achieve this using [Caddy](https://caddyserver.com/) or [Nginx](https://www.nginx.com/) for instance.
+
+<!-- ## Simulation mode
 
 This section explains how to work with the simulation mode. This simulates Intel SGX in software and enables you to run this on any hardware you want.
 
@@ -16,16 +21,18 @@ docker run -it \
 ```
 
 !!! warning
-    Please keep in mind that this image is not secure, since it simulates Intel SGX in software. It is lighter than hardware mode, and should not be used in production.
+    Please keep in mind that this image is not secure, since it simulates Intel SGX in software. It is lighter than hardware mode, and should not be used in production. -->
 
 ## Hardware mode
 
 ### Hardware requirements
 
+!!! info 
+    In some cases (Linux kernel >5.15) the execution of the binary returns `in-kernel drivers support`, and it means that the drivers are already installed and must appear in `/dev/sgx/`. 
+
+
 === "Hardware mode"
 
-    !!! info
-        If you are using Azure DCsV2 VMs, you can ignore all of this. The drivers and the PCCS server are built-in the VMs.
 
     You will need to have an Intel SGX-ready device, with `SGX+FLC` (Flexible Launch Control) support. Read [this Intel documentation page](https://www.intel.com/content/www/us/en/support/articles/000057420/software/intel-security-products.html) to see if your Intel processor supports it.
 
@@ -48,25 +55,44 @@ docker run -it \
     The binary file contains the drivers signed by Intel and will proceed to the installation transparently.
 
 
+
 === "Hardware mode (Azure DCsv3 VMs)"
 
     There is no need to do anything, the drivers are already installed.
 
-### Running the server
 
-Please make sure you have [Docker ](https://docs.docker.com/get-docker/)installed on your machine.
+### Installation of the AESM service
+
+!!! info
+    The AESM service is currently only supported outside a docker container and thus must be installed separately. We're working on making it more easier to install by running it directly with BlindAi, in the next iterations. 
+
+To install the AESM service and run it, you can follow the steps described below: 
+
+```bash
+echo "deb https://download.01.org/intel-sgx/sgx_repo/ubuntu $(lsb_release -cs) main" | sudo tee -a /etc/apt/sources.list.d/intel-sgx.list >/dev/null \ 
+curl -sSL "https://download.01.org/intel-sgx/sgx_repo/ubuntu/intel-sgx-deb.key" | sudo apt-key add -
+sudo apt-get update \
+sudo apt-get install -y sgx-aesm-service libsgx-aesm-launch-plugin
+```
+You can verify that the service is running by typing :
+```bash
+service aesmd status
+```
+The current user must also be added to the aesm group to be able to function properly : 
+```bash
+sudo usermod -a -G aesmd $USER
+```
+
+<!-- ### Running the server
 
 === "Hardware mode"
 
-    A [Quote Provisioning Certificate Caching Service (PCCS)](https://github.com/intel/SGXDataCenterAttestationPrimitives/blob/master/QuoteGeneration/pccs/README.md) is built-in inside the Docker Image in order to generate the DCAP attestation from the enclave. You need to provide an API Key in order for the PCCS server to function. [You can get one from Intel here.](https://api.portal.trustedservices.intel.com/provisioning-certification)
-
+    After running the PCCS, you can directly run the BlindAi server by using : 
     ```bash
-    docker run -it \
-        -p 50051:50051 \
-        -p 50052:50052 \
-        --device /dev/sgx/enclave \
-        --device /dev/sgx/provision \
-        mithrilsecuritysas/blindai-server:latest /root/start.sh PCCS_API_KEY
+    just release 
+
+    #or 
+    just run 
     ```
 
     !!! info
@@ -74,66 +100,30 @@ Please make sure you have [Docker ](https://docs.docker.com/get-docker/)installe
 
 === "Hardware mode (Azure DCsv3 VMs)"
 
+    To run the server on azure, and after installing all the dependencies needed :
     ```bash
-    docker run -it \
-        -v $(pwd)/bin/tls:/root/tls \
-        -p 50051:50051 \
-        -p 50052:50052 \
-        --device /dev/sgx/enclave \
-        --device /dev/sgx/provision \
-        mithrilsecuritysas/blindai-server-dcsv3:latest
+    BLINDAI_AZURE_DCS3_PATCH=1 just release 
+    # or 
+    BLINDAI_AZURE_DCS3_PATCH=1 just run
     ```
 
-!!! info
-    If you built this image locally you can allow debug by running with -e manifest_ALLOW_DEBUG=true. Building from sources is documented [here](advanced/build-from-sources/server.md)
+### manifest Generation
 
-!!! warning
-    You should only allow debug if your manifest.toml allows debug.
+The manifest is automatically extracted via the `just run` or `just release` command depending on what mode you're in.
 
-### Extract manifest and default TLS Certificate from the Hardware docker image
-
-You can extract the manifest directly from the prebuilt Docker Image using:
-
-=== "Hardware mode"
-
-    ```bash
-    docker run --rm mithrilsecuritysas/blindai-server:latest /bin/cat /root/manifest.toml > manifest.toml
-    ```
-
-=== "Hardware mode (Azure DCsv3 VMs)"
-
-    ```bash
-    docker run --rm mithrilsecuritysas/blindai-server-dcsv3:latest /bin/cat /root/manifest.toml > manifest.toml
-    ```
-
-You can also extract the default TLS certificate like this:
-
-=== "Hardware mode"
-
-    ```bash
-    docker run --rm mithrilsecuritysas/blindai-server:latest /bin/cat /root/tls/host_server.pem > host_server.pem
-    ```
-
-=== "Hardware mode (Azure DCsv3 VMs)"
-
-    ```bash
-    docker run --rm mithrilsecuritysas/blindai-server-dcsv3:latest /bin/cat /root/tls/host_server.pem > host_server.pem
-    ```
+This manifest.toml file is generated at the root of the repo and is based on the templates present on the repo. 
 
 ### Connect to the hardware mode server
 
-You can start from the python code of [the quick-start section](../index.md). You should then replace the instances of :
+You can start from the python code of [the quick-start section](../index.md). and copy the manifest.toml containing the mrenclave to `/client/`folder (an argument will be added in the next releases to take into account the manifest file directly into the connect function).
 ```py
-client = BlindAiConnection(addr="localhost", simulation=True)
+client = connect(addr="localhost")
 ```
 
-by
 
-```py
-client = BlindaiConnection(addr="localhost", manifest="/path/to/manifest.toml", certificate="/path/to/host_server.pem")
-```
-
-Your client will use your TLS certificate and will only be able to connect to an enclave generated with the exact same manifest.toml.
+Your client will only be able to connect to an enclave generated with the exact same manifest.toml.
 
 !!! note
-    If you want to deploy for production you should check out [the privacy section](main-concepts/privacy.md). You will learn how to check the authenticity of the manifest and how to inject your own TLS certificate.
+    If you want to deploy for production you should check out [the privacy section](main-concepts/privacy.md). You will learn how to check the authenticity of the manifest and how to build a secure communication channel. -->
+
+Next you can [set up your dev environment](advanced/setting-up-your-dev-environment.md)

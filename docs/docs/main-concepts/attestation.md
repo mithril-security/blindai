@@ -10,7 +10,7 @@ When communicating with the client, the enclave issues its signed, hardware-back
 
 The enclave building process will generate a manifest file that contains a hash of the compilation process and some attributes like debug mode, authorized instructions and so on. This is also referred as the MRENCLAVE and it is sufficient to safely authenticate an enclave. In BlindAI's case, each time our client interacts with our server, the server gives out its MRENCLAVE so that the client can compare it against the manifest file passed by the user. This way he can attest that the secure enclave he is connected to is running the right code, with the right options.
 
-Once again the client handles this verification process so you only have to be sure that the client gets the correct manifest file. To do so, you should [build the server from source](../advanced/build-from-sources/server.md) in hardware mode, and follow the instruction to extract the manifest file. Once you have it, you can pass it to the client during the connection like so :
+Once again the client handles this verification process so you only have to be sure that the client gets the correct manifest file. To do so, you should build the server from source in hardware mode, and follow the instruction to extract the manifest file. Once you have it, you can pass it to the client during the connection like so :
 
 ```py
 blindai.connect(addr="addr", manifest="path/to/manifest.toml")
@@ -21,11 +21,25 @@ If the client connects, it means the remote enclave generation process produced 
 !!! info
     If you're not using simulation mode, you're required to pass a manifest.toml. If you're using the docker image, the manifest.toml is already build into the python package. 
 
+
+## Reproduce the enclave binary
+
+The enclave binary and the corresponding manifest are built using this [dockerfile](https://github.com/mithril-security/blindai-preview/blob/main/.github/sgxs-release.dockerfile). You can inspect the dockerfile and run it to build the artifacts using the following commands :
+```bash
+docker build -f .github/sgxs-release.dockerfile --tag blindaiv2-enclave:latest .
+id=$(docker create blindaiv2-enclave:latest)
+docker cp "$id:/blindai-preview/target/x86_64-fortanix-unknown-sgx/release/blindai_server.sgxs" .
+docker cp "$id:/blindai-preview/manifest.toml" .
+docker rm -v $id
+```
+
+
+
 ## Try it for yourself
 
 If you want to test the authenticating property of the MRENCLAVE, you can do the following:
 
-- [Build the BlindAI commit of your choice](../advanced/build-from-sources/server.md).
+- Build the BlindAI commit of your choice
 - Add a line of code anywhere in the server part (it could be a malicious log of the input data, for example.)
 - Rebuild.
 

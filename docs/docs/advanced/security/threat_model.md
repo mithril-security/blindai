@@ -19,6 +19,7 @@ To achieve that configuration, we make the following assumptions :
 - The secure Boot is enabled and the intel and constructor images are up to date, and the SDK used is non-modified intel sgx. 
 - The OS and the related drivers and applications are not trusted inside the SGX Enclave (Iago Attacks are possible). 
 - We consider the data and model sent by the client to the server to be trusted, as he is the one that owns it. 
+- The issues concerning the guarantee of the availability of the SGX platform and hence the BlindAi App are not taken into consideration and are out of scope. 
 
 ## 3. Data Flow Diagram
 The figure below shows a high-level data flow diagram for the BlindAI app. The diagram shows a model of the different components that interacts to achieve the remote attestation process and running the models as an inference engine. 
