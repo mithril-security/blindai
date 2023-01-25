@@ -42,7 +42,7 @@ Now let's run a simple example to check everything is correctly set up.
 
 At the root of the project, run
 ```
-python tests/simple/simple.py
+python tests/simple/setup.py
 ```
 which generates the onnx file for a very minimal model which only does one thing: subbing one monovalue tensor to another.
 
@@ -59,7 +59,7 @@ python simple.py
 
 Here is the code of simple.py
 ```py
---8<-- "../tests/simple/simple.py"
+--8<-- "../client/examples/simple.py"
 ```
 
 ## justfile overview
