@@ -6,12 +6,14 @@ import torch
 def testTensorDeserialization():
     serialized = {
         "info": {"fact": [4], "datum_type": "I64", "node_name": "output"},
-        "bytes_data": bytes([1, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0]),
+        "bytes_data": b"\x01\x00\x00\x00\x00\x00\x00\x00\x02\x00\x00\x00\x00\x00\x00\x00\x03\x00\x00\x00\x00\x00\x00\x00\x04\x00\x00\x00\x00\x00\x00\x00",
     }
     tensor = Tensor(TensorInfo(**serialized["info"]), serialized["bytes_data"])
     expected = [1, 2, 3, 4]
 
-    torch_results = torch.isclose(tensor.as_torch(), torch.tensor(expected, dtype=torch.int64)).tolist()
+    torch_results = torch.isclose(
+        tensor.as_torch(), torch.tensor(expected, dtype=torch.int64)
+    ).tolist()
     if isinstance(torch_results, list):
         assert all(torch_results)
     else:
@@ -19,7 +21,7 @@ def testTensorDeserialization():
 
 
 def testTensorSerialization():
-    expected_bytes =  bytes([1, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0])
+    expected_bytes = b"\x01\x00\x00\x00\x00\x00\x00\x00\x02\x00\x00\x00\x00\x00\x00\x00\x03\x00\x00\x00\x00\x00\x00\x00\x04\x00\x00\x00\x00\x00\x00\x00"
 
     tensor1 = [1, 2, 3, 4]
     o = translate_tensors(tensor1, ModelDatumType.I64, (4,))

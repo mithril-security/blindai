@@ -55,6 +55,7 @@ class ModelDatumType(IntEnum):
     I16 = 9
     Bool = 10
 
+
 format_per_item = {
     ModelDatumType.F32: "<f4",
     ModelDatumType.F64: "<f8",
@@ -69,11 +70,14 @@ format_per_item = {
     ModelDatumType.Bool: "?",
 }
 
+
 def serialize_tensor(tensor: np.ndarray, type: ModelDatumType) -> bytes:
     return np.array(tensor).astype(format_per_item[type], casting="equiv").tobytes()
 
+
 def deserialize_tensor(data: bytes, type: ModelDatumType) -> np.ndarray:
-    return np.frombuffer(data, dtype = format_per_item[type])
+    return np.frombuffer(data, dtype=format_per_item[type])
+
 
 class TensorInfo:
     fact: List[int]
