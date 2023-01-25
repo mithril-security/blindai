@@ -59,7 +59,7 @@ python simple.py
 
 Here is the code of simple.py
 ```py
---8<-- "../client/examples/simple.py"
+--8<-- "../tests/simple/simple.py"
 ```
 
 ## justfile overview
