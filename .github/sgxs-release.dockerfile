@@ -17,6 +17,7 @@ RUN apt-get update \
 RUN cargo install --locked --git https://github.com/mithril-security/rust-sgx.git --tag fortanix-sgx-tools_v0.5.1-mithril fortanix-sgx-tools sgxs-tools
 
 COPY Cargo.toml Cargo.lock rust-toolchain.toml  manifest.prod.template.toml ./
+COPY .cargo .cargo
 COPY src src
 COPY tar-rs-sgx tar-rs-sgx
 COPY tract tract
