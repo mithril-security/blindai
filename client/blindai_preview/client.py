@@ -96,9 +96,7 @@ class TensorInfo:
 
 
 class Tensor:
-    """
-    Tensor class to convert serialized tensors into convenients objects
-    """
+    """Tensor class to convert serialized tensors into convenients objects."""
 
     info: Union[TensorInfo, dict]
     bytes_data: bytes
@@ -108,7 +106,8 @@ class Tensor:
         self.bytes_data = bytes_data
 
     def as_flat(self) -> list:
-        """Convert the prediction calculated by the server to a flat python list."""
+        """Convert the prediction calculated by the server to a flat python
+        list."""
         return self.as_numpy().tolist()
 
     def as_numpy(self):
@@ -119,9 +118,10 @@ class Tensor:
         return arr
 
     def as_torch(self):
-        """
-        Convert the prediction calculated by the server to a Torch Tensor.
-        As torch is heavy it's an optional dependency of the project, and is imported only when needed.
+        """Convert the prediction calculated by the server to a Torch Tensor.
+
+        As torch is heavy it's an optional dependency of the project, and is
+        imported only when needed.
 
         Raises: ImportError if torch isn't installed
         """
@@ -235,8 +235,7 @@ class _ClientInfo:
 
 
 def dtype_to_numpy(dtype: ModelDatumType) -> str:
-    """
-    Convert a ModelDatumType to a numpy type
+    """Convert a ModelDatumType to a numpy type.
 
     Raises:
         ValueError: if numpy doesn't support dtype
@@ -260,8 +259,7 @@ def dtype_to_numpy(dtype: ModelDatumType) -> str:
 
 
 def dtype_to_torch(dtype: ModelDatumType) -> str:
-    """
-    Convert a ModelDatumType to a torch type
+    """Convert a ModelDatumType to a torch type.
 
     Raises:
         ValueError: if torch doesn't support dtype
@@ -370,8 +368,7 @@ def _is_numpy_array(tensor) -> bool:
 def translate_tensor(
     tensor: Any, or_dtype: ModelDatumType, or_shape: Tuple, name=None
 ) -> Tensor:
-    """
-    Put the flat/numpy/torch tensor into a Tensor object
+    """Put the flat/numpy/torch tensor into a Tensor object.
 
     Args:
         tensor: flat/numpy/torch tensor
@@ -411,8 +408,7 @@ def translate_tensor(
 
 
 def translate_tensors(tensors, dtypes, shapes) -> List[dict]:
-    """
-    Put the flat/numpy/torch tensors into a list of Tensor objects
+    """Put the flat/numpy/torch tensors into a list of Tensor objects.
 
     Args:
         tensor: list or dict of flat/numpy/torch tensors
@@ -473,75 +469,46 @@ def translate_tensors(tensors, dtypes, shapes) -> List[dict]:
 
 
 class BlindAiConnection(contextlib.AbstractContextManager):
-    conn: requests.Session
+    """A class to represent a connection to a BlindAi server."""
 
-    _disable_attestation_checks: bool = False
-    _disable_untrusted_server_cert_check: bool = False
+    _conn: requests.Session
 
     def __init__(
         self,
         addr: str,
-        untrusted_port: int = 9923,
-        attested_port: int = 9924,
-        hazmat_manifest_path: Optional[pathlib.Path] = None,
-        hazmat_http_on_untrusted_port=False,
+        untrusted_port: int,
+        attested_port: int,
+        hazmat_manifest_path: Optional[pathlib.Path],
+        hazmat_http_on_untrusted_port: bool,
     ):
-        """
-        Connect to the BlindAi server
+        """Connect to a BlindAi service.
+
+        Please refer to the connect function for documentation.
 
         Args:
-            addr (str): The address of BlindAI server you want to connect to. It can be a domain (such as `example.com` or `localhost`) or an IP
-            hazmat_manifest_path: By default the built-in Manifest.toml provided by Mithril Security will be use.
-                You can override the default Manifest.toml by providing a path to your custom Manifest.toml
-                Caution: The manifest describes which enclave are trustworthy, changing the Manifest.toml can impact the security of the solution.
-            hazmat_http_on_untrusted_port: By default, the client fetch the attestation elements from the untrusted port of the server
-                using an HTTPS connection. The certificate should be validated according to your OS defaults.
-                You can opt out of a HTTPS connection and instead ask the client to connect via HTTP by setting this param to True
-                Caution: This parameter should never be set to True in production. Using a HTTPS connection is critical to
-                get a graceful degradation in case of a failure of Intel SGX attestation.
-            untrusted_port (int, optional): Untrusted connection server port. Defaults to 9923.
-            attested_port (int, optional): Attested connection server port. Defaults to 9924.
-        Raises:
-            HttpError: raised by the requests lib to relay server side errors
-            ValueError: raised when inputs sanity checks fail
-            IdentityError: raised when the enclave signature does not match the enclave signature expected in the manifest
-            EnclaveHeldDataError: raised when the expected enclave held data does not match the one in the quote
-            QuoteValidationError: raised when the returned quote is invalid (TCB outdated, not signed by the hardware provider...).
-            AttestationError: raised when the attestation is not valid (enclave settings mismatching, debug mode unallowed...)
+            addr (str):
+            untrusted_port (int):
+            attested_port (int):
+            hazmat_manifest_path (Optional[pathlib.Path]):
+            hazmat_http_on_untrusted_port (bool):
+
+        Returns:
         """
+        # uname = platform.uname()
 
-        uname = platform.uname()
+        # self.client_info = _ClientInfo(
+        #     uid=sha256((socket.gethostname() + "-" + getpass.getuser()).encode("utf-8"))
+        #     .digest()
+        #     .hex(),
+        #     platform_name=uname.system,
+        #     platform_arch=uname.machine,
+        #     platform_version=uname.version,
+        #     platform_release=uname.release,
+        #     user_agent="blindai_python",
+        #     user_agent_version=app_version,
+        # )
 
-        self.client_info = _ClientInfo(
-            uid=sha256((socket.gethostname() + "-" + getpass.getuser()).encode("utf-8"))
-            .digest()
-            .hex(),
-            platform_name=uname.system,
-            platform_arch=uname.machine,
-            platform_version=uname.version,
-            platform_release=uname.release,
-            user_agent="blindai_python",
-            user_agent_version=app_version,
-        )
-
-        self._connect_server(
-            addr,
-            untrusted_port,
-            attested_port,
-            hazmat_manifest_path,
-            hazmat_http_on_untrusted_port,
-        )
-
-    def _connect_server(
-        self,
-        addr: str,
-        untrusted_port,
-        attested_port,
-        manifest_path,
-        http_on_untrusted_port,
-    ):
-
-        if http_on_untrusted_port:
+        if hazmat_http_on_untrusted_port:
             self._untrusted_url = "http://" + addr + ":" + str(untrusted_port)
         else:
             self._untrusted_url = "https://" + addr + ":" + str(untrusted_port)
@@ -569,7 +536,9 @@ class BlindAiConnection(contextlib.AbstractContextManager):
         quote = cbor.loads(s.get(f"{self._untrusted_url}/quote").content)
         collateral = cbor.loads(s.get(f"{self._untrusted_url}/collateral").content)
 
-        validate_attestation(quote, collateral, cert, manifest_path=manifest_path)
+        validate_attestation(
+            quote, collateral, cert, manifest_path=hazmat_manifest_path
+        )
 
         # requests (http library) takes a path to a file containing the CA
         # there is no easy way to give the CA as a string/bytes directly
@@ -590,7 +559,7 @@ class BlindAiConnection(contextlib.AbstractContextManager):
         # finally try to connect to the enclave
         trusted_conn.get(self._attested_url)
 
-        self.conn = trusted_conn
+        self._conn = trusted_conn
 
     def upload_model(
         self,
@@ -598,15 +567,20 @@ class BlindAiConnection(contextlib.AbstractContextManager):
         model_name: Optional[str] = None,
         optimize: bool = True,
     ) -> UploadResponse:
-        """
-        Upload an inference model to the server.
+        """Upload an inference model to the server.
+
         The provided model needs to be in the Onnx format.
+
         ***Security & confidentiality warnings:***
-        *`model`: The model sent on a Onnx format is encrypted in transit via TLS (as all connections). It may be subject to inference Attacks if an adversary is able to query the trained model repeatedly to determine whether or not a particular example is part of the trained dataset model.
+            model: The model sent on a Onnx format is encrypted in transit via TLS (as all connections).
+            It may be subject to inference Attacks if an adversary is able to query the trained model
+            repeatedly to determine whether or not a particular example is part of the trained dataset model.
         Args:
             model (str): Path to Onnx model file.
-            model_name (Optional[str], optional): Name of the model. By default, the server will assign a random UUID. You can call the model with the name you specify here.
-            optimize (bool): Whether tract (our inference engine) should optimize the model or not. Optimzing should only be turned off when tract wasn't able to optimze the model.
+            model_name (Optional[str], optional): Name of the model. By default, the server will assign a random UUID.
+                You can call the model with the name you specify here.
+            optimize (bool): Whether tract (our inference engine) should optimize the model or not.
+                Optimzing should only be turned off when tract wasn't able to optimze the model.
         Raises:
             HttpError: raised by the requests lib to relay server side errors
             ValueError: raised when inputs sanity checks fail
@@ -628,7 +602,7 @@ class BlindAiConnection(contextlib.AbstractContextManager):
             optimize=optimize,
         )
         bytes_data = cbor.dumps(data.__dict__)
-        r = self.conn.post(f"{self._attested_url}/upload", data=bytes_data)
+        r = self._conn.post(f"{self._attested_url}/upload", data=bytes_data)
         r.raise_for_status()
         send_model_reply = SendModelReply(**cbor.loads(r.content))
         ret = UploadResponse(model_id=send_model_reply.model_id)
@@ -641,17 +615,27 @@ class BlindAiConnection(contextlib.AbstractContextManager):
         dtypes: Optional[List[ModelDatumType]] = None,
         shapes: Optional[Union[List[List[int]], List[int]]] = None,
     ) -> RunModelResponse:
-        """
-        Send data to the server to make a secure inference.
-        The data provided must be in a list, as the tensor will be rebuilt inside the server.
+        """Send data to the server to make a secure inference.
+
+        The data provided must be in a list, as the tensor will be rebuilt inside the
+        server.
+
         ***Security & confidentiality warnings:***
-        *`model_id` : hash of the Onnx model uploaded. the given hash is return via gRPC through the proto files. It's a SHA-256 hash that is generated each time a model is uploaded.
-        `tensors`: protected in transit and protected when running it on the secure enclave. In the case of a compromised OS, the data is isolated and confidential by SGX design.
+            model_id: hash of the Onnx model uploaded. the given hash is return via gRPC through the proto files.
+            It's a SHA-256 hash that is generated each time a model is uploaded.
+            tensors: protected in transit and protected when running it on the secure enclave.
+            In the case of a compromised OS, the data is isolated and confidential by SGX design.
+
         Args:
             model_id (str): If set, will run a specific model.
-            input_tensors (Union[List[Any], List[List[Any]]))): The input data. It must be an array of numpy, tensors or flat list of the same type datum_type specified in `upload_model`.
-            dtypes (Union[List[ModelDatumType], ModelDatumType], optional): The type of data of the data you want to upload. Only required if you are uploading flat lists, will be ignored if you are uploading numpy or tensors (this info will be extracted directly from the tensors/numpys).
-            shapes (Union[List[List[int]], List[int]], optional): The shape of the data you want to upload. Only required if you are uploading flat lists, will be ignored if you are uploading numpy or tensors (this info will be extracted directly from the tensors/numpys).
+                input_tensors (Union[List[Any], List[List[Any]]))): The input data. It must be an array of numpy,
+                tensors or flat list of the same type datum_type specified in `upload_model`.
+            dtypes (Union[List[ModelDatumType], ModelDatumType], optional): The type of data
+                of the data you want to upload. Only required if you are uploading flat lists, will be ignored
+                if you are uploading numpy or tensors (this info will be extracted directly from the tensors/numpys).
+            shapes (Union[List[List[int]], List[int]], optional): The shape of the data you want to upload.
+                Only required if you are uploading flat lists, will be ignored if you are uploading numpy
+                or tensors (this info will be extracted directly from the tensors/numpys).
         Raises:
             HttpError: raised by the requests lib to relay server side errors
             ValueError: raised when inputs sanity checks fail
@@ -662,7 +646,7 @@ class BlindAiConnection(contextlib.AbstractContextManager):
         tensors = translate_tensors(input_tensors, dtypes, shapes)
         run_data = RunModel(model_id=model_id, inputs=tensors)
         bytes_run_data = cbor.dumps(run_data.__dict__)
-        r = self.conn.post(f"{self._attested_url}/run", data=bytes_run_data)
+        r = self._conn.post(f"{self._attested_url}/run", data=bytes_run_data)
         r.raise_for_status()
         run_model_reply = RunModelReply(**cbor.loads(r.content))
 
@@ -675,12 +659,18 @@ class BlindAiConnection(contextlib.AbstractContextManager):
         return ret
 
     def delete_model(self, model_id: str):
-        """
-        Delete a model in the inference server.
-        This may be used to free up some memory.
-        If you did not specify that you wanted your model to be saved on the server, please note that the model will only be present in memory, and will disappear when the server close.
-        ***Security & confidentiality warnings:***
-            *model_id : If you are using this on the Mithril Security Cloud, you can only delete models that you uploaded. Otherwise, the deletion of a model does only relies on the `model_id`. It doesn't relies on a session token or anything, hence if the `model_id` is known, it's deletion is possible.*
+        """Delete a model in the inference server.
+
+        This may be used to free up some memory. If you did not specify that you
+        wanted your model to be saved on the server, please note that the model will
+        only be present in memory, and will disappear when the server close.
+
+        **Security & confidentiality warnings: **
+            model_id: If you are using this on the Mithril Security Cloud, you can only delete models
+            that you uploaded. Otherwise, the deletion of a model does only relies on the `model_id`.
+            It doesn't relies on a session token or anything, hence if the `model_id` is known,
+            it's deletion is possible.
+
         Args:
             model_id (str): The id of the model to remove.
         Raises:
@@ -689,7 +679,7 @@ class BlindAiConnection(contextlib.AbstractContextManager):
         """
         delete_data = DeleteModel(model_id=model_id)
         bytes_delete_data = cbor.dumps(delete_data.__dict__)
-        r = self.conn.post(f"{self._attested_url}/delete", bytes_delete_data)
+        r = self._conn.post(f"{self._attested_url}/delete", bytes_delete_data)
         r.raise_for_status()
 
     def __enter__(self):
@@ -697,13 +687,53 @@ class BlindAiConnection(contextlib.AbstractContextManager):
         return self
 
     def __exit__(self, *args):
-        """Close the connection to BlindAI server and raise any exception triggered within the runtime context."""
-        self.conn.close()
+        """Close the connection to BlindAI server."""
+        self._conn.close()
 
 
 from functools import wraps
 
 
-@wraps(BlindAiConnection.__init__, assigned=("__doc__", "__annotations__"))
-def connect(*args, **kwargs):
-    return BlindAiConnection(*args, **kwargs)
+def connect(
+    addr: str,
+    untrusted_port: int = 9923,
+    attested_port: int = 9924,
+    hazmat_manifest_path: Optional[pathlib.Path] = None,
+    hazmat_http_on_untrusted_port=False,
+) -> BlindAiConnection:
+    """Connect to a BlindAi server.
+
+    Args:
+        addr (str): The address of BlindAI server you want to connect to.
+            It can be a domain (such as "example.com" or "localhost") or an IP
+        untrusted_port (int, optional): The untrusted port number. Defaults to 9923.
+        attested_port (int, optional): The attested port number. Defaults to 9924.
+        hazmat_manifest_path (Optional[pathlib.Path], optional):  Path to the Manifest.toml which describes
+            which enclave are to be accepted.
+            Defaults to the built-in Manifest.toml provided by Mithril Security as part of the Python package.
+            You can override the default by providing a path to your own Manifest.toml
+            Caution: Changing the manifest can impact the security of the solution.
+        hazmat_http_on_untrusted_port (bool, optional): If set to True, the client will request the attestation elements of
+            the server using a plain HTTP connection instead of a more secure HTTPS connection. Defaults to False.
+            Caution: This parameter should never be set to True in production. Using a HTTPS connection is critical to
+            get a graceful degradation in case of a failure of the Intel SGX attestation.
+
+     Raises:
+        requests.exceptions.RequestException: If a network or server error occurs
+        ValueError: raised when inputs sanity checks fail
+        IdentityError: raised when the enclave signature does not match the enclave signature expected in the manifest
+        EnclaveHeldDataError: raised when the expected enclave held data does not match the one in the quote
+        QuoteValidationError: raised when the returned quote is invalid (TCB outdated, not signed by the hardware provider...).
+        AttestationError: raised when the attestation is not valid (enclave settings mismatching, debug mode unallowed...)
+
+    Returns:
+        BlindAiConnection: An object representing an active connection to a BlindAi server
+    """
+
+    return BlindAiConnection(
+        addr,
+        untrusted_port,
+        attested_port,
+        hazmat_manifest_path,
+        hazmat_http_on_untrusted_port,
+    )
