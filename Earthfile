@@ -78,6 +78,17 @@ dev-tests:
         && cargo clippy --target x86_64-fortanix-unknown-sgx -p blindai_server -- --no-deps -Dwarnings \
         && cargo audit
 
+    # cargo fmt, clippy  for the runner 
+    RUN cd runner \
+        && cargo fmt --check \
+        && cargo clippy -- --no-deps -Dwarnings
+
+    # cargo fmt, clippy  for the remote_attestation_sgx crate 
+    RUN cd runner/remote_attestation_sgx \
+        && cargo fmt --check \
+        && cargo clippy -- --no-deps -Dwarnings  
+
+
     # install python client and type stubs
     COPY client client
     RUN cd client \

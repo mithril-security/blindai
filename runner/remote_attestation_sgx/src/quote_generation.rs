@@ -1,7 +1,7 @@
 use aesm_client::AesmClient;
 use anyhow::{anyhow, ensure, Result};
 use log::debug;
-use sgx_isa::{Targetinfo, Report};
+use sgx_isa::{Report, Targetinfo};
 
 const SGX_QL_ALG_ECDSA_P256: u32 = 2;
 pub struct QuoteProvider {
@@ -35,14 +35,15 @@ impl QuoteProvider {
         let quote_info = aesm_client
             .init_quote_ex(ecdsa_key_id.clone())
             .map_err(|e| anyhow::anyhow!(e))?;
-        let target_info = Targetinfo::try_copy_from(quote_info.target_info()).ok_or(anyhow!("Invalid target info"))?;
+        let target_info = Targetinfo::try_copy_from(quote_info.target_info())
+            .ok_or(anyhow!("Invalid target info"))?;
         Ok(QuoteProvider {
             aesm_client,
             target_info,
             ecdsa_key_id,
         })
     }
-    pub fn get_target_info(&self) -> Targetinfo{
+    pub fn get_target_info(&self) -> Targetinfo {
         self.target_info.clone()
     }
     pub fn get_quote(&self, report: Report) -> Result<Vec<u8>> {

@@ -7,12 +7,12 @@ use anyhow::Result;
 use quote_generation::QuoteProvider;
 use quote_verification_collateral::get_quote_verification_collateral;
 
-use axum::{http::StatusCode, response::IntoResponse, routing::post, Json, Router, extract::State};
+use axum::{extract::State, http::StatusCode, response::IntoResponse, routing::post, Json, Router};
+use log::info;
 use serde::Deserialize;
 use serde_json::json;
 use sgx_isa::Report;
 use std::{net::SocketAddr, sync::Arc};
-use log::info;
 
 #[tokio::main(flavor = "current_thread")]
 pub async fn start_remote_attestation() {
@@ -61,7 +61,10 @@ async fn get_target_info(State(quote_provider): State<Arc<QuoteProvider>>) -> We
     Ok(Json(json! { quote_provider.get_target_info() }))
 }
 
-async fn get_quote(State(quote_provider): State<Arc<QuoteProvider>>, Json(GetQuoteRequest { enclave_report }): Json<GetQuoteRequest>) -> WebResult {
+async fn get_quote(
+    State(quote_provider): State<Arc<QuoteProvider>>,
+    Json(GetQuoteRequest { enclave_report }): Json<GetQuoteRequest>,
+) -> WebResult {
     Ok(Json(json! { quote_provider.get_quote(enclave_report)? }))
 }
 

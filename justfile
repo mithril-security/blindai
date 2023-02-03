@@ -169,3 +169,23 @@ test:
   killall runner
   coverage html --include=blindai_preview/client.py,blindai_preview/utils.py -d coverage_html
   poetry run python -m http.server 8000 --directory coverage_html/
+
+
+precommit:
+  #!/usr/bin/env bash
+
+  set -x
+  set -e
+
+  cargo fmt
+  cargo clippy --target x86_64-fortanix-unknown-sgx -p blindai_server -- --no-deps -Dwarnings 
+
+  pushd runner
+  cargo fmt
+  cargo clippy 
+  popd
+
+  pushd client 
+  poetry run black --check . 
+  poetry run mypy --install-types --non-interactive --ignore-missing-imports --follow-imports=skip
+  popd

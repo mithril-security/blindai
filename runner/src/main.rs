@@ -21,7 +21,7 @@ fn parse_args() -> Result<String, ()> {
 
 fn main() {
     // Running the remote attestation thread
-    let remote_att_sgx = thread::spawn(|| remote_attestation_sgx::start_remote_attestation());
+    let remote_att_sgx = thread::spawn(remote_attestation_sgx::start_remote_attestation);
 
     // Running the enclave
     let file = parse_args().unwrap();

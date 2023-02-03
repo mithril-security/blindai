@@ -15,9 +15,6 @@ use std::{
     ptr, slice, str,
 };
 use x509_parser::{oid_registry::Oid, prelude::FromDer, prelude::X509Certificate};
-use ureq;
-use urlencoding;
-use hex;
 /// Get SGX ECDSA attestation collateral from an SGX quote
 ///
 /// The verification collateral is the data required needed by the client to
@@ -47,7 +44,10 @@ pub fn get_quote_verification_collateral(quote: &[u8]) -> Result<SgxCollateral> 
     if std::env::var("BLINDAI_AZURE_DCS3_PATCH").is_ok() {
         println!("The patch for Azure DCsv3 and DCdsv3-series VMs is enabled. Requesting collateral directly from Intel, bypassing the PCS.");
 
-        let api_tcb_info_response = ureq::get("https://api.trustedservices.intel.com/sgx/certification/v3/tcb").query("fmspc", &hex::encode(fmspc)).call()?;
+        let api_tcb_info_response =
+            ureq::get("https://api.trustedservices.intel.com/sgx/certification/v3/tcb")
+                .query("fmspc", &hex::encode(fmspc))
+                .call()?;
 
         tcb_info_issuer_chain = urlencoding::decode(
             api_tcb_info_response
@@ -58,7 +58,9 @@ pub fn get_quote_verification_collateral(quote: &[u8]) -> Result<SgxCollateral> 
 
         tcb_info = api_tcb_info_response.into_string()?;
 
-        let api_qe_identity_response = ureq::get("https://api.trustedservices.intel.com/sgx/certification/v3/qe/identity").call()?;
+        let api_qe_identity_response =
+            ureq::get("https://api.trustedservices.intel.com/sgx/certification/v3/qe/identity")
+                .call()?;
         qe_identity_issuer_chain = urlencoding::decode(
             api_qe_identity_response
                 .header("SGX-Enclave-Identity-Issuer-Chain")
@@ -69,7 +71,6 @@ pub fn get_quote_verification_collateral(quote: &[u8]) -> Result<SgxCollateral> 
         qe_identity = api_qe_identity_response.into_string()?;
     }
 
-
     Ok(SgxCollateral {
         version,
         pck_crl_issuer_chain,
@@ -79,8 +80,8 @@ pub fn get_quote_verification_collateral(quote: &[u8]) -> Result<SgxCollateral> 
         tcb_info,
         qe_identity_issuer_chain,
         qe_identity,
-        pck_certificate: pck_certificate,
-        pck_signing_chain: pck_signing_chain,
+        pck_certificate,
+        pck_signing_chain,
     })
 }
 
@@ -171,7 +172,6 @@ fn pcs_crl_to_pem(crl: &[u8]) -> String {
     })
 }
 
-const FMSPC_PARSING_ERROR: u32 = 1;
 /// Parse an SGX extension
 ///
 /// Only the FMSPC value is extracted, the other extensions are ignored.
@@ -198,9 +198,7 @@ fn parse_sgx_extension(i: &[u8]) -> BerResult<Option<SgxExtension>> {
             );
 
             Some(SgxExtension::Fmspc(
-                fmspc
-                    .try_into()
-                    .map_err(|_| BerError::BerValueError)?,
+                fmspc.try_into().map_err(|_| BerError::BerValueError)?,
             ))
         } else {
             None
@@ -395,7 +393,7 @@ pub fn get_fmspc_ca_from_quote(quote: &[u8]) -> Result<([u8; 6], CString, String
     let pck_certificate = &cert_chain[0];
     let pck_signing_chain = cert_chain[1..].join("\n");
 
-    let pck_cert_der = pem::parse(&pck_certificate)?.contents;
+    let pck_cert_der = pem::parse(pck_certificate)?.contents;
 
     let (_, pck_cert) = X509Certificate::from_der(&pck_cert_der)?;
 
