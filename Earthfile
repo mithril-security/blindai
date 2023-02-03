@@ -144,6 +144,7 @@ build-release-enclave:
             libssl-dev=1.1.1n-0+deb11u3 \
             gettext-base \
         && rm -rf /var/lib/apt/lists/* \
+        && rustup set profile minimal \
         && rustup default nightly-2023-01-11 \
         && rustup target add x86_64-fortanix-unknown-sgx
 
@@ -152,7 +153,7 @@ build-release-enclave:
 
     RUN cargo install --locked --git https://github.com/mithril-security/rust-sgx.git --tag fortanix-sgx-tools_v0.5.1-mithril fortanix-sgx-tools sgxs-tools
 
-    COPY Cargo.toml Cargo.lock rust-toolchain.toml  manifest.prod.template.toml ./
+    COPY rust-toolchain.toml Cargo.toml Cargo.lock manifest.prod.template.toml ./
     COPY .cargo .cargo
     COPY src src
     COPY tar-rs-sgx tar-rs-sgx
