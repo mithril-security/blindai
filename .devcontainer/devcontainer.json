@@ -40,7 +40,8 @@
 				"serayuzgur.crates",
 				"tamasfe.even-better-toml",
 				"ms-python.python",
-				"ms-toolsai.jupyter"
+				"ms-toolsai.jupyter",
+				"earthly.earthfile-syntax-highlighting"
 			]
 		}
 	}
