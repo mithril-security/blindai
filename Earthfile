@@ -10,15 +10,15 @@ ci:
     BUILD +build-release-client
     BUILD +test-release
 
-    # BUILD +build-docker-image
-    # BUILD +test-docker-image
+
 
 publish:
     # Make sure the CI runs successfully
     WAIT 
-        BUILD +ci
+    BUILD +ci
+    BUILD +build-docker-image
+    BUILD +test-docker-image
     END
-    
     BUILD +publish-client-release
 
 dev-image:
@@ -259,7 +259,7 @@ test-release:
         && bash run_all_end_to_end_tests.sh
 
 build-docker-image:
-    # Minimal image to run blindai
+    # A docker image to run the blindai server
     FROM ubuntu:20.04
 
     WORKDIR /root
@@ -317,8 +317,8 @@ build-docker-image:
     EXPOSE 9924
 
     CMD ./start.sh
-
-    SAVE IMAGE  blindai-docker-xyz:latest
+    ARG --required TAG
+    SAVE IMAGE --push mithrilsecuritysas/blindai-preview-server:$TAG
 
 test-docker-image:
     FROM +prepare-test
@@ -329,7 +329,7 @@ test-docker-image:
     COPY +build-release-client/dist/*.whl ./
     RUN cd client && poetry run pip install  ../*.whl
 
-    WITH DOCKER --load=blindai-docker-xyz:latest=+build-docker-image
+    WITH DOCKER --load=blindai-docker:latest=+build-docker-image
         RUN --privileged \
         --mount=type=bind-experimental,target=/var/run/aesmd/aesm.socket,source=/var/run/aesmd/aesm.socket  \
         --mount=type=bind-experimental,target=/dev/sgx/,source=/dev/sgx/  \
@@ -339,7 +339,7 @@ test-docker-image:
             -p 127.0.0.1:9924:9924 \
             --mount type=bind,source=/dev/sgx,target=/dev/sgx \
             -v /var/run/aesmd/aesm.socket:/var/run/aesmd/aesm.socket \
-            blindai-docker-xyz:latest & \
+            blindai-docker:latest & \
             sleep 30 \
             && cd tests \
             && bash run_all_end_to_end_tests.sh
