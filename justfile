@@ -189,3 +189,15 @@ precommit:
   poetry run black --check . 
   poetry run mypy --install-types --non-interactive --ignore-missing-imports --follow-imports=skip
   popd
+
+release:
+  #!/usr/bin/env bash
+  set -e 
+  set -x
+
+  just build --release
+  cp manifest.prod.toml client/blindai_preview/manifest.toml
+
+  openssl genrsa -3 3072 > my_key.pem
+  sgxs-sign --key my_key.pem  target/x86_64-fortanix-unknown-sgx/release/blindai_server.sgxs   target/x86_64-fortanix-unknown-sgx/release/blindai_server.sig   --xfrm 7/0 --isvprodid 0 --isvsvn 0
+  ./runner/target/release/runner target/x86_64-fortanix-unknown-sgx/release/blindai_server.sgxs
