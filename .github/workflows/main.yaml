@@ -60,7 +60,7 @@ jobs:
         export EARTHLY_CONFIG=".earthly/config.yml"
         ./earthly \
           --secret API_TOKEN_PYPI=${{ secrets.API_TOKEN_PYPI }} \
-          --push +publish
+          --push +publish \
           --TAG="$VERSION_TAG"
 
         ./earthly --artifact +build-release-enclave/* outdir/
