@@ -179,7 +179,7 @@ build-release-enclave:
 
     ENV BIN_PATH=target/x86_64-fortanix-unknown-sgx/release/blindai_server
 
-    RUN ftxsgx-elf2sgxs target/x86_64-fortanix-unknown-sgx/release/blindai_server --heap-size 0xFBA00000 --stack-size 0x400000 --threads 20 \
+    RUN ftxsgx-elf2sgxs "$BIN_PATH" --heap-size 0xFBA00000 --stack-size 0x400000 --threads 20 \
         && mr_enclave=`sgxs-hash "$BIN_PATH.sgxs"` envsubst < manifest.prod.template.toml > manifest.toml
 
     RUN openssl genrsa -3 3072 > throw_away.pem \
@@ -214,7 +214,7 @@ build-release-runner:
     CACHE runner/target
 
     RUN cd runner \
-        && cargo build --release
+        && cargo build --locked --release
 
     SAVE ARTIFACT runner/target/release/runner
 
@@ -241,13 +241,10 @@ test-release:
     FROM +prepare-test
 
     COPY +build-release-client/dist/*.whl ./
-    COPY +build-release-enclave/blindai_server.sgxs ./
+    COPY +build-release-enclave/blindai_server.sgxs +build-release-enclave/blindai_server.sig ./
     COPY +build-release-runner/runner ./
 
     RUN cd client && poetry run pip install  ../*.whl
-
-    RUN openssl genrsa -3 3072 > throw_away_key.pem \
-        && sgxs-sign --key throw_away_key.pem  blindai_server.sgxs blindai_server.sig --xfrm 7/0 --isvprodid 0 --isvsvn 0
 
     RUN --privileged \
         --mount=type=bind-experimental,target=/var/run/aesmd/aesm.socket,source=/var/run/aesmd/aesm.socket  \
