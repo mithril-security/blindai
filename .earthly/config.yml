@@ -1,0 +1,2 @@
+global:
+  buildkit_additional_args: ["-v", "/var/run/aesmd/aesm.socket:/var/run/aesmd/aesm.socket", "-v", "/dev/sgx/enclave:/dev/sgx/enclave",  "-v", "/dev/sgx/provision:/dev/sgx/provision"]

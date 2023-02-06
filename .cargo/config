@@ -18,3 +18,10 @@ rustflags = ["-Cllvm-args=-x86-cmov-converter=false", "-Ctarget-feature=+aes,+pc
 # In Cargo.toml you can configure panics to abort rather than unwind as follows, to preserve the call stack for the debugger:
 # panic = "abort"
 lto = false
+
+
+[net]
+# cargo can spend prohibitive time resolving detas unless
+# we use this option 
+# See <https://github.com/rust-lang/cargo/issues/11014>
+git-fetch-with-cli = true

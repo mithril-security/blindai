@@ -1,69 +1,73 @@
-name: end-to-end tests
+name: CI/CD with Earthly
 
 on: push
 
 jobs:
-  test:
+  build:
     runs-on: [self-hosted, linux, x64]
     steps:
-      - uses: actions/checkout@v3
-        with:
-          submodules: true
-      
-      - name: Build dev-env image
-        run: docker build -f .devcontainer/Dockerfile --tag blindaiv2-dev:latest --target development .
-      
-      - name: Build test image
-        run: docker build -f .github/test.dockerfile --tag blindaiv2-test:latest .
+    - uses: actions/checkout@v3
+      with:
+        submodules: true
+    - name: Put back the git branch into git (Earthly uses it for tagging)
+      run: |
+        branch=""
+        if [ -n "$GITHUB_HEAD_REF" ]; then
+          branch="$GITHUB_HEAD_REF"
+        else
+          branch="${GITHUB_REF##*/}"
+        fi
+        git checkout -b "$branch" || true
+    - name: Download latest earthly
+      run: "wget -nc https://github.com/earthly/earthly/releases/download/v0.6.30/earthly-linux-amd64 -O earthly && chmod +x earthly"
+    - name: Earthly version
+      run: ./earthly --version
+    - name: Run build
+      run: ./earthly --config .earthly/config.yml --allow-privileged --no-output --strict +ci
 
-      - name: Build unit-test image
-        run: docker build -f .github/unit-tests.dockerfile --tag blindaiv2-unit-test:latest .
-
-      - name: Run unit-tests tests
-        run: |
-          docker rm --force blindaiv2-unit-test
-          docker run --device /dev/sgx/enclave --device /dev/sgx/provision --name blindaiv2-unit-test blindaiv2-unit-test
-
-      - name: Run end-to-end tests
-        run: |
-          docker rm --force blindaiv2-test
-          docker run -v "/var/run/aesmd/aesm.socket:/var/run/aesmd/aesm.socket" --device /dev/sgx/enclave --device /dev/sgx/provision --name blindaiv2-test blindaiv2-test
-
-  release:
+  publish:
     runs-on: [self-hosted, linux, x64]
-    needs: test
+    needs: build
     if: startsWith(github.ref, 'refs/tags/v')
     steps:
-      - uses: actions/checkout@v3
-        with:
-          submodules: true
+    - uses: actions/checkout@v3
+      with:
+        submodules: true
+    - name: Put back the git branch into git (Earthly uses it for tagging)
+      run: |
+        branch=""
+        if [ -n "$GITHUB_HEAD_REF" ]; then
+          branch="$GITHUB_HEAD_REF"
+        else
+          branch="${GITHUB_REF##*/}"
+        fi
+        git checkout -b "$branch" || true
+    - name: Download latest earthly
+      run: "wget -nc https://github.com/earthly/earthly/releases/download/v0.6.30/earthly-linux-amd64 -O earthly && chmod +x earthly"
+    - name: Earthly version
+      run: ./earthly --version
+    - name: Login to Docker Hub
+      uses: docker/login-action@v2
+      with:
+        username: ${{ secrets.DOCKER_HUB_USERNAME }}
+        password: ${{ secrets.DOCKER_HUB_TOKEN }}
+    - name: Publish
+      run: |
+        VERSION_TAG=$(echo ${{ github.ref }} | cut -f 3 -d / | tr -d 'v' )
 
-      - name: Extract version tag
-        id: version
-        run: echo value=$(echo ${{ github.ref }} | cut -f 3 -d / | tr -d 'v' ) >> $GITHUB_OUTPUT
-      
-      - name: Extract binary
-        run: |
-          docker build -f .github/sgxs-release.dockerfile --tag blindaiv2-enclave:latest .
-          id=$(docker create blindaiv2-enclave:latest)
-          docker cp "$id:/blindai-preview/target/x86_64-fortanix-unknown-sgx/release/blindai_server.sgxs" .
-          docker cp "$id:/blindai-preview/manifest.toml" .
-          docker rm -v $id
-          tar czf blindai_server-x86_64-fortanix-unknown-sgx-${{steps.version.outputs.value}}.tgz blindai_server.sgxs
+        export EARTHLY_ALLOW_PRIVILEGED="true"
+        export EARTHLY_STRICT="true"
+        export EARTHLY_CONFIG=".earthly/config.yml"
+        ./earthly \
+          --secret API_TOKEN_PYPI=${{ secrets.API_TOKEN_PYPI }} \
+          --push +publish
+          --TAG="$VERSION_TAG"
 
-      - name: Create github release
-        uses: softprops/action-gh-release@v1
-        with:
-          files: |
-            blindai_server-x86_64-fortanix-unknown-sgx-${{steps.version.outputs.value}}.tgz
-            manifest.toml
-          name: ${{steps.version.outputs.value}}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        ./earthly --artifact +build-release-enclave/* outdir/
+        ./earthly --artifact +build-release-runner/runner outdir/
+        pushd outdir
+        tar czf blindai_server-$VERSION_TAG.tgz blindai_server.sgxs blindai_server.sig runner
+        popd
 
-      - name: Create pypi release
-        run: |
-          cp manifest.toml client/blindai_preview/
-          docker build -f .github/pypi-release.dockerfile --tag blindaiv2-pypi:latest .
-          docker rm --force blindaiv2-pypi
-          docker run --name blindaiv2-pypi  -e API_TOKEN_PYPI=${{ secrets.API_TOKEN_PYPI }} blindaiv2-pypi:latest
+        GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }} gh release create $VERSION_TAG outdir/manifest.toml outdir/blindai_server-$VERSION_TAG.tgz
+
