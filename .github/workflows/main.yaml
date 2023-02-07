@@ -69,5 +69,5 @@ jobs:
         tar czf blindai_server-$VERSION_TAG.tgz blindai_server.sgxs blindai_server.sig runner
         popd
 
-        GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }} gh release create $VERSION_TAG outdir/manifest.toml outdir/blindai_server-$VERSION_TAG.tgz
+        GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }} gh release create --verify-tag v$VERSION_TAG outdir/manifest.toml outdir/blindai_server-$VERSION_TAG.tgz
 
