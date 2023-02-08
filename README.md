@@ -18,6 +18,7 @@
 <h3 align="center">Fast, accessible and privacy friendly AI deployment 🚀🔒</h3>
 
 > **Warning**
+> 
 > This version of BlindAI is no longer maintained. **This repository is being replaced by [blindai-preview](https://github.com/mithril-security/blindai-preview)**. 
 > 
 > **blindai-preview** is a slimmer and more secure version of BlindAI. You can [try it](https://github.com/mithril-security/blindai-preview). 
