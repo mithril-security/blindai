@@ -17,6 +17,13 @@
 
 <h3 align="center">Fast, accessible and privacy friendly AI deployment 🚀🔒</h3>
 
+> **Warning**
+> This version of BlindAI is no longer maintained. **This repository is being replaced by [blindai-preview](https://github.com/mithril-security/blindai-preview)**. 
+> 
+> **blindai-preview** is a slimmer and more secure version of BlindAI. You can [try it](https://github.com/mithril-security/blindai-preview). 
+>
+> This version will no longer receive any security updates and we are aware of security weaknesses. In short **this version should NOT be used on sensitive data**. 
+
 BlindAI is a confidential AI inference server. Like regular AI inference solutions, BlindAI helps AI engineers serve models for end-users to benefit from their predictions, but with an added privacy layer. Data sent by users to the AI model is kept confidential at all times, from the transfer to the analysis. This way, users can benefit from AI models without ever having to expose their data in clear to anyone: neither the AI service provider, nor the Cloud provider (if any), can see the data.
 
 Confidentiality is assured by using special hardware-enforced Trusted Execution Environments. To read more about those, read our blog series [here](https://blog.mithrilsecurity.io/confidential-computing-explained-part-1-introduction/).
