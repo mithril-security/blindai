@@ -154,6 +154,7 @@ build-release-enclave:
             pkg-config=0.29.2-1 \
             libssl-dev=1.1.1n-0+deb11u3 \
             gettext-base \
+            git \
         && rm -rf /var/lib/apt/lists/* \
         && rustup set profile minimal \
         && rustup default nightly-2023-01-11 \
