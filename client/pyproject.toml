@@ -11,9 +11,8 @@ cbor2 = "^5.4.3"
 cryptography = "^38.0.3"
 numpy = "^1.23.5,<1.24"
 torch = { version = "^1.13.0", optional = true }
-sgx-dcap-quote-verify-python = "^0.0.2"
+sgx-dcap-quote-verify-python = "^0.0.3"
 toml = "^0.10.2"
-pydantic = "^1.10.4"
 importlib-metadata = "^6.0.0"
 
 [tool.poetry.group.dev.dependencies]
