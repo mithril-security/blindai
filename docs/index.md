@@ -1,12 +1,4 @@
-# 👋 Welcome
-
-> **Warning**
-> 
-> This version of BlindAI is no longer maintained. **This repository is being replaced by [blindai-preview](https://github.com/mithril-security/blindai-preview)**. 
-> 
-> **blindai-preview** is a slimmer and more secure version of BlindAI. You can [try it](https://github.com/mithril-security/blindai-preview). 
->
-> This version will no longer receive any security updates and we are aware of security weaknesses. In short **this version should NOT be used on sensitive data**. 
+# 👋 Welcome 
 
 **BlindAI** is a **fast, easy-to-use,** and **confidential inference server**, allowing you to easily and quickly deploy your AI models with privacy, **all in Python**. Thanks to the **end-to-end protection guarantees**, data owners can send private data to be analyzed by AI models, without fearing exposing their data to anyone else.
 
