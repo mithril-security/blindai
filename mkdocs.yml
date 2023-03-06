@@ -96,14 +96,35 @@ markdown_extensions:
 
 # Documentation tree
 nav:
-  - 🏠 Home: "index.md"
-  - 🚀 Getting started:
-  - 📙 Tutorials:
-  - 🌍 How-to-guides:
-  - 💡 Concepts:
-  - 🛠️ API Reference: "blindai/client.html"
-  - 🔒 Security:
-  - ⚙️ Advanced:
-      - Open source:
+
+- 🏠 Home: "index.md"
+- 🚀 Getting Started: 
+  - 'index.md'
+- 💡 'Main concepts':
+  - 'docs/main-concepts/overview.md'
+  - 'Trusting BlindAI':
+    - 'docs/main-concepts/privacy.md'
+    - 'docs/main-concepts/attestation.md'
+    - 'docs/main-concepts/tls.md'
+  - 'docs/main-concepts/sealing.md'
+- 'docs/mithril-cloud.md'
+- 'docs/deploy-on-premise.md'
+- 'docs/cloud-deployment.md'
+- ⚙️ 'Advanced':
+  - 'Build from sources':
+    - 'docs/advanced/build-from-sources/client.md'
+    - 'docs/advanced/build-from-sources/server.md'
+  - 'docs/advanced/setting-up-your-dev-environment.md'
+  - 'docs/advanced/blindai-project-structure.md'
+  - Open source:
           - Contributing: "docs/advanced/contributing/contributing.md"
           - Code of Conduct: "docs/advanced/contributing/code_of_conduct.md"
+- 'docs/telemetry.md'
+- 🛠️ 'Client API reference': 'blindai/client.html'
+- 🌍 'Integrating AI models from other frameworks':
+  - 'Example of BlindAI deployment with ResNet18': 'BlindAI_ResNet18.ipynb'
+  - 'Example of BlindAI deployment with CovidNet': 'BlindAI-COVID-Net.ipynb'
+  - 'Example of BlindAI deployment with DistilBERT': 'BlindAI-DistilBERT.ipynb'
+  - 'Example of BlindAI deployment with Facenet': 'BlindAI-Facenet.ipynb'
+  - 'Example of BlindAI deployment with Wav2vec2': 'BlindAI-Wav2vec2.ipynb'
+  - 'Example of BlindAI deployement with Whisper': 'BlindAI_Whisper.ipynb'
