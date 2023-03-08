@@ -105,7 +105,7 @@ nav:
   - From sources:
     - Client: 'docs/advanced/build-from-sources/client.md'
     - Server: 'docs/advanced/build-from-sources/server.md'
-- 🛠️ Client API reference: 'blindai/client.html'
+- 🛠️ Client API reference: 'blindai_preview/client.html'
 #- 📙 Examples:
 #  - ResNet18: 'BlindAI_ResNet18.ipynb'
 #  - CovidNet: 'BlindAI-COVID-Net.ipynb'
