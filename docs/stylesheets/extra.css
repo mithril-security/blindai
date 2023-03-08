@@ -1,11 +1,142 @@
+/* MKDOCS CSS */
+
+/* Color chart
+	Oxford blue: #142540
+	Blue Yonder: #647693
+	Light Steel Blue: #B3C6E5
+	Orange Yellow: #F0BA2D
+	Black: #000000
+*/
+
+/****** Dark mode ******/
 [data-md-color-scheme="slate"] {
-    --md-primary-fg-color:#142540;
-    --md-typeset-a-color:#b3c6e5;
-    --md-default-bg-color: #202023;
-    --md-accent-fg-color: #647693;
+    --md-primary-fg-color:#142540; /*header color*/
+	--md-default-bg-color:#030e1a; /*background*/
+    --md-typeset-a-color:#F0BA2D; /*clicked link*/
+    --md-accent-fg-color: #F0BA2D; /*hover color*/
 }
 
+/****** Light mode ******/
 [data-md-color-scheme="default"] {
-    --md-primary-fg-color: #142540;
-    --md-accent-fg-color: #647693;
+    --md-primary-fg-color: #142540; /*header color*/
+	--md-typeset-a-color:#5385d5; /*clicked link*/
+	--md-accent-fg-color: #5385d5; /*hover color*/
+}
+
+/****** Tweaking the navigation sections style only on Desktop ******/
+
+@media screen and (min-width: 1025px) {
+
+	/* rules to style all level 0 navigation titles */
+	nav[data-md-level="0"]>ul>li>.md-nav__link {
+		font-weight: bold;
+		text-transform: uppercase;
+	}
+
+	/* rules to style level 2 collapsible sections titles */
+	nav[data-md-level="1"]>ul>li.md-nav__item--nested>label.md-nav__link {
+		font-weight: bold;
+	}
+}
+
+/* To add css style to only Jupyter notebooks:
+	-> put ''.jp-RenderedHTMLCommon' before new rule 
+	source css: https://github.com/jupyterlab/jupyterlab/blob/3d07723da5543c8bfb4f509f00b95f75789d38c7/packages/rendermime/style/index.css#L341
+	*/
+
+/******* light mode *******/
+
+/* customizing links color */
+[data-md-color-scheme="default"] .jp-RenderedHTMLCommon a {
+	color: #5385d5;
+}
+
+/* customizing the text color in '>' notes */
+[data-md-color-scheme="default"] .jp-RenderedHTMLCommon blockquote {
+	color: #57595b;
+}
+
+/******* dark mode *******/
+
+/* customizing links color */
+[data-md-color-scheme="slate"] .jp-RenderedHTMLCommon a {
+	color: #F0BA2D;
+}
+
+/* customizing the text color in '>' notes */
+[data-md-color-scheme="slate"] .jp-RenderedHTMLCommon blockquote {
+	color: #c5c7ca;
+	background: #c5c7ca0e;
+}
+
+/******* Adding admonitions *******/
+
+.admonition {
+	padding: .1em .5em;
+	margin-bottom: 1em;
+  }
+.admonition-title {
+	font-weight: bold;
+}
+.admonition.note,
+.admonition.info,
+.admonition.important {
+	background: #214649;
+}
+.admonition.todo,
+.admonition.versionadded,
+.admonition.tip,
+.admonition.hint {
+	background: #1fd;
+}
+.admonition.versionchanged,
+.admonition.deprecated {
+	background: #1d4;
+}
+.admonition.error,
+.admonition.danger,
+.admonition.caution {
+	background: darkpink;
+}
+
+/* ****** Adding custom admonitions ******
+/* warning */
+.jp-RenderedHTMLCommon .warning {
+	background: #f0b92d11;
+}
+
+.jp-RenderedHTMLCommon .note {
+	background: #f0b92d11;
+}
+
+.jp-RenderedHTMLCommon .danger {
+	background: #f0b92d11;
+}
+
+.jp-RenderedHTMLCommon .tip {
+	background: #f0b92d11;
+}
+
+.jp-RenderedHTMLCommon .info {
+	background: #f0b92d11;
+}
+
+
+/******* Rules aligning colab_button to the right *******/
+
+#colab_button {
+	display: flex;
+	flex-direction: row;
+	align-items: flex-start; /* Vertical align title and colab img to the start of the flex container */
+}
+
+#colab_button h1 {
+	margin: 0;
+}
+	
+#colab_button a {
+	margin-left: auto; /* Push the colab img element to the right */
+	margin-top: 0.67em;
+	margin-bottom: 0.67em;
+	margin-right: 0;
 }
