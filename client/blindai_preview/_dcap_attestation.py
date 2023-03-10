@@ -26,6 +26,28 @@ import toml
 from pathlib import Path
 
 
+@dataclass
+class Collateral:
+    version: int
+    pck_certificate: str
+    pck_crl_issuer_chain: str
+    pck_signing_chain: str
+    root_ca_crl: str
+    pck_crl: str
+    tcb_info: str
+    tcb_info_issuer_chain: str
+    qe_identity: str
+    qe_identity_issuer_chain: str
+
+    def __post_init__(self):
+        for (name, field_type) in self.__annotations__.items():
+            if not isinstance(self.__dict__[name], field_type):
+                current_type = type(self.__dict__[name])
+                raise TypeError(
+                    f"The field `{name}` was assigned by {current_type} instead of {field_type}"
+                )
+
+
 class AttestationError(Exception):
     """This exception is raised when the attestation is invalid (enclave
     settings mismatching, debug mode unallowed...).
@@ -85,7 +107,7 @@ class IdentityError(QuoteValidationError):
 
 def validate_attestation(
     quote: bytes,
-    collateral,
+    collateral: Collateral,
     enclave_held_data: bytes,
     manifest_path: Optional[Path] = None,
 ):
@@ -118,14 +140,14 @@ def validate_attestation(
 
     attestation_result = sgx_dcap_quote_verify.verify(
         trusted_root_ca_certificate=trusted_root_ca_certificate,
-        pck_certificate=collateral["pck_certificate"],
-        pck_signing_chain=collateral["pck_signing_chain"],
-        root_ca_crl=collateral["root_ca_crl"],
-        intermediate_ca_crl=collateral["pck_crl"],
-        tcb_info=collateral["tcb_info"],
-        tcb_signing_chain=collateral["tcb_info_issuer_chain"],
+        pck_certificate=collateral.pck_certificate,
+        pck_signing_chain=collateral.pck_signing_chain,
+        root_ca_crl=collateral.root_ca_crl,
+        intermediate_ca_crl=collateral.pck_crl,
+        tcb_info=collateral.tcb_info,
+        tcb_signing_chain=collateral.tcb_info_issuer_chain,
         quote=quote,
-        qe_identity=collateral["qe_identity"],
+        qe_identity=collateral.qe_identity,
         expiration_date=datetime.now(),
     )
     if attestation_result.pck_certificate_status != VerificationStatus.STATUS_OK:
