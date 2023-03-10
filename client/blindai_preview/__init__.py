@@ -9,6 +9,7 @@ __all__ = [
     "QuoteValidationError",
     "EnclaveHeldDataError",
     "IdentityError",
+    "testing",
 ]
 
 from .client import (
@@ -26,3 +27,4 @@ from ._dcap_attestation import (
     EnclaveHeldDataError,
     IdentityError,
 )
+from . import testing

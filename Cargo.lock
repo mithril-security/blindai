@@ -89,6 +89,7 @@ version = "0.0.1"
 dependencies = [
  "anyhow",
  "bytes",
+ "cfg-if",
  "digest",
  "env_logger",
  "image",

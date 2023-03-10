@@ -36,11 +36,17 @@ import tempfile
 import requests
 from requests.adapters import HTTPAdapter
 from importlib_metadata import version
+import warnings
+
 
 app_version = version("blindai-preview")
 
 
 CONNECTION_TIMEOUT = 10
+
+
+class SimulationModeWarning(Warning):
+    pass
 
 
 class ModelDatumType(IntEnum):
@@ -480,6 +486,7 @@ class BlindAiConnection(contextlib.AbstractContextManager):
         attested_port: int,
         hazmat_manifest_path: Optional[pathlib.Path],
         hazmat_http_on_untrusted_port: bool,
+        simulation_mode: bool,
     ):
         """Connect to a BlindAi service.
 
@@ -491,9 +498,21 @@ class BlindAiConnection(contextlib.AbstractContextManager):
             attested_port (int):
             hazmat_manifest_path (Optional[pathlib.Path]):
             hazmat_http_on_untrusted_port (bool):
-
+            simulation_mode (bool):
         Returns:
         """
+
+        if simulation_mode:
+            warnings.warn(
+                (
+                    "BlindAI is running in simulation mode. "
+                    "This mode is provided solely for testing purposes. "
+                    "It does not provide any security since there is no SGX enclave. "
+                    "The simulation mode MUST NOT be used in production."
+                ),
+                SimulationModeWarning,
+            )
+
         # uname = platform.uname()
 
         # self.client_info = _ClientInfo(
@@ -533,12 +552,13 @@ class BlindAiConnection(contextlib.AbstractContextManager):
         s.hooks = {"response": lambda r, *args, **kwargs: r.raise_for_status()}
 
         cert = cbor.loads(s.get(self._untrusted_url).content)
-        quote = cbor.loads(s.get(f"{self._untrusted_url}/quote").content)
-        collateral = cbor.loads(s.get(f"{self._untrusted_url}/collateral").content)
+        if not simulation_mode:
+            quote = cbor.loads(s.get(f"{self._untrusted_url}/quote").content)
+            collateral = cbor.loads(s.get(f"{self._untrusted_url}/collateral").content)
 
-        validate_attestation(
-            quote, collateral, cert, manifest_path=hazmat_manifest_path
-        )
+            validate_attestation(
+                quote, collateral, cert, manifest_path=hazmat_manifest_path
+            )
 
         # requests (http library) takes a path to a file containing the CA
         # there is no easy way to give the CA as a string/bytes directly
@@ -700,6 +720,7 @@ def connect(
     attested_port: int = 9924,
     hazmat_manifest_path: Optional[pathlib.Path] = None,
     hazmat_http_on_untrusted_port=False,
+    simulation_mode: bool = False,
 ) -> BlindAiConnection:
     """Connect to a BlindAi server.
 
@@ -717,6 +738,10 @@ def connect(
             the server using a plain HTTP connection instead of a more secure HTTPS connection. Defaults to False.
             Caution: This parameter should never be set to True in production. Using a HTTPS connection is critical to
             get a graceful degradation in case of a failure of the Intel SGX attestation.
+        simulation_mode (bool, optional): If set to True, BlindAI will work in simulation mode.
+            Caution: In simulation, BlindAI does not provide any security since there is no SGX enclave.
+            This mode SHOULD NEVER be enabled in production.
+            Defaults to False (production mode)
 
      Raises:
         requests.exceptions.RequestException: If a network or server error occurs
@@ -736,4 +761,5 @@ def connect(
         attested_port,
         hazmat_manifest_path,
         hazmat_http_on_untrusted_port,
+        simulation_mode,
     )

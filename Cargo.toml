@@ -31,6 +31,7 @@ sgx-isa = { version = "0.4.0", features = ["serde"] }
 ureq = {version = "2.5.0", features = ["json"]}
 serde_bytes = "0.11.8"
 tiny_http = { path = "tiny-http" }
+cfg-if = "1.0.0"
 
 [dev-dependencies]
 lazy_static = "1.4.0"
