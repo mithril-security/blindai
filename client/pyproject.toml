@@ -2,7 +2,7 @@
 name = "blindai-preview"
 version = "0.0.5"
 description = ""
-authors = ["Corentin Lauverjat <corentin.lauverjat@mithrilsecurity.io>"]
+authors = ["Mithril Security <contact@mithrilsecurity.io>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]

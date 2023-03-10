@@ -82,6 +82,14 @@ fn get_collateral(quote: &[u8]) -> Result<SgxCollateral> {
 }
 
 fn main() -> Result<()> {
+    println!("BlindAI server is running at : 0.0.0.0:9923 and 0.0.0.0:9924");
+
+    const SERVER_NAME: &str = if cfg!(target_env = "sgx") {
+        "blindai_preview"
+    } else {
+        "blindai_preview mock (testing)"
+    };
+
     // Make debugging easier by enabling rust backtrace inside enclave
     std::env::set_var("RUST_BACKTRACE", "full");
     #[cfg(debug_assertions)]
@@ -108,6 +116,7 @@ fn main() -> Result<()> {
             )
             .with_status_code(500),
         }
+        .with_additional_header("Server", SERVER_NAME)
     }
 
     // Remote attestation
@@ -118,36 +127,55 @@ fn main() -> Result<()> {
     let mut report_data = [0u8; 64];
     report_data[0..32].copy_from_slice(report_binding.as_ref());
 
-    let target_info = get_target_info()?;
-    debug!("target info = {:?} ", &target_info);
-    let report = Report::for_target(&target_info, &report_data);
+    cfg_if::cfg_if! {
+        if #[cfg(target_env = "sgx")] {
+            let target_info = get_target_info()?;
+            debug!("target info = {:?} ", &target_info);
+            let report = Report::for_target(&target_info, &report_data);
 
-    let quote = get_quote(report)?;
-    debug!("Attestation : Quote is {:?} ", &quote);
+            let quote = get_quote(report)?;
+            debug!("Attestation : Quote is {:?} ", &quote);
 
-    let collateral = get_collateral(&quote)?;
-    debug!("Attestation : Collateral is {:?} ", collateral);
+            let collateral = get_collateral(&quote)?;
+            debug!("Attestation : Collateral is {:?} ", collateral);
 
-    let router = {
-        let enclave_cert_der = Arc::clone(&enclave_cert_der);
-        move |request: &rouille::Request| {
-            rouille::router!(request,
-                (GET)(/) => {
-                    debug!("Requested enclave TLS certificate");
-                    respond(Bytes::new(&enclave_cert_der))
-                },
-                (GET)(/quote) => {
-                    debug!("Attestation : Sending quote to client.");
-                    respond(Bytes::new(&quote))
-                },
-                (GET)(/collateral) => {
-                    debug!("Attestation : Sending collateral to client.");
-                    respond(&collateral)
-                },
-                _ => {
-                    rouille::Response::empty_404()
-                },
-            )
+            let router = {
+                let enclave_cert_der = Arc::clone(&enclave_cert_der);
+                move |request: &rouille::Request| {
+                    rouille::router!(request,
+                        (GET)(/) => {
+                            debug!("Requested enclave TLS certificate");
+                            respond(Bytes::new(&enclave_cert_der))
+                        },
+                        (GET)(/quote) => {
+                            debug!("Attestation : Sending quote to client.");
+                            respond(Bytes::new(&quote))
+                        },
+                        (GET)(/collateral) => {
+                            debug!("Attestation : Sending collateral to client.");
+                            respond(&collateral)
+                        },
+                        _ => {
+                            rouille::Response::empty_404()
+                        },
+                    )
+                }
+            };
+        } else {
+            let router = {
+                let enclave_cert_der = Arc::clone(&enclave_cert_der);
+                move |request: &rouille::Request| {
+                    rouille::router!(request,
+                        (GET)(/) => {
+                            debug!("Requested enclave TLS certificate");
+                            respond(Bytes::new(&enclave_cert_der))
+                        },
+                        _ => {
+                            rouille::Response::empty_404()
+                        },
+                    )
+                }
+            };
         }
     };
 
@@ -193,7 +221,6 @@ fn main() -> Result<()> {
             _trusted_handle.join().unwrap();
         }
     });
-    println!("Now listening on port 9923 and 9924");
     _untrusted_handle.join().unwrap();
 
     Ok(())

@@ -1,3 +1,4 @@
+import os
 from blindai_preview import *
 import onnxruntime as rt
 import numpy as np
@@ -12,10 +13,14 @@ _, model_path, inputs_path = sys.argv
 inputs = dict(np.load(inputs_path))
 
 #blindai code
-client_v2 = connect(addr="localhost", hazmat_http_on_untrusted_port=True)
-response = client_v2.upload_model(model=model_path)
-run_response = client_v2.run_model(model_id=response.model_id, input_tensors=inputs)
-client_v2.delete_model(model_id = response.model_id)
+if os.environ.get('BLINDAI_SIMULATION_MODE') == "true":
+	client = connect(addr="localhost", hazmat_http_on_untrusted_port=True, simulation_mode=True)
+else:
+	client = connect(addr="localhost", hazmat_http_on_untrusted_port=True)
+
+response = client.upload_model(model=model_path)
+run_response = client.run_model(model_id=response.model_id, input_tensors=inputs)
+client.delete_model(model_id = response.model_id)
 
 #ort code
 sess = rt.InferenceSession(model_path)
