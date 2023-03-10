@@ -14,7 +14,7 @@
 
 
 import pathlib
-from ._dcap_attestation import validate_attestation
+from ._dcap_attestation import validate_attestation, AttestationError
 from .utils import *
 
 from dataclasses import dataclass
@@ -550,8 +550,13 @@ class BlindAiConnection(contextlib.AbstractContextManager):
         # Always raise an exception when HTTP returns an error code for the untrusted connection
         # Note : we might want to do the same for the attested connection ?
         s.hooks = {"response": lambda r, *args, **kwargs: r.raise_for_status()}
+        req = s.get(self._untrusted_url)
+        cert = cbor.loads(req.content)
+        if not simulation_mode and "mock" in req.headers["Server"]:
+            raise AttestationError(
+                "The BlindAI server is a mock. You can only connect to it in simulation mode."
+            )
 
-        cert = cbor.loads(s.get(self._untrusted_url).content)
         if not simulation_mode:
             quote = cbor.loads(s.get(f"{self._untrusted_url}/quote").content)
             collateral = cbor.loads(s.get(f"{self._untrusted_url}/collateral").content)

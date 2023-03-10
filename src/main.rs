@@ -84,6 +84,12 @@ fn get_collateral(quote: &[u8]) -> Result<SgxCollateral> {
 fn main() -> Result<()> {
     println!("BlindAI server is running at : 0.0.0.0:9923 and 0.0.0.0:9924");
 
+    const SERVER_NAME: &str = if cfg!(target_env = "sgx") {
+        "blindai_preview"
+    } else {
+        "blindai_preview mock (testing)"
+    };
+
     // Make debugging easier by enabling rust backtrace inside enclave
     std::env::set_var("RUST_BACKTRACE", "full");
     #[cfg(debug_assertions)]
@@ -110,6 +116,7 @@ fn main() -> Result<()> {
             )
             .with_status_code(500),
         }
+        .with_additional_header("Server", SERVER_NAME)
     }
 
     // Remote attestation
