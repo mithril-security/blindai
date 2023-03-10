@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "blindai-preview"
-version = "0.0.5"
+version = "0.0.6"
 description = ""
 authors = ["Mithril Security <contact@mithrilsecurity.io>"]
 readme = "README.md"
