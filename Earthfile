@@ -107,10 +107,14 @@ dev-tests-base:
         && poetry run mypy --install-types --non-interactive --ignore-missing-imports --follow-imports=skip \
         && poetry run pytest --ignore=tests/integration_test.py 
 
-    COPY manifest.dev.template.toml manifest.prod.template.toml ./
-
 dev-tests-mock:
     FROM +dev-tests-base
+
+    CACHE /usr/local/cargo/git
+    CACHE /usr/local/cargo/registry
+    CACHE /blindai-preview/target    
+    
+    RUN cargo build --release
     RUN cargo run --release & \
         sleep 2 \
         && cd tests \
@@ -119,6 +123,14 @@ dev-tests-mock:
 dev-tests-sgx:
     FROM +dev-tests-base
     # end-to-end tests
+
+    CACHE /usr/local/cargo/git
+    CACHE /usr/local/cargo/registry
+    CACHE /blindai-preview/target    
+
+    COPY manifest.dev.template.toml manifest.prod.template.toml ./
+    RUN just build --release
+
     RUN --privileged \
          --mount=type=bind-experimental,target=/var/run/aesmd/aesm.socket,source=/var/run/aesmd/aesm.socket  \
          --mount=type=bind-experimental,target=/dev/sgx/,source=/dev/sgx/  \
