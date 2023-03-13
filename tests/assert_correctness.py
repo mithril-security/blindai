@@ -14,9 +14,9 @@ inputs = dict(np.load(inputs_path))
 
 #blindai code
 if os.environ.get('BLINDAI_SIMULATION_MODE') == "true":
-	client = connect(addr="localhost", hazmat_http_on_untrusted_port=True, simulation_mode=True)
+	client = connect(addr="localhost", hazmat_http_on_unattested_port=True, simulation_mode=True)
 else:
-	client = connect(addr="localhost", hazmat_http_on_untrusted_port=True)
+	client = connect(addr="localhost", hazmat_http_on_unattested_port=True)
 
 response = client.upload_model(model=model_path)
 run_response = client.run_model(model_id=response.model_id, input_tensors=inputs)
