@@ -721,13 +721,16 @@ class BlindAiConnection(contextlib.AbstractContextManager):
         r = self._conn.post(f"{self._attested_url}/delete", bytes_delete_data)
         r.raise_for_status()
 
+    def close(self):
+        self._conn.close()
+
     def __enter__(self):
         """Return the BlindAiConnection upon entering the runtime context."""
         return self
 
     def __exit__(self, *args):
         """Close the connection to BlindAI server."""
-        self._conn.close()
+        self.close()
 
 
 from functools import wraps
