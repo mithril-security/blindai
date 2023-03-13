@@ -14,7 +14,7 @@
 
 
 import pathlib
-from ._dcap_attestation import validate_attestation, AttestationError
+from ._dcap_attestation import validate_attestation, AttestationError, Collateral
 from .utils import *
 
 from dataclasses import dataclass
@@ -558,12 +558,23 @@ class BlindAiConnection(contextlib.AbstractContextManager):
             )
 
         if not simulation_mode:
-            quote = cbor.loads(s.get(f"{self._untrusted_url}/quote").content)
-            collateral = cbor.loads(s.get(f"{self._untrusted_url}/collateral").content)
+            try:
+                quote = cbor.loads(s.get(f"{self._untrusted_url}/quote").content)
+                collateral = cbor.loads(
+                    s.get(f"{self._untrusted_url}/collateral").content
+                )
+                try:
+                    collateral = Collateral(**collateral)
+                except TypeError as e:
+                    raise AttestationError("Bad attestation collateral from the server")
 
-            validate_attestation(
-                quote, collateral, cert, manifest_path=hazmat_manifest_path
-            )
+                validate_attestation(
+                    quote, collateral, cert, manifest_path=hazmat_manifest_path
+                )
+            except AttestationError as e:
+                raise
+            except Exception as e:
+                raise AttestationError("Attestation verification failed")
 
         # requests (http library) takes a path to a file containing the CA
         # there is no easy way to give the CA as a string/bytes directly
@@ -582,7 +593,10 @@ class BlindAiConnection(contextlib.AbstractContextManager):
         trusted_conn.mount(self._attested_url, CustomHostNameCheckingAdapter())
 
         # finally try to connect to the enclave
-        trusted_conn.get(self._attested_url)
+        try:
+            trusted_conn.get(self._attested_url)
+        except Exception as e:
+            raise AttestationError("Cannot establish secure connection to the enclave")
 
         self._conn = trusted_conn
 
