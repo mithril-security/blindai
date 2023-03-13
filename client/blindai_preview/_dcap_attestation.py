@@ -125,7 +125,7 @@ def validate_attestation(
         enclave_held_data (bytes): Enclave held data
     Raises:
         QuoteValidationError: The quote could not be validated.
-        EnclaveHeldDataError: The enclave held data expected does not match the one in the quote. The expected enclave held data in BlindAI is the untrusted certificate to avoid man-in-the-middle attacks.
+        EnclaveHeldDataError: The enclave held data expected does not match the one in the quote. The expected enclave held data in BlindAI is a certificate to avoid man-in-the-middle attacks.
         NotAnEnclaveError: The enclave claims are not validated by the hardware provider, meaning that the claims cannot be verified using the hardware root of trust.
     Returns:
         -

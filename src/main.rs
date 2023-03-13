@@ -179,11 +179,11 @@ fn main() -> Result<()> {
         }
     };
 
-    let untrusted_server = rouille::Server::new("0.0.0.0:9923", router)
-        .expect("Failed to start untrusted server")
+    let unattested_server = rouille::Server::new("0.0.0.0:9923", router)
+        .expect("Failed to start unattested server")
         .pool_size(4);
 
-    let (_untrusted_handle, _untrusted_sender) = untrusted_server.stoppable();
+    let (_unattested_handle, _unattested_sender) = unattested_server.stoppable();
 
     let router = move |request: &rouille::Request| {
         rouille::router!(request,
@@ -208,7 +208,7 @@ fn main() -> Result<()> {
     thread::spawn({
         let enclave_cert_der = Arc::clone(&enclave_cert_der);
         move || {
-            let trusted_server = rouille::Server::new_ssl(
+            let attested_server = rouille::Server::new_ssl(
                 "0.0.0.0:9924",
                 router,
                 tiny_http::SslConfig::Der(tiny_http::SslConfigDer {
@@ -217,11 +217,11 @@ fn main() -> Result<()> {
                 }),
             )
             .expect("Failed to start trusted server");
-            let (_trusted_handle, _trusted_sender) = trusted_server.stoppable();
+            let (_trusted_handle, _trusted_sender) = attested_server.stoppable();
             _trusted_handle.join().unwrap();
         }
     });
-    _untrusted_handle.join().unwrap();
+    _unattested_handle.join().unwrap();
 
     Ok(())
 }
