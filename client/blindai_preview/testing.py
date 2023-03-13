@@ -1,4 +1,6 @@
+import platform
 import subprocess
+import sys
 import tarfile
 import urllib.request
 import io
@@ -92,6 +94,13 @@ def start_mock_server() -> MockServer:
         Other exceptions might be raised by zipfile or urllib.request.
     """
     blindai_path = Path.cwd() / "bin" / "blindai_mock_server"
+
+    arch = platform.machine()
+    if arch == "AMD64":
+        arch = "x86_64"
+
+    if not (arch == "x86_64" and sys.platform == "linux"):
+        raise RuntimeError(f"Unsupported system : {platform.machine()}-{sys.platform}")
 
     blindai_url = f"https://github.com/mithril-security/blindai-preview/releases/download/v{app_version}/blindai_mock_server-{app_version}-x86_64-unknown-linux-gnu.tgz"
 
