@@ -54,6 +54,7 @@ plugins:
 
 nav:
 - Getting Started: 'index.md'
+- Quick tour: "docs/quick-tour/blindai_quicktour.ipynb"
 - 'Main concepts':
   - 'docs/main-concepts/overview.md'
   - 'Trusting BlindAI':
