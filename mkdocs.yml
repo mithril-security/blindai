@@ -99,6 +99,7 @@ nav:
 - 🏠 Home: "index.md"
 - 🚀 Getting Started: 
   - Why BlindAI?: 'docs/main-concepts/overview.md'
+  - Quick tour: 'docs/quick-tour/blindai_quicktour.ipynb'
 - 🔆 Installation:
   - Deploy on-premise: 'docs/deploy-on-premise.md'
   - Deploy on Azure: 'docs/cloud-deployment.md'

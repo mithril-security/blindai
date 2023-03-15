@@ -7,7 +7,7 @@ import numpy as np
 # This option is hazardous therefore it starts with hazmat_
 # Those options should generally not be used in production unless you
 # have carefully assessed the consequences.
-client_v2 = connect(addr="localhost", hazmat_http_on_untrusted_port=True)
+client_v2 = connect(addr="localhost", hazmat_http_on_unattested_port=True)
 
 response = client_v2.upload_model(model="../../tests/simple/simple.onnx")
 

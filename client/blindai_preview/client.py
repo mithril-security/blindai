@@ -14,7 +14,7 @@
 
 
 import pathlib
-from ._dcap_attestation import validate_attestation
+from ._dcap_attestation import validate_attestation, AttestationError, Collateral
 from .utils import *
 
 from dataclasses import dataclass
@@ -36,11 +36,17 @@ import tempfile
 import requests
 from requests.adapters import HTTPAdapter
 from importlib_metadata import version
+import warnings
+
 
 app_version = version("blindai-preview")
 
 
 CONNECTION_TIMEOUT = 10
+
+
+class SimulationModeWarning(Warning):
+    pass
 
 
 class ModelDatumType(IntEnum):
@@ -476,10 +482,11 @@ class BlindAiConnection(contextlib.AbstractContextManager):
     def __init__(
         self,
         addr: str,
-        untrusted_port: int,
-        attested_port: int,
+        unattested_server_port: int,
+        attested_server_port: int,
         hazmat_manifest_path: Optional[pathlib.Path],
-        hazmat_http_on_untrusted_port: bool,
+        hazmat_http_on_unattested_port: bool,
+        simulation_mode: bool,
     ):
         """Connect to a BlindAi service.
 
@@ -487,13 +494,25 @@ class BlindAiConnection(contextlib.AbstractContextManager):
 
         Args:
             addr (str):
-            untrusted_port (int):
-            attested_port (int):
+            unattested_server_port (int):
+            attested_server_port (int):
             hazmat_manifest_path (Optional[pathlib.Path]):
-            hazmat_http_on_untrusted_port (bool):
-
+            hazmat_http_on_unattested_port (bool):
+            simulation_mode (bool):
         Returns:
         """
+
+        if simulation_mode:
+            warnings.warn(
+                (
+                    "BlindAI is running in simulation mode. "
+                    "This mode is provided solely for testing purposes. "
+                    "It does not provide any security since there is no SGX enclave. "
+                    "The simulation mode MUST NOT be used in production."
+                ),
+                SimulationModeWarning,
+            )
+
         # uname = platform.uname()
 
         # self.client_info = _ClientInfo(
@@ -508,12 +527,12 @@ class BlindAiConnection(contextlib.AbstractContextManager):
         #     user_agent_version=app_version,
         # )
 
-        if hazmat_http_on_untrusted_port:
-            self._untrusted_url = "http://" + addr + ":" + str(untrusted_port)
+        if hazmat_http_on_unattested_port:
+            self._unattested_url = f"http://{addr}:{unattested_server_port}"
         else:
-            self._untrusted_url = "https://" + addr + ":" + str(untrusted_port)
+            self._unattested_url = f"https://{addr}:{unattested_server_port}"
 
-        self._attested_url = "https://" + addr + ":" + str(attested_port)
+        self._attested_url = f"https://{addr}:{attested_server_port}"
 
         # This adapter makes it possible to connect
         # to the server via a different hostname
@@ -528,38 +547,58 @@ class BlindAiConnection(contextlib.AbstractContextManager):
                 )
 
         s = requests.Session()
-        # Always raise an exception when HTTP returns an error code for the untrusted connection
+        # Always raise an exception when HTTP returns an error code for the unattested connection
         # Note : we might want to do the same for the attested connection ?
         s.hooks = {"response": lambda r, *args, **kwargs: r.raise_for_status()}
+        req = s.get(self._unattested_url)
+        cert = cbor.loads(req.content)
+        if not simulation_mode and "mock" in req.headers["Server"]:
+            raise AttestationError(
+                "The BlindAI server is a mock. You can only connect to it in simulation mode."
+            )
 
-        cert = cbor.loads(s.get(self._untrusted_url).content)
-        quote = cbor.loads(s.get(f"{self._untrusted_url}/quote").content)
-        collateral = cbor.loads(s.get(f"{self._untrusted_url}/collateral").content)
+        if not simulation_mode:
+            try:
+                quote = cbor.loads(s.get(f"{self._unattested_url}/quote").content)
+                collateral = cbor.loads(
+                    s.get(f"{self._unattested_url}/collateral").content
+                )
+                try:
+                    collateral = Collateral(**collateral)
+                except TypeError as e:
+                    raise AttestationError("Bad attestation collateral from the server")
 
-        validate_attestation(
-            quote, collateral, cert, manifest_path=hazmat_manifest_path
-        )
+                validate_attestation(
+                    quote, collateral, cert, manifest_path=hazmat_manifest_path
+                )
+            except AttestationError as e:
+                raise
+            except Exception as e:
+                raise AttestationError("Attestation verification failed")
 
         # requests (http library) takes a path to a file containing the CA
         # there is no easy way to give the CA as a string/bytes directly
         # therefore a temporary file with the certificate content
         # has to be created.
 
-        trusted_server_cert_file = tempfile.NamedTemporaryFile(mode="wb")
-        trusted_server_cert_file.write(cert_der_to_pem(cert))
-        trusted_server_cert_file.flush()
+        attested_server_cert_file = tempfile.NamedTemporaryFile(mode="wb")
+        attested_server_cert_file.write(cert_der_to_pem(cert))
+        attested_server_cert_file.flush()
         # the file should not be close until the end of BlindAiConnection
         # so we store it in the object (else it might get garbage collected)
-        self.trusted_cert_file = trusted_server_cert_file
+        self.attested_cert_file = attested_server_cert_file
 
-        trusted_conn = requests.Session()
-        trusted_conn.verify = trusted_server_cert_file.name
-        trusted_conn.mount(self._attested_url, CustomHostNameCheckingAdapter())
+        attested_conn = requests.Session()
+        attested_conn.verify = attested_server_cert_file.name
+        attested_conn.mount(self._attested_url, CustomHostNameCheckingAdapter())
 
         # finally try to connect to the enclave
-        trusted_conn.get(self._attested_url)
+        try:
+            attested_conn.get(self._attested_url)
+        except Exception as e:
+            raise AttestationError("Cannot establish secure connection to the enclave")
 
-        self._conn = trusted_conn
+        self._conn = attested_conn
 
     def upload_model(
         self,
@@ -682,13 +721,16 @@ class BlindAiConnection(contextlib.AbstractContextManager):
         r = self._conn.post(f"{self._attested_url}/delete", bytes_delete_data)
         r.raise_for_status()
 
+    def close(self):
+        self._conn.close()
+
     def __enter__(self):
         """Return the BlindAiConnection upon entering the runtime context."""
         return self
 
     def __exit__(self, *args):
         """Close the connection to BlindAI server."""
-        self._conn.close()
+        self.close()
 
 
 from functools import wraps
@@ -696,27 +738,32 @@ from functools import wraps
 
 def connect(
     addr: str,
-    untrusted_port: int = 9923,
-    attested_port: int = 9924,
+    unattested_server_port: int = 9923,
+    attested_server_port: int = 9924,
     hazmat_manifest_path: Optional[pathlib.Path] = None,
-    hazmat_http_on_untrusted_port=False,
+    hazmat_http_on_unattested_port=False,
+    simulation_mode: bool = False,
 ) -> BlindAiConnection:
     """Connect to a BlindAi server.
 
     Args:
         addr (str): The address of BlindAI server you want to connect to.
             It can be a domain (such as "example.com" or "localhost") or an IP
-        untrusted_port (int, optional): The untrusted port number. Defaults to 9923.
-        attested_port (int, optional): The attested port number. Defaults to 9924.
+        unattested_server_port (int, optional): The unattested server port number. Defaults to 9923.
+        attested_server_port (int, optional): The attested server port number. Defaults to 9924.
         hazmat_manifest_path (Optional[pathlib.Path], optional):  Path to the Manifest.toml which describes
             which enclave are to be accepted.
             Defaults to the built-in Manifest.toml provided by Mithril Security as part of the Python package.
             You can override the default by providing a path to your own Manifest.toml
             Caution: Changing the manifest can impact the security of the solution.
-        hazmat_http_on_untrusted_port (bool, optional): If set to True, the client will request the attestation elements of
+        hazmat_http_on_unattested_port (bool, optional): If set to True, the client will request the attestation elements of
             the server using a plain HTTP connection instead of a more secure HTTPS connection. Defaults to False.
             Caution: This parameter should never be set to True in production. Using a HTTPS connection is critical to
             get a graceful degradation in case of a failure of the Intel SGX attestation.
+        simulation_mode (bool, optional): If set to True, BlindAI will work in simulation mode.
+            Caution: In simulation, BlindAI does not provide any security since there is no SGX enclave.
+            This mode SHOULD NEVER be enabled in production.
+            Defaults to False (production mode)
 
      Raises:
         requests.exceptions.RequestException: If a network or server error occurs
@@ -732,8 +779,9 @@ def connect(
 
     return BlindAiConnection(
         addr,
-        untrusted_port,
-        attested_port,
+        unattested_server_port,
+        attested_server_port,
         hazmat_manifest_path,
-        hazmat_http_on_untrusted_port,
+        hazmat_http_on_unattested_port,
+        simulation_mode,
     )

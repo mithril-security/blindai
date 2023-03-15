@@ -8,8 +8,8 @@ ci:
     BUILD +build-release-enclave
     BUILD +build-release-runner
     BUILD +build-release-client
+    BUILD +build-mock-server
     BUILD +test-release
-
 
 
 publish:
@@ -47,6 +47,10 @@ prepare-test:
     RUN cd tests && bash generate_all_onnx_and_npz.sh
 
 dev-tests:
+    BUILD +dev-tests-sgx
+    BUILD +dev-tests-mock 
+
+dev-tests-base:
     FROM +prepare-test
 
     CACHE /usr/local/cargo/git
@@ -66,6 +70,9 @@ dev-tests:
     RUN cargo build --target x86_64-fortanix-unknown-sgx \
         && cargo build --target x86_64-fortanix-unknown-sgx --release
 
+    # compile the mock server
+    RUN cargo build --release
+    
     # compile Rust sources for the runner
     COPY runner runner
     CACHE /blindai-preview/runner/target
@@ -100,11 +107,31 @@ dev-tests:
         && poetry run mypy --install-types --non-interactive --ignore-missing-imports --follow-imports=skip \
         && poetry run pytest --ignore=tests/integration_test.py 
 
-    COPY manifest.dev.template.toml manifest.prod.template.toml ./
+dev-tests-mock:
+    FROM +dev-tests-base
 
+    CACHE /usr/local/cargo/git
+    CACHE /usr/local/cargo/registry
+    CACHE /blindai-preview/target    
+    
+    RUN cargo build --release
+    RUN cargo run --release & \
+        sleep 2 \
+        && cd tests \
+        && BLINDAI_SIMULATION_MODE=true bash run_all_end_to_end_tests.sh
+
+dev-tests-sgx:
+    FROM +dev-tests-base
     # end-to-end tests
 
-     RUN --privileged \
+    CACHE /usr/local/cargo/git
+    CACHE /usr/local/cargo/registry
+    CACHE /blindai-preview/target    
+
+    COPY manifest.dev.template.toml manifest.prod.template.toml ./
+    RUN just build --release
+
+    RUN --privileged \
          --mount=type=bind-experimental,target=/var/run/aesmd/aesm.socket,source=/var/run/aesmd/aesm.socket  \
          --mount=type=bind-experimental,target=/dev/sgx/,source=/dev/sgx/  \
         ( cd /opt/intel/sgx-dcap-pccs && npm start pm2 ) & \
@@ -190,6 +217,45 @@ build-release-enclave:
     SAVE ARTIFACT $BIN_PATH.sgxs
     SAVE ARTIFACT $BIN_PATH.sig
     SAVE ARTIFACT manifest.toml
+
+build-mock-server:
+    # Manylinux2014 will be used to ensure the compatibility with Google Colab platforms and most of the linux distributions
+    FROM quay.io/pypa/manylinux2014_x86_64
+    WORKDIR blindai-preview
+
+    # Install dependencies and pre-install the rust toolchain declared via rust-toolchain.toml 
+    # for better caching
+    RUN curl -4 'https://static.rust-lang.org/rustup/dist/x86_64-unknown-linux-gnu/rustup-init' --output /root/rustup-init && \
+        chmod +x /root/rustup-init && \
+        echo '1' | /root/rustup-init --default-toolchain nightly-2023-01-11-x86_64-unknown-linux-gnu && \
+        echo 'source /root/.cargo/env' >> /root/.bashrc && \
+        rm /root/rustup-init
+    ENV PATH="/root/.cargo/bin:$PATH"
+
+    CACHE /root/.cargo/git
+    CACHE /root/.cargo/registry
+    CACHE target
+
+    COPY rust-toolchain.toml Cargo.toml Cargo.lock ./
+    COPY .cargo .cargo
+    COPY src src
+    COPY tar-rs-sgx tar-rs-sgx
+    COPY tract tract
+    COPY ring-fortanix ring-fortanix
+    COPY tiny-http tiny-http
+    COPY rouille rouille
+
+    RUN sed -i 's/x86_64-fortanix-unknown-sgx/x86_64-unknown-linux-gnu/g' rust-toolchain.toml
+
+    RUN cargo build --locked --release
+
+    RUN mkdir bin \
+        && cp target/release/blindai_server bin/blindai_mock_server \
+        && pushd bin \
+        && tar czf blindai_mock_server-x86_64-unknown-linux-gnu.tgz blindai_mock_server \
+        && popd
+
+    SAVE ARTIFACT bin/blindai_mock_server-x86_64-unknown-linux-gnu.tgz
 
 build-release-runner:
     # Build the release version of the runner

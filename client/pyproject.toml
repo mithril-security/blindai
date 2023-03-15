@@ -1,8 +1,8 @@
 [tool.poetry]
 name = "blindai-preview"
-version = "0.0.5"
+version = "0.0.7"
 description = ""
-authors = ["Corentin Lauverjat <corentin.lauverjat@mithrilsecurity.io>"]
+authors = ["Mithril Security <contact@mithrilsecurity.io>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
@@ -14,6 +14,8 @@ torch = { version = "^1.13.0", optional = true }
 sgx-dcap-quote-verify-python = "^0.0.3"
 toml = "^0.10.2"
 importlib-metadata = "^6.0.0"
+typing-extensions = "^4.5.0"
+requests = "^2.28.2"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.2.0"

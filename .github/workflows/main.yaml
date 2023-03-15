@@ -69,5 +69,13 @@ jobs:
         tar czf blindai_server-$VERSION_TAG.tgz blindai_server.sgxs blindai_server.sig runner
         popd
 
-        GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }} gh release create --verify-tag v$VERSION_TAG outdir/manifest.toml outdir/blindai_server-$VERSION_TAG.tgz
+        ./earthly --artifact +build-mock-server/* outdir/
+        pushd outdir
+        mv blindai_mock_server-x86_64-unknown-linux-gnu.tgz "blindai_mock_server-$VERSION_TAG-x86_64-unknown-linux-gnu.tgz"
+        popd
+
+        GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }} gh release create --verify-tag v$VERSION_TAG \
+          outdir/manifest.toml \
+          "outdir/blindai_server-$VERSION_TAG.tgz" \
+          "outdir/blindai_mock_server-$VERSION_TAG-x86_64-unknown-linux-gnu.tgz"
 
