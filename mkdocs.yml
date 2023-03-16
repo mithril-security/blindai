@@ -122,7 +122,7 @@ nav:
 - 🔒 Security:
   - 'docs/advanced/security/remote_attestation.md'
   - 'docs/advanced/security/threat_model.md'
-# - 🛠️ Client API reference: 'blindai_preview/client.html'
+- 🛠️ Client API reference: 'blindai_preview/client.html'
 
 # - 'Integrating AI models from other frameworks':
 #   - 'Example of BlindAI deployment with ResNet18': 'BlindAI_ResNet18.ipynb'
