@@ -101,7 +101,7 @@ nav:
   - Why BlindAI: "docs/getting-started/why-blindai.md"
   - Quick tour: "docs/getting-started/quick-tour.ipynb"
   - 🔆 Installation: "docs/getting-started/installation.md"
-- 💡 'Main concepts':
+- 💡 Main concepts:
   - 'docs/main-concepts/overview.md'
   - 'Trusting BlindAI':
     - 'docs/main-concepts/privacy.md'

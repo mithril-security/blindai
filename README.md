@@ -23,10 +23,10 @@
   <p align="center">
     <b>BlindAI</b> is an <b>AI inference server</b> with an <b>added privacy layer</b>, protecting the data sent to models.
 	<br /><br />
-    <a href="https://blindai-preview.mithrilsecurity.io/en/latest/docs/cloud-deployment/"><strong>Explore the docs »</strong></a>
+    <a href="https://blindai-preview.mithrilsecurity.io/en/latest"><strong>Explore the docs »</strong></a>
     <br />
     <br />
-    <a href="https://blindai-preview.mithrilsecurity.io/en/latest/getting-started/quick-tour">Try Demo</a>
+    <a href="https://blindai-preview.mithrilsecurity.io/en/latest/docs/getting-started/quick-tour/">Try Demo</a>
     ·
     <a href="https://github.com/mithril-security/blindai/issues">Report Bug</a>
     ·
@@ -139,7 +139,7 @@ docker run -it -e BLINDAI_AZURE_DCS3_PATCH=1 -p 9923:9923 -p 9924:9924 \
 mithrilsecuritysas/blindai-preview-server:latest /root/start.sh
 ```
 
-For alternative deployment methods (*on-premise, testing only...*) or more information, visit [our installation guide](https://github.com/mithril-security/blindai-preview/blob/ophelie-README-rewrite/docs/docs/getting-started/installation.md).
+For alternative deployment methods (*on-premise, testing only...*) or more information, visit [our installation guide](https://github.com/mithril-security/blindai-preview/blob/main/docs/docs/getting-started/installation.md).
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -178,7 +178,7 @@ Distributed under the Apache License, version 2.0. See [`LICENSE.md`](https://ww
 
 Mithril Security - [@MithrilSecurity](https://twitter.com/MithrilSecurity) - contact@mithrilsecurity.io
 
-Project Link: [https://github.com/mithril-security/blindai](https://github.com/mithril-security/blindai)
+Project Link: [https://github.com/mithril-security/blindai-preview](https://github.com/mithril-security/blindai-preview)
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
