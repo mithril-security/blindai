@@ -1,7 +1,7 @@
 # Build the server from source
 
 !!! info
-    If you're building the client because you want to change it, you should first go to [the setting up your dev environment guide](../setting-up-your-dev-environment.md) and then build without docker.
+    If you're building the client because you want to change it, you should first go to [the setting up your dev environment guide](../contributing/setting-up-your-dev-environment.md) and then build without docker.
 
 <!-- ## Using Docker 🐳
 
@@ -48,10 +48,10 @@ You can use these images by following the instructions of either the [deploy on 
 
 ### Build process
 
-Make sure to [set up a dev environment](../setting-up-your-dev-environment.md "mention") to easily install the build dependencies.
+Make sure to [set up a dev environment](../contributing/setting-up-your-dev-environment.md "mention") to easily install the build dependencies.
 
 
-Before building the project, some dependencies and service must be up and running, and the hardware requirements must be installed ([hardware-requirements](../../deploy-on-premise.md#hardware-requirements)).
+Before building the project, some dependencies and service must be up and running, and the hardware requirements must be installed ([hardware-requirements](../../getting-started/installation.md)).
 
 The installation of the Intel SDK can be found by following this [link](https://github.com/intel/linux-sgx).
 

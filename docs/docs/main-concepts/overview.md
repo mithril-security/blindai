@@ -15,7 +15,7 @@ Our solution comes in two parts:
 
 BlindAI workflow is simple:
 
-- [Launch](../deploy-on-premise.md): Our server is deployed on a machine with secure enclave capabilities.
+- [Launch](../getting-started/installation.md): Our server is deployed on a machine with secure enclave capabilities.
 - [Remote attestation](privacy.md): The remote client asks the server to provide proof that it is indeed serving a secure enclave with the right security features.
 - [Prediction](../../index.md): Once remote attestation passes, the client can send data to be safely analyzed using a TLS channel that ends inside the enclave. The AI model can be uploaded and applied, then the result is sent securely.
 

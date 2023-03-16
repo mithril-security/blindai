@@ -3,7 +3,7 @@
 **BlindAI Client SDK** can currently be built from source on **Linux** and **Windows** platforms.&#x20;
 
 !!! info
-    If you're building the client because you want to change it, you should rather got to [the setting up your dev environment page](../setting-up-your-dev-environment.md)
+    If you're building the client because you want to change it, you should rather got to [the setting up your dev environment page](../contributing/setting-up-your-dev-environment.md)
 
 ## Requirements
 

@@ -42,6 +42,6 @@ If you want to test the authenticating property of the MRENCLAVE, you can do the
 
 You will get 2 manifest.toml files with different MRENCLAVE, which means that although the two builds are similar they will create enclaves with different identities.
 
-To go further you can [deploy one of the 2 builds](../deploy-on-premise.md) and try to connect it with the client by passing the manifest.toml file of the other build, which will generate an error. This confirms that if you successfully connect to a remote BlindAI instance, its code and attributes are the ones specified in the manifest.toml.
+To go further you can [deploy one of the 2 builds](../getting-started/installation.md) and try to connect it with the client by passing the manifest.toml file of the other build, which will generate an error. This confirms that if you successfully connect to a remote BlindAI instance, its code and attributes are the ones specified in the manifest.toml.
 
 You therefore **cannot** connect to a malicious BlindAI instance as long as you correctly generate the manifest.toml.
