@@ -114,11 +114,14 @@ nav:
 #  - Facenet: 'BlindAI-Facenet.ipynb'
 #  - Wav2vec2: 'BlindAI-Wav2vec2.ipynb'
 #  - Whisper: 'BlindAI_Whisper.ipynb'
-- 🔒 Security:
+- 💡 Concepts:
   - Privacy: 'docs/main-concepts/privacy.md'
   - Attestation: 'docs/main-concepts/attestation.md'
   - TLS: 'docs/main-concepts/tls.md'
   - Sealing: 'docs/main-concepts/sealing.md'
+- 🔒 Security:
+  - Remote attestation: 'docs/advanced/security/remote_attestation.md'
+  - Threat model: 'docs/advanced/security/threat_model.md'
 - ⚙️ Advanced:
   - Telemetry: 'docs/telemetry.md'
   - Open source:
