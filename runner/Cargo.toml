@@ -1,3 +1,7 @@
+[workspace]
+
+members = ["remote_attestation_sgx"]
+
 [package]
 name = "runner"
 version = "0.1.0"
