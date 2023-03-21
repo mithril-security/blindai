@@ -5,6 +5,23 @@ Here's your guide to install BlindAI.
 
 There are different possible deployment methods. You can view the pros and cons of each one by opening the following boxes.
 
+??? example "Testing BlindAI without hardware security guarantees (*for testing only*)"
+
+	**✅ Pros**
+
+	- Quick and easy.
+	- Works on any device. Very few pre-requisites.
+	- Demos available on BlindAI GitHub.
+
+	**❌ Cons:**
+
+	- This option does not offer the hardware security guarantees of Intel SGX. **It is not suitable for production.**
+
+	🚀 If this is the right option for you, you can:
+
+	- **Check out our [Quick tour notebook](#Quick tour)**. This will show you how you can install and use BlindAI's client and server testing packages.
+	- **Test your own Python scripts or notebooks** using the `blindai_preview` PyPi packages with the `blindai_preview.testing` server.
+
 ??? success "Deploying BlindAI on Azure DCsv3 VM (*recommended*)"
 
 	**✅ Pros**
@@ -34,23 +51,6 @@ There are different possible deployment methods. You can view the pros and cons 
 
 	**🚀 <a href="#on-premise-deployment">Check out the On-premise section</a>**
 
-??? example "Testing BlindAI without hardware security guarantees (*for testing only*)"
-
-	**✅ Pros**
-
-	- Quick and easy.
-	- Works on any device. Very few pre-requisites.
-	- Demos available on BlindAI GitHub.
-
-	**❌ Cons:**
-
-	- This option does not offer the hardware security guarantees of Intel SGX. **It is not suitable for production.**
-
-	🚀 If this is the right option for you, you can:
-
-	- **Check out our [Quick tour notebook](#Quick tour)**. This will show you how you can install and use BlindAI's client and server testing packages.
-	- **Test your own Python scripts or notebooks** using the `blindai_preview` PyPi packages with the `blindai_preview.testing` server.
-	
 
 ## Deployment on Azure DCsv3
 ________________________________________________

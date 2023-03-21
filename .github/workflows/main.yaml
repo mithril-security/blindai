@@ -19,7 +19,7 @@ jobs:
         fi
         git checkout -b "$branch" || true
     - name: Download latest earthly
-      run: "wget -nc https://github.com/earthly/earthly/releases/download/v0.6.30/earthly-linux-amd64 -O earthly && chmod +x earthly"
+      run: "wget -nc https://github.com/earthly/earthly/releases/download/v0.7.2/earthly-linux-amd64 -O earthly && chmod +x earthly"
     - name: Earthly version
       run: ./earthly --version
     - name: Run build
@@ -43,7 +43,7 @@ jobs:
         fi
         git checkout -b "$branch" || true
     - name: Download latest earthly
-      run: "wget -nc https://github.com/earthly/earthly/releases/download/v0.6.30/earthly-linux-amd64 -O earthly && chmod +x earthly"
+      run: "wget -nc https://github.com/earthly/earthly/releases/download/v0.7.2/earthly-linux-amd64 -O earthly && chmod +x earthly"
     - name: Earthly version
       run: ./earthly --version
     - name: Login to Docker Hub

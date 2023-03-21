@@ -12,7 +12,7 @@ ________________________________________________________
 BlindAI facilitates  **privacy-friendly AI model deployment** by letting AI engineers upload and delete models to their secure server instance using our **Python API**. Clients can then connect to the server, upload their data and run models on it without compromising on privacy. 
 
 Data sent by users to the AI model is kept **confidential at all times**. Neither the AI service provider nor the Cloud provider (if applicable), can see the data. 
-Confidentiality is assured by hardware-enforced [**Trusted Execution Environments**](--LINK CC EXPLAINED or DOC). We explain how they keep data and models safe in detail [here](--LIEN PRIVACY).
+Confidentiality is assured by hardware-enforced [**Trusted Execution Environments**](). We explain how they keep data and models safe in detail [here]().
 
 **BlindAi is an open-source project** consisting of:
 

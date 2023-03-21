@@ -78,7 +78,7 @@ Confidentiality is assured by hardware-enforced [**Trusted Execution Environment
 <!-- GETTING STARTED -->
 ## 🚀 Getting Started
 
-You can try out our [Quick tour](./docs/docs/getting-started/quick-tour.ipynb) in the documentation to discover BlindAI with a hands-on example using [COVID-Net](https://github.com/lindawangg/COVID-Net).
+We strongly recommend for you to get started with our [Quick tour](./docs/docs/getting-started/quick-tour.ipynb) to discover BlindAI with a hands-on example using [COVID-Net](https://github.com/lindawangg/COVID-Net).
 
 But here’s a taste of what using BlindAI could look like 🍒
 

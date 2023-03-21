@@ -97,16 +97,24 @@ markdown_extensions:
 # Documentation tree
 nav:
 - 🏠 Home: 'index.md' 
+
 - 🚀 Getting Started: 
   - Why BlindAI: "docs/getting-started/why-blindai.md"
   - Quick tour: "docs/getting-started/quick-tour.ipynb"
   - Installation: "docs/getting-started/installation.md"
+
 - 💡 Main concepts:
   - 'docs/main-concepts/overview.md'
   - 'Trusting BlindAI':
     - 'docs/main-concepts/privacy.md'
     - 'docs/main-concepts/attestation.md'
     - 'docs/main-concepts/tls.md'
+
+- 🛠️ Client API reference: 'blindai_preview/client.html'
+
+- 🔒 Security:
+  - 'docs/advanced/security/remote_attestation.md'
+  - 'docs/advanced/security/threat_model.md'
 
 - 'Advanced':
   - 'Build from sources':
@@ -118,11 +126,6 @@ nav:
   #   - Setting-up your dev environment: 'docs/advanced/contributing/setting-up-your-dev-environment.md'
   #   - Contributing: "docs/advanced/contributing/contributing.md"
   #   - Code of Conduct: "docs/advanced/contributing/code_of_conduct.md"
-
-- 🔒 Security:
-  - 'docs/advanced/security/remote_attestation.md'
-  - 'docs/advanced/security/threat_model.md'
-- 🛠️ Client API reference: 'blindai_preview/client.html'
 
 # - 'Integrating AI models from other frameworks':
 #   - 'Example of BlindAI deployment with ResNet18': 'BlindAI_ResNet18.ipynb'
