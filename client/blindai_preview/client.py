@@ -487,6 +487,7 @@ class BlindAiConnection(contextlib.AbstractContextManager):
         addr: str,
         unattested_server_port: int,
         attested_server_port: int,
+        model_management_port: int,
         hazmat_manifest_path: Optional[pathlib.Path],
         hazmat_http_on_unattested_port: bool,
         simulation_mode: bool,
@@ -499,6 +500,7 @@ class BlindAiConnection(contextlib.AbstractContextManager):
             addr (str):
             unattested_server_port (int):
             attested_server_port (int):
+            model_management_port (int):
             hazmat_manifest_path (Optional[pathlib.Path]):
             hazmat_http_on_unattested_port (bool):
             simulation_mode (bool):
@@ -536,6 +538,8 @@ class BlindAiConnection(contextlib.AbstractContextManager):
             self._unattested_url = f"https://{addr}:{unattested_server_port}"
 
         self._attested_url = f"https://{addr}:{attested_server_port}"
+
+        self._model_management_url = f"https://{addr}:{model_management_port}"
 
         # This adapter makes it possible to connect
         # to the server via a different hostname
@@ -594,6 +598,7 @@ class BlindAiConnection(contextlib.AbstractContextManager):
         attested_conn = requests.Session()
         attested_conn.verify = attested_server_cert_file.name
         attested_conn.mount(self._attested_url, CustomHostNameCheckingAdapter())
+        attested_conn.mount(self._model_management_url, CustomHostNameCheckingAdapter())
 
         # finally try to connect to the enclave
         try:
@@ -644,7 +649,7 @@ class BlindAiConnection(contextlib.AbstractContextManager):
             optimize=optimize,
         )
         bytes_data = cbor.dumps(data.__dict__)
-        r = self._conn.post(f"{self._attested_url}/upload", data=bytes_data)
+        r = self._conn.post(f"{self._model_management_url}/upload", data=bytes_data)
         r.raise_for_status()
         send_model_reply = SendModelReply(**cbor.loads(r.content))
         ret = UploadResponse(
@@ -733,7 +738,7 @@ class BlindAiConnection(contextlib.AbstractContextManager):
         """
         delete_data = DeleteModel(model_id=model_id)
         bytes_delete_data = cbor.dumps(delete_data.__dict__)
-        r = self._conn.post(f"{self._attested_url}/delete", bytes_delete_data)
+        r = self._conn.post(f"{self._model_management_url}/delete", bytes_delete_data)
         r.raise_for_status()
 
     def close(self):
@@ -755,6 +760,7 @@ def connect(
     addr: str,
     unattested_server_port: int = 9923,
     attested_server_port: int = 9924,
+    model_management_port: int = 9924,
     hazmat_manifest_path: Optional[pathlib.Path] = None,
     hazmat_http_on_unattested_port=False,
     simulation_mode: bool = False,
@@ -766,6 +772,7 @@ def connect(
             It can be a domain (such as "example.com" or "localhost") or an IP
         unattested_server_port (int, optional): The unattested server port number. Defaults to 9923.
         attested_server_port (int, optional): The attested server port number. Defaults to 9924.
+        model_management_port (int, optional): The model management port. Needs to be specified if the server only accepts model upload/deletion locally. Defaults to 9924.
         hazmat_manifest_path (Optional[pathlib.Path], optional):  Path to the Manifest.toml which describes
             which enclave are to be accepted.
             Defaults to the built-in Manifest.toml provided by Mithril Security as part of the Python package.
@@ -796,6 +803,7 @@ def connect(
         addr,
         unattested_server_port,
         attested_server_port,
+        model_management_port,
         hazmat_manifest_path,
         hazmat_http_on_unattested_port,
         simulation_mode,

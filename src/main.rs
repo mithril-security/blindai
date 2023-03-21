@@ -23,6 +23,7 @@ use crate::client_communication::Exchanger;
 use anyhow::Result;
 use model_store::ModelStore;
 mod client_communication;
+use lazy_static::lazy_static;
 use log::debug;
 
 // ra
@@ -40,6 +41,14 @@ struct GetQuoteRequest {
 #[derive(Serialize)]
 struct GetCollateralRequest {
     quote: Vec<u8>,
+}
+
+lazy_static! {
+    static ref EXCHANGER: Arc<Exchanger> = Arc::new(Exchanger::new(
+        Arc::new(ModelStore::new()),
+        1_000_000_000,
+        1_000_000,
+    ));
 }
 
 // "Native" Rust type for sgx_ql_qve_collateral_t
@@ -82,7 +91,7 @@ fn get_collateral(quote: &[u8]) -> Result<SgxCollateral> {
 }
 
 fn main() -> Result<()> {
-    println!("BlindAI server is running at : 0.0.0.0:9923 and 0.0.0.0:9924");
+    println!("BlindAI server is running on the ports 9923 and 9924");
 
     const SERVER_NAME: &str = if cfg!(target_env = "sgx") {
         "blindai_preview"
@@ -100,12 +109,6 @@ fn main() -> Result<()> {
     let certificate_with_secret = identity::create_tls_certificate()?;
     let enclave_cert_der = Arc::new(certificate_with_secret.serialize_der()?);
     let enclave_private_key_der = certificate_with_secret.serialize_private_key_der();
-
-    let exchanger_temp = Arc::new(Exchanger::new(
-        Arc::new(ModelStore::new()),
-        1_000_000_000,
-        1_000_000,
-    ));
 
     fn respond(x: &(impl Serialize + ?Sized)) -> rouille::Response {
         match serde_cbor::to_vec(&x) {
@@ -179,32 +182,82 @@ fn main() -> Result<()> {
         }
     };
 
-    let unattested_server = rouille::Server::new("0.0.0.0:9923", router)
-        .expect("Failed to start unattested server")
-        .pool_size(4);
+    let unattested_server =
+        rouille::Server::new("0.0.0.0:9923", router).expect("Failed to start unattested server");
 
     let (_unattested_handle, _unattested_sender) = unattested_server.stoppable();
 
-    let router = move |request: &rouille::Request| {
-        rouille::router!(request,
-            (POST) (/upload) => {
-                let reply = exchanger_temp.send_model(request);
-                exchanger_temp.respond(request, reply)
-            },
+    cfg_if::cfg_if! {
+        if #[cfg(DISALLOW_UPLOAD_REMOTELY = "true")] {
+            let router_management = |request: &rouille::Request| {
+                rouille::router!(request,
+                    (POST) (/upload) => {
+                        let reply = EXCHANGER.send_model(request);
+                        EXCHANGER.respond(request, reply)
+                    },
 
-            (POST) (/run) => {
-                let reply = exchanger_temp.run_model(request);
-                exchanger_temp.respond(request, reply)
-            },
+                    (POST) (/delete) => {
+                        let reply = EXCHANGER.delete_model(request);
+                        EXCHANGER.respond(request, reply)
+                    },
+                    _ => rouille::Response::empty_404()
+                )
+            };
 
-            (POST) (/delete) => {
-                let reply = exchanger_temp.delete_model(request);
-                exchanger_temp.respond(request, reply)
-            },
+            thread::spawn({
+                let enclave_cert_der_s = enclave_cert_der.to_vec();
+                let priv_der = enclave_private_key_der.clone();
+                move || {
+                let management_server = rouille::Server::new_ssl(
+                    "127.0.0.1:9925",
+                    router_management,
+                    tiny_http::SslConfig::Der(tiny_http::SslConfigDer {
+                        certificates: vec![enclave_cert_der_s],
+                        private_key: priv_der.clone(),
+                    }),
+                ).expect("Failed to start management server");
 
-            _ => rouille::Response::empty_404()
-        )
-    };
+                let (_management_handle, _management_sender) = management_server.stoppable();
+                _management_handle.join().unwrap();
+            }
+            });
+
+            println!("Models can be managed on the port 9925 (on localhost only)");
+
+            let router = move |request: &rouille::Request| {
+                rouille::router!(request,
+                    (POST) (/run) => {
+                        let reply = EXCHANGER.run_model(request);
+                        EXCHANGER.respond(request, reply)
+                    },
+                    _ => rouille::Response::empty_404()
+                )
+            };
+        }
+        else {
+            let router = move |request: &rouille::Request| {
+                rouille::router!(request,
+                    (POST) (/upload) => {
+                        let reply = EXCHANGER.send_model(request);
+                        EXCHANGER.respond(request, reply)
+                    },
+
+                    (POST) (/run) => {
+                        let reply = EXCHANGER.run_model(request);
+                        EXCHANGER.respond(request, reply)
+                    },
+
+                    (POST) (/delete) => {
+                        let reply = EXCHANGER.delete_model(request);
+                        EXCHANGER.respond(request, reply)
+                    },
+
+                    _ => rouille::Response::empty_404()
+                )
+            };
+        }
+    }
+
     thread::spawn({
         let enclave_cert_der = Arc::clone(&enclave_cert_der);
         move || {
