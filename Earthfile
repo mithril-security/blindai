@@ -163,7 +163,10 @@ dev-tests-sgx:
          --mount=type=bind-experimental,target=/dev/sgx/,source=/dev/sgx/  \
         ( cd /opt/intel/sgx-dcap-pccs && npm start pm2 ) & \
         just run --release & \ 
-        sleep 15 \
+        while [ -z "$(lsof -i | grep -E "9923|9924" | awk -F':' '{print $2}' | awk '{print $1}')" ]; \
+        do \
+            sleep 5; \
+        done \
         && cd tests \
         && bash run_all_end_to_end_tests.sh
 
@@ -241,7 +244,7 @@ build-release-enclave:
 
     ENV BIN_PATH=target/x86_64-fortanix-unknown-sgx/release/blindai_server
 
-    RUN ftxsgx-elf2sgxs "$BIN_PATH" --heap-size 0xFBA00000 --stack-size 0x400000 --threads 20 \
+    RUN ftxsgx-elf2sgxs "$BIN_PATH" --heap-size 0x4FBA00000 --stack-size 0x400000 --threads 20 \
         && mr_enclave=`sgxs-hash "$BIN_PATH.sgxs"` envsubst < manifest.prod.template.toml > manifest.toml
 
     RUN openssl genrsa -3 3072 > throw_away.pem \
@@ -405,7 +408,10 @@ test-release:
         --mount=type=bind-experimental,target=/dev/sgx/,source=/dev/sgx/  \
         ( cd /opt/intel/sgx-dcap-pccs && npm start pm2 ) & \
          ./runner blindai_server.sgxs & \
-         sleep 15 \
+        while [ -z "$(lsof -i | grep -E "9923|9924" | awk -F':' '{print $2}' | awk '{print $1}')" ]; \
+        do \
+            sleep 5; \
+        done \
         && cd tests \
         && bash run_all_end_to_end_tests.sh
 

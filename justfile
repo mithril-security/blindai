@@ -23,7 +23,7 @@ run *args:
     | jq -r 'select(.reason=="compiler-artifact" and .target.kind==["bin"]) | .executable'` 
 
   ftxsgx-elf2sgxs "$binpath" \
-    --heap-size 0xFBA00000 \
+    --heap-size 0x4FBA00000 \
     --ssaframesize 1 \
     --stack-size 0x20000 \
     --threads 20
@@ -51,7 +51,7 @@ build *args:
     | jq -r 'select(.reason=="compiler-artifact" and .target.kind==["bin"]) | .executable'` 
     
   ftxsgx-elf2sgxs "$binpath" \
-    --heap-size 0x2000000 \
+    --heap-size 0x2FBA00000 \
     --ssaframesize 1 \
     --stack-size 0x20000 \
     --threads 20
@@ -157,7 +157,25 @@ test:
   cd client
   poetry run coverage run -m pytest --ignore=tests/integration_test.py  --
   just run --release &
-  sleep 15
+
+  # We use the helper function `test_ports` because the server might take long to start
+  # and we will not know when it is ready to accept connections.
+
+  test_ports(){
+    # Test if the ports (9923, 9924) are open
+    lsof -i:{9923,9924} | awk -F':' '{print $2}' | awk '{print $1}'
+
+    # Test if the operation was successful
+    if [ $? -eq 0 ]; then
+      echo 1
+    else
+      echo 0
+    fi
+  }
+  while [ $(test_ports) -eq 1 ]; do
+    echo "Waiting for ports to be opened..."
+    sleep 10
+  done
   for d in ../tests/*/ ; do
   	if [[ "$d" == *"mobilenet"* ]]; then
       continue

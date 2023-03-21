@@ -1,4 +1,4 @@
-from blindai_preview.client import *
+from blindai_preview.core import *
 import numpy as np
 
 # For test purpose, we want to avoid setting a TLS reverse proxy on top of

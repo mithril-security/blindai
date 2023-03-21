@@ -10,12 +10,16 @@ python = "^3.8"
 cbor2 = "^5.4.3"
 cryptography = "^39.0.1"
 numpy = "^1.23.5,<1.24"
-torch = { version = "^1.13.0", optional = true }
+torch = { version = "^1.13.1", optional = true }
 sgx-dcap-quote-verify-python = "^0.0.3"
 toml = "^0.10.2"
 importlib-metadata = "^6.0.0"
 typing-extensions = "^4.5.0"
 requests = "^2.28.2"
+torchaudio = "0.13.1"
+transformers = "4.26.1"
+openai-whisper = "^20230308"
+ffmpeg-python = "^0.2.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.2.0"
@@ -30,6 +34,9 @@ librosa = "^0.9.2"
 runcmd = "^2020.12.3"
 black = "^22.12.0"
 coverage = "^7.0.2"
+openai-whisper = "^20230308"
+ffmpeg-python = "^0.2.0"
+gdown="^4.6.4"
 
 [tool.poetry.extras]
 torch = ["torch"]

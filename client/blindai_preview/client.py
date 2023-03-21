@@ -170,10 +170,12 @@ class UploadModel:
 @dataclass
 class RunModel:
     model_id: str
+    model_hash: str
     inputs: List[Tensor]
 
-    def __init__(self, model_id, inputs):
+    def __init__(self, model_id, model_hash, inputs):
         self.model_id = model_id
+        self.model_hash = model_hash
         self.inputs = inputs
 
 
@@ -205,6 +207,7 @@ class RunModelReply:
 @dataclass
 class UploadResponse:
     model_id: str
+    hash: bytes
 
 
 @dataclass
@@ -644,12 +647,15 @@ class BlindAiConnection(contextlib.AbstractContextManager):
         r = self._conn.post(f"{self._attested_url}/upload", data=bytes_data)
         r.raise_for_status()
         send_model_reply = SendModelReply(**cbor.loads(r.content))
-        ret = UploadResponse(model_id=send_model_reply.model_id)
+        ret = UploadResponse(
+            model_id=send_model_reply.model_id, hash=send_model_reply.hash
+        )
         return ret
 
     def run_model(
         self,
-        model_id: str,
+        model_id: str = "",
+        model_hash: str = "",
         input_tensors: Optional[Union[List, Dict]] = None,
         dtypes: Optional[List[ModelDatumType]] = None,
         shapes: Optional[Union[List[List[int]], List[int]]] = None,
@@ -667,6 +673,7 @@ class BlindAiConnection(contextlib.AbstractContextManager):
 
         Args:
             model_id (str): If set, will run a specific model.
+            model_hash (str): hash of the Onnx model uploaded. If no uuid was provided, the server will try to find a model matching this hash
                 input_tensors (Union[List[Any], List[List[Any]]))): The input data. It must be an array of numpy,
                 tensors or flat list of the same type datum_type specified in `upload_model`.
             dtypes (Union[List[ModelDatumType], ModelDatumType], optional): The type of data
@@ -682,8 +689,16 @@ class BlindAiConnection(contextlib.AbstractContextManager):
             RunModelResponse: The response object.
         """
         # Run Model Request and Response
+
+        if not model_id and not model_hash:
+            raise ValueError("You must provide at least one model_id or model_hash")
+        if model_id and model_hash:
+            raise ValueError(
+                "You cannot provide a model_id and a model_hash in the same time"
+            )
+
         tensors = translate_tensors(input_tensors, dtypes, shapes)
-        run_data = RunModel(model_id=model_id, inputs=tensors)
+        run_data = RunModel(model_hash=model_hash, model_id=model_id, inputs=tensors)
         bytes_run_data = cbor.dumps(run_data.__dict__)
         r = self._conn.post(f"{self._attested_url}/run", data=bytes_run_data)
         r.raise_for_status()

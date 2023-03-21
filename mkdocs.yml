@@ -110,6 +110,9 @@ nav:
     - 'docs/main-concepts/attestation.md'
     - 'docs/main-concepts/tls.md'
 
+- 'How-to-Guides':
+  - 'docs/how-to-guides/whisper-audio.ipynb'
+
 - 🛠️ Client API reference: 'blindai_preview/client.html'
 
 - 🔒 Security:

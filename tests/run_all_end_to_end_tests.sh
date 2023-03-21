@@ -16,3 +16,6 @@ for d in ../tests/*/ ; do
 	npz_files=($d*.npz)
 	poetry run python ../tests/assert_correctness.py "${onnx_files[0]}" "${npz_files[0]}"
 done
+
+# Run API test for whisper
+poetry run python ../tests/audio/api_test.py

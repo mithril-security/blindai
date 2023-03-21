@@ -7,7 +7,7 @@ import blindai_preview
 
 
 def test_connect():
-    client = blindai_preview.connect(
+    client = blindai_preview.core.connect(
         addr="localhost", hazmat_http_on_unattested_port=True
     )
 

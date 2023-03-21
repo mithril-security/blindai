@@ -53,6 +53,7 @@ struct DeleteModel {
 #[derive(Deserialize)]
 pub(crate) struct RunModel {
     model_id: String,
+    model_hash: String,
     pub inputs: Vec<SerializedTensor>,
 }
 
@@ -139,17 +140,44 @@ impl Exchanger {
 
         let run_model_body: RunModel = serde_cbor::from_slice(&data)?;
 
+        if run_model_body.model_id.is_empty() && run_model_body.model_hash.is_empty() {
+            error!("Model_id and model_hash are empty");
+            return Err(Error::msg(
+                "You must provide at least one model_id or model_hash".to_string(),
+            ));
+        }
+
+        if !run_model_body.model_id.is_empty() && !run_model_body.model_hash.is_empty() {
+            error!("Model_id and model_hash are NOT empty, cannot pick one over the other");
+            return Err(Error::msg(
+                "You cannot provide a model_id and a model_hash in the same time".to_string(),
+            ));
+        }
+
         if run_model_body.inputs.len() * size_of::<u8>() > max_input_size
             || run_model_body.inputs.len() * size_of::<u8>() > max_input_size
         {
             return Err(Error::msg("Input too big".to_string()));
         }
 
-        let uuid = match Uuid::from_str(&run_model_body.model_id) {
-            Ok(uuid) => uuid,
-            Err(_) => {
-                error!("Error in uuid");
-                return Err(Error::msg("Model doesn't exist".to_string()));
+        let uuid = if !run_model_body.model_hash.is_empty() {
+            match self
+                .model_store
+                .get_uuid_from_hash(&run_model_body.model_hash)
+            {
+                Some(uuid) => uuid,
+                None => {
+                    error!("Hash not found");
+                    return Err(Error::msg("Model doesn't exist".to_string()));
+                }
+            }
+        } else {
+            match Uuid::from_str(&run_model_body.model_id) {
+                Ok(uuid) => uuid,
+                Err(_) => {
+                    error!("Error in uuid");
+                    return Err(Error::msg("Model doesn't exist".to_string()));
+                }
             }
         };
 
