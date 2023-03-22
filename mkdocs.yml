@@ -100,40 +100,38 @@ nav:
 
 - 🚀 Getting Started: 
   - Why BlindAI: "docs/getting-started/why-blindai.md"
+# - BlindAI API VS BlindAI Core: 'quick presentation'
   - Quick tour: "docs/getting-started/quick-tour.ipynb"
-  - Installation: "docs/getting-started/installation.md"
 
-- 💡 Main concepts:
-  - 'docs/main-concepts/overview.md'
-  - 'Trusting BlindAI':
-    - 'docs/main-concepts/privacy.md'
-    - 'docs/main-concepts/attestation.md'
-    - 'docs/main-concepts/tls.md'
+- Tutorials:
+  - BlindAI API:
+    - Whisper integration: 'docs/tutorials/api/whisper-audio.ipynb'
+  - BlindAI Core:
+    - Installation: "docs/getting-started/installation.md"
+#    - Uploading models:
 
-- 'How-to-Guides':
-  - 'docs/how-to-guides/whisper-audio.ipynb'
+- 💡 Concepts:
+  - Overview: 'docs/main-concepts/overview.md'
+  - Privacy: 'docs/main-concepts/privacy.md'
+  - Attestation: 'docs/main-concepts/attestation.md'
+  - TLS: 'docs/main-concepts/tls.md'
+
+#- 🌍 How-to-Guides:
+  # - Using BlindAI Core in a real life scenario / to solve a problem
 
 - 🛠️ Client API reference: 'blindai_preview/client.html'
 
 - 🔒 Security:
-  - 'docs/advanced/security/remote_attestation.md'
-  - 'docs/advanced/security/threat_model.md'
+  - Remote attestation: 'docs/advanced/security/remote_attestation.md'
+  - Threat model: 'docs/advanced/security/threat_model.md'
 
-- 'Advanced':
-  - 'Build from sources':
-    - 'docs/advanced/build-from-sources/client.md'
-    - 'docs/advanced/build-from-sources/server.md'
+- ⚙️ Advanced:
+  - Build from sources:
+    - Client SDK: 'docs/advanced/build-from-sources/client.md'
+    - Server: 'docs/advanced/build-from-sources/server.md'
   # - Telemetry: 'docs/telemetry.md'
   # - Open source:
   #   - Project structure: 'docs/advanced/contributing/blindai-project-structure.md'
   #   - Setting-up your dev environment: 'docs/advanced/contributing/setting-up-your-dev-environment.md'
   #   - Contributing: "docs/advanced/contributing/contributing.md"
   #   - Code of Conduct: "docs/advanced/contributing/code_of_conduct.md"
-
-# - 'Integrating AI models from other frameworks':
-#   - 'Example of BlindAI deployment with ResNet18': 'BlindAI_ResNet18.ipynb'
-#   - 'Example of BlindAI deployment with CovidNet': 'BlindAI-COVID-Net.ipynb'
-#   - 'Example of BlindAI deployment with DistilBERT': 'BlindAI-DistilBERT.ipynb'
-#   - 'Example of BlindAI deployment with Facenet': 'BlindAI-Facenet.ipynb'
-#   - 'Example of BlindAI deployment with Wav2vec2': 'BlindAI-Wav2vec2.ipynb'
-#   - 'Example of BlindAI deployement with Whisper': 'BlindAI_Whisper.ipynb'
