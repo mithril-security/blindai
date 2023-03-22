@@ -38,9 +38,8 @@ from requests.adapters import HTTPAdapter
 from importlib_metadata import version
 import warnings
 
-
-app_version = version("blindai-preview")
-
+# app_version = version("blindai-preview")
+app_version = "0.0.dev"
 
 CONNECTION_TIMEOUT = 10
 
@@ -159,12 +158,21 @@ class UploadModel:
     length: int
     model_name: str
     optimize: bool
+    client_info: "_ClientInfo"
 
-    def __init__(self, model, length, model_name="", optimize=True):
+    def __init__(
+        self,
+        model,
+        length,
+        client_info,
+        model_name="",
+        optimize=True,
+    ):
         self.model = model
         self.length = length
         self.model_name = model_name
         self.optimize = optimize
+        self.client_info = client_info
 
 
 @dataclass
@@ -172,11 +180,13 @@ class RunModel:
     model_id: str
     model_hash: str
     inputs: List[Tensor]
+    client_info: Optional["_ClientInfo"]
 
-    def __init__(self, model_id, model_hash, inputs):
+    def __init__(self, model_id, model_hash, inputs, client_info=None):
         self.model_id = model_id
         self.model_hash = model_hash
         self.inputs = inputs
+        self.client_info = client_info
 
 
 @dataclass
@@ -215,6 +225,7 @@ class RunModelResponse:
     output: List[Tensor]
 
 
+@dataclass
 class _ClientInfo:
     uid: str
     platform_name: str
@@ -223,6 +234,7 @@ class _ClientInfo:
     platform_release: str
     user_agent: str
     user_agent_version: str
+    is_colab: bool
 
     def __init__(
         self,
@@ -233,6 +245,7 @@ class _ClientInfo:
         platform_release,
         user_agent,
         user_agent_version,
+        is_colab,
     ):
         self.uid = uid
         self.platform_name = platform_name
@@ -241,6 +254,19 @@ class _ClientInfo:
         self.platform_release = platform_release
         self.user_agent = user_agent
         self.user_agent_version = user_agent_version
+        self.is_colab = is_colab
+
+    def __iter__(self) -> dict:
+        return {
+            "uid": self.uid,
+            "platform_name": self.platform_name,
+            "platform_arch": self.platform_arch,
+            "platform_version": self.platform_version,
+            "platform_release": self.platform_release,
+            "user_agent": self.user_agent,
+            "user_agent_version": self.user_agent_version,
+            "is_colab": self.is_colab,
+        }
 
 
 def dtype_to_numpy(dtype: ModelDatumType) -> str:
@@ -518,19 +544,20 @@ class BlindAiConnection(contextlib.AbstractContextManager):
                 SimulationModeWarning,
             )
 
-        # uname = platform.uname()
+        uname = platform.uname()
 
-        # self.client_info = _ClientInfo(
-        #     uid=sha256((socket.gethostname() + "-" + getpass.getuser()).encode("utf-8"))
-        #     .digest()
-        #     .hex(),
-        #     platform_name=uname.system,
-        #     platform_arch=uname.machine,
-        #     platform_version=uname.version,
-        #     platform_release=uname.release,
-        #     user_agent="blindai_python",
-        #     user_agent_version=app_version,
-        # )
+        self.client_info = _ClientInfo(
+            uid=sha256((socket.gethostname() + "-" + getpass.getuser()).encode("utf-8"))
+            .digest()
+            .hex(),
+            platform_name=uname.system,
+            platform_arch=uname.machine,
+            platform_version=uname.version,
+            platform_release=uname.release,
+            user_agent="blindai_python",
+            user_agent_version=app_version,
+            is_colab=False,
+        )
 
         if hazmat_http_on_unattested_port:
             self._unattested_url = f"http://{addr}:{unattested_server_port}"
@@ -647,6 +674,7 @@ class BlindAiConnection(contextlib.AbstractContextManager):
             length=length,
             model_name=model_name,
             optimize=optimize,
+            client_info=self.client_info.__dict__,
         )
         bytes_data = cbor.dumps(data.__dict__)
         r = self._conn.post(f"{self._model_management_url}/upload", data=bytes_data)
@@ -703,7 +731,12 @@ class BlindAiConnection(contextlib.AbstractContextManager):
             )
 
         tensors = translate_tensors(input_tensors, dtypes, shapes)
-        run_data = RunModel(model_hash=model_hash, model_id=model_id, inputs=tensors)
+        run_data = RunModel(
+            model_hash=model_hash,
+            model_id=model_id,
+            inputs=tensors,
+            client_info=self.client_info.__dict__,
+        )
         bytes_run_data = cbor.dumps(run_data.__dict__)
         r = self._conn.post(f"{self._attested_url}/run", data=bytes_run_data)
         r.raise_for_status()
