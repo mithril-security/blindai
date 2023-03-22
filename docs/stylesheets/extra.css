@@ -25,7 +25,7 @@
 
 /****** Tweaking the navigation sections style only on Desktop ******/
 
-@media screen and (min-width: 1025px) {
+@media screen and (min-width: 1200px) {
 
 	/* rules to style all level 0 navigation titles */
 	nav[data-md-level="0"]>ul>li>.md-nav__link {
