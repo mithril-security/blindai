@@ -1,12 +1,15 @@
 # Attesting a BlindAI enclave
+__________________________________________
 
 How does a client know that he is communicating with an authentic enclave, and how does he know it's the right one?
 
 ## Verifying the hardware
+__________________________________________
 
 When communicating with the client, the enclave issues its signed, hardware-backed, attestation. Using the intel public key the client can eventually assess that he is communicating with a secure enclave powered by an up-to-date Intel SGX CPU. The process is in reality a lot more complex than that, and [this paper](https://eprint.iacr.org/2016/086.pdf) explains these concepts much more in-depth. Note however that BlindAI's goal is to abstract these complicated processes while keeping the same privacy guarantees.
 
 ## Verifying the enclave
+__________________________________________
 
 The enclave building process will generate a manifest file that contains a hash of the compilation process and some attributes like debug mode, authorized instructions and so on. This is also referred as the MRENCLAVE and it is sufficient to safely authenticate an enclave. In BlindAI's case, each time our client interacts with our server, the server gives out its MRENCLAVE so that the client can compare it against the manifest file passed by the user. This way he can attest that the secure enclave he is connected to is running the right code, with the right options.
 
@@ -18,8 +21,8 @@ If you want to modify the server, you will need to override the Manifest file.To
 
 The client handles this verification process so you only have to make sure that the client gets the correct manifest file. If the client connects, it means the remote enclave is compliant to the enclave description from the Manifest.
 
-
 ## Reproduce the enclave binary
+__________________________________________
 
 The enclave binary and the corresponding manifest are built using this [dockerfile](https://github.com/mithril-security/blindai-preview/blob/main/.github/sgxs-release.dockerfile). You can inspect the dockerfile and run it to build the artifacts using the following commands :
 ```bash
@@ -30,9 +33,8 @@ docker cp "$id:/blindai-preview/manifest.toml" .
 docker rm -v $id
 ```
 
-
-
 ## Try it for yourself
+__________________________________________
 
 If you want to test the authenticating property of the MRENCLAVE, you can do the following:
 

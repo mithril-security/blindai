@@ -1,25 +1,20 @@
 # Remote attestation Implementation
+__________________________________________
+
 This document details the remote attestation as implemented on *BlindAI* for **intel SGX** platforms. 
 
 The remote attestation is the process by which a remote application verifies that the code running is truly within a secure enclave. 
 
-The different points that will be described are presented on the summary below : 
-## Summary
-1. [Theory](#Theory)
-2. [Remote attestation with fortanix](#fortanix)
-3. [Remote attestation client side](#client)
-4. [references](#references)
+## Theory
+__________________________________________
 
-
-
-## Theory <a name="theory"></a>
 There is two concepts for achieving remote attestation on intel SGX. The first one, is **EPID attestation** which relies on using Intel services to attest that an enclave on specific platforms is verified. 
 The second one is **DCAP (DataCenterAttestationPrimitives)** and it allows data centers to own their own attestation. 
 Our implementation relies on the latter, where we have to possibility to build our own attestation infrastructure using public keys algorithm, in our case ECDSA. 
 
 ### Overall architecture 
 As explained in [1] & [2], ECDSA attestation sequence relies on three different platforms to achieve the verifications needed : 
-- The intel SGX platform, 
+- The Intel SGX platform, 
 - The Data Center Caching Service
 - The target service, in our case the client. 
 
@@ -27,6 +22,8 @@ The intel SGX platform provides us with the necessary measurements and functions
 
 
 ### Instruction needed & structures
+__________________________________________
+
 The instruction set for intel SGX defines 18 different instructions. The isntructions that are used in the remote attestation are: `EGETKEY` and `EREPORT`. 
 The structures that will be used on the remote attestation are `TARGETINFO` & `REPORT`. 
 
@@ -99,8 +96,6 @@ To be able to get the verification Collateral, we use the `sgx_ql_get_quote_veri
 
 The collateral structure is then returned to the client to complete the verification process. 
 
-
-
 ### Attestation verification 
 The Attestation verification is done on the client side. The quote & the verification collateral are sent to the client, which then uses the verification library to verifying with the information that are available to it. 
 
@@ -114,21 +109,24 @@ After receiving the quote and the collateral from the server, the client then ve
 The sequence diagram below illustrate the different steps taken to establish the remote attestation and the secure connection between the client and the server.
 
 
+## Remote attestation in fortanix (Server-side)
+__________________________________________
 
-## Remote attestation in fortanix (Server-side) <a name="fortanix"></a>
-Ouur implementation in *fortanix EDP* relies on AESM (Application Enclave Service Manager) to manage the architectural enclaves (LE, PvE, PcE, QE, PSE). The AESM service makes it possible to communicate with the architectural enclaves from the application enclave [3].  
+Our implementation in *fortanix EDP* relies on AESM (Application Enclave Service Manager) to manage the architectural enclaves (LE, PvE, PcE, QE, PSE). The AESM service makes it possible to communicate with the architectural enclaves from the application enclave [3].  
 
 _**to review**_ : Currently AESM is binded to the host's. We have to see how we can use it with future kubernetes deployements. Questions : What happens it multiple AESM services are run in the same time? is it possible to have multiple architectural enclaves in the same time ? 
 
 ### Quote generation
+
 The quote generation begins by generating an AESM client using the `aesm_client` crate. 
+
 We then call to the `get_supported_att_key_ids` method to get the ECDSA attestation key. This method is a rewrite of the official intel sgx function `sgx_get_supported_att_key_ids` as defined in [9]. 
+
 Also to contact the AESM, the fortanix EDP defines protobuf messages that tries to contact the service, otherwise in which case it returns an error with the error code (more information here : [*https://github.com/fortanix/rust-sgx/blob/64100155aa8e0e9379fd66c6128e6f1605442e75/intel-sgx/aesm-client/src/imp/aesm_protobuf/mod.rs*](https://github.com/fortanix/rust-sgx/blob/64100155aa8e0e9379fd66c6128e6f1605442e75/intel-sgx/aesm-client/src/imp/aesm_protobuf/mod.rs)). 
 
 From the resulted array, we extract the ECDSA attestation key, identified by the constant `const SGX_QL_ALG_ECDSA_P256 : u32 = 2;` (As defined in the quote generation DCAP enum here : [*https://github.com/intel/SGXDataCenterAttestationPrimitives/blob/master/QuoteGeneration/quote_wrapper/common/inc/sgx_quote_3.h*](https://github.com/intel/SGXDataCenterAttestationPrimitives/blob/master/QuoteGeneration/quote_wrapper/common/inc/sgx_quote_3.h)). The initialization of the runner context completes with the `init_quote_ex` function which, given the attestation key, returns the target info. 
 
 According to the quote generation section above, the computed target info is sent to the enclave application by creating an HTTP communication channel between the enclave and the runner (This channel will be the same for the other data that must be delivered between the two). Hence the bind channel at port `11000` for the runner.  
-
 
 The enclave then request the target info using the channel and returns report via a `POST` request to the runner. 
 
@@ -136,6 +134,7 @@ The last step in the generation is performed with the `get_quote` method where, 
 
 
 ### Quote verification collateral 
+
 The quote verification collateral is not done on the fortanix EDP. 
 The overall goal was to be able to link DCAP functions to our code. These specific functions are `sgx_ql_get_quote_verification_collateral`, for the collateral, and  `sgx_ql_free_quote_verification_collateral` to free memory when the desired operations are done. These functions request the PCCS service to retrieve the PCK certificates necessary when not already cached. 
 
@@ -145,7 +144,8 @@ We request the `fmspc`, `ca_from_quote` (certificate inside the quote), and the 
 
 Using this, we retrieve the structure `SgxQlQveCollateral` that is used to populate the collateral `SgxCollateral`.
 
-## Remote attestation verification in the client <a name="client"></a>
+## Remote attestation verification in the client
+__________________________________________
 
 The goal here was to be able to have a python client that can verify the quote and collateral received from the server. So we had to rebuild the Quote Verification library with python bindings to be able to use the verification API functions. 
 
@@ -159,6 +159,8 @@ If the verification is valid, another TLS connection is established to run the m
 
 
 ## References
+__________________________________________
+
 - [1] John P Mechalas, *"Intel DCAP overview"*, 2021 : [*Quote Generation, Verification, and Attestation with Intel® Software Guard Extensions Data Center Attestation Primitives (Intel® SGX DCAP)*](https://www.intel.com/content/www/us/en/developer/articles/technical/quote-verification-attestation-with-intel-sgx-dcap.html)
 
 - [2] Vinnie Scarlata, Simon Johnson, James Beaney, Piotr Zmijewski

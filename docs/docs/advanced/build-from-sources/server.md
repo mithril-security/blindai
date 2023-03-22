@@ -125,7 +125,7 @@ The manifest will be generated at the build process and will serve as essential 
 * `manifest.toml`: the enclave security manifest that defines which enclave is trusted.
 
 
-More informations about them on [this page](../../main-concepts/privacy.md) and in the [remote attestation implementation](../security/remote_attestation.md).
+More informations about them on [this page](../../concepts/privacy.md) and in the [remote attestation implementation](../security/remote_attestation.md).
 
 ### Running
 

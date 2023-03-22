@@ -1,10 +1,11 @@
-# Threat Model : BlindAI 
-
-## 1. Introduction 
+# Threat model
+__________________________________________
 
 This document provides the threat model for **BlindAI using the Intel SGX platform and fortanix EDP**. 
 
-## 2. Target Evaluation 
+## Target Evaluation 
+__________________________________________
+
 In this threat model, the target of evaluation is the BlindAI code (using the fortanix EDP), server side **(TC1)** and client side **(TC2)**, the fortanix EDP platform **(TC3)**, the Intel SGX platform **(TC4)**, the SDK and software related to SGX DCAP (which includes AESM, the PCCS service and the intel-sgx SDK) **(TC5)**. 
 *TC for target component notation*.
 
@@ -21,7 +22,9 @@ To achieve that configuration, we make the following assumptions :
 - We consider the data and model sent by the client to the server to be trusted, as he is the one that owns it. 
 - The issues concerning the guarantee of the availability of the SGX platform and hence the BlindAi App are not taken into consideration and are out of scope. 
 
-## 3. Data Flow Diagram
+## Data Flow Diagram
+__________________________________________
+
 The figure below shows a high-level data flow diagram for the BlindAI app. The diagram shows a model of the different components that interacts to achieve the remote attestation process and running the models as an inference engine. 
 
 - the red lines present the insecure connections. 
@@ -43,7 +46,9 @@ The figure below shows a high-level data flow diagram for the BlindAI app. The d
 | **DF8**   | Create a new TLS connection, this one using the information exchanged |  
 | **DF9**   | Begin exchanging the data through the secure TLS connection to be processed by the enclave |
 
-## 4. Threat Analysis 
+## Threat Analysis 
+__________________________________________
+
 In this section we provide an assessment of the potential threats to the BlindAI app while indentifying the different dependencies used and possible vectors of foothold. 
 
 For each threat, we identify the *asset* that is under threat, the *threat agent*, and the *threat type*. 
@@ -51,7 +56,7 @@ For each threat, we identify the *asset* that is under threat, the *threat agent
 Each threat is also given a *risk rating* that represent the impact and likelihood of that threat, and potential mitigations are also provided accordingly. 
 
 
-### 4.1. Assets 
+### Assets 
 
 | Asset | Description |
 | ----- | ----------- |
@@ -62,7 +67,8 @@ Each threat is also given a *risk rating* that represent the impact and likeliho
 | ***Availability*** | This represents the availability of the BlindAI app through it's use. |
 
 
-### 4.2. Threat Agents 
+### Threat Agents 
+
 The threat agents represents the possible entry points that may be used by potential attackers. 
 
 
@@ -72,11 +78,12 @@ The threat agents represents the possible entry points that may be used by poten
 | SecCode | Represent the malicious or faulty code running on the secure world, i.e. the SGX enclave. It includes the blindAI code running inside the enclave and the related dependencies (Fortanix API, and code dependencies). |
 
 
-### 4.3. Threat Types
+### Threat Types
+
 In this Threat Model we categorize the threats using the ***STRIDE Threat analysis technique***. Thus, a threat is categorized as one or more of these types: 
 `spoofing`, `Tampering`, `Repudiation`, `Information Disclosure`, `Denial of Service`, `Privilege Escalation`. 
 
-### 4.4. Threat Risk Ratings
+### Threat Risk Ratings
 
 For each threat identified, a risk rating that ranges from *informational* to *critical* is given based on the the likelihood of the threat occurring if a mitigation is not in place and the impact of the threat (i.e. how severely the assets are affected).
 
@@ -101,7 +108,7 @@ From the standard risk assessment level documentation, the below table represent
 | Informational | 1             |
 
 
-### 4.5. Threat Assessment
+### Threat Assessment
 <br />
 
 | ID &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; | 01 &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;|

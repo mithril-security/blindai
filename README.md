@@ -67,7 +67,7 @@ BlindAI facilitates  **privacy-friendly AI model deployment** by letting AI engi
 
 Data sent by users to the AI model is kept **confidential at all times**. Neither the AI service provider nor the Cloud provider (if applicable), can see the data.
 
-Confidentiality is assured by hardware-enforced [**Trusted Execution Environments**](--LINK CC EXPLAINED or DOC). We explain how they keep data and models safe in detail [here](./docs/docs/main-concepts/privacy.md).
+Confidentiality is assured by hardware-enforced **Trusted Execution Environments**. We explain how they keep data and models safe in detail [here](./docs/docs/concepts/privacy.md).
 
 ### Built With 
 

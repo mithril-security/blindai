@@ -112,10 +112,10 @@ nav:
 #    - Uploading models:
 
 - 💡 Concepts:
-  - Overview: 'docs/main-concepts/overview.md'
-  - Privacy: 'docs/main-concepts/privacy.md'
-  - Attestation: 'docs/main-concepts/attestation.md'
-  - TLS: 'docs/main-concepts/tls.md'
+  - Overview: 'docs/concepts/overview.md'
+  - Privacy: 'docs/concepts/privacy.md'
+  - Attestation: 'docs/concepts/attestation.md'
+  - TLS: 'docs/concepts/tls.md'
 
 #- 🌍 How-to-Guides:
   # - Using BlindAI Core in a real life scenario / to solve a problem
@@ -123,8 +123,8 @@ nav:
 - 🛠️ Client API reference: 'blindai_preview/client.html'
 
 - 🔒 Security:
-  - Remote attestation: 'docs/advanced/security/remote_attestation.md'
-  - Threat model: 'docs/advanced/security/threat_model.md'
+  - Remote attestation: 'docs/security/remote_attestation.md'
+  - Threat model: 'docs/security/threat_model.md'
 
 - ⚙️ Advanced:
   - Build from sources:
