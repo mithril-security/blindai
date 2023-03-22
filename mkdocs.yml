@@ -105,10 +105,10 @@ nav:
   - Quick tour: "docs/getting-started/quick-tour.ipynb"
 
 - Tutorials:
-  - BlindAI API:
-    - Whisper integration: 'docs/tutorials/api/whisper-audio.ipynb'
-  - BlindAI Core:
-    - Installation: "docs/getting-started/installation.md"
+# - BlindAI API:
+#    - Whisper integration: 'docs/tutorials/api/whisper-audio.ipynb'
+#  - BlindAI Core:
+  - Installation: "docs/getting-started/installation.md"
 #    - Uploading models:
 
 - 💡 Concepts:
