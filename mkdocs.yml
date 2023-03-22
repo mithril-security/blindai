@@ -105,6 +105,7 @@ nav:
   - Quick tour: "docs/getting-started/quick-tour.ipynb"
 
 - Tutorials:
+  - Uploading Models: 'docs/tutorials/uploading_models.ipynb'
 # - BlindAI API:
 #    - Whisper integration: 'docs/tutorials/api/whisper-audio.ipynb'
 #  - BlindAI Core:
