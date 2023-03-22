@@ -14,6 +14,7 @@
 
 use crate::model::ModelDatumType;
 use crate::model_store::ModelStore;
+use crate::telemetry::{self, TelemetryEventProps};
 use anyhow::{Error, Result};
 use log::{error, info};
 use serde_derive::{Deserialize, Serialize};
@@ -55,15 +56,17 @@ pub(crate) struct RunModel {
     model_id: String,
     model_hash: String,
     pub inputs: Vec<SerializedTensor>,
+    client_info: ClientInfo,
 }
 
-#[derive(Deserialize)]
+#[derive(Debug, Deserialize)]
 struct UploadModel {
     #[serde(with = "serde_bytes")]
     model: Vec<u8>,
     length: u64,
     model_name: String,
     optimize: bool,
+    client_info: ClientInfo,
 }
 
 #[derive(Serialize)]
@@ -78,6 +81,19 @@ pub(crate) struct RunModelReply {
     outputs: Vec<SerializedTensor>,
 }
 
+/// This model represents the ClientInfo used for telemetry
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub(crate) struct ClientInfo {
+    pub uid: String,
+    pub platform_name: String,
+    pub platform_arch: String,
+    pub platform_version: String,
+    pub platform_release: String,
+    pub user_agent: String,
+    pub user_agent_version: String,
+    pub is_colab: bool,
+}
+
 impl Exchanger {
     pub fn new(model_store: Arc<ModelStore>, max_model_size: usize, max_input_size: usize) -> Self {
         Self {
@@ -88,6 +104,9 @@ impl Exchanger {
     }
 
     pub fn send_model(&self, request: &rouille::Request) -> Result<SendModelReply, Error> {
+        // Start the timer for the telemetry event
+        let start_time = Instant::now();
+
         let upload_model_body: UploadModel = {
             let mut data: Vec<u8> = vec![];
             request
@@ -120,9 +139,23 @@ impl Exchanger {
 
         let (model_id, model_hash) = self.model_store.add_model(
             &upload_model_body.model,
-            model_name,
+            model_name.clone(),
             upload_model_body.optimize,
         )?;
+
+        // End the timer for the telemetry event
+        let elapsed = start_time.elapsed();
+
+        // Emit a telemetry event for `SendModel`
+        telemetry::add_event(
+            TelemetryEventProps::SendModel {
+                model_size,
+                model_name,
+                time_taken: elapsed.as_secs_f64(),
+            },
+            Some(upload_model_body.client_info),
+            None,
+        );
 
         // Construct the return payload
         Ok(SendModelReply {
@@ -139,6 +172,9 @@ impl Exchanger {
         data_stream.read_to_end(&mut data)?;
 
         let run_model_body: RunModel = serde_cbor::from_slice(&data)?;
+
+        // Start the timer for the telemetry event
+        let start_time = Instant::now();
 
         if run_model_body.model_id.is_empty() && run_model_body.model_hash.is_empty() {
             error!("Model_id and model_hash are empty");
@@ -209,6 +245,19 @@ impl Exchanger {
                 return Err(Error::msg("Unknown error".to_string()));
             }
         };
+
+        // End the timer for the telemetry event
+        let elapsed = start_time.elapsed();
+
+        // Emit a telemetry event for `RunModel`
+        telemetry::add_event(
+            TelemetryEventProps::RunModel {
+                model_hash: Some(uuid.to_string()),
+                time_taken: elapsed.as_secs_f64(),
+            },
+            Some(run_model_body.client_info),
+            None,
+        );
 
         Ok(RunModelReply { outputs })
     }
