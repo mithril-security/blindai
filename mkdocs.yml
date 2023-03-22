@@ -21,6 +21,7 @@ theme:
     - navigation.sections
     - navigation.indexes
     - navigation.expand
+    
   logo: assets/logo.png
   favicon: assets/logo.png
   palette:
