@@ -26,6 +26,8 @@ mod client_communication;
 use lazy_static::lazy_static;
 use log::debug;
 mod telemetry;
+mod ureq_dns_resolver;
+use telemetry::Telemetry;
 
 // ra
 use env_logger::Env;
@@ -33,7 +35,6 @@ use ring::digest;
 use serde::{Deserialize, Serialize};
 use serde_bytes::Bytes;
 use sgx_isa::{Report, Targetinfo};
-use telemetry::Telemetry;
 
 #[derive(Serialize)]
 struct GetQuoteRequest {
@@ -107,7 +108,7 @@ fn main() -> Result<()> {
         }
     );
 
-    println!("{}", telemetry_disabled_string);
+    println!("{telemetry_disabled_string}");
 
     const SERVER_NAME: &str = if cfg!(target_env = "sgx") {
         "blindai_preview"

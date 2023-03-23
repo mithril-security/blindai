@@ -33,8 +33,11 @@ serde_bytes = "0.11.8"
 tiny_http = { path = "tiny-http" }
 cfg-if = "1.0.0"
 lazy_static = "1.4.0"
+# These libraries help to create a custom DNS resolver when making 
+# reqs out of the enclave.
 webpki-roots = "0.22.6"
-rustls = "0.20.8"
+rustls = {version="0.20.8", features=["dangerous_configuration"]}
+webpki = "0.22.0"
 
 [dev-dependencies]
 image = "0.24.1"

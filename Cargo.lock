@@ -114,6 +114,7 @@ dependencies = [
  "tract-onnx",
  "ureq",
  "uuid",
+ "webpki",
  "webpki-roots",
 ]
 
