@@ -110,6 +110,7 @@ def validate_attestation(
     collateral: Collateral,
     enclave_held_data: bytes,
     manifest_path: Optional[Path] = None,
+    use_cloud_manifest: bool = False,
 ):
     """Verifies if the enclave evidence is valid.
 
@@ -183,10 +184,18 @@ def validate_attestation(
             got=attestation_result.enclave_report.report_data[:32],
         )
 
+    if manifest_path is not None and use_cloud_manifest is True:
+        raise TypeError("Input inconsistency. You cannot set a manifest path and ask to use the cloud manifest in the same time")
+
     if manifest_path is None:
-        manifest = EnclaveManifest.from_str(
-            importlib.resources.read_text(__package__, "manifest.toml")  # type: ignore
-        )
+        if use_cloud_manifest is False:
+            manifest = EnclaveManifest.from_str(
+                importlib.resources.read_text(__package__, "manifest.toml")  # type: ignore
+            )
+        else:
+            manifest = EnclaveManifest.from_str(
+                importlib.resources.read_text(__package__, "manifest_cloud.toml")  # type: ignore
+            )
     else:
         if not isinstance(manifest_path, Path):
             raise ValueError("manifest_path should be a pathlib.Path")

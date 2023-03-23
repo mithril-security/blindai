@@ -52,7 +52,7 @@ def _get_connection(
     """
     if connection is None:
         addr = f"{DEFAULT_BLINDAI_ADDR}/{tee}"
-        connection = connect(addr, hazmat_http_on_unattested_port=True)
+        connection = connect(addr, hazmat_http_on_unattested_port=True, use_cloud_manifest=True)
 
     return connection
 
@@ -93,11 +93,6 @@ class Audio:
 
         # Get BlindAI connection object
         with _get_connection(connection, tee) as conn:
-            # Temporary upload
-            # Convert model to ONNX with `torch_to_onnx`
-            onnx_file_path = fetch_whisper_tiny_20_tokens()
-            response = conn.upload_model(onnx_file_path)
-
             # Run ONNX model with `input_array` on BlindAI server
             res = conn.run_model(model_hash=DEFAULT_MODEL_HASH, input_tensors=input_mel)
 
