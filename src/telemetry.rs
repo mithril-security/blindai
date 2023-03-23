@@ -1,13 +1,14 @@
 use crate::client_communication::ClientInfo;
-use crate::identity::create_tls_certificate;
+use crate::ureq_dns_resolver::InternalAgent;
 use crate::TELEMETRY_CHANNEL;
-use rustls::version::{TLS12, TLS13};
 use serde::Serialize;
 use std::sync::mpsc::{self, Receiver, Sender};
 use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
-use ureq::Agent;
+
+const TELEMETRY_IP: &str = "163.172.188.78";
+const TELEMETRY_URL: &str = "https://telemetry.mithrilsecurity.io/blindai";
 
 #[derive(Debug, Clone, Serialize)]
 pub enum TelemetryEventProps {
@@ -89,34 +90,6 @@ struct ReqestUserProperties<'a> {
     client_user_agent_version: Option<&'a str>,
 }
 
-pub fn get_agent() -> Agent {
-    let mut root_store = rustls::RootCertStore::empty();
-
-    // This adds webpki_roots certs.
-    root_store.add_server_trust_anchors(webpki_roots::TLS_SERVER_ROOTS.0.iter().map(|ta| {
-        rustls::OwnedTrustAnchor::from_subject_spki_name_constraints(
-            ta.subject,
-            ta.spki,
-            ta.name_constraints,
-        )
-    }));
-
-    // This is how we narrow down the allowed TLS versions for rustls.
-    let protocol_versions = &[&TLS12, &TLS13];
-
-    // See rustls documentation for more configuration options.
-    let tls_config = rustls::ClientConfig::builder()
-        .with_safe_default_cipher_suites()
-        .with_safe_default_kx_groups()
-        .with_protocol_versions(protocol_versions)
-        .unwrap()
-        .with_root_certificates(root_store)
-        .with_no_client_auth();
-
-    // Build a ureq agent with the rustls config.
-    ureq::builder().tls_config(Arc::new(tls_config)).build()
-}
-
 pub fn setup() -> anyhow::Result<bool> {
     let sgx_mode = if cfg!(SGX_MODE = "HW") { "HW" } else { "SW" };
     let azure_dcsv3_patch_enabled = std::env::var("BLINDAI_AZURE_DCSV3_PATCH").is_ok();
@@ -187,12 +160,9 @@ pub fn setup() -> anyhow::Result<bool> {
         }
 
         if !events.is_empty() {
-            let agent = get_agent();
-            let response = agent
-                .post("https://telemetry.mithrilsecurity.io/blindai")
-                .send_json(&events);
+            let agent = InternalAgent::new(TELEMETRY_IP, "443");
+            let response = agent.post(TELEMETRY_URL).send_json(&events);
 
-            println!("Response: {:?}", response);
             if let Err(e) = response {
                 log::debug!("Cannot contact telemetry server: {}", e);
             }
