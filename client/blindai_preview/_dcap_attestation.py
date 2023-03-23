@@ -185,7 +185,9 @@ def validate_attestation(
         )
 
     if manifest_path is not None and use_cloud_manifest is True:
-        raise TypeError("Input inconsistency. You cannot set a manifest path and ask to use the cloud manifest in the same time")
+        raise TypeError(
+            "Input inconsistency. You cannot set a manifest path and ask to use the cloud manifest in the same time"
+        )
 
     if manifest_path is None:
         if use_cloud_manifest is False:
