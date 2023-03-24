@@ -66,7 +66,7 @@ jobs:
 
         ./earthly --artifact +build-release-enclave/* outdir/
         ./earthly --artifact +build-release-runner/runner outdir/
-        ./earthly --artifact +build-release-enclave-local-management outdir-local/
+        ./earthly --artifact +build-release-enclave-local-management/* outdir-local/
         pushd outdir
         tar czf blindai_server-$VERSION_TAG.tgz blindai_server.sgxs blindai_server.sig runner
         tar czf blindai_server-local-management-$VERSION_TAG.tgz ../outdir-local/blindai_server.sgxs ../outdir-local/blindai_server.sig runner

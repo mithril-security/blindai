@@ -351,6 +351,51 @@ build-release-enclave-local-management:
     SAVE ARTIFACT $BIN_PATH.sig
     SAVE ARTIFACT manifest.toml
 
+
+build-release-enclave-local-management2:
+    # Minimal image to build the release version of the sgx enclave
+    FROM rust:1.66.1-slim-bullseye
+    WORKDIR blindai-preview
+
+    # Install dependencies and pre-install the rust toolchain declared via rust-toolchain.toml 
+    # for better caching
+    RUN --mount=type=cache,target=/var/cache/apt,id=apt-cache-build-release-enclave \ 
+        apt-get update \
+        && apt-get install --no-install-recommends -y \
+            protobuf-compiler=3.12.4-1 \
+            pkg-config=0.29.2-1 \
+            libssl-dev=1.1.1n-0+deb11u3 \
+            gettext-base \
+            git \
+        && rm -rf /var/lib/apt/lists/* \
+        && rustup set profile minimal \
+        && rustup default nightly-2023-01-11 \
+        && rustup target add x86_64-fortanix-unknown-sgx
+
+    CACHE /usr/local/cargo/git
+    CACHE /usr/local/cargo/registry
+
+    RUN cargo install --locked --git https://github.com/mithril-security/rust-sgx.git --tag fortanix-sgx-tools_v0.5.1-mithril fortanix-sgx-tools sgxs-tools
+
+    COPY rust-toolchain.toml Cargo.toml Cargo.lock manifest.prod.template.toml ./
+    COPY .cargo .cargo
+    COPY src src
+    COPY tar-rs-sgx tar-rs-sgx
+    COPY tract tract
+    COPY ring-fortanix ring-fortanix
+    COPY tiny-http tiny-http
+    COPY rouille rouille
+
+    RUN DISALLOW_REMOTE_UPLOAD=1 cargo build --locked --release --target "x86_64-fortanix-unknown-sgx"
+
+    ENV BIN_PATH=target/x86_64-fortanix-unknown-sgx/release/blindai_server
+
+    RUN ftxsgx-elf2sgxs "$BIN_PATH" --heap-size 0x4FBA00000 --stack-size 0x400000 --threads 20 \
+        && mr_enclave=`sgxs-hash "$BIN_PATH.sgxs"` envsubst < manifest.prod.template.toml > manifest.toml
+
+    SAVE ARTIFACT $BIN_PATH.sgxs
+    SAVE ARTIFACT manifest.toml
+
 check-reproducibility:
     # We build the enclave twice and check that we get the same result
     FROM alpine:latest
@@ -359,8 +404,16 @@ check-reproducibility:
     COPY +build-release-enclave2/manifest.toml manifest2.toml
     COPY +build-release-enclave2/blindai_server.sgxs blindai_server2.sgxs
 
+    COPY +build-release-enclave-local-management/manifest.toml manifest_c1.toml
+    COPY +build-release-enclave-local-management/blindai_server.sgxs blindai_server_c1.sgxs
+    COPY +build-release-enclave-local-management2/manifest.toml manifest_c2.toml
+    COPY +build-release-enclave-local-management2/blindai_server.sgxs blindai_server_c2.sgxs
+
     RUN diff manifest1.toml manifest2.toml
     RUN diff blindai_server1.sgxs blindai_server2.sgxs
+
+    RUN diff manifest_c1.toml manifest_c2.toml
+    RUN diff blindai_server_c1.sgxs blindai_server_c2.sgxs
 
 build-mock-server:
     # Manylinux2014 will be used to ensure the compatibility with Google Colab platforms and most of the linux distributions
