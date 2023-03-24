@@ -104,7 +104,7 @@ pub fn setup() -> anyhow::Result<bool> {
             .get_platform()
             .unwrap_or(String::default());
         let receiver = receiver.lock().unwrap();
-
+        let agent = TELEMETRY_CHANNEL.get_agent().unwrap();
         let mut received_events = Vec::new();
         let mut events = Vec::new();
         while let Ok(properties) = receiver.try_recv() {
@@ -160,7 +160,6 @@ pub fn setup() -> anyhow::Result<bool> {
         }
 
         if !events.is_empty() {
-            let agent = InternalAgent::new(TELEMETRY_IP, "443", &["telemetry.mithrilsecurity.io"]);
             let response = agent.post(TELEMETRY_URL).send_json(&events);
 
             if let Err(e) = response {
@@ -179,6 +178,7 @@ pub struct Telemetry {
     custom_agent_id: Option<String>,
     platform: Option<String>,
     uid: Option<String>,
+    agent: Option<Arc<InternalAgent>>,
 }
 
 impl Telemetry {
@@ -194,6 +194,7 @@ impl Telemetry {
                 custom_agent_id: None,
                 platform: None,
                 uid: None,
+                agent: None,
             }
         } else {
             let (sender, receiver) = mpsc::channel::<TelemetryEvent>();
@@ -214,6 +215,9 @@ impl Telemetry {
 
             setup()?;
 
+            // Create a new agent from the InternalAgent struct
+            let agent = InternalAgent::new(TELEMETRY_IP, "443", &["telemetry.mithrilsecurity.io"]);
+
             Self {
                 disabled: false,
                 sender: Some(Arc::new(Mutex::new(sender))),
@@ -221,6 +225,7 @@ impl Telemetry {
                 custom_agent_id: Some(custom_agent_id),
                 platform: Some(platform),
                 uid: Some(uid),
+                agent: Some(Arc::new(agent)),
             }
         };
 
@@ -249,5 +254,9 @@ impl Telemetry {
 
     pub fn get_uid(&self) -> Option<String> {
         self.uid.clone()
+    }
+
+    pub fn get_agent(&self) -> Option<Arc<InternalAgent>> {
+        self.agent.clone()
     }
 }
