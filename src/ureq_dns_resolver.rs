@@ -1,6 +1,10 @@
 use std::sync::Arc;
 
+use rustls::ServerName;
 use ureq::Agent;
+use webpki::TlsServerTrustAnchors;
+
+use self::certificate_verifier_no_hostname::CertificateVerifierNoHostname;
 /*
    The following modules `fixed_resolver` and `certificate_verifier_no_hostname` are from this
    website:
@@ -30,6 +34,7 @@ mod certificate_verifier_no_hostname {
 
     pub struct CertificateVerifierNoHostname<'a> {
         pub trustroots: &'a TlsServerTrustAnchors<'a>,
+        pub allowed_dns_names: Vec<ServerName>,
     }
 
     static SUPPORTED_SIG_ALGS: &[&SignatureAlgorithm] = &[
@@ -62,6 +67,13 @@ mod certificate_verifier_no_hostname {
             ocsp_response: &[u8],
             _now: SystemTime,
         ) -> Result<ServerCertVerified, TlsError> {
+            // Allow DNS names.
+
+            let allowed = self.allowed_dns_names.iter().any(|s| _server_name == s);
+
+            if !allowed {
+                return Err(TlsError::General("Invalid server name".to_string()));
+            }
             let end_entity_cert = webpki::EndEntityCert::try_from(end_entity.0.as_ref())
                 .map_err(|err| TlsError::General(err.to_string()))?;
 
@@ -91,11 +103,30 @@ mod certificate_verifier_no_hostname {
     }
 }
 
+impl<'a> TryFrom<(&'a TlsServerTrustAnchors<'a>, Vec<String>)>
+    for CertificateVerifierNoHostname<'a>
+{
+    type Error = String;
+
+    fn try_from(
+        (trustroots, allowed_dns_names): (&'a TlsServerTrustAnchors, Vec<String>),
+    ) -> Result<Self, Self::Error> {
+        let allowed_dns_names = allowed_dns_names
+            .iter()
+            .map(|s| ServerName::try_from(s.as_str()).map_err(|e| e.to_string()))
+            .collect::<Result<Vec<ServerName>, String>>()?;
+
+        Ok(CertificateVerifierNoHostname {
+            trustroots,
+            allowed_dns_names,
+        })
+    }
+}
+
 pub struct InternalAgent(Agent);
 
 impl InternalAgent {
-    pub fn new(ip: &str, port: &str) -> Self {
-        use certificate_verifier_no_hostname::CertificateVerifierNoHostname;
+    pub fn new(ip: &str, port: &str, allowed_dns_servers: &[&str]) -> Self {
         use fixed_resolver::FixedResolver;
 
         let mut root_store = rustls::RootCertStore::empty();
@@ -109,12 +140,17 @@ impl InternalAgent {
             )
         }));
 
+        // Create the CertificateVerifierNoHostname object
+        let cert_verifier = CertificateVerifierNoHostname::try_from((
+            &webpki_roots::TLS_SERVER_ROOTS,
+            allowed_dns_servers.iter().map(|s| s.to_string()).collect(),
+        ))
+        .unwrap();
+
         // See rustls documentation for more configuration options.
         let tls_config = rustls::ClientConfig::builder()
             .with_safe_defaults()
-            .with_custom_certificate_verifier(Arc::new(CertificateVerifierNoHostname {
-                trustroots: &webpki_roots::TLS_SERVER_ROOTS,
-            }))
+            .with_custom_certificate_verifier(Arc::new(cert_verifier))
             .with_no_client_auth();
 
         // Build a ureq agent with the rustls config.

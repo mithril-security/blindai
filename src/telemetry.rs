@@ -160,7 +160,7 @@ pub fn setup() -> anyhow::Result<bool> {
         }
 
         if !events.is_empty() {
-            let agent = InternalAgent::new(TELEMETRY_IP, "443");
+            let agent = InternalAgent::new(TELEMETRY_IP, "443", &["telemetry.mithrilsecurity.io"]);
             let response = agent.post(TELEMETRY_URL).send_json(&events);
 
             if let Err(e) = response {
