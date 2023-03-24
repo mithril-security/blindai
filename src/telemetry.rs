@@ -91,7 +91,7 @@ struct ReqestUserProperties<'a> {
 }
 
 pub fn setup() -> anyhow::Result<bool> {
-    let sgx_mode = if cfg!(SGX_MODE = "HW") { "HW" } else { "SW" };
+    let sgx_mode = if cfg!(target_env = "sgx") { "HW" } else { "SW" };
     let azure_dcsv3_patch_enabled = std::env::var("BLINDAI_AZURE_DCSV3_PATCH").is_ok();
 
     let first_start = SystemTime::now();
@@ -198,14 +198,29 @@ impl Telemetry {
         } else {
             let (sender, receiver) = mpsc::channel::<TelemetryEvent>();
 
+            let get_arg = |name: &str| -> String {
+                let args = std::env::args();
+                for arg in args {
+                    if arg.starts_with(name) {
+                        return arg.split('=').last().unwrap().to_string();
+                    }
+                }
+                String::default()
+            };
+
+            let custom_agent_id = get_arg("--custom-agent-id");
+            let platform = get_arg("--platform");
+            let uid = get_arg("--uid");
+
             setup()?;
+
             Self {
                 disabled: false,
                 sender: Some(Arc::new(Mutex::new(sender))),
                 receiver: Some(Arc::new(Mutex::new(receiver))),
-                custom_agent_id: None,
-                platform: None,
-                uid: None,
+                custom_agent_id: Some(custom_agent_id),
+                platform: Some(platform),
+                uid: Some(uid),
             }
         };
 
@@ -226,18 +241,6 @@ impl Telemetry {
 
     pub fn get_custom_agent_id(&self) -> Option<&str> {
         self.custom_agent_id.as_deref()
-    }
-
-    pub fn set_custom_agent_id(&mut self, custom_agent_id: String) {
-        self.custom_agent_id = Some(custom_agent_id);
-    }
-
-    pub fn set_platform(&mut self, platform: String) {
-        self.platform = Some(platform);
-    }
-
-    pub fn set_uid(&mut self, uid: String) {
-        self.uid = Some(uid);
     }
 
     pub fn get_platform(&self) -> Option<String> {
