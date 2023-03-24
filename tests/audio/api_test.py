@@ -9,7 +9,7 @@ if os.environ.get("BLINDAI_SIMULATION_MODE") == "true":
 else:
     connection = core.connect(addr="localhost", hazmat_http_on_unattested_port=True)
 
-response = connection.upload_model(model="whisper.onnx")
+response = connection.upload_model(model="../tests/audio/whisper.onnx")
 
 # Download audio file
 output = os.path.join(os.path.dirname(__file__), "taunt.wav")
