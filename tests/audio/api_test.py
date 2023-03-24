@@ -16,5 +16,5 @@ output = os.path.join(os.path.dirname(__file__), "taunt.wav")
 os.system(f"wget https://www2.cs.uic.edu/~i101/SoundFiles/taunt.wav -O {output}")
 
 # Transcribe audio file
-transcript = api.Audio.transcribe(file=output)
+transcript = api.Audio.transcribe(file=output, connection=connection)
 assert transcript == " Now go away, or I shall taunt you a second timer!"
