@@ -295,7 +295,7 @@ build-release-enclave2:
 
     ENV BIN_PATH=target/x86_64-fortanix-unknown-sgx/release/blindai_server
 
-    RUN ftxsgx-elf2sgxs "$BIN_PATH" --heap-size 0xFBA00000 --stack-size 0x400000 --threads 20 \
+    RUN ftxsgx-elf2sgxs "$BIN_PATH" --heap-size 0x4FBA00000 --stack-size 0x400000 --threads 20 \
         && mr_enclave=`sgxs-hash "$BIN_PATH.sgxs"` envsubst < manifest.prod.template.toml > manifest.toml
 
     SAVE ARTIFACT $BIN_PATH.sgxs
@@ -309,7 +309,7 @@ build-release-enclave-local-management:
 
     # Install dependencies and pre-install the rust toolchain declared via rust-toolchain.toml 
     # for better caching
-    RUN --mount=type=cache,target=/var/cache/apt,id=apt-cache-build-release-enclave \ 
+    RUN --mount=type=cache,target=/var/cache/apt,id=apt-cache-build-release-enclave-local-management \ 
         apt-get update \
         && apt-get install --no-install-recommends -y \
             protobuf-compiler=3.12.4-1 \
@@ -359,7 +359,7 @@ build-release-enclave-local-management2:
 
     # Install dependencies and pre-install the rust toolchain declared via rust-toolchain.toml 
     # for better caching
-    RUN --mount=type=cache,target=/var/cache/apt,id=apt-cache-build-release-enclave \ 
+    RUN --mount=type=cache,target=/var/cache/apt,id=apt-cache-build-release-enclave-local-management2 \ 
         apt-get update \
         && apt-get install --no-install-recommends -y \
             protobuf-compiler=3.12.4-1 \
