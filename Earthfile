@@ -32,7 +32,7 @@ publish:
 
 dev-image:
     FROM DOCKERFILE -f .devcontainer/Dockerfile .
-    WORKDIR /blindai-preview
+    WORKDIR /blindai
 
 dev-image-poetry:
     FROM +dev-image
@@ -83,7 +83,7 @@ dev-tests-base:
 
     CACHE /usr/local/cargo/git
     CACHE /usr/local/cargo/registry
-    CACHE /blindai-preview/target
+    CACHE /blindai/target
 
     # Caution : cargo doesn't detect file changes in some cases
     # This is because like make, cargo relies on files' mtime instead 
@@ -120,7 +120,7 @@ dev-tests-base:
     # compile Rust sources for the runner
     COPY runner runner
     RUN find runner -exec touch {} \;
-    CACHE /blindai-preview/runner/target
+    CACHE /blindai/runner/target
     RUN cd runner \
         && cargo check \
         && cargo build --release
@@ -177,7 +177,7 @@ dev-unit-tests:
 
     CACHE /usr/local/cargo/git
     CACHE /usr/local/cargo/registry
-    CACHE /blindai-preview/target
+    CACHE /blindai/target
 
     COPY tests/mobilenet tests/mobilenet
     RUN cd tests/mobilenet && bash ./setup.sh
@@ -211,7 +211,7 @@ dev-unit-tests:
 build-release-enclave:
     # Minimal image to build the release version of the sgx enclave
     FROM rust:1.66.1-slim-bullseye
-    WORKDIR blindai-preview
+    WORKDIR blindai
 
     # Install dependencies and pre-install the rust toolchain declared via rust-toolchain.toml 
     # for better caching
@@ -260,7 +260,7 @@ build-release-enclave:
 build-release-enclave2:
     # We build the enclave twice to check if the build is reproducible
     FROM rust:1.66.1-slim-bullseye
-    WORKDIR blindai-preview
+    WORKDIR blindai
 
     # Install dependencies and pre-install the rust toolchain declared via rust-toolchain.toml 
     # for better caching
@@ -305,7 +305,7 @@ build-release-enclave2:
 build-release-enclave-local-management:
     # Minimal image to build the release version of the sgx enclave
     FROM rust:1.66.1-slim-bullseye
-    WORKDIR blindai-preview
+    WORKDIR blindai
 
     # Install dependencies and pre-install the rust toolchain declared via rust-toolchain.toml 
     # for better caching
@@ -355,7 +355,7 @@ build-release-enclave-local-management:
 build-release-enclave-local-management2:
     # Minimal image to build the release version of the sgx enclave
     FROM rust:1.66.1-slim-bullseye
-    WORKDIR blindai-preview
+    WORKDIR blindai
 
     # Install dependencies and pre-install the rust toolchain declared via rust-toolchain.toml 
     # for better caching
@@ -418,7 +418,7 @@ check-reproducibility:
 build-mock-server:
     # Manylinux2014 will be used to ensure the compatibility with Google Colab platforms and most of the linux distributions
     FROM quay.io/pypa/manylinux2014_x86_64
-    WORKDIR blindai-preview
+    WORKDIR blindai
 
     # Install dependencies and pre-install the rust toolchain declared via rust-toolchain.toml 
     # for better caching
@@ -469,7 +469,7 @@ build-release-runner:
         && rm -rf /var/lib/apt/lists/* \
         && ln -s /usr/lib/x86_64-linux-gnu/libdcap_quoteprov.so.1 /usr/lib/x86_64-linux-gnu/libdcap_quoteprov.so 
 
-    WORKDIR blindai-preview
+    WORKDIR blindai
     COPY runner runner
 
     CACHE /usr/local/cargo/git
@@ -482,7 +482,7 @@ build-release-runner:
 
 build-release-client:
     FROM python:3.10.9-alpine3.17
-    WORKDIR blindai-preview
+    WORKDIR blindai
 
     RUN pip install poetry 
 

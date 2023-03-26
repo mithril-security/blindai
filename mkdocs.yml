@@ -8,7 +8,7 @@ site_description: >-
 
 # Repository
 repo_name: mithril-security/blindai
-repo_url: https://github.com/mithril-security/blindai-preview
+repo_url: https://github.com/mithril-security/blindai
 
 # Configuration
 theme:

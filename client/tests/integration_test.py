@@ -14,4 +14,4 @@ def test_connect():
 
 # TODO: make a real test from this :
 # def test_connect_custom_manifest():
-#     client = blindai_preview.connect(addr="localhost", hazmat_manifest_path = Path("/workspaces/blindai-preview/manifest.dev.toml"))
+#     client = blindai_preview.connect(addr="localhost", hazmat_manifest_path = Path("/workspaces/blindai/manifest.dev.toml"))

@@ -24,12 +24,12 @@ The client handles this verification process so you only have to make sure that 
 ## Reproduce the enclave binary
 __________________________________________
 
-The enclave binary and the corresponding manifest are built using this [dockerfile](https://github.com/mithril-security/blindai-preview/blob/main/.github/sgxs-release.dockerfile). You can inspect the dockerfile and run it to build the artifacts using the following commands :
+The enclave binary and the corresponding manifest are built using this [dockerfile](https://github.com/mithril-security/blindai/blob/main/.github/sgxs-release.dockerfile). You can inspect the dockerfile and run it to build the artifacts using the following commands :
 ```bash
 docker build -f .github/sgxs-release.dockerfile --tag blindaiv2-enclave:latest .
 id=$(docker create blindaiv2-enclave:latest)
-docker cp "$id:/blindai-preview/target/x86_64-fortanix-unknown-sgx/release/blindai_server.sgxs" .
-docker cp "$id:/blindai-preview/manifest.toml" .
+docker cp "$id:/blindai/target/x86_64-fortanix-unknown-sgx/release/blindai_server.sgxs" .
+docker cp "$id:/blindai/manifest.toml" .
 docker rm -v $id
 ```
 
