@@ -9,7 +9,7 @@ import onnx
 
 path = os.path.dirname(os.path.realpath(__file__))
 
-runcmd.run(["wget", "-P", path + "/tmp", "https://github.com/mithril-security/blindai/raw/master/examples/facenet/woman_0.jpg"])
+runcmd.run(["wget", "-P", path + "/tmp", "https://github.com/mithril-security/blindai/raw/blindai-legacy/examples/facenet/woman_0.jpg"])
 
 mtcnn = MTCNN(
     image_size=160, margin=0, min_face_size=20,

@@ -9,7 +9,7 @@ import onnx
 
 path = os.path.dirname(os.path.realpath(__file__))
 
-runcmd.run(["wget", "-P", path + "/tmp", "https://github.com/mithril-security/blindai/raw/master/examples/wav2vec2/hello_world.wav"])
+runcmd.run(["wget", "-P", path + "/tmp", "https://github.com/mithril-security/blindai/raw/blindai-legacy/examples/wav2vec2/hello_world.wav"])
 
 # load model and processor
 processor = Wav2Vec2Processor.from_pretrained("facebook/wav2vec2-base-960h")
