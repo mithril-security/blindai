@@ -11,7 +11,7 @@
 <br />
 <div align="center">
   <a href="https://github.com/mithril-security/blindai">
-    <img src="https://github.com/mithril-security/blindai/blob/master/assets/logo.png" alt="Logo" width="80" height="80">
+    <img src="https://github.com/mithril-security/blindai/blob/main/docs/assets/logo.png" alt="Logo" width="80" height="80">
   </a>
 
 <h1 align="center">BlindAI</h1>
