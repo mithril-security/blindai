@@ -148,7 +148,7 @@ dev-tests-base:
 dev-tests-mock:
     FROM +dev-tests-base
 
-    RUN cargo run --release & \
+    RUN DO_NOT_TRACK=1 cargo run --release & \
         sleep 2 \
         && cd tests \
         && BLINDAI_SIMULATION_MODE=true bash run_all_end_to_end_tests.sh
@@ -164,7 +164,7 @@ dev-tests-sgx:
          --mount=type=bind-experimental,target=/var/run/aesmd/aesm.socket,source=/var/run/aesmd/aesm.socket  \
          --mount=type=bind-experimental,target=/dev/sgx/,source=/dev/sgx/  \
         ( cd /opt/intel/sgx-dcap-pccs && npm start pm2 ) & \
-        just run --release & \ 
+        DO_NOT_TRACK=1 just run --release & \ 
         while [ -z "$(lsof -i | grep -E "9923|9924" | awk -F':' '{print $2}' | awk '{print $1}')" ]; \
         do \
             sleep 5; \
