@@ -1,4 +1,4 @@
-from blindai_preview.client import *
+from blindai.client import *
 import numpy
 import torch
 

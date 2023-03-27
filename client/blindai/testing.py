@@ -12,7 +12,7 @@ from subprocess import Popen
 from importlib_metadata import version
 from pathlib import Path
 
-app_version = version("blindai-preview")
+app_version = version("blindai")
 
 
 class MockServer:

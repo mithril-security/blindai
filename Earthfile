@@ -487,8 +487,8 @@ build-release-client:
     RUN pip install poetry 
 
     COPY client client
-    COPY +build-release-enclave/manifest.toml client/blindai_preview
-    COPY +build-release-enclave-local-management/manifest.toml client/blindai_preview/manifest_cloud.toml
+    COPY +build-release-enclave/manifest.toml client/blindai
+    COPY +build-release-enclave-local-management/manifest.toml client/blindai/manifest_cloud.toml
     RUN cd client \
         && poetry build
     SAVE ARTIFACT client/dist
@@ -644,12 +644,12 @@ build-docker-image-local-management:
 publish-docker-image:
     FROM +build-docker-image
     ARG --required TAG
-    SAVE IMAGE --push mithrilsecuritysas/blindai-preview-server:$TAG
+    SAVE IMAGE --push mithrilsecuritysas/blindai-server:$TAG
 
 publish-docker-image-local-management:
     FROM +build-docker-image-local-management
     ARG --required TAG
-    SAVE IMAGE --push mithrilsecuritysas/blindai-preview-server-local-model-management:$TAG
+    SAVE IMAGE --push mithrilsecuritysas/blindai-server-local-model-management:$TAG
 
 test-docker-image:
     FROM +prepare-test

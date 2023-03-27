@@ -136,7 +136,7 @@ You can deploy the server in your Azure DCsv3 VM using our docker image with the
 docker run -it -e BLINDAI_AZURE_DCS3_PATCH=1 -p 9923:9923 -p 9924:9924 \
 --device /dev/sgx/enclave --device /dev/sgx/provision \
 -v /var/run/aesmd/aesm.socket:/var/run/aesmd/aesm.socket \
-mithrilsecuritysas/blindai-preview-server:latest /root/start.sh
+mithrilsecuritysas/blindai-server:latest /root/start.sh
 ```
 
 For alternative deployment methods (*on-premise, testing only...*) or more information, visit [our installation guide](https://github.com/mithril-security/blindai/blob/main/docs/docs/getting-started/installation.md).
@@ -178,7 +178,7 @@ Distributed under the Apache License, version 2.0. See [`LICENSE.md`](https://ww
 
 Mithril Security - [@MithrilSecurity](https://twitter.com/MithrilSecurity) - contact@mithrilsecurity.io
 
-Project Link: [https://github.com/mithril-security/blindai-preview](https://github.com/mithril-security/blindai-preview)
+Project Link: [https://github.com/mithril-security/blindai](https://github.com/mithril-security/blindai)
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
