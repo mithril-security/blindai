@@ -9,6 +9,7 @@
 # Env variable "DISTRO_NAME" is to configure from which ubuntu distro directory
 #   download the SGX SDK (ubuntu18.04-server or ubuntu20.04-server).
 # Env variable "SGX_SIM" is to install SGX even if the hardware doesn't support it.
+# Env variable "NO_DCAP_DRIVER" is to not install SGX DCAP driver.
 #
 
 ########## deb based ##########
@@ -46,6 +47,7 @@ declare -a deb_deps_temp=(
     build-essential
     make
     git
+    dkms
 )
 
 declare -a deb_deps_sgx=(
@@ -85,7 +87,7 @@ check_sgx()
     curl -sSL $test_sgx_url | gcc -o /tmp/test-sgx -xc -
     EXIT_STATUS=$?
     if ! (exit $EXIT_STATUS) ; then
-        echo "[⚠️ ] Warning: Could not verify SGX-ready with 'SGX+FLC' support with the test:"
+        echo "[⚠️ ] Warning: Could not verify SGX-ready with 'SGX+FLC' support with the test:" >&2
         echo "$test_sgx_url"
         return 1
     fi
@@ -96,7 +98,7 @@ check_sgx()
     if [ $support -eq 1 ] ; then
         echo "🌟 You have an SGX-ready device with SGX+FLC support!"
     else
-        echo "⛔ You don't have an SGX-ready device with SGX+FLC support"
+        echo "⛔ You don't have an SGX-ready device with SGX+FLC support" >&2
         return 0
     fi
     if [ $sgx2_support -eq 1 ] ; then
@@ -127,7 +129,7 @@ verify_deps()
         $checkcmd $package > /dev/null 2>&1
         EXIT_STATUS=$?
         if ! (exit $EXIT_STATUS) ; then
-            echo "[⚠️ ]" $package "(missing)"
+            echo "[⚠️ ]" $package "(missing)" >&2
             missing_status=$EXIT_STATUS
         else
             echo "[✔️ ]" $package
@@ -139,7 +141,7 @@ verify_deps()
 missing_deps()
 {
     install_fn=$1
-    if [ "$(id -u)" -ne 0 ]; then
+    if [ "$(id -u)" -ne 0 ] ; then
         command -v sudo > /dev/null 2>&1
         EXIT_STATUS=$?
         if ! (exit $EXIT_STATUS) ; then
@@ -181,7 +183,7 @@ get_codename()
                         declare -g distro_codename=$codename
                         break
                     else
-                        echo "⚠️  Codename unrecognized"
+                        echo "⚠️  Codename unrecognized" >&2
                     fi
                     ;;
             esac
@@ -212,7 +214,7 @@ get_distro()
                         declare -g distro_name=$distro
                         break
                     else
-                        echo "⚠️  Distro unrecognized"
+                        echo "⚠️  Distro unrecognized" >&2
                     fi
                     ;;
             esac
@@ -259,6 +261,7 @@ install_deb_sgx_drivers()
     done
 
     # Install sgx drivers
+    echo "Installing ${deb_deps_sgx[@]} ${deb_deps_dcap[@]}"
     apt-get -y --allow-downgrades install "${deb_deps_sgx[@]}" "${deb_deps_dcap[@]}"
     EXIT_STATUS=$?
     return $EXIT_STATUS
@@ -266,20 +269,21 @@ install_deb_sgx_drivers()
 
 install_sgx_sdk()
 {
+    get_distro
+    base_bin_url=$sgx_distro_url/$distro_name
     if [ ! -d "/opt/sgxsdk/" ] ; then
         # Intel's Architectural Enclave Service Manager
         mkdir -p /var/run/aesmd
         ln -s /usr/lib/x86_64-linux-gnu/libdcap_quoteprov.so.1 /usr/lib/x86_64-linux-gnu/libdcap_quoteprov.so
 
-        get_distro
         # Install the SGX SDK
-        binary=sgx_linux_x64_sdk_$sgx_version.bin
-        binary_url=$sgx_distro_url/$distro_name/$binary
-        echo "Downloading $binary_url..."
-        wget $binary_url
-        chmod u+x $binary
-        echo -e 'no\n/opt' | ./$binary
-        rm $binary
+        sdkbin=sgx_linux_x64_sdk_$sgx_version.bin
+        sdkbin_url=$sgx_distro_url/$distro_name/$sdkbin
+        echo "Downloading $sdkbin_url..."
+        wget $sdkbin_url
+        chmod u+x $sdkbin
+        echo -e 'no\n/opt' | ./$sdkbin
+        rm $sdkbin
         inenv=$(grep 'source /opt/sgxsdk/environment' /etc/environment)
         if [ -z "${inenv}" ] ; then
             echo 'source /opt/sgxsdk/environment' >> /etc/environment
@@ -296,6 +300,17 @@ install_sgx_sdk()
         echo -e "Installing:\n$(ls external/toolset/${distro_name%-server}/*)" &&
         cp -r external/toolset/${distro_name%-server}/* /usr/bin/ &&
         rm -rf external $objdump_name
+    echo "Downloading DCAP driver..."
+    dcap_driver=$(curl -sSL $base_bin_url/driver_readme.txt | grep DCAP | awk '{print $NF}')
+    if [ ! -z "${dcap_driver}" ] && [ -z "${NO_DCAP_DRIVER}" ] ; then
+        wget $base_bin_url/$dcap_driver
+        chmod u+x $dcap_driver
+        echo "Installing DCAP driver..."
+        ./$dcap_driver
+        rm $dcap_driver
+    else
+        echo "[⚠️ ] Warning: could not find the name of DCAP driver on $base_bin_url/driver_readme.txt" >&2
+    fi
 }
 
 # Debian-based dependencies installation
