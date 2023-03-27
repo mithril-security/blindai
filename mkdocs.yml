@@ -100,17 +100,16 @@ nav:
 - 🏠 Home: 'index.md' 
 
 - 🚀 Getting Started: 
-  - Why BlindAI: "docs/getting-started/why-blindai.md"
+  - Why BlindAI: 'docs/getting-started/why-blindai.md'
 # - BlindAI API VS BlindAI Core: 'quick presentation'
-  - Quick tour: "docs/getting-started/quick-tour.ipynb"
+  - Quick tour: 'docs/getting-started/quick-tour.ipynb'
 
 - Tutorials:
-  - Uploading Models: 'docs/tutorials/uploading_models.ipynb'
 # - BlindAI API:
 #    - Whisper integration: 'docs/tutorials/api/whisper-audio.ipynb'
 #  - BlindAI Core:
-  - Installation: "docs/getting-started/installation.md"
-#    - Uploading models:
+  - Installation: 'docs/getting-started/installation.md'
+  - Uploading models: 'docs/tutorials/uploading_models.ipynb'
 
 - 💡 Concepts:
   - Overview: 'docs/concepts/overview.md'
