@@ -102,7 +102,7 @@ def start_mock_server() -> MockServer:
     if not (arch == "x86_64" and sys.platform == "linux"):
         raise RuntimeError(f"Unsupported system : {platform.machine()}-{sys.platform}")
 
-    blindai_url = f"https://github.com/mithril-security/blindai-preview/releases/download/v{app_version}/blindai_mock_server-{app_version}-x86_64-unknown-linux-gnu.tgz"
+    blindai_url = f"https://github.com/mithril-security/blindai/releases/download/v{app_version}/blindai_mock_server-{app_version}-x86_64-unknown-linux-gnu.tgz"
 
     _handle_download(
         blindai_path,

@@ -25,6 +25,9 @@ use model_store::ModelStore;
 mod client_communication;
 use lazy_static::lazy_static;
 use log::debug;
+mod telemetry;
+mod ureq_dns_resolver;
+use telemetry::Telemetry;
 
 // ra
 use env_logger::Env;
@@ -49,6 +52,7 @@ lazy_static! {
         1_000_000_000,
         1_000_000,
     ));
+    pub static ref TELEMETRY_CHANNEL: Arc<Telemetry> = Arc::new(Telemetry::new().unwrap());
 }
 
 // "Native" Rust type for sgx_ql_qve_collateral_t
@@ -92,6 +96,19 @@ fn get_collateral(quote: &[u8]) -> Result<SgxCollateral> {
 
 fn main() -> Result<()> {
     println!("BlindAI server is running on the ports 9923 and 9924");
+
+    // Setup TELEMETRY
+    let telemetry_disabled = TELEMETRY_CHANNEL.is_disabled();
+    let telemetry_disabled_string = format!(
+        "BlindAI telemetry is {}",
+        if telemetry_disabled {
+            "disabled"
+        } else {
+            "enabled"
+        }
+    );
+
+    println!("{telemetry_disabled_string}");
 
     const SERVER_NAME: &str = if cfg!(target_env = "sgx") {
         "blindai_preview"
@@ -274,6 +291,9 @@ fn main() -> Result<()> {
             _trusted_handle.join().unwrap();
         }
     });
+
+    // Emit the telemetry `Started` event
+    telemetry::add_event(telemetry::TelemetryEventProps::Started {}, None, None);
     _unattested_handle.join().unwrap();
 
     Ok(())

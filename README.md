@@ -11,7 +11,7 @@
 <br />
 <div align="center">
   <a href="https://github.com/mithril-security/blindai">
-    <img src="https://github.com/mithril-security/blindai/blob/master/assets/logo.png" alt="Logo" width="80" height="80">
+    <img src="https://github.com/mithril-security/blindai/blob/main/docs/assets/logo.png" alt="Logo" width="80" height="80">
   </a>
 
 <h1 align="center">BlindAI</h1>
@@ -23,10 +23,10 @@
   <p align="center">
     <b>BlindAI</b> is an <b>AI inference server</b> with an <b>added privacy layer</b>, protecting the data sent to models.
 	<br /><br />
-    <a href="https://blindai-preview.mithrilsecurity.io/en/latest"><strong>Explore the docs »</strong></a>
+    <a href="https://blindai.mithrilsecurity.io/en/latest"><strong>Explore the docs »</strong></a>
     <br />
     <br />
-    <a href="https://blindai-preview.mithrilsecurity.io/en/latest/docs/getting-started/quick-tour/">Try Demo</a>
+    <a href="https://blindai.mithrilsecurity.io/en/latest/docs/getting-started/quick-tour/">Try Demo</a>
     ·
     <a href="https://github.com/mithril-security/blindai/issues">Report Bug</a>
     ·
@@ -139,7 +139,7 @@ docker run -it -e BLINDAI_AZURE_DCS3_PATCH=1 -p 9923:9923 -p 9924:9924 \
 mithrilsecuritysas/blindai-preview-server:latest /root/start.sh
 ```
 
-For alternative deployment methods (*on-premise, testing only...*) or more information, visit [our installation guide](https://github.com/mithril-security/blindai-preview/blob/main/docs/docs/getting-started/installation.md).
+For alternative deployment methods (*on-premise, testing only...*) or more information, visit [our installation guide](https://github.com/mithril-security/blindai/blob/main/docs/docs/getting-started/installation.md).
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
