@@ -20,7 +20,7 @@ There are different possible deployment methods. You can view the pros and cons 
 	🚀 If this is the right option for you, you can:
 
 	- **Check out our [Quick tour notebook](#Quick tour)**. This will show you how you can install and use BlindAI's client and server testing packages.
-	- **Test your own Python scripts or notebooks** using the `blindai_preview` PyPi packages with the `blindai_preview.testing` server.
+	- **Test your own Python scripts or notebooks** using the `blindai` PyPi packages with the `blindai.testing` server.
 
 ??? success "Deploying BlindAI on Azure DCsv3 VM (*recommended*)"
 
@@ -127,7 +127,7 @@ You can run the docker image on your VM, with the following command:
 docker run -it -e BLINDAI_AZURE_DCS3_PATCH=1 -p 9923:9923 -p 9924:9924 \
 --device /dev/sgx/enclave --device /dev/sgx/provision \
 -v /var/run/aesmd/aesm.socket:/var/run/aesmd/aesm.socket \
-mithrilsecuritysas/blindai-preview-server:latest /root/start.sh
+mithrilsecuritysas/blindai-server:latest /root/start.sh
 ```
 
 > If you need to install Docker, you can follow [the official Docker installation instructions](https://docs.docker.com/engine/install). 
@@ -146,7 +146,7 @@ Once the server has been deployed, users can connect to your server by using the
 
 You can set up your reverse proxy to run on the port of your choice and redirect client traffic to/from the `unattested_server_port` 9923. You will need to inform users what port you are running the reverse proxy on as they will need to modify the `unattested_server_port` option to this port when using BlindAI's `connect()` method to connect to the server.
 
-If you do not set up a reverse proxy, users will need to set the `hazmat_http_on_untrusted_port` option to `True` when using BlindAI-preview's `connect()` function. Again, this is **not recommended** for production.
+If you do not set up a reverse proxy, users will need to set the `hazmat_http_on_untrusted_port` option to `True` when using BlindAI's `connect()` function. Again, this is **not recommended** for production.
 
 ## On-premise deployment
 ___________________________________________
@@ -255,7 +255,7 @@ The binary file contains the drivers signed by Intel and will proceed to the ins
 	docker run -it -p 9923:9923 -p 9924:9924 \
 	--device /dev/sgx/enclave --device /dev/sgx/provision \
 	-v /var/run/aesmd/aesm.socket:/var/run/aesmd/aesm.socket \
-	mithrilsecuritysas/blindai-preview-server:latest /root/start.sh [PCCS_API_KEY]
+	mithrilsecuritysas/blindai-server:latest /root/start.sh [PCCS_API_KEY]
 	```
 
 	>If you need to install Docker, you can follow [the official Docker installation instructions](https://docs.docker.com/engine/install). 
@@ -274,7 +274,7 @@ The binary file contains the drivers signed by Intel and will proceed to the ins
 
 	You can set up your reverse proxy to run on the port of your choice and redirect client traffic to/from the `unattested_server_port` 9923. You will need to inform users what port you are running the reverse proxy on as they will need to modify the `unattested_server_port` option to this port when using BlindAI's `connect()` method to connect to the server.
 
-	If you do not set up a reverse proxy, users will need to set the `hazmat_http_on_untrusted_port` option to `True` when using BlindAI-preview's `connect()` function. Again, this is **not recommended** for production.
+	If you do not set up a reverse proxy, users will need to set the `hazmat_http_on_untrusted_port` option to `True` when using BlindAI's `connect()` function. Again, this is **not recommended** for production.
 
 ## Building from source (advanced)
 _______________________________________________________

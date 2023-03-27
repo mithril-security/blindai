@@ -49,7 +49,7 @@ ____________________________________________
 -->
 - [Getting Started](./docs/getting-started/why-blindai.md) take you by the hand to install and run BlindAI. We recommend you start with the **[Quick tour](./docs/getting-started/quick-tour.ipynb)** and then move on to [installation](./docs/getting-started/installation.md)! 
 
-- [API Reference](https://blindai.mithrilsecurity.io/en/latest/blindai_preview/client.html) contains technical references for BlindAI’s API machinery. They describe how it works and how to use it but assume you have a good understanding of key concepts.
+- [API Reference](https://blindai.mithrilsecurity.io/en/latest/blindai/client.html) contains technical references for BlindAI’s API machinery. They describe how it works and how to use it but assume you have a good understanding of key concepts.
 
 - [Security](./docs/security/remote_attestation/) guides contain technical information for security engineers. They explain the threat models and other cybersecurity topics required to audit BlindAI's security standards.
 

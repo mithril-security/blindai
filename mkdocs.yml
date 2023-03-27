@@ -120,7 +120,7 @@ nav:
 #- 🌍 How-to-Guides:
   # - Using BlindAI Core in a real life scenario / to solve a problem
 
-- 🛠️ Client API reference: 'blindai_preview/client.html'
+- 🛠️ Client API reference: 'blindai/client.html'
 
 - 🔒 Security:
   - Remote attestation: 'docs/security/remote_attestation.md'

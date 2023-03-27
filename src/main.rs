@@ -111,9 +111,9 @@ fn main() -> Result<()> {
     println!("{telemetry_disabled_string}");
 
     const SERVER_NAME: &str = if cfg!(target_env = "sgx") {
-        "blindai_preview"
+        "blindai"
     } else {
-        "blindai_preview mock (testing)"
+        "blindai mock (testing)"
     };
 
     // Make debugging easier by enabling rust backtrace inside enclave
