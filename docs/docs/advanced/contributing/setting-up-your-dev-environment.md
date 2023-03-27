@@ -9,7 +9,7 @@ Choose: "Open folder in container".
 
 ![](../../../assets/Screenshot-vscode.png)
 
-It will build and run the image present in the [`.devcontainer` folder](https://github.com/mithril-security/blindai-preview/tree/main/.devcontainer) and it will run the dev environment directly on VSCode.
+It will build and run the image present in the [`.devcontainer` folder](https://github.com/mithril-security/blindai/tree/main/.devcontainer) and it will run the dev environment directly on VSCode.
 
 !!! Warning 
     there is a different one for Azure in the : `devcontainer-azure/` folder

@@ -516,6 +516,7 @@ class BlindAiConnection(contextlib.AbstractContextManager):
         hazmat_manifest_path: Optional[pathlib.Path],
         hazmat_http_on_unattested_port: bool,
         simulation_mode: bool,
+        use_cloud_manifest: bool,
     ):
         """Connect to a BlindAi service.
 
@@ -602,7 +603,11 @@ class BlindAiConnection(contextlib.AbstractContextManager):
                     raise AttestationError("Bad attestation collateral from the server")
 
                 validate_attestation(
-                    quote, collateral, cert, manifest_path=hazmat_manifest_path
+                    quote,
+                    collateral,
+                    cert,
+                    manifest_path=hazmat_manifest_path,
+                    use_cloud_manifest=use_cloud_manifest,
                 )
             except AttestationError as e:
                 raise
@@ -650,10 +655,10 @@ class BlindAiConnection(contextlib.AbstractContextManager):
             repeatedly to determine whether or not a particular example is part of the trained dataset model.
         Args:
             model (str): Path to Onnx model file.
-            model_name (Optional[str], optional): Name of the model. By default, the server will assign a random UUID.
-                You can call the model with the name you specify here.
+            model_name (Optional[str], optional): Name of the model.
+                Used for you to identify the model, but won't be used by the server (a random UUID will be assigned to your model for the inferences).
             optimize (bool): Whether tract (our inference engine) should optimize the model or not.
-                Optimzing should only be turned off when tract wasn't able to optimze the model.
+                Optimzing should only be turned off when you are encountering issues loading your model.
         Raises:
             HttpError: raised by the requests lib to relay server side errors
             ValueError: raised when inputs sanity checks fail
@@ -757,8 +762,7 @@ class BlindAiConnection(contextlib.AbstractContextManager):
         only be present in memory, and will disappear when the server close.
 
         **Security & confidentiality warnings: **
-            model_id: If you are using this on the Mithril Security Cloud, you can only delete models
-            that you uploaded. Otherwise, the deletion of a model does only relies on the `model_id`.
+            model_id: The deletion of a model does only relies on the `model_id`.
             It doesn't relies on a session token or anything, hence if the `model_id` is known,
             it's deletion is possible.
 
@@ -796,6 +800,7 @@ def connect(
     hazmat_manifest_path: Optional[pathlib.Path] = None,
     hazmat_http_on_unattested_port=False,
     simulation_mode: bool = False,
+    use_cloud_manifest: bool = False,
 ) -> BlindAiConnection:
     """Connect to a BlindAi server.
 
@@ -818,6 +823,7 @@ def connect(
             Caution: In simulation, BlindAI does not provide any security since there is no SGX enclave.
             This mode SHOULD NEVER be enabled in production.
             Defaults to False (production mode)
+        use_cloud_manifest (bool, optional): If set to True, the manifest for the local model management version (aka the cloud version) will be used.
 
      Raises:
         requests.exceptions.RequestException: If a network or server error occurs
@@ -839,4 +845,5 @@ def connect(
         hazmat_manifest_path,
         hazmat_http_on_unattested_port,
         simulation_mode,
+        use_cloud_manifest,
     )

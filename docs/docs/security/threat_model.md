@@ -32,7 +32,7 @@ The figure below shows a high-level data flow diagram for the BlindAI app. The d
 - the black ones are delivered in the dependencies used in BlindAI (Fortanix with aesm and Intel DCAP). 
 
 
-![Data flow diagram](../../../assets/data_flow_diagram.png)
+![Data flow diagram](../../assets/data_flow_diagram.png)
 
 | Diagram Element | Description   |
 | ---       | --------------|

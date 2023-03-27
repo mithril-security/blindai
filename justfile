@@ -41,6 +41,34 @@ run *args:
   ./runner/target/release/runner "$binpath.sgxs"
   
 
+run-local-management *args:
+  #!/usr/bin/env bash
+  set -e
+
+  export DISALLOW_REMOTE_UPLOAD=1 
+  cargo build --target x86_64-fortanix-unknown-sgx {{args}}
+
+  binpath=`cargo build --target x86_64-fortanix-unknown-sgx {{args}} --message-format json 2>/dev/null \
+    | jq -r 'select(.reason=="compiler-artifact" and .target.kind==["bin"]) | .executable'` 
+
+  ftxsgx-elf2sgxs "$binpath" \
+    --heap-size 0x4FBA00000 \
+    --ssaframesize 1 \
+    --stack-size 0x20000 \
+    --threads 20
+
+  just generate-manifest-dev "$binpath.sgxs" 
+  cp manifest.dev.toml client/blindai_preview/manifest_cloud.toml
+
+  just generate-manifest-prod "$binpath.sgxs" 
+
+  ( cd runner && cargo build --release )
+
+  # ftxsgx-runner "$binpath.sgxs" 
+
+  # Modify the normal runner to the new 
+  ./runner/target/release/runner "$binpath.sgxs"
+
 # Build for SGX target
 build *args:
   #!/usr/bin/env bash

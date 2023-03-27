@@ -196,3 +196,4 @@ cython_debug/
 manifest.dev.toml
 manifest.prod.toml
 manifest.toml
+manifest_cloud.toml
