@@ -216,7 +216,7 @@ impl Telemetry {
             setup()?;
 
             // Create a new agent from the InternalAgent struct
-            let agent = InternalAgent::new(TELEMETRY_IP, "443", &["telemetry.mithrilsecurity.io"]);
+            let agent = InternalAgent::new(TELEMETRY_IP, "443");
 
             Self {
                 disabled: false,
