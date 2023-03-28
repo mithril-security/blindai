@@ -28,7 +28,7 @@ ________________________________________________________
 
 - Follow our [“Quick tour”](./docs/getting-started/quick-tour.ipynb) tutorial
 - Read about [why you should use](./docs/getting-started/why-blindai.md) BlindAI
-- Discover the differences between [BlindAI vs BlindAI Core](./docs/getting-started/blindai_vs_core.md.md)
+- Discover the differences between [BlindAI vs BlindAI Core](./docs/getting-started/blindai_vs_core.md)
 - [Tackle](./docs/concepts/confidential_computing.md) the technologies we use to ensure privacy
 
 ## Getting help
@@ -47,7 +47,7 @@ ____________________________________________
 
 - [Concepts](link) guides discuss key topics and concepts at a high level. They provide useful background information and explanations, especially on cybersecurity.
 -->
-- [Getting Started](./docs/getting-started/why-blindai.md) take you by the hand to install and run BlindAI. We recommend you start with the **[Quick tour](./docs/getting-started/quick-tour.ipynb)** and then move on to [installation](./docs/getting-started/installation.md)! 
+- [Getting Started](./docs/getting-started/why-blindai.md) take you by the hand to install and run BlindAI. We recommend you start with the **[Quick tour](./docs/getting-started/quick-tour.ipynb)** and then move on to [installation](./docs/tutorials/core/installation.md)! 
 
 - [API Reference](https://blindai.mithrilsecurity.io/en/latest/blindai/client.html) contains technical references for BlindAI’s API machinery. They describe how it works and how to use it but assume you have a good understanding of key concepts.
 
