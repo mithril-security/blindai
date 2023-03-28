@@ -28,8 +28,8 @@ ________________________________________________________
 
 - Follow our [“Quick tour”](./docs/getting-started/quick-tour.ipynb) tutorial
 - Read about [why you should use](./docs/getting-started/why-blindai.md) BlindAI
-- Explore our [installation guide](./docs/getting-started/installation.md)
-- [Tackle](./docs/security/remote_attestation.md) the technologies we use to ensure privacy
+- Discover the differences between [BlindAI vs BlindAI Core](./docs/getting-started/blindai_vs_core.md.md)
+- [Tackle](./docs/concepts/confidential_computing.md) the technologies we use to ensure privacy
 
 ## Getting help
 ________________________________________________________
