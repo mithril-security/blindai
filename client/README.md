@@ -109,7 +109,7 @@ client_1.delete_model(MODEL_ID)
 
 The client wants to feed their confidential data to the model while protecting it from third-party access. They connect and run the model on the following confidential image.
 
-![](./docs/assets/positive_image.png)
+![](https://github.com/mithril-security/blindai/blob/main/docs/assets/positive_image.png)
 
 ```py
 pos_ret = client_2.run_model(MODEL_ID, positive)
