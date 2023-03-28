@@ -286,7 +286,8 @@ fn main() -> Result<()> {
                     private_key: enclave_private_key_der,
                 }),
             )
-            .expect("Failed to start trusted server");
+            .expect("Failed to start trusted server")
+            .pool_size(8);
             let (_trusted_handle, _trusted_sender) = attested_server.stoppable();
             _trusted_handle.join().unwrap();
         }

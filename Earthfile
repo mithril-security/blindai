@@ -246,7 +246,7 @@ build-release-enclave:
 
     ENV BIN_PATH=target/x86_64-fortanix-unknown-sgx/release/blindai_server
 
-    RUN ftxsgx-elf2sgxs "$BIN_PATH" --heap-size 0x4FBA00000 --stack-size 0x400000 --threads 20 \
+    RUN ftxsgx-elf2sgxs "$BIN_PATH" --heap-size 0x4FBA00000 --stack-size 0x400000 --threads 32 \
         && mr_enclave=`sgxs-hash "$BIN_PATH.sgxs"` envsubst < manifest.prod.template.toml > manifest.toml
 
     RUN openssl genrsa -3 3072 > throw_away.pem \
@@ -295,7 +295,7 @@ build-release-enclave2:
 
     ENV BIN_PATH=target/x86_64-fortanix-unknown-sgx/release/blindai_server
 
-    RUN ftxsgx-elf2sgxs "$BIN_PATH" --heap-size 0x4FBA00000 --stack-size 0x400000 --threads 20 \
+    RUN ftxsgx-elf2sgxs "$BIN_PATH" --heap-size 0x4FBA00000 --stack-size 0x400000 --threads 32 \
         && mr_enclave=`sgxs-hash "$BIN_PATH.sgxs"` envsubst < manifest.prod.template.toml > manifest.toml
 
     SAVE ARTIFACT $BIN_PATH.sgxs
@@ -340,7 +340,7 @@ build-release-enclave-local-management:
 
     ENV BIN_PATH=target/x86_64-fortanix-unknown-sgx/release/blindai_server
 
-    RUN ftxsgx-elf2sgxs "$BIN_PATH" --heap-size 0x4FBA00000 --stack-size 0x400000 --threads 20 \
+    RUN ftxsgx-elf2sgxs "$BIN_PATH" --heap-size 0x4FBA00000 --stack-size 0x400000 --threads 32 \
         && mr_enclave=`sgxs-hash "$BIN_PATH.sgxs"` envsubst < manifest.prod.template.toml > manifest.toml
 
     RUN openssl genrsa -3 3072 > throw_away.pem \
@@ -390,7 +390,7 @@ build-release-enclave-local-management2:
 
     ENV BIN_PATH=target/x86_64-fortanix-unknown-sgx/release/blindai_server
 
-    RUN ftxsgx-elf2sgxs "$BIN_PATH" --heap-size 0x4FBA00000 --stack-size 0x400000 --threads 20 \
+    RUN ftxsgx-elf2sgxs "$BIN_PATH" --heap-size 0x4FBA00000 --stack-size 0x400000 --threads 32 \
         && mr_enclave=`sgxs-hash "$BIN_PATH.sgxs"` envsubst < manifest.prod.template.toml > manifest.toml
 
     SAVE ARTIFACT $BIN_PATH.sgxs
