@@ -6,7 +6,7 @@ from transformers import WhisperProcessor
 import torch
 from ._preprocess_audio import load_audio
 
-DEFAULT_BLINDAI_ADDR = "https://mithrilsecurity/blindai/"
+DEFAULT_BLINDAI_ADDR = "4.246.205.63"
 DEFAULT_WHISPER_MODEL = "tiny.en"
 DEFAULT_TEE_OPTIONS = ["sgx", "nitro"]
 DEFAULT_TEE = "sgx"
@@ -51,9 +51,10 @@ def _get_connection(
             The BlindAI connection object
     """
     if connection is None:
-        addr = f"{DEFAULT_BLINDAI_ADDR}/{tee}"
         connection = connect(
-            addr, hazmat_http_on_unattested_port=True, use_cloud_manifest=True
+            DEFAULT_BLINDAI_ADDR,
+            hazmat_http_on_unattested_port=True,
+            use_cloud_manifest=True,
         )
 
     return connection
@@ -80,7 +81,7 @@ class Audio:
             connection: Optional[BlindAiConnection]
                 The BlindAI connection object. Defaults to None.
             tee: Optional[str]
-                The Trusted Execution Environment to use. Defaults to "sgx".
+                The Trusted Execution Environment to use. Defaults to "sgx". Unused, at the moment.
         Returns:
             Dict:
                 The transcription object containing, text and the tokens
