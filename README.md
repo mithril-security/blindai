@@ -63,11 +63,16 @@
 <!-- ABOUT THE PROJECT -->
 ## 🔒 About The Project
 
-BlindAI facilitates  **privacy-friendly AI model deployment** by letting AI engineers upload and delete models to their secure server instance using our **Python API**. Clients can then connect to the server, upload their data and run models on it without compromising on privacy. 
+BlindAI is an **open-source and easy-to-use Python library** allowing you to query AI models with **assurances that your private data will remain private**.
 
-Data sent by users to the AI model is kept **confidential at all times**. Neither the AI service provider nor the Cloud provider (if applicable), can see the data.
+Data sent by users to the AI model is kept **confidential at all times**. Neither the AI service provider nor the Cloud provider (if applicable), can see the data. 
+Confidentiality is assured by hardware-enforced **Trusted Execution Environments**. We explain how they keep data and models safe in detail [here](docs/concepts/confidential_computing.md).
 
-Confidentiality is assured by hardware-enforced **Trusted Execution Environments**. We explain how they keep data and models safe in detail [here](./docs/docs/concepts/privacy.md).
+There are two main scenarios for BlindAI:
+- **BlindAI**: Using BlindAI to query popular AI models hosted by Mithril Security.
+- **BlindAI.Core**: Using BlindAI's underlying technology to host your own BlindAI server instance to securely deploy your own models.
+
+You can find our more about BlindAI and BlindAI.Core [here](docs/getting-started/blindai_vs_core.md).
 
 ### Built With 
 
@@ -81,6 +86,19 @@ Confidentiality is assured by hardware-enforced **Trusted Execution Environments
 We strongly recommend for you to get started with our [Quick tour](./docs/docs/getting-started/quick-tour.ipynb) to discover BlindAI with a hands-on example using [COVID-Net](https://github.com/lindawangg/COVID-Net).
 
 But here’s a taste of what using BlindAI could look like 🍒
+
+### BlindAI
+
+```py
+transcript = blindai_preview.api.Audio.transcribe(
+    file="patient_104678.wav"
+)
+print(transcript)
+
+The patient is a 55-year old male with known coronary artery disease.
+```
+
+### BlindAI.Core
 
 ### AI company's side
 
@@ -120,7 +138,7 @@ Probability of Covid for positive image is 0.890598714351654
 
 _For more examples, please refer to the [Documentation](https://blindai.mithrilsecurity.io/en/latest/)_
 
-### Installation
+### BlindAI.Core Installation
 
 **🥇 Recommended 🥇**
 
