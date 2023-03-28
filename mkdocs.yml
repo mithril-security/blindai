@@ -105,8 +105,8 @@ nav:
   - Quick tour: 'docs/getting-started/quick-tour.ipynb'
 
 - Tutorials:
-  - BlindAI:
-    - Whisper integration: 'docs/tutorials/api/whisper-audio.ipynb'
+#  - BlindAI:
+#    - Whisper integration: 'docs/tutorials/api/whisper-audio.ipynb'
   - BlindAI Core:
     - Quick tour: 'docs/tutorials/core/quick-tour.ipynb'
     - Installation: 'docs/tutorials/core/installation.md'
