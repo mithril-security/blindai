@@ -163,73 +163,49 @@ missing_deps()
 
 ############## distro deps ##############
 
-get_codename()
+get_selection()
 {
-    if [ -z "${DISTRO_CODENAME}" ] ; then
-        codenames=($(curl -sSL $deb_dists_url | grep -oP  '(?<=HREF=")[^"]+(?=/")' | awk -F'/' '{print $NF}'))
-        codenames+=("Codename not available")
-        echo -e "\n💽 CODENAME"
-        PS3="Please select a codename compatible with your distro: "
-        select codename in "${codenames[@]}"
-        do
-            case $codename in
-                "Codename not available")
-                    echo "Please install SGX drivers manually"
-                    exit 0
-                    ;;
-                *)
-                    if [ ! -z "${codename}" ] ; then
-                        echo "codename selected: $codename"
-                        declare -g distro_codename=$codename
-                        break
-                    else
-                        echo "⚠️  Codename unrecognized" >&2
-                    fi
-                    ;;
-            esac
-        done
-    else
-        declare -g distro_codename=$DISTRO_CODENAME
-    fi
-}
+    local url=$1
+    local sname=$2
+    local gvar=$3
+    local envar=$4
 
-get_distro()
-{
-    # Define from which ubuntu version download the SGX SDK
-    if [ -z "${DISTRO_NAME}" ]; then
-        distros=($(curl -sSL $sgx_distro_url | grep -oP  '(?<=HREF=")[^"]+(?=/")' | awk -F'/' '{print $NF}' | grep ubuntu))
-        distros+=("Distro not available")
-        echo -e "\n💽 DISTRO"
-        PS3="Please select your distro: "
-        select distro in "${distros[@]}"
+    if [ -z "${!envar}" ] ; then
+        options=($(curl -sSL $url | grep -oP  '(?<=HREF=")[^"]+(?=/")' | awk -F'/' '{print $NF}'))
+        options+=("$sname not available")
+        echo -e "\n💽 ${sname^^}"
+        PS3="Please select a compatible option with your system: "
+        select option in "${options[@]}"
         do
-            case $distro in
-                "Distro not available")
+            case $option in
+                "$sname not available")
                     echo "Please install SGX drivers manually"
                     exit 0
                     ;;
                 *)
-                    if [ ! -z "${distro}" ] ; then
-                        echo "distro selected: $distro"
-                        declare -g distro_name=$distro
+                    if [ ! -z "${option}" ] ; then
+                        echo "$sname selected: $option"
+                        declare -g $gvar=$option
                         break
                     else
-                        echo "⚠️  Distro unrecognized" >&2
+                        echo "⚠️  $sname unrecognized" >&2
                     fi
                     ;;
             esac
         done
     else
-        declare -g distro_name=$DISTRO_NAME
+        declare -g $gvar=${!envar}
     fi
 }
 
 install_deb_sgx_drivers()
 {
-    get_codename
+    get_selection $deb_dists_url "codename" distro_codename "DISTRO_CODENAME"
     # Config repository
-    curl -fsSL $deb_repo_key | apt-key add - && \
-        add-apt-repository "deb $deb_repo_url $distro_codename main"
+    if [ ! -f "/etc/apt/sources.list.d/intel-sgx.list" ] ; then
+        echo "deb $deb_repo_url $distro_codename main" | tee /etc/apt/sources.list.d/intel-sgx.list
+        curl -fsSL $deb_repo_key | apt-key add -
+    fi
 
     # Add SGX and DCAP versions to packages
     declare -g sgx_version=$(curl -sSL $sgx_version_url | grep -oP "\d+\.\d+\.\d+\.\d+" | tail -1)
@@ -269,7 +245,7 @@ install_deb_sgx_drivers()
 
 install_sgx_sdk()
 {
-    get_distro
+    get_selection $sgx_distro_url "distro" distro_name "DISTRO_NAME"
     base_bin_url=$sgx_distro_url/$distro_name
     if [ ! -d "/opt/sgxsdk/" ] ; then
         # Intel's Architectural Enclave Service Manager
@@ -292,14 +268,18 @@ install_sgx_sdk()
             LD_LIBRARY_PATH=/opt/sgxsdk/sdk_libs:/usr/lib:/usr/local/lib:/opt/intel/sgx-aesm-service/aesm/
         fi
     else
-        echo "SGX SDK is already installed at /opt/sgxsdk where it also is the uninstall.sh script"
+        echo "✅ SGX SDK is already installed at /opt/sgxsdk where it also is the uninstall.sh script"
     fi
+
+    # SGX objdump binutils
     echo "Downloading $sgx_objdump_url"
     wget $sgx_objdump_url &&
         tar xzf $objdump_name &&
-        echo -e "Installing:\n$(ls external/toolset/${distro_name%-server}/*)" &&
+        echo -e "Installing in /usr/bin:\n$(ls external/toolset/${distro_name%-server}/*)" &&
         cp -r external/toolset/${distro_name%-server}/* /usr/bin/ &&
         rm -rf external $objdump_name
+
+    # DCAP driver
     echo "Downloading DCAP driver..."
     dcap_driver=$(curl -sSL $base_bin_url/driver_readme.txt | grep DCAP | awk '{print $NF}')
     if [ ! -z "${dcap_driver}" ] && [ -z "${NO_DCAP_DRIVER}" ] ; then

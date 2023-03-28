@@ -43,6 +43,8 @@ If you don't want to use docker, you will need to install the following:
       echo 'deb [arch=amd64] https://download.01.org/intel-sgx/sgx_repo/ubuntu bionic main' | sudo tee /etc/apt/sources.list.d/intel-sgx.list
 
       wget -qO - https://download.01.org/intel-sgx/sgx_repo/ubuntu/intel-sgx-deb.key | sudo apt-key add -
+
+      sudo apt-get update
       ```
       ```bash
       declare -a psw_dep=(
@@ -73,7 +75,7 @@ If you don't want to use docker, you will need to install the following:
           libsgx-dcap-quote-verify=1.12.101.1-bionic1
           libsgx-dcap-default-qpl=1.12.101.1-bionic1
       )
-      apt-get install "${psw_dep[@]}"
+      sudo apt-get install "${psw_dep[@]}"
       ```
 
     **Fortanix EDP**
@@ -91,6 +93,8 @@ If you don't want to use docker, you will need to install the following:
       echo 'deb [arch=amd64] https://download.01.org/intel-sgx/sgx_repo/ubuntu focal main' | sudo tee /etc/apt/sources.list.d/intel-sgx.list
 
       wget -qO - https://download.01.org/intel-sgx/sgx_repo/ubuntu/intel-sgx-deb.key | sudo apt-key add -
+
+      sudo apt-get update
       ```
       ```bash
       declare -a psw_dep=(
@@ -121,7 +125,7 @@ If you don't want to use docker, you will need to install the following:
           libsgx-dcap-quote-verify=1.12.101.1-focal1
           libsgx-dcap-default-qpl=1.12.101.1-focal1
       )
-      apt-get install "${psw_dep[@]}"
+      sudo apt-get install "${psw_dep[@]}"
       ```
 
     **Fortanix EDP**
@@ -145,6 +149,8 @@ If you don't want to use docker, you will need to install the following:
       echo 'deb [arch=amd64] https://download.01.org/intel-sgx/sgx_repo/ubuntu focal main' | sudo tee /etc/apt/sources.list.d/intel-sgx.list
 
       wget -qO - https://download.01.org/intel-sgx/sgx_repo/ubuntu/intel-sgx-deb.key | sudo apt-key add -
+
+      sudo apt-get update
       ```
       ```bash
       declare -a psw_dep=(
@@ -175,7 +181,7 @@ If you don't want to use docker, you will need to install the following:
           libsgx-dcap-quote-verify=1.12.101.1-focal1
           libsgx-dcap-default-qpl=1.12.101.1-focal1
       )
-      apt-get install "${psw_dep[@]}"
+      sudo apt-get install "${psw_dep[@]}"
       ```
 
     **Fortanix EDP**
