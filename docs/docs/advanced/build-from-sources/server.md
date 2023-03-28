@@ -39,7 +39,7 @@ You can build the whole project by using our Docker image. We have set up the Do
     ```bash
     docker run --rm <image_name> cat /root/manifest.toml > manifest.toml
     ``` -->
-<!-- 
+<!--
 ### Running
 You can use these images by following the instructions of either the [deploy on premise guide](../../deploy-on-premise.md) or the [cloud deployment guide](../../cloud-deployment.md).
  -->
@@ -55,17 +55,17 @@ Before building the project, some dependencies and service must be up and runnin
 
 The installation of the Intel SDK can be found by following this [link](https://github.com/intel/linux-sgx).
 
-The fortanix EDP dependencies must also be installed. You can check the official fortanix [documentation here](https://edp.fortanix.com/docs/installation/guide/). 
+The fortanix EDP dependencies must also be installed. You can check the official fortanix [documentation here](https://edp.fortanix.com/docs/installation/guide/).
 
-The SGX configuration and services can be viewed using the command : 
+The SGX configuration and services can be viewed using the command :
 
 ```bash
 sgx-detect
 ```
 
-Before running the BlindAi project, some other packages must be installed: 
+Before running the BlindAi project, some other packages must be installed:
 ```bash
-sudo apt install jq
+sudo apt-get install jq
 
 cargo install just
 ```
@@ -78,13 +78,14 @@ cargo install just
     You will need the SGX Default Quote Provider Library as well. This can be installed with this command:
 
     ```bash
-    sudo apt-get install -y software-properties-common 
-    curl -fsSL  https://download.01.org/intel-sgx/sgx_repo/ubuntu/intel-sgx-deb.key | sudo apt-key add - 
+    sudo apt-get install -y software-properties-common
+    curl -fsSL  https://download.01.org/intel-sgx/sgx_repo/ubuntu/intel-sgx-deb.key | sudo apt-key add -
 
-    sudo add-apt-repository "deb https://download.01.org/intel-sgx/sgx_repo/ubuntu $(lsb_release -cs) main" 
+    sudo add-apt-repository "deb https://download.01.org/intel-sgx/sgx_repo/ubuntu $(lsb_release -cs) main"
     sudo apt-get install -y libsgx-dcap-ql-dev libsgx-dcap-default-qpl-dev libsgx-uae-service libsgx-dcap-default-qpl
-    ```    
-    You will also need to install the Provisioning Certificate Caching Service (PCCS) [by following this documentation](https://github.com/intel/SGXDataCenterAttestationPrimitives/blob/master/QuoteGeneration/pccs/README.md) (The PCCS must be installed directly from the Github repo as it is not yet updated by Intel on their repo). During installation, a PCCS Key will be asked. This key is delivered by Intel [here](https://api.portal.trustedservices.intel.com/provisioning-certification). 
+    ```
+
+    You will also need to install the Provisioning Certificate Caching Service (PCCS) [by following this documentation](https://github.com/intel/SGXDataCenterAttestationPrimitives/blob/master/QuoteGeneration/pccs/README.md) (The PCCS must be installed directly from the Github repo as it is not yet updated by Intel on their repo). During installation, a PCCS Key will be asked. This key is delivered by Intel [here](https://api.portal.trustedservices.intel.com/provisioning-certification).
 
     We can clone the BlindAi repo on Github then build the server using the following steps:
 
@@ -92,11 +93,10 @@ cargo install just
     git submodule init
     git submodule update
 
-    cd server
-    just build 
+    just build
 
-    # for generating the manifest file 
-    just generate-manifest-dev 
+    # for generating the manifest file
+    just generate-manifest-dev
     ```
 
 === "Azure DCsv3 VMs mode"
@@ -109,15 +109,13 @@ cargo install just
     sudo apt-get install az-dcap-client
     ln -s /usr/lib/libdcap_quoteprov.so /usr/lib/x86_64-linux-gnu/libdcap_quoteprov.so.1
     ```
-    We can then build the server using : 
+    We can then build the server using :
 
     ```bash
+    just build
 
-    cd server
-    just build 
-
-    # for generating the manifest file 
-    just generate-manifest-dev 
+    # for generating the manifest file
+    just generate-manifest-dev
     ```
 
 The manifest will be generated at the build process and will serve as essential to the remote attestation process:
@@ -134,11 +132,9 @@ Once you are sure to have everything ready, you can run BlindAI.
 
 === "Hardware mode"
 
-    We can run blindai using : 
+    We can run blindai using :
 
     ```bash
-    cd server 
-
     just run
     ```
 
@@ -148,11 +144,9 @@ Once you are sure to have everything ready, you can run BlindAI.
 
 
     ```bash
-    cd server
-
-    BLINDAI_AZURE_DCS3_PATCH=1 just run 
+    BLINDAI_AZURE_DCS3_PATCH=1 just run
     ```
 
 
 !!! info
-    If you have trouble building and installing from source, don't hesitate to open an issue on our github.  
+    If you have trouble building and installing from source, don't hesitate to open an issue on our github.
