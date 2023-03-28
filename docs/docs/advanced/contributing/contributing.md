@@ -134,7 +134,7 @@ This section helps you through the process of opening a pull request and contrib
 	While the prerequisites above must be satisfied prior to having your pull request reviewed, the reviewer(s) may ask you to complete additional work, tests, or other changes before your pull request can be accepted.
 
 ### 🛠️ Setting your local development environment
-You can find detailed explanation of how to install BlindAI in your local machine in the [official documentation](../../getting-started/installation.md).
+You can find detailed explanation of how to install BlindAI in your local machine in the [official documentation](../../tutorials/core/installation.md).
 
 If you encounter any difficulties with that, don't hesitate to reach out to us through [Discord](https://discord.gg/TxEHagpWd4) and ask your questions. 
 
