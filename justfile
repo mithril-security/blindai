@@ -26,7 +26,7 @@ run *args:
     --heap-size 0x4FBA00000 \
     --ssaframesize 1 \
     --stack-size 0x20000 \
-    --threads 20
+    --threads 32
 
   just generate-manifest-dev "$binpath.sgxs" 
   cp manifest.dev.toml client/blindai/manifest.toml
@@ -55,7 +55,7 @@ run-local-management *args:
     --heap-size 0x4FBA00000 \
     --ssaframesize 1 \
     --stack-size 0x20000 \
-    --threads 20
+    --threads 32
 
   just generate-manifest-dev "$binpath.sgxs" 
   cp manifest.dev.toml client/blindai/manifest_cloud.toml
@@ -82,7 +82,7 @@ build *args:
     --heap-size 0x2FBA00000 \
     --ssaframesize 1 \
     --stack-size 0x20000 \
-    --threads 20
+    --threads 32
 
   just generate-manifest-dev "$binpath.sgxs" 
 
@@ -116,7 +116,7 @@ run-simu *args:
     --heap-size 0xFBA00000 \
     --ssaframesize 1 \
     --stack-size 0x40000 \
-    --threads 20
+    --threads 32
 
   just generate-manifest-dev "$binpath.sgxs" 
 
@@ -138,7 +138,7 @@ valgrind *args:
     --heap-size 0x2000000 \
     --ssaframesize 1 \
     --stack-size 0x20000 \
-    --threads 20
+    --threads 32
 
   just generate-manifest-dev "$binpath.sgxs" 
 
