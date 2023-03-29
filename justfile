@@ -26,10 +26,10 @@ run *args:
     --heap-size 0x4FBA00000 \
     --ssaframesize 1 \
     --stack-size 0x20000 \
-    --threads 20
+    --threads 32
 
   just generate-manifest-dev "$binpath.sgxs" 
-  cp manifest.dev.toml client/blindai_preview/manifest.toml
+  cp manifest.dev.toml client/blindai/manifest.toml
 
   just generate-manifest-prod "$binpath.sgxs" 
 
@@ -55,10 +55,10 @@ run-local-management *args:
     --heap-size 0x4FBA00000 \
     --ssaframesize 1 \
     --stack-size 0x20000 \
-    --threads 20
+    --threads 32
 
   just generate-manifest-dev "$binpath.sgxs" 
-  cp manifest.dev.toml client/blindai_preview/manifest_cloud.toml
+  cp manifest.dev.toml client/blindai/manifest_cloud.toml
 
   just generate-manifest-prod "$binpath.sgxs" 
 
@@ -82,7 +82,7 @@ build *args:
     --heap-size 0x2FBA00000 \
     --ssaframesize 1 \
     --stack-size 0x20000 \
-    --threads 20
+    --threads 32
 
   just generate-manifest-dev "$binpath.sgxs" 
 
@@ -116,7 +116,7 @@ run-simu *args:
     --heap-size 0xFBA00000 \
     --ssaframesize 1 \
     --stack-size 0x40000 \
-    --threads 20
+    --threads 32
 
   just generate-manifest-dev "$binpath.sgxs" 
 
@@ -138,7 +138,7 @@ valgrind *args:
     --heap-size 0x2000000 \
     --ssaframesize 1 \
     --stack-size 0x20000 \
-    --threads 20
+    --threads 32
 
   just generate-manifest-dev "$binpath.sgxs" 
 
@@ -213,7 +213,7 @@ test:
     poetry run coverage run --append ../tests/assert_correctness.py "${onnx_files[0]}" "${npz_files[0]}"
   done
   killall runner
-  coverage html --include=blindai_preview/client.py,blindai_preview/utils.py -d coverage_html
+  coverage html --include=blindai/client.py,blindai/utils.py -d coverage_html
   poetry run python -m http.server 8000 --directory coverage_html/
 
 
@@ -242,7 +242,7 @@ release:
   set -x
 
   just build --release
-  cp manifest.prod.toml client/blindai_preview/manifest.toml
+  cp manifest.prod.toml client/blindai/manifest.toml
 
   openssl genrsa -3 3072 > my_key.pem
   sgxs-sign --key my_key.pem  target/x86_64-fortanix-unknown-sgx/release/blindai_server.sgxs   target/x86_64-fortanix-unknown-sgx/release/blindai_server.sig   --xfrm 7/0 --isvprodid 0 --isvsvn 0
