@@ -66,13 +66,13 @@
 BlindAI is an **open-source and easy-to-use Python library** allowing you to query AI models with **assurances that your private data will remain private**.
 
 Data sent by users to the AI model is kept **confidential at all times**. Neither the AI service provider nor the Cloud provider (if applicable), can see the data. 
-Confidentiality is assured by hardware-enforced **Trusted Execution Environments**. We explain how they keep data and models safe in detail [here](docs/concepts/confidential_computing.md).
+Confidentiality is assured by hardware-enforced **Trusted Execution Environments**. We explain how they keep data and models safe in detail [here](https://blindai.mithrilsecurity.io/en/latest/docs/concepts/confidential_computing/).
 
 There are two main scenarios for BlindAI:
 - **BlindAI**: Using BlindAI to query popular AI models hosted by Mithril Security.
 - **BlindAI.Core**: Using BlindAI's underlying technology to host your own BlindAI server instance to securely deploy your own models.
 
-You can find our more about BlindAI and BlindAI.Core [here](docs/getting-started/blindai_vs_core.md).
+You can find our more about BlindAI and BlindAI.Core [here](https://blindai.mithrilsecurity.io/en/latest/docs/getting-started/blindai_vs_core/).
 
 ### Built With 
 
@@ -83,7 +83,7 @@ You can find our more about BlindAI and BlindAI.Core [here](docs/getting-started
 <!-- GETTING STARTED -->
 ## 🚀 Getting Started
 
-We strongly recommend for you to get started with our [Quick tour](./docs/docs/getting-started/quick-tour.ipynb) to discover BlindAI with a hands-on example using [COVID-Net](https://github.com/lindawangg/COVID-Net).
+We strongly recommend for you to get started with our [Quick tour](https://blindai.mithrilsecurity.io/en/latest/docs/getting-started/quick-tour/) to discover BlindAI with a hands-on example using [COVID-Net](https://github.com/lindawangg/COVID-Net).
 
 But here’s a taste of what using BlindAI could look like 🍒
 
@@ -126,8 +126,6 @@ client_1.delete_model(MODEL_ID)
 #### Running a model on confidential data
 
 The client wants to feed their confidential data to the model while protecting it from third-party access. They connect and run the model on the following confidential image.
-
-![](./docs/assets/positive_image.png)
 
 ```py
 pos_ret = client_2.run_model(MODEL_ID, positive)
