@@ -106,8 +106,6 @@ The patient is a 55-year old male with known coronary artery disease.
 
 An AI company AI company want to provide their model as an an easy-to-use service. They upload it to the server, which is assigned a model ID.
 
-![](https://github.com/mithril-security/blindai/blob/main/docs/assets/positive_image.png)
-
 ```py
 response = client_1.upload_model(model="./COVID-Net-CXR-2.onnx")
 MODEL_ID = response.model_id
@@ -128,6 +126,8 @@ client_1.delete_model(MODEL_ID)
 #### Running a model on confidential data
 
 The client wants to feed their confidential data to the model while protecting it from third-party access. They connect and run the model on the following confidential image.
+
+![](https://github.com/mithril-security/blindai/blob/main/docs/assets/positive_image.png)
 
 ```py
 pos_ret = client_2.run_model(MODEL_ID, positive)
