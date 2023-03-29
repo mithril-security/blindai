@@ -1,8 +1,7 @@
 # BlindAI Core: Overview
 ________________________________________
 
-BlindAI Core is the foundation of BlindAI, allowing models to be served with assurances that users' private data will remain private. You can make use of BlindAI.Core to deploy your own models with privacy guarantees for your users.
-
+BlindAI Core is the foundation of BlindAI, allowing models to be served with assurances that users' private data will remain private. We use BlindAI.Core to serve popular AI models, but you can also use it yourself to deploy your own models with privacy guarantees for your users.
 
 ## Workflow
 ____________________________________________________
@@ -34,4 +33,5 @@ ____________________________________________________
 ## Privacy
 ____________________________________________________
 
-Check out our [page on confidential computing](confidential_computing.md) to see how BlindAI.Core protects user data.
+- Check out our [page on confidential computing](confidential_computing.md) to learn more about how BlindAI.Core protects user data.
+- Check out [our guide](verify_blindai.md) on how you can verify some of BlindAI's privacy features. 
