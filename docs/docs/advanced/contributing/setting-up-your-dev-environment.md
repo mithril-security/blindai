@@ -83,7 +83,7 @@ If you don't want to use docker, you will need to install the following:
 
             **Repository setup**
             ```bash
-            echo 'deb [arch=amd64] https://download.01.org/intel-sgx/sgx_repo/ubuntu bionic main' | sudo tee /etc/apt/sources.list.d/intel-sgx.list
+            echo 'deb [arch=amd64] https://download.01.org/intel-sgx/sgx_repo/ubuntu bionic main' | sudo tee -a /etc/apt/sources.list.d/intel-sgx.list
             wget -qO - https://download.01.org/intel-sgx/sgx_repo/ubuntu/intel-sgx-deb.key | sudo apt-key add -
 
             sudo apt-get update
@@ -273,7 +273,7 @@ If you don't want to use docker, you will need to install the following:
             * [libssl1.1](https://packages.ubuntu.com/focal/amd64/libssl1.1/download)
 
             ```bash
-            echo 'deb http://security.ubuntu.com/ubuntu focal-security main' | sudo tee /etc/apt/sources.list.d/ubuntu-security.list
+            echo 'deb http://security.ubuntu.com/ubuntu focal-security main' | sudo tee -a /etc/apt/sources.list.d/ubuntu-security.list
 
             sudo apt-get update
             sudo apt-get install libprotobuf17 libssl1.1
@@ -281,7 +281,7 @@ If you don't want to use docker, you will need to install the following:
 
             **Repository setup**
             ```bash
-            echo 'deb [arch=amd64] https://download.01.org/intel-sgx/sgx_repo/ubuntu focal main' | sudo tee /etc/apt/sources.list.d/intel-sgx.list
+            echo 'deb [arch=amd64] https://download.01.org/intel-sgx/sgx_repo/ubuntu focal main' | sudo tee -a /etc/apt/sources.list.d/intel-sgx.list
             wget -qO - https://download.01.org/intel-sgx/sgx_repo/ubuntu/intel-sgx-deb.key | sudo apt-key add -
 
             sudo apt-get update

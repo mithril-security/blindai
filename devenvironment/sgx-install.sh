@@ -195,16 +195,18 @@ get_selection()
         done
     else
         declare -g $gvar=${!envar}
+        echo "$sname selected: ${!envar}"
     fi
 }
 
-install_deb_sgx_drivers()
+install_deb_sgx_psw()
 {
     get_selection $deb_dists_url "codename" distro_codename "DISTRO_CODENAME"
     # Config repository
     if [ ! -f "/etc/apt/sources.list.d/intel-sgx.list" ] ; then
-        echo "deb $deb_repo_url $distro_codename main" | tee /etc/apt/sources.list.d/intel-sgx.list
+        echo "deb $deb_repo_url $distro_codename main" | tee -a /etc/apt/sources.list.d/intel-sgx.list
         curl -fsSL $deb_repo_key | apt-key add -
+        apt-get update
     fi
 
     # Add SGX and DCAP versions to packages
@@ -217,26 +219,34 @@ install_deb_sgx_drivers()
     for ver in "${!deb_deps_sgx[@]}"
     do
         sgx_suffix=$(apt-cache policy "${deb_deps_sgx[$ver]}" | grep "$sgx_version.*$distro_codename" | awk '{print $1}')
-        if [[ "${sgx_suffix}" != *"Installed"* ]] ; then
+        if [[ "${sgx_suffix}" == *"$sgx_version"* ]] ; then
             deb_deps_sgx[$ver]="${deb_deps_sgx[$ver]}=${sgx_suffix}"
             echo "- ${deb_deps_sgx[$ver]}"
-        else
+        elif [[ "${sgx_suffix}" == *"Installed"* ]] ; then
+            echo "- ${deb_deps_sgx[$ver]} Installed"
             deb_deps_sgx[$ver]=""
+        else
+            echo "[⚠️ ] Error: Could not find $sgx_version-${distro_codename}1 version" >&2
+            exit 1
         fi
     done
     # DCAP dependencies
     for ver in "${!deb_deps_dcap[@]}"
     do
         dcap_suffix=$(apt-cache policy "${deb_deps_dcap[$ver]}" | grep "$dcap_version.*$distro_codename" | awk '{print $1}')
-        if [[ "${dcap_suffix}" != *"Installed"* ]] ; then
+        if [[ "${dcap_suffix}" == *"$dcap_version"* ]] ; then
             deb_deps_dcap[$ver]="${deb_deps_dcap[$ver]}=${dcap_suffix}"
             echo "- ${deb_deps_dcap[$ver]}"
-        else
+        elif [[ "${dcap_suffix}" == *"Installed"* ]] ; then
+            echo "- ${deb_deps_dcap[$ver]} Installed"
             deb_deps_dcap[$ver]=""
+        else
+            echo "[⚠️ ] Error: Could not find $dcap_version-${distro_codename}1 version" >&2
+            exit 1
         fi
     done
 
-    # Install sgx drivers
+    # Install SGX PSW
     echo "Installing ${deb_deps_sgx[@]} ${deb_deps_dcap[@]}"
     apt-get -y --allow-downgrades install "${deb_deps_sgx[@]}" "${deb_deps_dcap[@]}"
     EXIT_STATUS=$?
@@ -302,7 +312,7 @@ install_deb_deps()
     check_sgx
     sgx_support=$?
     if [ $sgx_support -eq 1 ] || [ ! -z "${SGX_SIM}" ] ; then
-        install_deb_sgx_drivers
+        install_deb_sgx_psw
         install_sgx_sdk
     fi
     rm_temp_deps
