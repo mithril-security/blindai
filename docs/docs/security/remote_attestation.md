@@ -24,7 +24,7 @@ The intel SGX platform provides us with the necessary measurements and functions
 ### Instruction needed & structures
 __________________________________________
 
-The instruction set for intel SGX defines 18 different instructions. The isntructions that are used in the remote attestation are: `EGETKEY` and `EREPORT`. 
+The instruction set for intel SGX defines 18 different instructions. The instructions that are used in the remote attestation are: `EGETKEY` and `EREPORT`. 
 The structures that will be used on the remote attestation are `TARGETINFO` & `REPORT`. 
 
 ### Measurement 
@@ -34,8 +34,8 @@ The measurement represents the enclave's signature. In the design of the quote (
 - Measurement of the code and data in the enclave. 
 - A hash of the public key in the ISV (independent software vendor) certificate presented at enclave initialization time. 
 - The Product ID and the Security Version Number (SVN) of the enclave. 
-- Attributes of the enclave (defining if it is in debug moded for instance).
-- 64 bytes of user data included in the reportdata of the `REPORT`. 
+- Attributes of the enclave (defining if it is in debug mode for instance).
+- 64 bytes of user data included in the `REPORTDATA` of the `REPORT`. 
 
 
 Quote's information : `MRENCLAVE`, `REPORT`, `MRSIGNER`
@@ -57,7 +57,7 @@ The quote verification part, is the generation of the quote verification collate
 ### Quote generation 
 After initiating the AESM client, the ECDSA Attestation Key is retrieved by contacting the AESM service. We then use this ECDSA Key to generate the `TARGETINFO` structure. This structure is generated from the QE (Quoting Enclave) using the returned ECDSA key and always through the AESM service. 
 
-The targetinfo is then sent to the enclave to use it to generate the `REPORT`. In fact, using the `EREPORT` instruction, and with the `TARGETINFO` passed on, we generate the `REPORT` structure that will be then used to generate the quote. 
+The `TARGETINFO` is then sent to the enclave to use it to generate the `REPORT`. In fact, using the `EREPORT` instruction, and with the `TARGETINFO` passed on, we generate the `REPORT` structure that will be then used to generate the quote. 
 
 To be able to sign the `REPORT` to obtain to quote, the quoting enclave must be used again. The return is a success if the `REPORT` is valid and generated with the right `TARGETINFO`. 
 
@@ -109,12 +109,12 @@ After receiving the quote and the collateral from the server, the client then ve
 The sequence diagram below illustrate the different steps taken to establish the remote attestation and the secure connection between the client and the server.
 
 
-## Remote attestation in fortanix (Server-side)
+## Remote attestation in Fortanix (Server-side)
 __________________________________________
 
-Our implementation in *fortanix EDP* relies on AESM (Application Enclave Service Manager) to manage the architectural enclaves (LE, PvE, PcE, QE, PSE). The AESM service makes it possible to communicate with the architectural enclaves from the application enclave [3].  
+Our implementation in *Fortanix EDP* relies on AESM (Application Enclave Service Manager) to manage the architectural enclaves (LE, PvE, PcE, QE, PSE). The AESM service makes it possible to communicate with the architectural enclaves from the application enclave [3].  
 
-_**to review**_ : Currently AESM is binded to the host's. We have to see how we can use it with future kubernetes deployements. Questions : What happens it multiple AESM services are run in the same time? is it possible to have multiple architectural enclaves in the same time ? 
+_**to review**_ : Currently AESM is bound to the host's. We have to see how we can use it with future kubernetes deployments. Questions : What happens it multiple AESM services are run in the same time? is it possible to have multiple architectural enclaves in the same time ? 
 
 ### Quote generation
 
@@ -122,7 +122,7 @@ The quote generation begins by generating an AESM client using the `aesm_client`
 
 We then call to the `get_supported_att_key_ids` method to get the ECDSA attestation key. This method is a rewrite of the official intel sgx function `sgx_get_supported_att_key_ids` as defined in [9]. 
 
-Also to contact the AESM, the fortanix EDP defines protobuf messages that tries to contact the service, otherwise in which case it returns an error with the error code (more information here : [*https://github.com/fortanix/rust-sgx/blob/64100155aa8e0e9379fd66c6128e6f1605442e75/intel-sgx/aesm-client/src/imp/aesm_protobuf/mod.rs*](https://github.com/fortanix/rust-sgx/blob/64100155aa8e0e9379fd66c6128e6f1605442e75/intel-sgx/aesm-client/src/imp/aesm_protobuf/mod.rs)). 
+Also to contact the AESM, the Fortanix EDP defines protobuf messages that tries to contact the service, otherwise in which case it returns an error with the error code (more information here : [*https://github.com/Fortanix/rust-sgx/blob/64100155aa8e0e9379fd66c6128e6f1605442e75/intel-sgx/aesm-client/src/imp/aesm_protobuf/mod.rs*](https://github.com/Fortanix/rust-sgx/blob/64100155aa8e0e9379fd66c6128e6f1605442e75/intel-sgx/aesm-client/src/imp/aesm_protobuf/mod.rs)). 
 
 From the resulted array, we extract the ECDSA attestation key, identified by the constant `const SGX_QL_ALG_ECDSA_P256 : u32 = 2;` (As defined in the quote generation DCAP enum here : [*https://github.com/intel/SGXDataCenterAttestationPrimitives/blob/master/QuoteGeneration/quote_wrapper/common/inc/sgx_quote_3.h*](https://github.com/intel/SGXDataCenterAttestationPrimitives/blob/master/QuoteGeneration/quote_wrapper/common/inc/sgx_quote_3.h)). The initialization of the runner context completes with the `init_quote_ex` function which, given the attestation key, returns the target info. 
 
@@ -135,7 +135,7 @@ The last step in the generation is performed with the `get_quote` method where, 
 
 ### Quote verification collateral 
 
-The quote verification collateral is not done on the fortanix EDP. 
+The quote verification collateral is not done on the Fortanix EDP. 
 The overall goal was to be able to link DCAP functions to our code. These specific functions are `sgx_ql_get_quote_verification_collateral`, for the collateral, and  `sgx_ql_free_quote_verification_collateral` to free memory when the desired operations are done. These functions request the PCCS service to retrieve the PCK certificates necessary when not already cached. 
 
 

@@ -13,7 +13,7 @@ Cloud deployment offers users **ease-of-use** and a **wide offer of AI models** 
 
 Users with sensitive data may instead turn to on-premise or on-device deployment as a more privacy-friendly alternative to Cloud deployment, but this **increased privacy** comes at a **great cost** in terms of ease-of-use. 
 - On-premise deployment requires on-site expertise that is not available to many companies.
-- AI models storage space and power are limited by on-site hardware (on-premise deployement) or user devices (on-device deployment).
+- AI models storage space and power are limited by on-site hardware (on-premise deployment) or user devices (on-device deployment).
 - AI models need to be embedded in the application distributed to the client, putting them at risk of being stolen in on-device solutions.
 
 **BlindAI** offers the best of both worlds: the **ease-of-use** and **wide offer** of Cloud deployment with the **increased privacy** of on-premise and on-device solutions. We take advantage of the power of confidential computing, and more specifically Intel Software Guard Extension (**Intel SGX**), to enable user data to be processed remotely without the risk of unauthorized access or tampering.

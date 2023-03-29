@@ -55,7 +55,7 @@ Before building the project, some dependencies and service must be up and runnin
 
 The installation of the Intel SDK can be found by following this [link](https://github.com/intel/linux-sgx).
 
-The fortanix EDP dependencies must also be installed. You can check the official fortanix [documentation here](https://edp.fortanix.com/docs/installation/guide/). 
+The Fortanix EDP dependencies must also be installed. You can check the official Fortanix [documentation here](https://edp.fortanix.com/docs/installation/guide/). 
 
 The SGX configuration and services can be viewed using the command : 
 
