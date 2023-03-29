@@ -675,3 +675,28 @@ test-docker-image:
             && cd tests \
             && bash run_all_end_to_end_tests.sh
     END
+
+# dev-bento-docker-image:
+#     # We use the same docker image as the production client to test
+#     # the bento api.
+#     FROM +dev-image-poetry
+
+#     # This docker-compose file used to pull the bento server image from the 
+#     # private registry.
+#     COPY docker-compose.yml .
+
+#     # Copy test_bento_api.py to the docker image
+#     COPY tests/audio/test_bento_api.py .
+
+#     # # We need to install the client wheel in the docker image
+#     # COPY +build-release-client/dist/*.whl ./
+#     # RUN cd client && poetry run pip install  ../*.whl
+
+#     WITH DOCKER --compose docker-compose.yml
+#         RUN docker run -d -p 127.0.0.1:3000:3000 registry.mithrilsecurity.io/bento-dev/test-bento-server:latest && \
+#             while [ -z "$(lsof -i | grep -E "3000" | awk -F':' '{print $2}' | awk '{print $1}')" ]; \
+#             do \
+#                 sleep 5; \
+#             done \
+#             && poetry run python test_bento_api.py
+#     END

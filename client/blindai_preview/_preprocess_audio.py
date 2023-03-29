@@ -7,6 +7,33 @@ import multiprocessing
 import numpy as np
 import cbor2 as cbor
 import tempfile
+from contextlib import contextmanager
+import shutil
+import sys
+import uuid
+
+
+@contextmanager
+def tempdir():
+    """
+    This tempdir context manager was from this website:
+    https://stackoverflow.com/questions/21257782/how-to-remove-file-when-program-exits
+
+    It creates a tempory directory to house all intermediate audio conversions.
+
+    Returns:
+        str:
+            Temp directory path
+    """
+    dir = tempfile.mkdtemp("blindai-whisper")
+    try:
+        yield dir
+    finally:
+        try:
+            shutil.rmtree(dir)
+        except IOError:
+            sys.stderr.write("Failed to clean up temp dir {}".format(dir))
+
 
 """
 This is how I would normally do it:
@@ -38,32 +65,35 @@ def load_audio(data: Union[str, bytes]) -> np.array:
         conn.send(data)
 
     def ffmpeg_reader(conn, queue):
-        output = conn.recv()
-        # Unpickle the data
-        output = cbor.loads(output)
+        with tempdir() as base_dir:
+            output = conn.recv()
+            # Unpickle the data
+            output = cbor.loads(output)
 
-        temp_file = os.path.join(tempfile.gettempdir(), "temp.wav")
+            temp_file = os.path.join(base_dir, f"{uuid.uuid4()}-blindai.wav")
 
-        with wave.open(temp_file, "wb") as f:
-            f.setparams(
-                (
-                    output["nchannels"],
-                    output["sampwidth"],
-                    output["framerate"],
-                    output["nframes"],
-                    output["comptype"],
-                    output["compname"],
+            with wave.open(temp_file, "wb") as f:
+                f.setparams(
+                    (
+                        output["nchannels"],
+                        output["sampwidth"],
+                        output["framerate"],
+                        output["nframes"],
+                        output["comptype"],
+                        output["compname"],
+                    )
+                )
+                f.writeframes(output["frames"])
+            out, _ = (
+                ffmpeg.input(temp_file)
+                .output("-", format="s16le", acodec="pcm_s16le", ac=1, ar=16000)
+                .run(
+                    cmd=["ffmpeg", "-nostdin"], capture_stdout=True, capture_stderr=True
                 )
             )
-            f.writeframes(output["frames"])
-        out, _ = (
-            ffmpeg.input(temp_file)
-            .output("-", format="s16le", acodec="pcm_s16le", ac=1, ar=16000)
-            .run(cmd=["ffmpeg", "-nostdin"], capture_stdout=True, capture_stderr=True)
-        )
-        out = np.frombuffer(out, np.int16).flatten().astype(np.float32) / 32768.0
+            out = np.frombuffer(out, np.int16).flatten().astype(np.float32) / 32768.0
 
-        queue.put(out)
+            queue.put(out)
 
     conn1, conn2 = multiprocessing.Pipe(True)
     queue: multiprocessing.Queue = multiprocessing.Queue()

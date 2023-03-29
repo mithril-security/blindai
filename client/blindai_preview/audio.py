@@ -1,12 +1,27 @@
 import whisper
-from typing import Optional, Union
+from typing import Optional, Union, Tuple
 from .utils import fetch_whisper_tiny_20_tokens
 from .client import BlindAiConnection, connect
 from transformers import WhisperProcessor
 import torch
 from ._preprocess_audio import load_audio
+from ._whisper_params import WhisperParams
+from urllib3 import encode_multipart_formdata
+import requests
+import os
+from io import BytesIO
+import numpy as np
 
 DEFAULT_BLINDAI_ADDR = "https://mithrilsecurity/blindai/"
+
+# Urls
+SGX_BLINDAI_ADDR = f"{DEFAULT_BLINDAI_ADDR}/sgx"
+NITRO_BLINDAI_ADDR = (
+    "http://localhost:3000"
+    if os.environ.get("BLINAI_SIMULATION_MODE")
+    else f"{DEFAULT_BLINDAI_ADDR}/nitro"
+)
+
 DEFAULT_WHISPER_MODEL = "tiny.en"
 DEFAULT_TEE_OPTIONS = ["sgx", "nitro"]
 DEFAULT_TEE = "sgx"
@@ -36,9 +51,7 @@ def _preprocess_audio(file: Union[str, bytes]) -> torch.Tensor:
     return whisper.log_mel_spectrogram(audio).unsqueeze(0)
 
 
-def _get_connection(
-    connection: Optional["BlindAiConnection"], tee: Optional[str]
-) -> "BlindAiConnection":
+def _get_connection(connection: Optional["BlindAiConnection"]) -> "BlindAiConnection":
     """
     Get the BlindAI connection object.
 
@@ -51,7 +64,7 @@ def _get_connection(
             The BlindAI connection object
     """
     if connection is None:
-        addr = f"{DEFAULT_BLINDAI_ADDR}/{tee}"
+        addr = f"{SGX_BLINDAI_ADDR}"
         connection = connect(
             addr, hazmat_http_on_unattested_port=True, use_cloud_manifest=True
         )
@@ -89,25 +102,63 @@ class Audio:
         # Check which TEE to use
         if tee not in DEFAULT_TEE_OPTIONS:
             raise ValueError(f"tee must be one of {DEFAULT_TEE_OPTIONS}")
+        elif tee == "sgx":
+            return use_sgx(connection=connection, file=file)
+        else:
+            return use_nitro(file)
 
+
+def use_sgx(connection: Optional["BlindAiConnection"], file: Union[str, bytes]) -> str:
+    # Get BlindAI connection object
+    with _get_connection(connection) as conn:
         # Preprocess audio file
         input_mel = _preprocess_audio(file)
 
-        # Get BlindAI connection object
-        with _get_connection(connection, tee) as conn:
-            # Run ONNX model with `input_array` on BlindAI server
-            res = conn.run_model(model_hash=DEFAULT_MODEL_HASH, input_tensors=input_mel)
+        # Run ONNX model with `input_array` on BlindAI server
+        res = conn.run_model(model_hash=DEFAULT_MODEL_HASH, input_tensors=input_mel)
 
-            # Convert each output BlindAI Tensor object into PyTorch Tensor
-            res = [t.as_torch() for t in res.output]  # type: ignore
+        # Convert each output BlindAI Tensor object into PyTorch Tensor
+        res = [t.as_torch() for t in res.output]  # type: ignore
 
-            # Load the Whisper Transformer object.
-            tokenizer = WhisperProcessor.from_pretrained(DEFAULT_TRANSFORMER)
+        # Load the Whisper Transformer object.
+        tokenizer = WhisperProcessor.from_pretrained(DEFAULT_TRANSFORMER)
 
-            # Extract tokens from result
-            tokens = res[0][0].numpy()  # type: ignore
+        # Extract tokens from result
+        tokens = res[0][0].numpy()  # type: ignore
 
-            # Use transform to decode tokens
-            text = tokenizer.batch_decode(tokens, skip_special_tokens=True).pop()
+        # Use transform to decode tokens
+        text = tokenizer.batch_decode(tokens, skip_special_tokens=True).pop()
 
-            return text
+        return text
+
+
+def use_nitro(file: Union[str, bytes], sample_rate: int = 16000) -> str:
+    # Use `load_audio` to convert audio into numpy
+    array = load_audio(file)
+
+    # Buffer to store the `numpy.Array` returned by the `load_audio` method.
+    buff = BytesIO()
+
+    # Converts array in bytes.
+    np.save(buff, array)
+
+    # Move to the beginning of the buffer
+    buff.seek(0)
+
+    file = os.path.basename(file) if isinstance(file, str) else "blindai-whisper.wav"
+
+    # Post request body for BlindAI bento instance
+    fields = dict(
+        audio=(file, buff.read(), "application/octet-stream"),
+        params=WhisperParams(sample_rate=sample_rate).json(),
+    )
+
+    # Convert fields into `requests multipart/form-data`
+    body, header = encode_multipart_formdata(fields=fields)
+
+    # Make request to Nitro enclave running Bento running the Whisper model
+    return requests.post(
+        f"{NITRO_BLINDAI_ADDR}/transcribe",
+        headers={"Content-Type": header},
+        data=body,
+    ).text
