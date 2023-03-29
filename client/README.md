@@ -106,6 +106,8 @@ The patient is a 55-year old male with known coronary artery disease.
 
 An AI company AI company want to provide their model as an an easy-to-use service. They upload it to the server, which is assigned a model ID.
 
+![](https://github.com/mithril-security/blindai/blob/main/docs/assets/positive_image.png)
+
 ```py
 response = client_1.upload_model(model="./COVID-Net-CXR-2.onnx")
 MODEL_ID = response.model_id
