@@ -1,4 +1,4 @@
-from blindai_preview import core, api
+from blindai import core, api
 import os
 
 # blindai code

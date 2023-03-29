@@ -1,6 +1,5 @@
 import whisper
-from typing import Optional, Union, Tuple
-from .utils import fetch_whisper_tiny_20_tokens
+from typing import Optional, Union
 from .client import BlindAiConnection, connect
 from transformers import WhisperProcessor
 import torch
@@ -12,10 +11,13 @@ import os
 from io import BytesIO
 import numpy as np
 
-DEFAULT_BLINDAI_ADDR = "https://mithrilsecurity/blindai/"
-
+DEFAULT_BLINDAI_ADDR = "4.246.205.63"
 # Urls
-SGX_BLINDAI_ADDR = f"{DEFAULT_BLINDAI_ADDR}/sgx"
+SGX_BLINDAI_ADDR = (
+    "localhost"
+    if os.environ.get("BLINAI_SIMULATION_MODE")
+    else f"{DEFAULT_BLINDAI_ADDR}"
+)
 NITRO_BLINDAI_ADDR = (
     "http://localhost:3000"
     if os.environ.get("BLINAI_SIMULATION_MODE")
@@ -64,9 +66,10 @@ def _get_connection(connection: Optional["BlindAiConnection"]) -> "BlindAiConnec
             The BlindAI connection object
     """
     if connection is None:
-        addr = f"{SGX_BLINDAI_ADDR}"
         connection = connect(
-            addr, hazmat_http_on_unattested_port=True, use_cloud_manifest=True
+            SGX_BLINDAI_ADDR,
+            hazmat_http_on_unattested_port=True,
+            use_cloud_manifest=True,
         )
 
     return connection
@@ -93,7 +96,7 @@ class Audio:
             connection: Optional[BlindAiConnection]
                 The BlindAI connection object. Defaults to None.
             tee: Optional[str]
-                The Trusted Execution Environment to use. Defaults to "sgx".
+                The Trusted Execution Environment to use. Defaults to "sgx". Unused, at the moment.
         Returns:
             Dict:
                 The transcription object containing, text and the tokens
