@@ -2,7 +2,8 @@
 ________________________________________________________
 
 <font size="5"><span style="font-weight: 200">
-An AI model deployment solution which ensures users' data remains private every step of the way.</font></span>
+An AI data privacy solution, allowing users to query popular AI models or serve their own models whilst ensuring that users' data remains private every step of the way.
+</font></span>
 
 ## What is BlindAI?
 ________________________________________________________
@@ -57,7 +58,7 @@ ____________________________________________
 
 - [Security](./docs/security/remote_attestation/) guides contain technical information for security engineers. They explain the threat models and other cybersecurity topics required to audit BlindAI's security standards.
 
-- [Advanced](./docs/advanced/build-from-sources/client/) guides are destined to developpers wanting to dive deep into BlindAI and eventually collaborate with us to the open-source code. 
+- [Advanced](./docs/advanced/build-from-sources/client/) guides are destined to developers wanting to dive deep into BlindAI and eventually collaborate with us to the open-source code. 
 
 ## Who made BlindAI?
 

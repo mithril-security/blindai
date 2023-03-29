@@ -1,16 +1,16 @@
 # Threat model
 __________________________________________
 
-This document provides the threat model for **BlindAI using the Intel SGX platform and fortanix EDP**. 
+This document provides the threat model for **BlindAI using the Intel SGX platform and Fortanix EDP**. 
 
 ## Target Evaluation 
 __________________________________________
 
-In this threat model, the target of evaluation is the BlindAI code (using the fortanix EDP), server side **(TC1)** and client side **(TC2)**, the fortanix EDP platform **(TC3)**, the Intel SGX platform **(TC4)**, the SDK and software related to SGX DCAP (which includes AESM, the PCCS service and the intel-sgx SDK) **(TC5)**. 
+In this threat model, the target of evaluation is the BlindAI code (using the Fortanix EDP), server side **(TC1)** and client side **(TC2)**, the Fortanix EDP platform **(TC3)**, the Intel SGX platform **(TC4)**, the SDK and software related to SGX DCAP (which includes AESM, the PCCS service and the intel-sgx SDK) **(TC5)**. 
 *TC for target component notation*.
 
 BlindAI can originally be configured in a simulated or hardware enabled mode. 
-We consider the latter in this assesment as it is the mode that will be used in production. 
+We consider the latter in this assessment as it is the mode that will be used in production. 
 To achieve that configuration, we make the following assumptions :
 
 - The images must be ran on an compatible SGX2 platform supporting ECDSA-attestation
@@ -49,7 +49,7 @@ The figure below shows a high-level data flow diagram for the BlindAI app. The d
 ## Threat Analysis 
 __________________________________________
 
-In this section we provide an assessment of the potential threats to the BlindAI app while indentifying the different dependencies used and possible vectors of foothold. 
+In this section we provide an assessment of the potential threats to the BlindAI app while identifying the different dependencies used and possible vectors of foothold. 
 
 For each threat, we identify the *asset* that is under threat, the *threat agent*, and the *threat type*. 
 
@@ -60,7 +60,7 @@ Each threat is also given a *risk rating* that represent the impact and likeliho
 
 | Asset | Description |
 | ----- | ----------- |
-| ***Sensitive Data*** | These include the sensitive data that an attacker must be able to tamper with *(e.g. Root of trust Public Key, certificates)*, see *(e.g. degugging information)* or extract *(e.g. private keys)*. |
+| ***Sensitive Data*** | These include the sensitive data that an attacker must be able to tamper with *(e.g. Root of trust Public Key, certificates)*, see *(e.g. debugging information)* or extract *(e.g. private keys)*. |
 | ***User Data*** |   These include the user data that are sent from the client to the server to be processed by a verified SGX enclave. |
 | ***Model*** | It represents the model uploaded by the user in the server to be used |
 | ***Code Execution*** | This represents the requirement that the platform should run only BlindAI code inside the enclave. |
@@ -93,8 +93,8 @@ For each threat identified, a risk rating that ranges from *informational* to *c
 | Critical (5)      | Extreme impact if exploited. | Threat is almost likely to be exploited. Knowledge of the threat is publicly known. 
 | High (4)          | Major impact if exploited. | Threat relatively easy to detect and exploit by an attacker with little skill.| 
 | Medium (3)        | Noticeable impact if exploited. | A knowledgeable insider or expert attacker could exploit the threat without much difficulty. | 
-| Low (2)           |  Minor impact if exploited. Must be used with other vulnerabilities to be impactful. | Exploiting the threat requires expertise and ressources and can not be easily performed (no predefined method available). |
-| Informational (1) | Programming practice or design decision that may not represent an immediate risk, but may have security implications if combined with other threats. | Threat is not likely to be exploit (or atleast on it's own). May be used to gain information for another threat. | 
+| Low (2)           |  Minor impact if exploited. Must be used with other vulnerabilities to be impactful. | Exploiting the threat requires expertise and resources and can not be easily performed (no predefined method available). |
+| Informational (1) | Programming practice or design decision that may not represent an immediate risk, but may have security implications if combined with other threats. | Threat is not likely to be exploit (or at least on it's own). May be used to gain information for another threat. | 
 
 From the standard risk assessment level documentation, the below table represents the aggregated risk scores calculated by multiplying the impact with the likelihood. 
 ` risk = impact * likelihood`

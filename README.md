@@ -21,7 +21,7 @@
 [![LinkedIn][linkedin-shield]][linkedin-url]
 
   <p align="center">
-    <b>BlindAI</b> is an <b>AI inference server</b> with an <b>added privacy layer</b>, protecting the data sent to models.
+    <b>BlindAI</b> is an <b>AI privacy solution</b>, allowing users to query popular AI models or serve their own models whilst ensuring that users' data remains private every step of the way.
 	<br /><br />
     <a href="https://blindai.mithrilsecurity.io/en/latest"><strong>Explore the docs »</strong></a>
     <br />
@@ -90,7 +90,7 @@ But here’s a taste of what using BlindAI could look like 🍒
 ### BlindAI
 
 ```py
-transcript = blindai_preview.api.Audio.transcribe(
+transcript = blindai.api.Audio.transcribe(
     file="patient_104678.wav"
 )
 print(transcript)
