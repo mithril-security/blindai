@@ -57,7 +57,7 @@ ____________________________________________
 
 - [Security](./docs/security/remote_attestation/) guides contain technical information for security engineers. They explain the threat models and other cybersecurity topics required to audit BlindAI's security standards.
 
-- [Advanced](./docs/advanced/build-from-sources/client/) guides are destined to developpers wanting to dive deep into BlindAI and eventually collaborate with us to the open-source code. 
+- [Advanced](./docs/advanced/build-from-sources/client/) guides are destined to developers wanting to dive deep into BlindAI and eventually collaborate with us to the open-source code. 
 
 ## Who made BlindAI?
 
