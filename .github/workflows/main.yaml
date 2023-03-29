@@ -61,6 +61,7 @@ jobs:
         export EARTHLY_CONFIG=".earthly/config.yml"
         ./earthly \
           --secret API_TOKEN_PYPI=${{ secrets.API_TOKEN_PYPI }} \
+          --secret PCCS_KEY=${{ secrets.PCCS_KEY }} \
           --push +publish \
           --TAG="$VERSION_TAG"
 
