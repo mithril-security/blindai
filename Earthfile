@@ -671,7 +671,7 @@ test-docker-image:
             --mount type=bind,source=/dev/sgx,target=/dev/sgx \
             -v /var/run/aesmd/aesm.socket:/var/run/aesmd/aesm.socket \
             blindai-docker:latest /root/start.sh $PCCS_KEY & \
-            sleep 60 \
+            sleep 90 \
             && cd tests \
             && bash run_all_end_to_end_tests.sh
     END
