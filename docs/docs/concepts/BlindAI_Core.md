@@ -30,8 +30,22 @@ ____________________________________________________
 * BlindAI does not cover training or federated learning, however you can check our [roadmap](https://github.com/mithril-security/blindai/projects/1) or [Discord](https://discord.gg/TxEHagpWd4) channel to know more about what we are working on and solutions.
 * The **examples** we provide in our documentation are simple and do not take into account complex mechanisms such as secure storage of confidential data with sealing keys, an advanced scheduler for inference requests, or complex key management scenarios. If your use case involves more than what we show, do not hesitate to **contact us** for more information.
 
-## Privacy
-____________________________________________________
+### Privacy
 
 - Check out our [page on confidential computing](confidential_computing.md) to learn more about how BlindAI.Core protects user data.
 - Check out [our guide](verify_blindai.md) on how you can verify some of BlindAI's privacy features. 
+
+### How to verify BlindAI's security features
+
+In the infosec industry, we often see companies producing softwares that may sound great, but clients have no way to verify the security assurances made by these companies.
+
+On top of this, dense technical explanations can exclude some clients without in-house security experts from being able to fully understand these products.
+
+At Mithril, we want the technologies behind BlindAI to be as understandable and transparent as possible, which is why:
+
+- Our source code is `open source`- you can inspect the code yourself on our [GitHub page](https://github.com/mithril-security/blindai).
+- We aim to provide clear explanations of the technologies behind BlindAI for users from various tech backgrounds. For example, we provide [an introduction to confidential computing ](confidential_computing.md) explaining key concepts behind BlindAI, whilst also providing more advanced security explanations in our [security section](../security/remote_attestation.md).
+
+In addition to this, we have created [a guide](../advanced/verify_blindai.md) which will walk you through how you can verify one of our security features yourself!
+
+The feature in question is the verification that the application code has not been modified during the attestation process. We explain what this feature is and how it works [here](confidential_computing.md)
