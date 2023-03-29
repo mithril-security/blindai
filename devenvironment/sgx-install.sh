@@ -270,12 +270,13 @@ install_sgx_sdk()
         chmod u+x $sdkbin
         echo -e 'no\n/opt' | ./$sdkbin
         rm $sdkbin
-        inenv=$(grep 'source /opt/sgxsdk/environment' /etc/environment)
-        if [ -z "${inenv}" ] ; then
-            echo 'source /opt/sgxsdk/environment' >> /etc/environment
-        fi
+        export SGX_SDK=/opt/sgxsdk
+        export PATH=$PATH:$SGX_SDK/bin:$SGX_SDK/bin/x64
+        export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:$SGX_SDK/pkgconfig
         if [ -z "${LD_LIBRARY_PATH}" ] ; then
-            LD_LIBRARY_PATH=/opt/sgxsdk/sdk_libs:/usr/lib:/usr/local/lib:/opt/intel/sgx-aesm-service/aesm/
+            export LD_LIBRARY_PATH=/usr/lib:/usr/local/lib:/opt/sgxsdk/sdk_libs:/opt/intel/sgx-aesm-service/aesm
+        else
+            export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/sgxsdk/sdk_libs:/opt/intel/sgx-aesm-service/aesm
         fi
     else
         echo "✅ SGX SDK is already installed at /opt/sgxsdk where it also is the uninstall.sh script"
