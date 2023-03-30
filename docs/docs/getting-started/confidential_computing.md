@@ -35,21 +35,23 @@ In the case of Intel SGX used by BlindAI Core, we are able to verify that this i
 
 ### So how does attestation work?
 
-On building the enclave, a policy file is created containing a hash of the enclave itself, the application code inside it, its settings and configuration, authorized instructions, etc.
-The user first contacts the application on the unattested port outside of the enclave, triggering an attestation request.
-The enclave will generate a public and private TLS key pair. The private key is stored securely in the enclave and cannot be viewed or accessed by anyone, thanks to the hardware isolation mentioned earlier.
-An attestation report is created containing the policy file and the public TLS key so that the client can set up a communication channel if the attestation is successfully completed. It is signed with a key derived from tamper-proof hardware. This means that the party hosting the enclave cannot fake such reports.
-The hardware vendor verifies the signature against the list of CPUs they sold with their corresponding keys. If the enclave can be verified by the vendor, they also sign the attestation report.
-The client verifies that the report is signed by the hardware provider. 
-The client will also verify that the application code is as expected by checking the attestation report against their copy of the policy file. For example, the BlindAI Core and API clients have built-in copies of the policy files for the latest official version of BlindAI. If the application code has been tampered with before being launched, it would not match with the client’s policy file and the client would not be able to connect with the enclave.
-Now that the attestation process has been successfully completed, the client can now use the enclave’s public TLS key to communicate with the enclave.
+- On building the enclave, a policy file is created containing a hash of the enclave itself, the application code inside it, its settings and configuration, authorized instructions, etc.
+- The user first contacts the application on the unattested port outside of the enclave, triggering an attestation request.
+- The enclave will generate a public and private TLS key pair. The private key is stored securely in the enclave and cannot be viewed or accessed by anyone, thanks to the hardware isolation mentioned earlier.
+- An attestation report is created containing the policy file and the public TLS key so that the client can set up a communication channel if the attestation is successfully completed. It is signed with a key derived from tamper-proof hardware. This means that the party hosting the enclave cannot fake such reports.
+- The hardware vendor verifies the signature against the list of CPUs they sold with their corresponding keys. If the enclave can be verified by the vendor, they also sign the attestation report.
+- The client verifies that the report is signed by the hardware provider. 
+- The client will also verify that the application code is as expected by checking the attestation report against their copy of the policy file. For example, the BlindAI Core and API clients have built-in copies of the policy files for the latest official version of BlindAI. If the application code has been tampered with before being launched, it would not match with the client’s policy file and the client would not be able to connect with the enclave.
+- Now that the attestation process has been successfully completed, the client can now use the enclave’s public TLS key to communicate with the enclave.
 
 ## Conclusions
+
 That brings us to the end of this introduction to confidential computing. Let’s sum up what we’ve covered:
-Trusted Execution Environments are highly isolated compute environments.
-Confidential computing technologies reduce the elements in our Trusted Computing Base to drastically reduce the attack surface.
-During the attestation process, we verify that the application code in the enclave has not been modified or tampered with.
-We also verify that the enclave is genuine with the hardware vendor.
-If attestation is successful, communication between the client and enclave is established using TLS.
+
+- Trusted Execution Environments are highly isolated compute environments.
+- Confidential computing technologies reduce the elements in our Trusted Computing Base to drastically reduce the attack surface.
+- During the attestation process, we verify that the application code in the enclave has not been modified or tampered with.
+- We also verify that the enclave is genuine with the hardware vendor.
+- If attestation is successful, communication between the client and enclave is established using TLS.
 
 If you haven’t already, you can check out our [Quick Tour](https://github.com/mithril-security/blindai/blob/main/docs/docs/getting-started/quick-tour.md) to see a hands-on example of how BlindAI can be used to protect user data whilst querying AI models.
