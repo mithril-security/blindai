@@ -21,7 +21,7 @@ SGX_BLINDAI_ADDR = (
 NITRO_BLINDAI_ADDR = (
     "http://0.0.0.0:3000"
     if os.environ.get("BLINDAI_SIMULATION_MODE")
-    else f"{DEFAULT_BLINDAI_ADDR}/nitro"
+    else f"https://{DEFAULT_BLINDAI_ADDR}:3000"
 )
 
 DEFAULT_WHISPER_MODEL = "tiny.en"
