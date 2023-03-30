@@ -90,7 +90,7 @@ But here’s a taste of what using BlindAI could look like 🍒
 ### BlindAI
 
 ```py
-transcript = blindai_preview.api.Audio.transcribe(
+transcript = blindai.api.Audio.transcribe(
     file="patient_104678.wav"
 )
 print(transcript)
