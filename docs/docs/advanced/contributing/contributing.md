@@ -16,7 +16,7 @@ ____________________________
 ### ❓ How to ask a question?
 If you have a question to ask or if you want to open a discussion about BlindAI or privacy in data science in general, we have a dedicated [Discord Community](https://discord.gg/TxEHagpWd4) in which all these kind of exchanges are more than welcome!
 
-### ⚙️ The BlindAI project
+### ⚙️ The BlindAI project [LAURA REDO]
 
 BlindAI is a simple privacy framework for data science collaboration.
 
@@ -26,7 +26,7 @@ It acts like an **access control solution**, for data owners to protect the priv
 
 - Data scientists can remotely run queries on data frames without seeing the original data or intermediary results.
 
-### 📁 BlindAI project structure.
+### 📁 BlindAI project structure. [LAURA REDO]
 ```sh
 BlindAI Project ⚙️🔒/
 ├─ Python Client/
@@ -39,22 +39,20 @@ BlindAI Project ⚙️🔒/
 │  │  ├─ Polars/
 │  │  ├─ Torch/
 ```
-You can find more information about the **roadmap** of the project [here](https://mithril-security.notion.site/513af0ada2584e0f837776a7f6649ab4?v=cf664187c13149a4b667d9c0ae3ed1c0).
 
 ### 📚 Useful resources
 We highly encourage you to take a look at this resources for further information about BlindAI ⚙️🔒. 
 
-It is also recommeneded to see the [examples](https://github.com/mithril-security/blindai/tree/master/examples) that demonstrate how BlindAI works before submitting your first contribution. 
+It is also recommended to see the [examples](https://github.com/mithril-security/blindai/tree/master/examples) that demonstrate how BlindAI works before submitting your first contribution. 
 
 * [Documentation - BlindAI official documentation](https://blindai.readthedocs.io)
 * [Blog - Mithril Security blog](https://blog.mithrilsecurity.io/)
-* [Article - Mithril Security roadmap](https://blog.mithrilsecurity.io/our-roadmap-to-build-a-unified-framework-for-privacy-friendly-data-science-collaboration/)
-* [Notebooks and Python code - BlindAI examples](https://github.com/mithril-security/blindai/tree/master/examples)
+* [Notebooks and Python code - BlindAI examples](https://github.com/mithril-security/blindai/tree/master/examples) [LAURA CHANGE LINK]
 
 ## 💻 Contributing code
 ____________________________
 
-This section presents the different options that you can follow in order to contribute to the  BlindAI🚀🔐 project. You can either **Report Bugs**, **Suggest Enhancements** or **Open Pull Requests**.
+This section presents the different options that you can follow in order to contribute to the BlindAI🚀🔐 project. You can either **Report Bugs**, **Suggest Enhancements** or **Open Pull Requests**.
 
 ### 🐞 Reporting bugs
 This section helps you through reporting Bugs for BlindAI. Following the guidelines helps the maintainers to understand your report, reproduce the bug and work on fixing at as soon as possible. 
@@ -80,7 +78,7 @@ To report a Bug, you can either:
 - Use a clear and descriptive title.
 - Describe the expected behavior, the behavior that's actually happening, and how often it reproduces.
 - Describe the exact steps to reproduce the problem.
-- Specify the versions of BlindAI Client and Server that produced the bug.
+- Specify the versions of BlindAI Client (and server if using BlindAI.Core) that produced the bug.
 - Add any other relevant information about the context, your development environment (*operating system, language version, Libtorch version, platform, etc*).
 - Attach screenshots, code snippets and any helpful resources.  
 
@@ -134,10 +132,11 @@ This section helps you through the process of opening a pull request and contrib
 	While the prerequisites above must be satisfied prior to having your pull request reviewed, the reviewer(s) may ask you to complete additional work, tests, or other changes before your pull request can be accepted.
 
 ### 🛠️ Setting your local development environment
-You can find detailed explanation of how to install BlindAI in your local machine in the [official documentation](../../tutorials/core/installation.md).
+You can find instructions of how to set up and install everything you need to run the BlindAI server on a VM or on your local SGX2-ready machine in the [official documentation](../../tutorials/core/installation.md).
+
+Once your machine is set up, you can check our guide on how to [Setup your local development environment](#setting-your-local-development-environment) which will install create a working environment with all necessary dependencies to work on BlindAI. 
 
 If you encounter any difficulties with that, don't hesitate to reach out to us through [Discord](https://discord.gg/TxEHagpWd4) and ask your questions. 
-
 
 ## 🏷️ Issue tracker tags
 ____________________________
