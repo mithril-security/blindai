@@ -15,12 +15,12 @@ DEFAULT_BLINDAI_ADDR = "4.246.205.63"
 # Urls
 SGX_BLINDAI_ADDR = (
     "localhost"
-    if os.environ.get("BLINAI_SIMULATION_MODE")
+    if os.environ.get("BLINDAI_SIMULATION_MODE")
     else f"{DEFAULT_BLINDAI_ADDR}"
 )
 NITRO_BLINDAI_ADDR = (
-    "http://localhost:3000"
-    if os.environ.get("BLINAI_SIMULATION_MODE")
+    "http://0.0.0.0:3000"
+    if os.environ.get("BLINDAI_SIMULATION_MODE")
     else f"{DEFAULT_BLINDAI_ADDR}/nitro"
 )
 

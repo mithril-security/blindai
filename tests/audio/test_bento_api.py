@@ -1,4 +1,4 @@
-from blindai_preview import api
+from blindai import api
 import os
 
 # Download audio file

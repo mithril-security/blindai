@@ -3,11 +3,11 @@ import numpy as np
 import os
 import onnx
 import gdown
-import torch
 
 # Dowload the ONNX model using the Drive ID and save it as `whisper-model-20-tokens.onnx`
 output = os.path.join(os.path.dirname(__file__), "whisper.onnx")
 gdown.download(id="1wqg1F0UkEdm3KB7n1BjfRLHnzKU2-G5S", output=output)
+
 
 # Load the ONNX model with onnx load
 model = onnx.load(output)

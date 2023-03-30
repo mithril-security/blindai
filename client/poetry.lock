@@ -1067,21 +1067,22 @@ files = [
 
 [[package]]
 name = "ipywidgets"
-version = "8.0.5"
+version = "8.0.6"
 description = "Jupyter interactive widgets"
 category = "dev"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "ipywidgets-8.0.5-py3-none-any.whl", hash = "sha256:a6e5c0392f86207fae304688a670afb26b2fd819592cfc0812777c2fdf22dbad"},
-    {file = "ipywidgets-8.0.5.tar.gz", hash = "sha256:89a1930b9ef255838571a2415cc4a15e824e4316b8f067805d1d03b98b6a8c5f"},
+    {file = "ipywidgets-8.0.6-py3-none-any.whl", hash = "sha256:a60bf8d2528997e05ac83fd19ea2fbe65f2e79fbe1b2b35779bdfc46c2941dcc"},
+    {file = "ipywidgets-8.0.6.tar.gz", hash = "sha256:de7d779f2045d60de9f6c25f653fdae2dba57898e6a1284494b3ba20b6893bb8"},
 ]
 
 [package.dependencies]
+ipykernel = ">=4.5.1"
 ipython = ">=6.1.0"
-jupyterlab-widgets = ">=3.0,<4.0"
+jupyterlab-widgets = ">=3.0.7,<3.1.0"
 traitlets = ">=4.3.1"
-widgetsnbextension = ">=4.0,<5.0"
+widgetsnbextension = ">=4.0.7,<4.1.0"
 
 [package.extras]
 test = ["ipykernel", "jsonschema", "pytest (>=3.6.0)", "pytest-cov", "pytz"]
@@ -1379,14 +1380,14 @@ files = [
 
 [[package]]
 name = "jupyterlab-widgets"
-version = "3.0.6"
+version = "3.0.7"
 description = "Jupyter interactive widgets for JupyterLab"
 category = "dev"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "jupyterlab_widgets-3.0.6-py3-none-any.whl", hash = "sha256:e95d08adf4f9c37a57da5fff8a65d00480199885fd2ecd2583fd9560b594b4e9"},
-    {file = "jupyterlab_widgets-3.0.6.tar.gz", hash = "sha256:a464d68a7b9ebabdc135196389381412a39503d89302be0867d0ff3b2428ebb8"},
+    {file = "jupyterlab_widgets-3.0.7-py3-none-any.whl", hash = "sha256:c73f8370338ec19f1bec47254752d6505b03601cbd5a67e6a0b184532f73a459"},
+    {file = "jupyterlab_widgets-3.0.7.tar.gz", hash = "sha256:c3a50ed5bf528a0c7a869096503af54702f86dda1db469aee1c92dc0c01b43ca"},
 ]
 
 [[package]]
@@ -2871,14 +2872,14 @@ test = ["flaky", "pytest", "pytest-qt"]
 
 [[package]]
 name = "qtpy"
-version = "2.3.0"
+version = "2.3.1"
 description = "Provides an abstraction layer on top of the various Qt bindings (PyQt5/6 and PySide2/6)."
 category = "dev"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "QtPy-2.3.0-py3-none-any.whl", hash = "sha256:8d6d544fc20facd27360ea189592e6135c614785f0dec0b4f083289de6beb408"},
-    {file = "QtPy-2.3.0.tar.gz", hash = "sha256:0603c9c83ccc035a4717a12908bf6bc6cb22509827ea2ec0e94c2da7c9ed57c5"},
+    {file = "QtPy-2.3.1-py3-none-any.whl", hash = "sha256:5193d20e0b16e4d9d3bc2c642d04d9f4e2c892590bd1b9c92bfe38a95d5a2e12"},
+    {file = "QtPy-2.3.1.tar.gz", hash = "sha256:a8c74982d6d172ce124d80cafd39653df78989683f760f2281ba91a6e7b9de8b"},
 ]
 
 [package.dependencies]
@@ -3163,14 +3164,14 @@ win32 = ["pywin32"]
 
 [[package]]
 name = "setuptools"
-version = "67.6.0"
+version = "67.6.1"
 description = "Easily download, build, install, upgrade, and uninstall Python packages"
 category = "main"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "setuptools-67.6.0-py3-none-any.whl", hash = "sha256:b78aaa36f6b90a074c1fa651168723acbf45d14cb1196b6f02c0fd07f17623b2"},
-    {file = "setuptools-67.6.0.tar.gz", hash = "sha256:2ee892cd5f29f3373097f5a814697e397cf3ce313616df0af11231e2ad118077"},
+    {file = "setuptools-67.6.1-py3-none-any.whl", hash = "sha256:e728ca814a823bf7bf60162daf9db95b93d532948c4c0bea762ce62f60189078"},
+    {file = "setuptools-67.6.1.tar.gz", hash = "sha256:257de92a9d50a60b8e22abfcbb771571fde0dbf3ec234463212027a4eeecbe9a"},
 ]
 
 [package.extras]
@@ -3835,14 +3836,14 @@ test = ["pytest (>=6.0.0)"]
 
 [[package]]
 name = "widgetsnbextension"
-version = "4.0.6"
+version = "4.0.7"
 description = "Jupyter interactive widgets for Jupyter Notebook"
 category = "dev"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "widgetsnbextension-4.0.6-py3-none-any.whl", hash = "sha256:7df2bffa274b0b416c1fa0789e321451858a9e276e1220b40a16cc994192e2b7"},
-    {file = "widgetsnbextension-4.0.6.tar.gz", hash = "sha256:1a07d06c881a7c16ca7ab4541b476edbe2e404f5c5f0cf524ffa2406a8bd7c80"},
+    {file = "widgetsnbextension-4.0.7-py3-none-any.whl", hash = "sha256:be3228a73bbab189a16be2d4a3cd89ecbd4e31948bfdc64edac17dcdee3cd99c"},
+    {file = "widgetsnbextension-4.0.7.tar.gz", hash = "sha256:ea67c17a7cd4ae358f8f46c3b304c40698bc0423732e3f273321ee141232c8be"},
 ]
 
 [[package]]
@@ -3867,4 +3868,4 @@ torch = ["torch"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.8"
-content-hash = "31a575afa579c746250316a06595ecb1e202b880c34d682cd469807ade1942bc"
+content-hash = "c217a9b5e034e3f14fbb7e6ea5509fe7a6317d89356fcea823333a381a7c4c0e"

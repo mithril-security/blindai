@@ -2,6 +2,4 @@ version: '3'
 services:
   test-bento-server:
     image: registry.mithrilsecurity.io/bento-dev/test-bento-server:latest
-    ports:
-      - '127.0.0.1:3000:3000'
     container_name: 'dev-bento-server'
