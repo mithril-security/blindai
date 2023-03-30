@@ -45,8 +45,7 @@ run-local-management *args:
   #!/usr/bin/env bash
   set -e
 
-  export DISALLOW_REMOTE_UPLOAD=1 
-  cargo build --target x86_64-fortanix-unknown-sgx {{args}}
+  DISALLOW_REMOTE_UPLOAD="true" cargo build --target x86_64-fortanix-unknown-sgx {{args}}
 
   binpath=`cargo build --target x86_64-fortanix-unknown-sgx {{args}} --message-format json 2>/dev/null \
     | jq -r 'select(.reason=="compiler-artifact" and .target.kind==["bin"]) | .executable'` 

@@ -330,6 +330,7 @@ build-release-enclave-local-management:
     COPY rust-toolchain.toml Cargo.toml Cargo.lock manifest.prod.template.toml ./
     COPY .cargo .cargo
     COPY src src
+    COPY build.rs build.rs
     COPY tar-rs-sgx tar-rs-sgx
     COPY tract tract
     COPY ring-fortanix ring-fortanix
@@ -380,6 +381,7 @@ build-release-enclave-local-management2:
     COPY rust-toolchain.toml Cargo.toml Cargo.lock manifest.prod.template.toml ./
     COPY .cargo .cargo
     COPY src src
+    COPY build.rs build.rs
     COPY tar-rs-sgx tar-rs-sgx
     COPY tract tract
     COPY ring-fortanix ring-fortanix
