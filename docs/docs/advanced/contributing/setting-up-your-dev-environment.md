@@ -32,7 +32,7 @@ sudo usermod -aG docker $USER && newgrp docker
 4. Make sure you have the `remote container VSCode extension` installed. If you don't, install this from the VSCode extensions marketplace.
 
 5. Open the green menu at the bottom-left of Visual Studio Code.
-![menu](../../../assets/screenshot-vscode.png)
+![menu](../../../assets/Screenshot-vscode.png)
 
 Choose: `Dev Containers: Reopen in Container`.
 ![reopen in container option](../../../assets/container.png)
@@ -94,7 +94,7 @@ sudo usermod -aG docker $USER && newgrp docker
 4. Make sure you have the `remote container VSCode extension` installed. If you don't, install this from the VSCode extensions marketplace.
 
 5. Make sure you are connected to your VM as host. To do this, open the green menu at the bottom-left of Visual Studio Code.
-![menu](../../../assets/screenshot-vscode.png)
+![menu](../../../assets/Screenshot-vscode.png)
 
 Choose: `Connect to host` and select your host.
 ![connect to host](../../../assets/host.png)
