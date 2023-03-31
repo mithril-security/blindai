@@ -11,7 +11,7 @@
 <br />
 <div align="center">
   <a href="https://github.com/mithril-security/blindai">
-    <img src="https://github.com/mithril-security/blindai/blob/main/docs/assets/logo.png" alt="Logo" width="80" height="80">
+    <img src="https://github.com/mithril-security/blindai/raw/main/docs/assets/logo.png" alt="Logo" width="80" height="80">
   </a>
 
 <h1 align="center">BlindAI</h1>
@@ -63,16 +63,18 @@
 <!-- ABOUT THE PROJECT -->
 ## 🔒 About The Project
 
-BlindAI is an **open-source and easy-to-use Python library** allowing you to query AI models with **assurances that your private data will remain private**.
+BlindAI is an **open-source solution** allowing users to query popular AI models or serve their own models with **assurances that users' private data will remain private**. The querying of models is done via our **easy-to-use BlindAI Python library**.
 
-Data sent by users to the AI model is kept **confidential at all times**. Neither the AI service provider nor the Cloud provider (if applicable), can see the data. 
-Confidentiality is assured by hardware-enforced **Trusted Execution Environments**. We explain how they keep data and models safe in detail [here](https://blindai.mithrilsecurity.io/en/latest/docs/concepts/confidential_computing/).
+Data sent by users to the AI model is kept **confidential at all times**. Neither the AI service provider nor the Cloud provider (if applicable), can see the data.
+
+Confidentiality is assured by hardware-enforced **Trusted Execution Environments**. We explain how they keep data and models safe in detail [here](https://blindai.mithrilsecurity.io/en/latest/docs/getting-started/confidential_computing/).
 
 There are two main scenarios for BlindAI:
+
 - **BlindAI**: Using BlindAI to query popular AI models hosted by Mithril Security.
 - **BlindAI.Core**: Using BlindAI's underlying technology to host your own BlindAI server instance to securely deploy your own models.
 
-You can find our more about BlindAI and BlindAI.Core [here](https://blindai.mithrilsecurity.io/en/latest/docs/getting-started/blindai_vs_core/).
+You can find our more about BlindAI and BlindAI.Core [here](https://blindai.mithrilsecurity.io/en/latest/docs/getting-started/blindai_structure/).
 
 ### Built With 
 
@@ -157,7 +159,7 @@ docker run -it -e BLINDAI_AZURE_DCS3_PATCH=1 -p 9923:9923 -p 9924:9924 \
 mithrilsecuritysas/blindai-server:latest /root/start.sh
 ```
 
-For alternative deployment methods (*on-premise, testing only...*) or more information, visit [our installation guide](https://github.com/mithril-security/blindai/blob/main/docs/docs/tutorials/core/installation.md).
+For alternative deployment methods (*on-premise, testing only...*) or more information, visit [our installation guide](https://blindai.mithrilsecurity.io/en/latest/docs/tutorials/core/installation/).
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 

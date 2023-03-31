@@ -1,9 +1,11 @@
 [tool.poetry]
 name = "blindai"
-version = "0.6.1"
-description = ""
+version = "0.6.1-post2"
+description = "BlindAI Core / API is an open-source and easy-to-use Python library allowing you to query AI models with assurances that your private data will remain private"
 authors = ["Mithril Security <contact@mithrilsecurity.io>"]
 readme = "README.md"
+documentation = "https://blindai.mithrilsecurity.io"
+repository = "https://github.com/mithril-security/blindai"
 
 [tool.poetry.dependencies]
 python = "^3.8"

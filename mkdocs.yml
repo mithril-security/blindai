@@ -101,7 +101,7 @@ nav:
 
 - 🚀 Getting Started: 
   - Why BlindAI: 'docs/getting-started/why-blindai.md'
-  - BlindAI vs BlindAI Core: 'docs/getting-started/blindai_structure.md'
+  - BlindAI structure: 'docs/getting-started/blindai_structure.md'
   - Quick tour: 'docs/getting-started/quick-tour.ipynb'
   - Confidential computing: 'docs/getting-started/confidential_computing.md'
 
