@@ -15,8 +15,8 @@ To set up our pre-configured development container, you can follow these instruc
 
 1. Clone blindai github repo and submodules.
 ```bash
-git clone https://github.com/mithril-security/blindai-preview --recursive
-cd blindai-preview
+git clone https://github.com/mithril-security/blindai --recursive
+cd blindai
 ```
 
 2. Make sure you have docker installed on your machine. 
@@ -27,7 +27,7 @@ To check this, try running `docker run hello-world`. If this works, you can skip
 ```bash
 sudo usermod -aG docker $USER && newgrp docker
 ```
-3. Open the `blindai-preview` folder in VSCode.   
+3. Open the `blindai` folder in VSCode.   
 
 4. Make sure you have the `remote container VSCode extension` installed. If you don't, install this from the VSCode extensions marketplace.
 
@@ -56,7 +56,7 @@ You can build and run the server from source using the `justfile`:
 just run
 ```
 
->Make sure you are in the root of the blindai-preview directory to make use of the justfile commands.
+>Make sure you are in the root of the blindai directory to make use of the justfile commands.
 
 >Note that by default the port opened in 9923 is running on http only. For production, we strongly recommend setting up a ***reverse-proxy*** that will manage and encrypt the traffic from the client to the blindAI server. Many free reverse-proxy implementations exist, such as **caddy**, **Nginx** and **Apache**:
 
@@ -64,7 +64,7 @@ just run
 - [Nginx reverse proxy set-up guide](https://docs.nginx.com/nginx/admin-guide/web-server/reverse-proxy/)
 - [Apache reverse proxy set-up guide](https://httpd.apache.org/docs/2.4/howto/reverse_proxy.html)
 
-If you do not set up a reverse proxy, users will need to set the `hazmat_http_on_untrusted_port` option to `True` when using blindai-preview's `connect()` function. Again, this is **not recommended** for production.
+If you do not set up a reverse proxy, users will need to set the `hazmat_http_on_untrusted_port` option to `True` when using blindai's `connect()` function. Again, this is **not recommended** for production.
 
 >Note that if you make any changes to the server code, a new `manifest.toml` file will be created when you build the server. In order to be able to connect with the server instance using the BlindAI Core `connect()` method, you will need to supply a path to a copy of this file in the `hazmat_manifest_path` option. The manifest.toml files are used during the verification step of the connection progress to check that the server is not running any unexpected and potentially malicious code. You can learn more about this verification process [here](../../getting-started/confidential_computing.md).
 
@@ -77,8 +77,8 @@ To set up our pre-configured development container for your Azure VM, you can fo
 
 1. Clone blindai github repo and submodules.
 ```bash
-git clone https://github.com/mithril-security/blindai-preview --recursive
-cd blindai-preview
+git clone https://github.com/mithril-security/blindai --recursive
+cd blindai
 ```
 
 2. Make sure you have docker installed on your machine. 
@@ -89,7 +89,7 @@ To check this, try running `docker run hello-world`. If this works, you can skip
 ```bash
 sudo usermod -aG docker $USER && newgrp docker
 ```
-3. Open the `blindai-preview` folder in VSCode.
+3. Open the `blindai` folder in VSCode.
 
 4. Make sure you have the `remote container VSCode extension` installed. If you don't, install this from the VSCode extensions marketplace.
 
@@ -123,7 +123,7 @@ You can build and run the server from source using the `justfile`:
 just run
 ```
 
->Make sure you are in the root of the blindai-preview directory to make use of the justfile commands.
+>Make sure you are in the root of the blindai directory to make use of the justfile commands.
 
 >Note that by default the port opened in 9923 is running on http only. For production, we strongly recommend setting up a ***reverse-proxy*** that will manage and encrypt the traffic from the client to the blindAI server. Many free reverse-proxy implementations exist, such as **caddy**, **Nginx** and **Apache**:
 
@@ -131,6 +131,6 @@ just run
 - [Nginx reverse proxy set-up guide](https://docs.nginx.com/nginx/admin-guide/web-server/reverse-proxy/)
 - [Apache reverse proxy set-up guide](https://httpd.apache.org/docs/2.4/howto/reverse_proxy.html)
 
-If you do not set up a reverse proxy, users will need to set the `hazmat_http_on_untrusted_port` option to `True` when using blindai-preview's `connect()` function. Again, this is **not recommended** for production.
+If you do not set up a reverse proxy, users will need to set the `hazmat_http_on_untrusted_port` option to `True` when using blindai's `connect()` function. Again, this is **not recommended** for production.
 
 >Note that if you make any changes to the server code, a new `manifest.toml` file will be created when you build the server. In order to be able to connect with this server instance using the BlindAI Core `connect()` method, you will need to supply a path to a copy of this file in the `hazmat_manifest_path` option. The manifest.toml files are used during the verification step of the connection progress to check that the server is not running any unexpected and potentially malicious code. You can learn more about this verification process [here](../../getting-started/confidential_computing.md).
