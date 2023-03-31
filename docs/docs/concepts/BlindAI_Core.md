@@ -33,7 +33,7 @@ ____________________________________________________
 ### Privacy
 
 - Check out our [page on confidential computing](confidential_computing.md) to learn more about how BlindAI.Core protects user data.
-- Check out [our guide](verify_blindai.md) on how you can verify some of BlindAI's privacy features. 
+- Check out [our guide](../advanced/verify_blindai.md) on how you can verify some of BlindAI's privacy features. 
 
 ### How to verify BlindAI's security features
 
