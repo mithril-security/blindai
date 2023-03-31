@@ -67,14 +67,14 @@ BlindAI is an **open-source solution** allowing users to query popular AI models
 
 Data sent by users to the AI model is kept **confidential at all times**. Neither the AI service provider nor the Cloud provider (if applicable), can see the data.
 
-Confidentiality is assured by hardware-enforced **Trusted Execution Environments**. We explain how they keep data and models safe in detail [here](docs/getting-started/confidential_computing.md).
+Confidentiality is assured by hardware-enforced **Trusted Execution Environments**. We explain how they keep data and models safe in detail [here](https://blindai.mithrilsecurity.io/en/latest/docs/getting-started/confidential_computing/).
 
 There are two main scenarios for BlindAI:
 
 - **BlindAI**: Using BlindAI to query popular AI models hosted by Mithril Security.
 - **BlindAI.Core**: Using BlindAI's underlying technology to host your own BlindAI server instance to securely deploy your own models.
 
-You can find our more about BlindAI and BlindAI.Core [here](docs/getting-started/blindai_structure.md).
+You can find our more about BlindAI and BlindAI.Core [here](https://blindai.mithrilsecurity.io/en/latest/docs/getting-started/blindai_structure/).
 
 ### Built With 
 
@@ -159,7 +159,7 @@ docker run -it -e BLINDAI_AZURE_DCS3_PATCH=1 -p 9923:9923 -p 9924:9924 \
 mithrilsecuritysas/blindai-server:latest /root/start.sh
 ```
 
-For alternative deployment methods (*on-premise, testing only...*) or more information, visit [our installation guide](https://github.com/mithril-security/blindai/blob/main/docs/docs/tutorials/core/installation.md).
+For alternative deployment methods (*on-premise, testing only...*) or more information, visit [our installation guide](https://blindai.mithrilsecurity.io/en/latest/docs/tutorials/core/installation/).
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
