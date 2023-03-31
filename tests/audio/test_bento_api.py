@@ -8,5 +8,5 @@ output = os.path.abspath(output)
 
 
 # Transcribe audio file with BlindAI Nitro
-transcript = api.Audio.transcribe(file=output, tee="nitro")
+transcript = api.Audio.transcribe(file=output, connection="http://localhost:3000", tee="nitro")
 assert transcript == " Now go away, or I shall taunt you a second timer!"

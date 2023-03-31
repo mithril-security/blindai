@@ -680,10 +680,6 @@ test-docker-image:
 dev-bento-api-tests:
     FROM +prepare-test
 
-    # This docker-compose file used to pull the bento server image from the 
-    # private registry.
-    COPY docker-compose.yml .
-
     # Copy test_bento_api.py to the docker image
     COPY tests/audio/test_bento_api.py .
 
@@ -694,9 +690,8 @@ dev-bento-api-tests:
     RUN cd client && poetry run pip install ../*.whl
 
     # We run the bento server in a docker container and then run the tests
-    WITH DOCKER --compose docker-compose.yml
-        RUN ls -l && \
-            docker run -d -p 3000:3000 --network=host registry.mithrilsecurity.io/bento-dev/test-bento-server:latest && \
+    WITH DOCKER --pull registry.mithrilsecurity.io/bento-dev/test-bento-server:latest
+        RUN docker run -d -p 3000:3000 --network=host registry.mithrilsecurity.io/bento-dev/test-bento-server:latest && \
             while [ -z "$(lsof -i | grep -E "3000" | awk -F':' '{print $2}' | awk '{print $1}')" ]; \
             do \
                 sleep 5; \

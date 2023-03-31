@@ -1,5 +1,0 @@
-version: '3'
-services:
-  test-bento-server:
-    image: registry.mithrilsecurity.io/bento-dev/test-bento-server:latest
-    container_name: 'dev-bento-server'
