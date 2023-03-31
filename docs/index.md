@@ -33,7 +33,7 @@ ________________________________________________________
 
 - Follow our [“Quick tour”](./docs/getting-started/quick-tour.ipynb) tutorial
 - Read about [why you should use](./docs/getting-started/why-blindai.md) BlindAI
-- Discover the differences between [BlindAI vs BlindAI Core](./docs/getting-started/blindai_vs_core.md)
+- Discover the differences between [BlindAI vs BlindAI Core](./docs/getting-started/blindai_structure.md)
 - [Tackle](./docs/getting-started/confidential_computing.md) the technologies we use to ensure privacy
 
 ## Getting help
