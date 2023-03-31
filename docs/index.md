@@ -11,13 +11,13 @@ ________________________________________________________
 BlindAI is an **open-source and easy-to-use Python library** allowing you to query AI models with **assurances that your private data will remain private**.
 
 Data sent by users to the AI model is kept **confidential at all times**. Neither the AI service provider nor the Cloud provider (if applicable), can see the data. 
-Confidentiality is assured by hardware-enforced **Trusted Execution Environments**. We explain how they keep data and models safe in detail [here](docs/concepts/confidential_computing.md).
+Confidentiality is assured by hardware-enforced **Trusted Execution Environments**. We explain how they keep data and models safe in detail [here](docs/getting-started/confidential_computing.md).
 
 There are two main scenarios for BlindAI:
 - **BlindAI**: Using BlindAI to query popular AI models hosted by Mithril Security.
 - **BlindAI.Core**: Using BlindAI's underlying technology to host your own BlindAI server instance to securely deploy your own models.
 
-You can find our more about BlindAI and BlindAI.Core [here](docs/getting-started/blindai_vs_core.md).
+You can find our more about BlindAI and BlindAI.Core [here](docs/getting-started/blindai_structure.md).
 
 **BlindAi is an open-source project** consisting of:
 
@@ -33,8 +33,8 @@ ________________________________________________________
 
 - Follow our [“Quick tour”](./docs/getting-started/quick-tour.ipynb) tutorial
 - Read about [why you should use](./docs/getting-started/why-blindai.md) BlindAI
-- Discover the differences between [BlindAI vs BlindAI Core](./docs/getting-started/blindai_vs_core.md)
-- [Tackle](./docs/concepts/confidential_computing.md) the technologies we use to ensure privacy
+- Discover the differences between [BlindAI vs BlindAI Core](./docs/getting-started/blindai_structure.md)
+- [Tackle](./docs/getting-started/confidential_computing.md) the technologies we use to ensure privacy
 
 ## Getting help
 ________________________________________________________
