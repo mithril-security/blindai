@@ -101,8 +101,9 @@ nav:
 
 - 🚀 Getting Started: 
   - Why BlindAI: 'docs/getting-started/why-blindai.md'
-  - BlindAI vs BlindAI Core: 'docs/getting-started/blindai_vs_core.md'
+  - BlindAI vs BlindAI Core: 'docs/getting-started/blindai_structure.md'
   - Quick tour: 'docs/getting-started/quick-tour.ipynb'
+  - Confidential computing: 'docs/getting-started/confidential_computing.md'
 
 - Tutorials:
 #  - BlindAI:
@@ -113,7 +114,6 @@ nav:
     - Uploading models: 'docs/tutorials/core/uploading_models.ipynb'
 
 - 💡 Concepts:
-  - Confidential computing: 'docs/concepts/confidential_computing.md'
   - Overview: 'docs/concepts/overview.md'
   - Privacy: 'docs/concepts/privacy.md'
   - Attestation: 'docs/concepts/attestation.md'
