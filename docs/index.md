@@ -8,13 +8,16 @@ An AI data privacy solution, allowing users to query popular AI models or serve 
 ## What is BlindAI?
 ________________________________________________________
 
-BlindAI is an **open-source and easy-to-use Python library** allowing you to query AI models with **assurances that your private data will remain private**.
+BlindAI is an **open-source solution** allowing users to query popular AI models or serve their own models with **assurances that users' private data will remain private**. The querying of models is done via our **easy-to-use BlindAI Python library**.
 
-Data sent by users to the AI model is kept **confidential at all times**. Neither the AI service provider nor the Cloud provider (if applicable), can see the data. 
+Data sent by users to the AI model is kept **confidential at all times**. Neither the AI service provider nor the Cloud provider (if applicable), can see the data.
+
 Confidentiality is assured by hardware-enforced **Trusted Execution Environments**. We explain how they keep data and models safe in detail [here](docs/getting-started/confidential_computing.md).
 
 There are two main scenarios for BlindAI:
+
 - **BlindAI**: Using BlindAI to query popular AI models hosted by Mithril Security.
+
 - **BlindAI.Core**: Using BlindAI's underlying technology to host your own BlindAI server instance to securely deploy your own models.
 
 You can find our more about BlindAI and BlindAI.Core [here](docs/getting-started/blindai_structure.md).
