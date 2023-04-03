@@ -21,6 +21,8 @@ ________________________________
 
 BlindAI Core facilitates privacy-friendly AI model deployment by letting AI engineers upload and delete models to their secure BlindAI server instance. Users can then connect to the server, upload their data and run models on it without giving any party access to their data.
 
+We have made [a guide using a life-like example](../how-to-guides/covid_net_confidential.ipynb) to give you an idea of what using BlindAI Core could look like. You can also read more in details about the features of BlindAI Core [here](../concepts/BlindAI_Core.md). 
+
 
 ## BlindAI vs BlindAI Core: Key differences
 __________________________________________________________

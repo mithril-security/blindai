@@ -103,21 +103,20 @@ nav:
   - Why BlindAI: 'docs/getting-started/why-blindai.md'
   - How we protect your data: 'docs/getting-started/confidential_computing.md'
   - Quick tour: 'docs/getting-started/quick-tour.ipynb'
-  - "Project structure : API & Core" : 'docs/getting-started/blindai_structure.md'
+  - "Project structure: API & Core" : 'docs/getting-started/blindai_structure.md'
 
 - Tutorials:
   - "BlindAI API: popular models":
     - tutorials coming soon: ""
   - "BlindAI Core: custom models":
-    - First steps: 'docs/tutorials/core/quick-tour.ipynb'
     - Installation: 'docs/tutorials/core/installation.md'
     - Uploading models: 'docs/tutorials/core/uploading_models.ipynb'
 
 - 💡 Concepts:
-  - BlindAi Core Overview: 'docs/concepts/BlindAI_Core.md'
+  - "BlindAi Core: Overview": 'docs/concepts/BlindAI_Core.md'
 
-#- 🌍 How-to-Guides:
-  # - Using BlindAI Core in a real life scenario / to solve a problem
+- 🌍 How-to-Guides:
+  -  Confidential diagnosis with Covid-NET: 'docs/how-to-guides/covid_net_confidential.ipynb'
 
 - 🛠️ Client API reference: 'blindai/client.html'
 
