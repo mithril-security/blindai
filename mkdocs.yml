@@ -133,8 +133,8 @@ nav:
     - Client SDK: 'docs/advanced/build-from-sources/client.md'
     - Server: 'docs/advanced/build-from-sources/server.md'
   # - Telemetry: 'docs/telemetry.md'
-  # - Open source:
-  #   - Project structure: 'docs/advanced/contributing/blindai-project-structure.md'
-  #   - Setting-up your dev environment: 'docs/advanced/contributing/setting-up-your-dev-environment.md'
-  #   - Contributing: "docs/advanced/contributing/contributing.md"
-  #   - Code of Conduct: "docs/advanced/contributing/code_of_conduct.md"
+   - Open source:
+     - Project structure: 'docs/advanced/contributing/blindai-project-structure.md'
+     - Setting-up your dev environment: 'docs/advanced/contributing/setting-up-your-dev-environment.md'
+     - Contributing: "docs/advanced/contributing/contributing.md"
+     - Code of Conduct: "docs/advanced/contributing/code_of_conduct.md"
