@@ -128,7 +128,6 @@ The manifest will be generated at the build process and will serve as essential 
 More informations about them on [this page](../../getting-started/confidential_computing.md) and in the [remote attestation implementation](../../security/remote_attestation.md).
 
 ### Running
-concepts
 
 Once you are sure to have everything ready, you can run BlindAI.
 
