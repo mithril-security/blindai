@@ -114,10 +114,7 @@ nav:
     - Uploading models: 'docs/tutorials/core/uploading_models.ipynb'
 
 - 💡 Concepts:
-  - Overview: 'docs/concepts/overview.md'
-  - Privacy: 'docs/concepts/privacy.md'
-  - Attestation: 'docs/concepts/attestation.md'
-  - TLS: 'docs/concepts/tls.md'
+  - BlindAi Core Overview: 'docs/concepts/BlindAI_Core.md'
 
 #- 🌍 How-to-Guides:
   # - Using BlindAI Core in a real life scenario / to solve a problem

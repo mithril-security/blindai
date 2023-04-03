@@ -125,10 +125,10 @@ The manifest will be generated at the build process and will serve as essential 
 * `manifest.toml`: the enclave security manifest that defines which enclave is trusted.
 
 
-More informations about them on [this page](../../concepts/privacy.md) and in the [remote attestation implementation](../../security/remote_attestation.md).
+More informations about them on [this page](../../getting-started/confidential_computing.md) and in the [remote attestation implementation](../../security/remote_attestation.md).
 
 ### Running
-
+concepts
 
 Once you are sure to have everything ready, you can run BlindAI.
 
