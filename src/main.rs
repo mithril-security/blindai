@@ -95,7 +95,7 @@ fn get_collateral(quote: &[u8]) -> Result<SgxCollateral> {
 }
 
 fn main() -> Result<()> {
-    println!("BlindAI server is running on the ports 9923 and 9924");
+    println!("Starting BlindAI server...");
 
     // Setup TELEMETRY
     let telemetry_disabled = TELEMETRY_CHANNEL.is_disabled();
@@ -111,9 +111,9 @@ fn main() -> Result<()> {
     println!("{telemetry_disabled_string}");
 
     const SERVER_NAME: &str = if cfg!(target_env = "sgx") {
-        "blindai_preview"
+        "blindai"
     } else {
-        "blindai_preview mock (testing)"
+        "blindai mock (testing)"
     };
 
     // Make debugging easier by enabling rust backtrace inside enclave
@@ -286,11 +286,14 @@ fn main() -> Result<()> {
                     private_key: enclave_private_key_der,
                 }),
             )
-            .expect("Failed to start trusted server");
+            .expect("Failed to start trusted server")
+            .pool_size(8);
             let (_trusted_handle, _trusted_sender) = attested_server.stoppable();
             _trusted_handle.join().unwrap();
         }
     });
+
+    println!("BlindAI server is running on the ports 9923 and 9924");
 
     // Emit the telemetry `Started` event
     telemetry::add_event(telemetry::TelemetryEventProps::Started {}, None, None);

@@ -148,7 +148,7 @@ dev-tests-base:
 dev-tests-mock:
     FROM +dev-tests-base
 
-    RUN cargo run --release & \
+    RUN DO_NOT_TRACK=1 cargo run --release & \
         sleep 2 \
         && cd tests \
         && BLINDAI_SIMULATION_MODE=true bash run_all_end_to_end_tests.sh
@@ -164,7 +164,7 @@ dev-tests-sgx:
          --mount=type=bind-experimental,target=/var/run/aesmd/aesm.socket,source=/var/run/aesmd/aesm.socket  \
          --mount=type=bind-experimental,target=/dev/sgx/,source=/dev/sgx/  \
         ( cd /opt/intel/sgx-dcap-pccs && npm start pm2 ) & \
-        just run --release & \ 
+        DO_NOT_TRACK=1 just run --release & \ 
         while [ -z "$(lsof -i | grep -E "9923|9924" | awk -F':' '{print $2}' | awk '{print $1}')" ]; \
         do \
             sleep 5; \
@@ -246,7 +246,7 @@ build-release-enclave:
 
     ENV BIN_PATH=target/x86_64-fortanix-unknown-sgx/release/blindai_server
 
-    RUN ftxsgx-elf2sgxs "$BIN_PATH" --heap-size 0x4FBA00000 --stack-size 0x400000 --threads 20 \
+    RUN ftxsgx-elf2sgxs "$BIN_PATH" --heap-size 0x4FBA00000 --stack-size 0x400000 --threads 32 \
         && mr_enclave=`sgxs-hash "$BIN_PATH.sgxs"` envsubst < manifest.prod.template.toml > manifest.toml
 
     RUN openssl genrsa -3 3072 > throw_away.pem \
@@ -295,7 +295,7 @@ build-release-enclave2:
 
     ENV BIN_PATH=target/x86_64-fortanix-unknown-sgx/release/blindai_server
 
-    RUN ftxsgx-elf2sgxs "$BIN_PATH" --heap-size 0x4FBA00000 --stack-size 0x400000 --threads 20 \
+    RUN ftxsgx-elf2sgxs "$BIN_PATH" --heap-size 0x4FBA00000 --stack-size 0x400000 --threads 32 \
         && mr_enclave=`sgxs-hash "$BIN_PATH.sgxs"` envsubst < manifest.prod.template.toml > manifest.toml
 
     SAVE ARTIFACT $BIN_PATH.sgxs
@@ -330,6 +330,7 @@ build-release-enclave-local-management:
     COPY rust-toolchain.toml Cargo.toml Cargo.lock manifest.prod.template.toml ./
     COPY .cargo .cargo
     COPY src src
+    COPY build.rs build.rs
     COPY tar-rs-sgx tar-rs-sgx
     COPY tract tract
     COPY ring-fortanix ring-fortanix
@@ -340,7 +341,7 @@ build-release-enclave-local-management:
 
     ENV BIN_PATH=target/x86_64-fortanix-unknown-sgx/release/blindai_server
 
-    RUN ftxsgx-elf2sgxs "$BIN_PATH" --heap-size 0x4FBA00000 --stack-size 0x400000 --threads 20 \
+    RUN ftxsgx-elf2sgxs "$BIN_PATH" --heap-size 0x4FBA00000 --stack-size 0x400000 --threads 32 \
         && mr_enclave=`sgxs-hash "$BIN_PATH.sgxs"` envsubst < manifest.prod.template.toml > manifest.toml
 
     RUN openssl genrsa -3 3072 > throw_away.pem \
@@ -380,6 +381,7 @@ build-release-enclave-local-management2:
     COPY rust-toolchain.toml Cargo.toml Cargo.lock manifest.prod.template.toml ./
     COPY .cargo .cargo
     COPY src src
+    COPY build.rs build.rs
     COPY tar-rs-sgx tar-rs-sgx
     COPY tract tract
     COPY ring-fortanix ring-fortanix
@@ -390,7 +392,7 @@ build-release-enclave-local-management2:
 
     ENV BIN_PATH=target/x86_64-fortanix-unknown-sgx/release/blindai_server
 
-    RUN ftxsgx-elf2sgxs "$BIN_PATH" --heap-size 0x4FBA00000 --stack-size 0x400000 --threads 20 \
+    RUN ftxsgx-elf2sgxs "$BIN_PATH" --heap-size 0x4FBA00000 --stack-size 0x400000 --threads 32 \
         && mr_enclave=`sgxs-hash "$BIN_PATH.sgxs"` envsubst < manifest.prod.template.toml > manifest.toml
 
     SAVE ARTIFACT $BIN_PATH.sgxs
@@ -487,8 +489,8 @@ build-release-client:
     RUN pip install poetry 
 
     COPY client client
-    COPY +build-release-enclave/manifest.toml client/blindai_preview
-    COPY +build-release-enclave-local-management/manifest.toml client/blindai_preview/manifest_cloud.toml
+    COPY +build-release-enclave/manifest.toml client/blindai
+    COPY +build-release-enclave-local-management/manifest.toml client/blindai/manifest_cloud.toml
     RUN cd client \
         && poetry build
     SAVE ARTIFACT client/dist
@@ -644,12 +646,12 @@ build-docker-image-local-management:
 publish-docker-image:
     FROM +build-docker-image
     ARG --required TAG
-    SAVE IMAGE --push mithrilsecuritysas/blindai-preview-server:$TAG
+    SAVE IMAGE --push mithrilsecuritysas/blindai-server:$TAG
 
 publish-docker-image-local-management:
     FROM +build-docker-image-local-management
     ARG --required TAG
-    SAVE IMAGE --push mithrilsecuritysas/blindai-preview-server-local-model-management:$TAG
+    SAVE IMAGE --push mithrilsecuritysas/blindai-server-local-model-management:$TAG
 
 test-docker-image:
     FROM +prepare-test
@@ -661,7 +663,7 @@ test-docker-image:
     RUN cd client && poetry run pip install  ../*.whl
 
     WITH DOCKER --load=blindai-docker:latest=+build-docker-image
-        RUN --privileged \
+        RUN --secret PCCS_KEY --privileged \
         --mount=type=bind-experimental,target=/var/run/aesmd/aesm.socket,source=/var/run/aesmd/aesm.socket  \
         --mount=type=bind-experimental,target=/dev/sgx/,source=/dev/sgx/  \
             docker run \
@@ -670,8 +672,8 @@ test-docker-image:
             -p 127.0.0.1:9924:9924 \
             --mount type=bind,source=/dev/sgx,target=/dev/sgx \
             -v /var/run/aesmd/aesm.socket:/var/run/aesmd/aesm.socket \
-            blindai-docker:latest & \
-            sleep 30 \
+            blindai-docker:latest /root/start.sh $PCCS_KEY & \
+            sleep 90 \
             && cd tests \
             && bash run_all_end_to_end_tests.sh
     END

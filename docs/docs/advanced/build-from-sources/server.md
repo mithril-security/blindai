@@ -50,12 +50,12 @@ You can use these images by following the instructions of either the [deploy on 
 
 Make sure to [set up a dev environment](../contributing/setting-up-your-dev-environment.md "mention") to easily install the build dependencies.
 
-
-Before building the project, some dependencies and service must be up and running, and the hardware requirements must be installed ([hardware-requirements](../../getting-started/installation.md)).
+started
+Before building the project, some dependencies and service must be up and running, and the hardware requirements must be installed ([hardware-requirements](../../tutorials/core/installation.md)).
 
 The installation of the Intel SDK can be found by following this [link](https://github.com/intel/linux-sgx).
 
-The fortanix EDP dependencies must also be installed. You can check the official fortanix [documentation here](https://edp.fortanix.com/docs/installation/guide/). 
+The Fortanix EDP dependencies must also be installed. You can check the official Fortanix [documentation here](https://edp.fortanix.com/docs/installation/guide/). 
 
 The SGX configuration and services can be viewed using the command : 
 

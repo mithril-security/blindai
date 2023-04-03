@@ -78,7 +78,7 @@ To report a Bug, you can either:
 #### How to submit a good bug report?
 - Follow the [bug report template](https://github.com/mithril-security/blindai/issues/new?assignees=&labels=&template=bug-report.md&title=) as much as possible (*You can add further details if needed*).
 - Use a clear and descriptive title.
-- Describe the expected behavior, the behaviour that's actually happening, and how often it reproduces.
+- Describe the expected behavior, the behavior that's actually happening, and how often it reproduces.
 - Describe the exact steps to reproduce the problem.
 - Specify the versions of BlindAI Client and Server that produced the bug.
 - Add any other relevant information about the context, your development environment (*operating system, language version, Libtorch version, platform, etc*).
@@ -134,7 +134,7 @@ This section helps you through the process of opening a pull request and contrib
 	While the prerequisites above must be satisfied prior to having your pull request reviewed, the reviewer(s) may ask you to complete additional work, tests, or other changes before your pull request can be accepted.
 
 ### 🛠️ Setting your local development environment
-You can find detailed explanation of how to install BlindAI in your local machine in the [official documentation](../../getting-started/installation.md).
+You can find detailed explanation of how to install BlindAI in your local machine in the [official documentation](../../tutorials/core/installation.md).
 
 If you encounter any difficulties with that, don't hesitate to reach out to us through [Discord](https://discord.gg/TxEHagpWd4) and ask your questions. 
 

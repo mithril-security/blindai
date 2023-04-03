@@ -11,7 +11,7 @@
 <br />
 <div align="center">
   <a href="https://github.com/mithril-security/blindai">
-    <img src="https://github.com/mithril-security/blindai/blob/main/docs/assets/logo.png" alt="Logo" width="80" height="80">
+    <img src="https://github.com/mithril-security/blindai/raw/main/docs/assets/logo.png" alt="Logo" width="80" height="80">
   </a>
 
 <h1 align="center">BlindAI</h1>
@@ -21,7 +21,7 @@
 [![LinkedIn][linkedin-shield]][linkedin-url]
 
   <p align="center">
-    <b>BlindAI</b> is an <b>AI inference server</b> with an <b>added privacy layer</b>, protecting the data sent to models.
+    <b>BlindAI</b> is an <b>AI privacy solution</b>, allowing users to query popular AI models or serve their own models whilst ensuring that users' data remains private every step of the way.
 	<br /><br />
     <a href="https://blindai.mithrilsecurity.io/en/latest"><strong>Explore the docs »</strong></a>
     <br />
@@ -63,11 +63,18 @@
 <!-- ABOUT THE PROJECT -->
 ## 🔒 About The Project
 
-BlindAI facilitates  **privacy-friendly AI model deployment** by letting AI engineers upload and delete models to their secure server instance using our **Python API**. Clients can then connect to the server, upload their data and run models on it without compromising on privacy. 
+BlindAI is an **open-source solution** allowing users to query popular AI models or serve their own models with **assurances that users' private data will remain private**. The querying of models is done via our **easy-to-use BlindAI Python library**.
 
 Data sent by users to the AI model is kept **confidential at all times**. Neither the AI service provider nor the Cloud provider (if applicable), can see the data.
 
-Confidentiality is assured by hardware-enforced **Trusted Execution Environments**. We explain how they keep data and models safe in detail [here](./docs/docs/concepts/privacy.md).
+Confidentiality is assured by hardware-enforced **Trusted Execution Environments**. We explain how they keep data and models safe in detail [here](docs/getting-started/confidential_computing.md).
+
+There are two main scenarios for BlindAI:
+
+- **BlindAI**: Using BlindAI to query popular AI models hosted by Mithril Security.
+- **BlindAI.Core**: Using BlindAI's underlying technology to host your own BlindAI server instance to securely deploy your own models.
+
+You can find our more about BlindAI and BlindAI.Core [here](docs/getting-started/blindai_structure.md).
 
 ### Built With 
 
@@ -81,6 +88,19 @@ Confidentiality is assured by hardware-enforced **Trusted Execution Environments
 We strongly recommend for you to get started with our [Quick tour](./docs/docs/getting-started/quick-tour.ipynb) to discover BlindAI with a hands-on example using [COVID-Net](https://github.com/lindawangg/COVID-Net).
 
 But here’s a taste of what using BlindAI could look like 🍒
+
+### BlindAI
+
+```py
+transcript = blindai.api.Audio.transcribe(
+    file="patient_104678.wav"
+)
+print(transcript)
+
+The patient is a 55-year old male with known coronary artery disease.
+```
+
+### BlindAI.Core
 
 ### AI company's side
 
@@ -120,7 +140,7 @@ Probability of Covid for positive image is 0.890598714351654
 
 _For more examples, please refer to the [Documentation](https://blindai.mithrilsecurity.io/en/latest/)_
 
-### Installation
+### BlindAI.Core Installation
 
 **🥇 Recommended 🥇**
 
@@ -136,10 +156,10 @@ You can deploy the server in your Azure DCsv3 VM using our docker image with the
 docker run -it -e BLINDAI_AZURE_DCS3_PATCH=1 -p 9923:9923 -p 9924:9924 \
 --device /dev/sgx/enclave --device /dev/sgx/provision \
 -v /var/run/aesmd/aesm.socket:/var/run/aesmd/aesm.socket \
-mithrilsecuritysas/blindai-preview-server:latest /root/start.sh
+mithrilsecuritysas/blindai-server:latest /root/start.sh
 ```
 
-For alternative deployment methods (*on-premise, testing only...*) or more information, visit [our installation guide](https://github.com/mithril-security/blindai/blob/main/docs/docs/getting-started/installation.md).
+For alternative deployment methods (*on-premise, testing only...*) or more information, visit [our installation guide](https://github.com/mithril-security/blindai/blob/main/docs/docs/tutorials/core/installation.md).
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -178,7 +198,7 @@ Distributed under the Apache License, version 2.0. See [`LICENSE.md`](https://ww
 
 Mithril Security - [@MithrilSecurity](https://twitter.com/MithrilSecurity) - contact@mithrilsecurity.io
 
-Project Link: [https://github.com/mithril-security/blindai-preview](https://github.com/mithril-security/blindai-preview)
+Project Link: [https://github.com/mithril-security/blindai](https://github.com/mithril-security/blindai)
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 

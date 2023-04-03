@@ -38,7 +38,7 @@ from requests.adapters import HTTPAdapter
 from importlib_metadata import version
 import warnings
 
-app_version = version("blindai-preview")
+app_version = version("blindai")
 
 CONNECTION_TIMEOUT = 10
 
