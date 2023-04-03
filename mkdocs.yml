@@ -101,15 +101,15 @@ nav:
 
 - 🚀 Getting Started: 
   - Why BlindAI: 'docs/getting-started/why-blindai.md'
-  - BlindAI structure: 'docs/getting-started/blindai_structure.md'
+  - How we protect your data: 'docs/getting-started/confidential_computing.md'
   - Quick tour: 'docs/getting-started/quick-tour.ipynb'
-  - Confidential computing: 'docs/getting-started/confidential_computing.md'
+  - "Project structure : API & Core" : 'docs/getting-started/blindai_structure.md'
 
 - Tutorials:
-#  - BlindAI:
-#    - Whisper integration: 'docs/tutorials/api/whisper-audio.ipynb'
-  - BlindAI Core:
-    - Quick tour: 'docs/tutorials/core/quick-tour.ipynb'
+  - "BlindAI API: popular models":
+    - tutorials coming soon: ""
+  - "BlindAI Core: custom models":
+    - First steps: 'docs/tutorials/core/quick-tour.ipynb'
     - Installation: 'docs/tutorials/core/installation.md'
     - Uploading models: 'docs/tutorials/core/uploading_models.ipynb'
 
