@@ -71,8 +71,8 @@ Confidentiality is assured by hardware-enforced **Trusted Execution Environments
 
 There are two main scenarios for BlindAI:
 
-- **BlindAI**: Using BlindAI to query popular AI models hosted by Mithril Security.
-- **BlindAI.Core**: Using BlindAI's underlying technology to host your own BlindAI server instance to securely deploy your own models.
+- **BlindAI API**: Using BlindAI to query popular AI models hosted by Mithril Security.
+- **BlindAI Core**: Using BlindAI's underlying technology to host your own BlindAI server instance to securely deploy your own models.
 
 You can find our more about BlindAI and BlindAI.Core [here](docs/getting-started/blindai_structure.md).
 
@@ -85,11 +85,11 @@ You can find our more about BlindAI and BlindAI.Core [here](docs/getting-started
 <!-- GETTING STARTED -->
 ## 🚀 Getting Started
 
-We strongly recommend for you to get started with our [Quick tour](./docs/docs/getting-started/quick-tour.ipynb) to discover BlindAI with a hands-on example using [COVID-Net](https://github.com/lindawangg/COVID-Net).
+We strongly recommend for you to get started with our [Quick tour](./docs/docs/getting-started/quick-tour.ipynb) to discover  with the open-source model Whisper.
 
 But here’s a taste of what using BlindAI could look like 🍒
 
-### BlindAI
+### BlindAI API
 
 ```py
 transcript = blindai.api.Audio.transcribe(
@@ -100,11 +100,9 @@ print(transcript)
 The patient is a 55-year old male with known coronary artery disease.
 ```
 
-### BlindAI.Core
+### BlindAI Core
 
-### AI company's side
-
-#### Uploading and deleting models
+#### AI company's side: uploading and deleting models
 
 An AI company AI company want to provide their model as an an easy-to-use service. They upload it to the server, which is assigned a model ID.
 
@@ -123,9 +121,7 @@ When collaborating with clients is done, the AI company can delete their model f
 client_1.delete_model(MODEL_ID)
 ```
 
-### Client's side
-
-#### Running a model on confidential data
+#### Client's side: running a model on confidential data
 
 The client wants to feed their confidential data to the model while protecting it from third-party access. They connect and run the model on the following confidential image.
 
@@ -140,11 +136,11 @@ Probability of Covid for positive image is 0.890598714351654
 
 _For more examples, please refer to the [Documentation](https://blindai.mithrilsecurity.io/en/latest/)_
 
-### BlindAI.Core Installation
+#### Installation
 
 **🥇 Recommended 🥇**
 
-#### Deploying BlindAI on Azure DCsv3 VM
+##### Deploying BlindAI on Azure DCsv3 VM
 
 + ✅ No requirement to have your own Intel SGX-ready device or a particular distribution. 
 + ✅ Secure. Hardware security guarantees protect your data and model from any third-party access.
