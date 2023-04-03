@@ -49,8 +49,8 @@
     <li>
       <a href="#-getting-started">Getting Started</a>
       <ul>
-        <li><a href="#prerequisites">Prerequisites</a></li>
-        <li><a href="#installation">Installation</a></li>
+        <li><a href="#blindai-api">BlindAI API</a></li>
+        <li><a href="#blindai-core">BlindAI Core</a></li>
       </ul>
     </li>
     <li><a href="#-usage">Usage</a></li>
