@@ -14,7 +14,7 @@ Let's go over how this check works:
 
 1. First of all, you will need to be on a SGX2-ready machine for this test to work. We recommend using the Azure DCsv3 VM. For information on how to set up your Azure DCsv3 VM or how to set up BlindAI on a different SGX2-ready device, check out our [installation guide](../tutorials/core/installation.md).
 
-2. Secondly, you will need to download the `blindai` github repo and move into the root of this repo:
+2. You will need to download the `blindai` github repo and move into the root of this repo:
 ```bash
 git clone github.com/mithril-security/blindai && cd blindai
 ```
@@ -22,14 +22,15 @@ git clone github.com/mithril-security/blindai && cd blindai
 3. Next, you need to modify some of the application code in any way you wish. The application source code is kept in the `.rs` files in the `src` folder. For example you can add the comment: `//testing` in any of these files.
 
 [LAURA COMMENT: We need to wait until Andre has made this script]
-4. Now you can build and launch your modified code. This will create a new `manifest.toml` file. 
+4. You can build and launch your modified code. This will create a new `manifest.toml` file. 
 ```bash
 sh build_launch_script.sh
 ```
 
-5. Now you can try to connect to your server instance using the BLindAI Python library. 
+5. Now you can try to connect to your server instance using the BlindAI Python library. 
 
 Install the latest BlindAI PyPi package if you haven't already:
+
 ```
 bash
 pip install blindai
