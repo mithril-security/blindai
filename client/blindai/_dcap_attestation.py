@@ -52,7 +52,7 @@ class AttestationError(Exception):
     """This exception is raised when the attestation is invalid (enclave
     settings mismatching, debug mode unallowed...).
 
-    Used as master exception for all other sub exceptions on the attestation
+    Used as base exception for all other sub exceptions on the attestation
     validation
     """
 
@@ -63,7 +63,7 @@ class QuoteValidationError(Exception):
     """This exception is raised when the returned quote is invalid (TCB
     outdated, not signed by the hardware provider...).
 
-    Used as master exception for all other sub exceptions on the quote
+    Used as base exception for all other sub exceptions on the quote
     validation
     """
 

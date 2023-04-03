@@ -107,6 +107,18 @@ files = [
 python-dateutil = ">=2.7.0"
 
 [[package]]
+name = "asn1crypto"
+version = "1.5.1"
+description = "Fast ASN.1 parser and serializer with definitions for private keys, public keys, certificates, CRL, OCSP, CMS, PKCS#3, PKCS#7, PKCS#8, PKCS#12, PKCS#5, X.509 and TSP"
+category = "main"
+optional = false
+python-versions = "*"
+files = [
+    {file = "asn1crypto-1.5.1-py2.py3-none-any.whl", hash = "sha256:db4e40728b728508912cbb3d44f19ce188f218e9eba635821bb4b68564f8fd67"},
+    {file = "asn1crypto-1.5.1.tar.gz", hash = "sha256:13ae38502be632115abf8a24cbe5f4da52e3b5231990aff31123c805306ccb9c"},
+]
+
+[[package]]
 name = "asttokens"
 version = "2.2.1"
 description = "Annotate AST trees with source code positions"
@@ -128,7 +140,7 @@ test = ["astroid", "pytest"]
 name = "attrs"
 version = "22.2.0"
 description = "Classes Without Boilerplate"
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.6"
 files = [
@@ -301,6 +313,22 @@ files = [
     {file = "certifi-2022.12.7-py3-none-any.whl", hash = "sha256:4ad3232f5e926d6718ec31cfc1fcadfde020920e278684144551c91769c7bc18"},
     {file = "certifi-2022.12.7.tar.gz", hash = "sha256:35824b4c3a97115964b408844d64aa14db1cc518f6562e8d7261699d1350a9e3"},
 ]
+
+[[package]]
+name = "certvalidator"
+version = "0.11.1"
+description = "Validates X.509 certificates and paths"
+category = "main"
+optional = false
+python-versions = "*"
+files = [
+    {file = "certvalidator-0.11.1-py2.py3-none-any.whl", hash = "sha256:77520b269f516d4fb0902998d5bd0eb3727fe153b659aa1cb828dcf12ea6b8de"},
+    {file = "certvalidator-0.11.1.tar.gz", hash = "sha256:922d141c94393ab285ca34338e18dd4093e3ae330b1f278e96c837cb62cffaad"},
+]
+
+[package.dependencies]
+asn1crypto = ">=0.18.1"
+oscrypto = ">=0.16.1"
 
 [[package]]
 name = "cffi"
@@ -719,6 +747,25 @@ files = [
     {file = "defusedxml-0.7.1-py2.py3-none-any.whl", hash = "sha256:a352e7e428770286cc899e2542b6cdaedb2b4953ff269a210103ec58f6198a61"},
     {file = "defusedxml-0.7.1.tar.gz", hash = "sha256:1bb3032db185915b62d7c6209c5a8792be6a32ab2fedacc84e01b52c51aa3e69"},
 ]
+
+[[package]]
+name = "ecdsa"
+version = "0.18.0"
+description = "ECDSA cryptographic signature library (pure python)"
+category = "main"
+optional = false
+python-versions = ">=2.6, !=3.0.*, !=3.1.*, !=3.2.*"
+files = [
+    {file = "ecdsa-0.18.0-py2.py3-none-any.whl", hash = "sha256:80600258e7ed2f16b9aa1d7c295bd70194109ad5a30fdee0eaeefef1d4c559dd"},
+    {file = "ecdsa-0.18.0.tar.gz", hash = "sha256:190348041559e21b22a1d65cee485282ca11a6f81d503fddb84d5017e9ed1e49"},
+]
+
+[package.dependencies]
+six = ">=1.9.0"
+
+[package.extras]
+gmpy = ["gmpy"]
+gmpy2 = ["gmpy2"]
 
 [[package]]
 name = "exceptiongroup"
@@ -2119,6 +2166,21 @@ triton = "2.0.0"
 dev = ["black", "flake8", "isort", "pytest", "scipy"]
 
 [[package]]
+name = "oscrypto"
+version = "1.3.0"
+description = "TLS (SSL) sockets, key generation, encryption, decryption, signing, verification and KDFs using the OS crypto libraries. Does not require a compiler, and relies on the OS for patching. Works on Windows, OS X and Linux/BSD."
+category = "main"
+optional = false
+python-versions = "*"
+files = [
+    {file = "oscrypto-1.3.0-py2.py3-none-any.whl", hash = "sha256:2b2f1d2d42ec152ca90ccb5682f3e051fb55986e1b170ebde472b133713e7085"},
+    {file = "oscrypto-1.3.0.tar.gz", hash = "sha256:6f5fef59cb5b3708321db7cca56aed8ad7e662853351e7991fcf60ec606d47a4"},
+]
+
+[package.dependencies]
+asn1crypto = ">=1.5.1"
+
+[[package]]
 name = "packaging"
 version = "23.0"
 description = "Core utilities for Python packages"
@@ -2471,6 +2533,28 @@ files = [
 tests = ["pytest"]
 
 [[package]]
+name = "pycose"
+version = "1.0.1"
+description = "CBOR Object Signing and Encryption (COSE) implementation"
+category = "main"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "pycose-1.0.1-py3-none-any.whl", hash = "sha256:08fc3c10e479678e963ce58839793f7faf1a5c1463f72014853e7141af548fb7"},
+    {file = "pycose-1.0.1.tar.gz", hash = "sha256:af324408e99abec1101060d0ace775695ea805840eb523b98d0ea25611613010"},
+]
+
+[package.dependencies]
+attrs = "*"
+cbor2 = "*"
+certvalidator = "*"
+cryptography = "*"
+ecdsa = "*"
+
+[package.extras]
+develop = ["Sphinx (>=3.3.1)", "attrs", "cbor2", "certvalidator", "coverage (>=5.2.1)", "cryptography", "ecdsa", "flake8 (>=3.8.3)", "mypy (>=0.782)", "pep8-naming (>=0.11.1)", "pytest (>=6.0.1)", "sphinx-rtd-theme (>=0.5.0)", "sphinxemoji"]
+
+[[package]]
 name = "pycparser"
 version = "2.21"
 description = "C parser in Python"
@@ -2549,6 +2633,25 @@ files = [
 
 [package.extras]
 plugins = ["importlib-metadata"]
+
+[[package]]
+name = "pyopenssl"
+version = "23.1.1"
+description = "Python wrapper module around the OpenSSL library"
+category = "main"
+optional = false
+python-versions = ">=3.6"
+files = [
+    {file = "pyOpenSSL-23.1.1-py3-none-any.whl", hash = "sha256:9e0c526404a210df9d2b18cd33364beadb0dc858a739b885677bc65e105d4a4c"},
+    {file = "pyOpenSSL-23.1.1.tar.gz", hash = "sha256:841498b9bec61623b1b6c47ebbc02367c07d60e0e195f19790817f10cc8db0b7"},
+]
+
+[package.dependencies]
+cryptography = ">=38.0.0,<41"
+
+[package.extras]
+docs = ["sphinx (!=5.2.0,!=5.2.0.post0)", "sphinx-rtd-theme"]
+test = ["flaky", "pretend", "pytest (>=3.0.1)"]
 
 [[package]]
 name = "pyreadline3"
@@ -3221,7 +3324,7 @@ test = ["pytest (>=6.0)"]
 name = "six"
 version = "1.16.0"
 description = "Python 2 and 3 compatibility utilities"
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*"
 files = [
@@ -3868,4 +3971,4 @@ torch = ["torch"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.8"
-content-hash = "c217a9b5e034e3f14fbb7e6ea5509fe7a6317d89356fcea823333a381a7c4c0e"
+content-hash = "6c9a4fb167b37248cd3a9f3ccfe639202a9e8f56fb7308af59fb1c2690881a78"
