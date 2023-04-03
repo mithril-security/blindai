@@ -9,8 +9,8 @@ ____________________________________________________
 BlindAI.Core's workflow is as follows:
 
 - [Launch](../tutorials/core/installation.md): Our server is deployed on a machine with secure enclave capabilities.
-- [Remote attestation](confidential_computing.md): The remote client asks the server to provide proof that it is indeed serving a secure enclave with the right security features.
-- [Prediction](../tutorials/core/quick-tour.ipynb): Once remote attestation passes, the client can send data to be safely analyzed using a TLS channel that ends inside the enclave. The AI model can be uploaded and applied, then the results are securely sent back to the user.
+- [Remote attestation](../getting-started/confidential_computing.md): The remote client asks the server to provide proof that it is indeed serving a secure enclave with the right security features.
+- [Prediction](../how-to-guides/covid_net_confidential.ipynb): Once remote attestation passes, the client can send data to be safely analyzed using a TLS channel that ends inside the enclave. The AI model can be uploaded and applied, then the results are securely sent back to the user.
 
 ## Features
 ____________________________________________________
@@ -32,7 +32,7 @@ ____________________________________________________
 
 ### Privacy
 
-- Check out our [page on confidential computing](confidential_computing.md) to learn more about how BlindAI.Core protects user data.
+- Check out our [page on confidential computing](../getting-started/confidential_computing.md) to learn more about how BlindAI.Core protects user data.
 - Check out [our guide](../advanced/verify_blindai.md) on how you can verify some of BlindAI's privacy features. 
 
 ### How to verify BlindAI's security features
@@ -44,8 +44,8 @@ On top of this, dense technical explanations can exclude some clients without in
 At Mithril, we want the technologies behind BlindAI to be as understandable and transparent as possible, which is why:
 
 - Our source code is `open source`- you can inspect the code yourself on our [GitHub page](https://github.com/mithril-security/blindai).
-- We aim to provide clear explanations of the technologies behind BlindAI for users from various tech backgrounds. For example, we provide [an introduction to confidential computing ](confidential_computing.md) explaining key concepts behind BlindAI, whilst also providing more advanced security explanations in our [security section](../security/remote_attestation.md).
+- We aim to provide clear explanations of the technologies behind BlindAI for users from various tech backgrounds. For example, we provide [an introduction to confidential computing ](../getting-started/confidential_computing.md) explaining key concepts behind BlindAI, whilst also providing more advanced security explanations in our [security section](../security/remote_attestation.md).
 
 In addition to this, we have created [a guide](../advanced/verify_blindai.md) which will walk you through how you can verify one of our security features yourself!
 
-The feature in question is the verification that the application code has not been modified during the attestation process. We explain what this feature is and how it works [here](confidential_computing.md)
+The feature in question is the verification that the application code has not been modified during the attestation process. We explain what this feature is and how it works [here](../getting-started/confidential_computing.md)
