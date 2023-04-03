@@ -49,13 +49,13 @@ ________________________________________________________
 ## How is the documentation structured?
 ____________________________________________
 <!-- 
-- [Tutorials](link) take you by the hand to install and run BlindAI. We recommend you start with the **[Quick tour](./docs/docs/getting-started/quick-tour.ipynb)** and then move on to the other tutorials!  
-
 - [How-to guides](link) are recipes. They guide you through the steps involved in addressing key problems and use cases. They are more advanced than tutorials and assume some knowledge of how BlindAI works.
 
 - [Concepts](link) guides discuss key topics and concepts at a high level. They provide useful background information and explanations, especially on cybersecurity.
 -->
 - [Getting Started](./docs/getting-started/why-blindai.md) take you by the hand to install and run BlindAI. We recommend you start with the **[Quick tour](./docs/getting-started/quick-tour.ipynb)** and then move on to [installation](./docs/tutorials/core/installation.md)! 
+
+- [Tutorials](link) take you by the hand to install and run BlindAI. We recommend you start with the **[Quick tour](./docs/docs/getting-started/quick-tour.ipynb)** and then move on to the other tutorials!  
 
 - [API Reference](https://blindai.mithrilsecurity.io/en/latest/blindai/client.html) contains technical references for BlindAI’s API machinery. They describe how it works and how to use it but assume you have a good understanding of key concepts.
 
