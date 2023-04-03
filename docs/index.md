@@ -14,11 +14,11 @@ Data sent by users to the AI model is kept **confidential at all times**. Neithe
 
 Confidentiality is assured by hardware-enforced **Trusted Execution Environments**. We explain how they keep data and models safe in detail [here](docs/getting-started/confidential_computing.md).
 
-**BlindAi is an open-source project** consisting of:
+**BlindAi** consists of:
 
-- **BlindAI API**: to query popular AI models hosted by Mithril Security (with BlindAI.Core running under the hood).
+- **BlindAI API**: for querying popular AI models hosted by Mithril Security (with BlindAI.Core running under the hood).
 
-- **BlindAI.Core**: to host your own BlindAI server instance to securely deploy your own models. It comes in two parts: a privacy-friendly **server** coded in **Rust** 🦀 using **Intel SGX** (Intel Software Guard Extensions) 🔒 to ensure your data stays safe. And an easy-to-use **Python client SDK** 🐍.
+- **BlindAI.Core**: for hosting your own BlindAI server instance in order to securely deploy your own models. It comes in two parts: a privacy-friendly **server** coded in **Rust** 🦀 using **Intel SGX** (Intel Software Guard Extensions) 🔒 to ensure your data stays safe and an easy-to-use **Python client SDK** 🐍.
 
 You can find our more about BlindAI and BlindAI.Core [here](docs/getting-started/blindai_structure.md).
 
