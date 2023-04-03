@@ -49,8 +49,8 @@
     <li>
       <a href="#-getting-started">Getting Started</a>
       <ul>
-        <li><a href="#prerequisites">Prerequisites</a></li>
-        <li><a href="#installation">Installation</a></li>
+        <li><a href="#blindai-api">BlindAI API</a></li>
+        <li><a href="#blindai-core">BlindAI Core</a></li>
       </ul>
     </li>
     <li><a href="#-usage">Usage</a></li>
@@ -71,8 +71,8 @@ Confidentiality is assured by hardware-enforced **Trusted Execution Environments
 
 There are two main scenarios for BlindAI:
 
-- **BlindAI**: Using BlindAI to query popular AI models hosted by Mithril Security.
-- **BlindAI.Core**: Using BlindAI's underlying technology to host your own BlindAI server instance to securely deploy your own models.
+- **BlindAI API**: Using BlindAI to query popular AI models hosted by Mithril Security.
+- **BlindAI Core**: Using BlindAI's underlying technology to host your own BlindAI server instance to securely deploy your own models.
 
 You can find our more about BlindAI and BlindAI.Core [here](https://blindai.mithrilsecurity.io/en/latest/docs/getting-started/blindai_structure/).
 
@@ -85,14 +85,14 @@ You can find our more about BlindAI and BlindAI.Core [here](https://blindai.mith
 <!-- GETTING STARTED -->
 ## 🚀 Getting Started
 
-We strongly recommend for you to get started with our [Quick tour](https://blindai.mithrilsecurity.io/en/latest/docs/getting-started/quick-tour/) to discover BlindAI with a hands-on example using [COVID-Net](https://github.com/lindawangg/COVID-Net).
+We strongly recommend for you to get started with our [Quick tour](https://blindai.mithrilsecurity.io/en/latest/docs/getting-started/quick-tour/) to discover BlindAI with the open-source model Whisper.
 
 But here’s a taste of what using BlindAI could look like 🍒
 
-### BlindAI
+### BlindAI API
 
 ```py
-transcript = blindai_preview.api.Audio.transcribe(
+transcript = blindai.api.Audio.transcribe(
     file="patient_104678.wav"
 )
 print(transcript)
@@ -102,9 +102,7 @@ The patient is a 55-year old male with known coronary artery disease.
 
 ### BlindAI.Core
 
-### AI company's side
-
-#### Uploading and deleting models
+#### AI company's side: uploading and deleting models
 
 An AI company AI company want to provide their model as an an easy-to-use service. They upload it to the server, which is assigned a model ID.
 
@@ -123,9 +121,7 @@ When collaborating with clients is done, the AI company can delete their model f
 client_1.delete_model(MODEL_ID)
 ```
 
-### Client's side
-
-#### Running a model on confidential data
+#### Client's side: running a model on confidential data
 
 The client wants to feed their confidential data to the model while protecting it from third-party access. They connect and run the model on the following confidential image.
 
