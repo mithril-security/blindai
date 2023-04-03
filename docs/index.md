@@ -45,7 +45,7 @@ ________________________________________________________
 ____________________________________________
 
 
-- [Tutorials](./docs/tutorials/core/installation.md) take you by the hand to install and run BlindAI. We recommend you start with the **[Quick tour](./docs/docs/getting-started/quick-tour.ipynb)** and then move on to the other tutorials!  
+- [Tutorials](./docs/tutorials/core/installation.md) take you by the hand to install and run BlindAI. We recommend you start with the **[Quick tour](./docs/getting-started/quick-tour.ipynb)** and then move on to the other tutorials!  
 
 - [Concepts](./docs/concepts/BlindAI_Core.md) guides discuss key topics and concepts at a high level. They provide useful background information and explanations, especially on cybersecurity.
 
