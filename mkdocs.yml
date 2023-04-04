@@ -107,7 +107,7 @@ nav:
 
 - Tutorials:
   - "BlindAI API: popular models":
-    - tutorials coming soon: 'docs/tutorials/api/coming_soon.md'
+    - Coming soon: 'docs/tutorials/api/coming_soon.md'
   - "BlindAI Core: custom models":
     - Installation: 'docs/tutorials/core/installation.md'
     - Uploading models: 'docs/tutorials/core/uploading_models.ipynb'
