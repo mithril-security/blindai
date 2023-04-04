@@ -1,7 +1,7 @@
 # BlindAI API roadmap
 _________________________________
 
-We're planning to make a number of open-source model easily accessible with privacy guarantees. 
+We're planning to make a number of **open-source models** easily accessible **with privacy guarantees**. 
 
 ## ✔️ Whisper
 _______________________
