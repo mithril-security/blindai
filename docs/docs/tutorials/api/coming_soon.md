@@ -1,4 +1,4 @@
-# BlindAI API roadmap
+# BlindAI API models
 _________________________________
 
 We're planning to make a number of **open-source models** easily accessible **with privacy guarantees**. 
