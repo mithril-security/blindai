@@ -1,17 +1,20 @@
 [submodule "ring-fortanix"]
-	path = ring-fortanix
+	path = server_sgx/ring-fortanix
 	url = https://github.com/mithril-security/ring-fortanix.git
 [submodule "tract"]
-	path = tract
+	path = server_sgx/tract
 	url = https://github.com/mithril-security/tract.git
 	branch = target-fortanix
 [submodule "tar-rs-fortanix"]
-	path = tar-rs-sgx
+	path = server_sgx/tar-rs-sgx
 	url = https://github.com/mithril-security/tar-rs-fortanix.git
 	branch = target-fortanix
 [submodule "tiny-http"]
-	path = tiny-http
+	path = server_sgx/tiny-http
 	url = https://github.com/mithril-security/tiny-http.git
 [submodule "rouille-sgx"]
-	path = rouille
+	path = server_sgx/rouille
 	url = https://github.com/mithril-security/rouille-sgx.git
+[submodule "nitriding"]
+	path = server_nitro/nitriding
+	url = git@github.com:mithril-security/nitriding.git
