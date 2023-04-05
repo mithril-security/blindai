@@ -26,16 +26,16 @@ make nitro-cli
 make vsock-proxy
 sudo make NITRO_CLI_INSTALL_DIR=/ install
 source /etc/profile.d/nitro-cli-env.sh
-nitro-cli-config -i
+nitro-cli-config -i -s
 # We shouldn't have to change the owner of these dev/directory
-# but with got problem if we don't do that
-# so for now, it does the job :
+# but we've got problem if we don't do that so for now, it does the job :
 sudo chown vscode /dev/nitro_enclaves
 sudo chown vscode /run/nitro_enclaves
 
 popd
 
-ssh-keygen -t ecdsa
+# Generate an ECDSA SSH key (with no password)
+ssh-keygen -t ecdsa -q -f $HOME/.ssh/id_ecdsa -N ''
 
 git clone https://github.com/containers/gvisor-tap-vsock.git
 cd gvisor-tap-vsock/
