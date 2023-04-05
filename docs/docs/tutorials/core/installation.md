@@ -1,7 +1,7 @@
 # Installation
 ________________________________
 
-Here's your guide to install BlindAI. 
+Here's your guide to install BlindAI.
 
 There are different possible deployment methods. You can view the pros and cons of each one by opening the following boxes.
 
@@ -55,15 +55,15 @@ There are different possible deployment methods. You can view the pros and cons 
 ## Deployment on Azure DCsv3
 ________________________________________________
 
-In order to run BlindAI using a virtual machine (VM), we need to make sure it has the right Intel SGX-ready hardware. 
+In order to run BlindAI using a virtual machine (VM), we need to make sure it has the right Intel SGX-ready hardware.
 
-We strongly recommend setting up an [Azure DCsv3 VM](https://docs.microsoft.com/en-us/azure/virtual-machines/dcv3-series), because it has all the requirements for deploying BlindAI. 
+We strongly recommend setting up an [Azure DCsv3 VM](https://docs.microsoft.com/en-us/azure/virtual-machines/dcv3-series), because it has all the requirements for deploying BlindAI.
 
 The following installation guide has been created for **Azure DCsv3 VMs**.
 
 ### Creating the VM
 
-First, you need to create an account on **Azure**. 
+First, you need to create an account on **Azure**.
 
 > If you would like to try the service for free, you can get [a free trial.](https://azure.microsoft.com/en-us/free/) Follow the link for more information.
 
@@ -91,7 +91,7 @@ Finally, you can validate and create the VM.
 
 ![Validate and create the VM.](../../../assets/2022-03-02_16_41_19.png)
 
-You might have to wait a few minutes for your VM to be successfully deployed! 
+You might have to wait a few minutes for your VM to be successfully deployed!
 
 Once it is deployed, you can connect to it - but we **strongly advise you to set up a DNS name**, in order to simplify the connection as much as possible beforehand.
 
@@ -107,7 +107,7 @@ Then you'll have to **open the ports used by BlindAI**: default ports **9923** a
 
 ### Using the VM
 
-You can now start the VM. In order to have a good user experience, we recommend you download [**Visual Studio Code**](https://code.visualstudio.com/) and get the extension [**Remote - SSH**](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-ssh). 
+You can now start the VM. In order to have a good user experience, we recommend you download [**Visual Studio Code**](https://code.visualstudio.com/) and get the extension [**Remote - SSH**](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-ssh).
 
 Setting up a SSH connection is fairly easy in Visual Studio Code. All you need to do is add a SSH Host (you can find this option in **the Command Palette**):&#x20;
 
@@ -130,14 +130,14 @@ docker run -it -e BLINDAI_AZURE_DCS3_PATCH=1 -p 9923:9923 -p 9924:9924 \
 mithrilsecuritysas/blindai-server:latest /root/start.sh
 ```
 
-> If you need to install Docker, you can follow [the official Docker installation instructions](https://docs.docker.com/engine/install). 
+> If you need to install Docker, you can follow [the official Docker installation instructions](https://docs.docker.com/engine/install).
 
 Once the server has been deployed, users can connect to your server by using the client PyPi package API and specifying the server IP address and ports when using BlindAI's `connect()` method.
 
 !!! warning "For production"
 
 	By default, the `unattested_server_port` opened on `9923` is running on *http* only. This port is used for the initial communication with the client to perform verifications. Once the client has verified that the enclave is safe to connect with, it will then communicate with it directly on port 9924.
-	
+
 	For production, we strongly recommend setting up a ***reverse-proxy*** that will manage and encrypt the traffic from the client to the BlindAI server. Many free reverse-proxy implementations exist, such as **caddy**, **Nginx** and **Apache**:
 
 	- [Caddy reverse proxy set-up guide](https://caddyserver.com/docs/quick-starts/reverse-proxy)
@@ -158,25 +158,21 @@ In order to deploy BlindAI on-premise, you will need an Intel SGX-ready device w
 You can check this with the following code:
 
   ```bash
-  git clone https://github.com/ayeks/SGX-hardware
-  cd SGX-hardware
-  gcc test-sgx.c -o test-sgx
+  curl -sSL https://raw.githubusercontent.com/ayeks/SGX-hardware/master/test-sgx.c | gcc -o test-sgx -xc -
   ./test-sgx | grep "sgx launch control"
   ```
 
 - If your output is `sgx launch control: 1`, you **have** an Intel SGX-ready device with `SGX+FLC` support.
 - If your output is `sgx launch control: 0`, you **do not have** an Intel SGX-ready device with `SGX+FLC` support.
 
-BlindAI was created for SGX2, which has a better performance and much more memory available than SGX1. The physical protected memory for SGX1 is limited to 128mb. 
+BlindAI was created for SGX2, which has a better performance and much more memory available than SGX1. The physical protected memory for SGX1 is limited to 128mb.
 
 You could still deploy the server with SGX1 and benefit from the isolation offered by SGX enclaves, but the client will only be able to connect in `simulation` mode since not all attestation checks are possible with SGX1.
 
 You can check if you have SGX1 or SGX2, by running the following:
 
 ```bash
-git clone https://github.com/ayeks/SGX-hardware
-cd SGX-hardware
-gcc test-sgx.c -o test-sgx
+curl -sSL https://raw.githubusercontent.com/ayeks/SGX-hardware/master/test-sgx.c | gcc -o test-sgx -xc -
 ./test-sgx | grep "sgx 1 supported"
 ```
 
@@ -192,7 +188,7 @@ gcc test-sgx.c -o test-sgx
 
 ### Intel SGX drivers
 
->In some cases (Linux kernel >5.15) the execution of the binary returns `in-kernel drivers support`, and it means that the drivers are already installed and must appear in `/dev/sgx/`. 
+>In some cases (Linux kernel >5.15) the execution of the binary returns `in-kernel drivers support`, and it means that the drivers are already installed and must appear in `/dev/sgx/`.
 
 Please make sure to have the `SGX+FLC` drivers (preferably with version **1.41**) installed on your system before continuing.
 
@@ -209,13 +205,13 @@ The binary file contains the drivers signed by Intel and will proceed to the ins
 
 ### Server deployment in three steps
 
-1. **Install and run the `aesm` service.** 
+1. **Install and run the `aesm` service.**
 
 	This step allows our host machine to communicate with the enclave. You can do it on Ubuntu with the following steps:
 
 	```bash
 	# download aesm for ubuntu
-	echo "deb https://download.01.org/intel-sgx/sgx_repo/ubuntu $(lsb_release -cs) main" | sudo tee -a /etc/apt/sources.list.d/intel-sgx.list >/dev/null \ 
+	echo "deb https://download.01.org/intel-sgx/sgx_repo/ubuntu $(lsb_release -cs) main" | sudo tee -a /etc/apt/sources.list.d/intel-sgx.list >/dev/null \
 	# add to apt-key list to authenticate package
 	curl -sSL "https://download.01.org/intel-sgx/sgx_repo/ubuntu/intel-sgx-deb.key" | sudo apt-key add -
 	# update available packages
@@ -236,7 +232,7 @@ The binary file contains the drivers signed by Intel and will proceed to the ins
 	sudo usermod -a -G aesmd $USER
 	```
 
-2. **Deploy the server using our Docker image.** 
+2. **Deploy the server using our Docker image.**
 
 	You will need to create an Intel Provisioning Certification Caching Service (PCCS) API key. This is necessary to be enable SGX attestation run-time workloads.
 
@@ -258,14 +254,14 @@ The binary file contains the drivers signed by Intel and will proceed to the ins
 	mithrilsecuritysas/blindai-server:latest /root/start.sh [PCCS_API_KEY]
 	```
 
-	>If you need to install Docker, you can follow [the official Docker installation instructions](https://docs.docker.com/engine/install). 
+	>If you need to install Docker, you can follow [the official Docker installation instructions](https://docs.docker.com/engine/install).
 
 	Once the server has been deployed, users can connect to your server by using the client PyPi package API and specifying the server IP address and ports when using BlindAI's `connect()` method.
 
 	!!! warning "For production"
 
 		By default, the `unattested_server_port` opened on `9923` is running on *http* only. This port is used for the initial communication with the client to perform verifications. Once the client has verified that the enclave is safe to connect with, it will then communicate with it directly on port 9924.
-		
+
 		For production, we strongly recommend setting up a ***reverse-proxy*** that will manage and encrypt the traffic from the client to the BlindAI server. Many free reverse-proxy implementations exist, such as **caddy**, **Nginx** and **Apache**:
 
 		- [Caddy reverse proxy set-up guide](https://caddyserver.com/docs/quick-starts/reverse-proxy)
