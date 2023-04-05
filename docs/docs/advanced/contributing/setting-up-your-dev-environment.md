@@ -1,25 +1,39 @@
 # Setting up your dev environment
+____________________________________
 
-## Using remote container extension on Visual Studio Code 🐳
+## With Docker in VSCode 🐳
+_______________________________________________________________
 
-You can directly clone the repo and open it in VS Code. Using the remote container extension, Visual Studio Code should prompt you to install it.
+To set up the environement with Docker, you can directly clone the repo and open it in Visual Studio Code (VSCode). 
 
-Open the green menu at the bottom-left of the Visual Studio Code.
-Choose: "Open folder in container".
+***# CAN YOU PUT THE CODE TO DO THAT DIRECTLY SO PEOPLE DON'T HAVE TO DO TO THE REPO/GET OUT OF HERE?***
 
-![](../../../assets/Screenshot-vscode.png)
+We'll have to use the remote container extension. VSCode should prompt you to install it.
+
+***# BUT IF VSCode doesn't prompt you to do so, I guess you should go install it by yourself searching somewhere in particular in VSCode?***
+
+![](../../../assets/Screenshot-vscode.png){ align=right }  
+
+Once that's done, open the green menu at the bottom-left of the VSCode, the one with two chevrons on top of each other.
+
+Choose: "**Open folder in container**".
 
 It will build and run the image present in the [`.devcontainer` folder](https://github.com/mithril-security/blindai/tree/main/.devcontainer) and it will run the dev environment directly on VSCode.
 
 !!! Warning
-    there is a different one for Azure in the : `devcontainer-azure/` folder
 
-You can check that everything is correctly set-up by [Running the tests](../../../index.md#testing)
+    There is a different image for Azure in the : `devcontainer-azure/` folder.
+
+You can check that everything is correctly set-up by [running the tests](../../../index.md#testing). 
+
+***# Which tests? Why are they in Home? Is it the Verifying section from Laura?***
 
 ## Without Docker
+______________________________
 
-If you don't want to use docker, you will need to install the following:
+If you don't want to or can't use Docker, you will need to install the following:
 
+***# It felt weird to only have "if you don't want to" for Docker. Felt a bit like 'yo, you want to make your life complicated and be a bad student? I guess... here is how you do it' hahaha. I added "can't" but there might be another scenario ?***
 
 === "General"
 
@@ -363,7 +377,7 @@ If you don't want to use docker, you will need to install the following:
             cargo install fortanix-sgx-tools sgxs-tools
             ```
 
-You can install the Intel SGX related dependencies with the [sgx-install.sh](https://github.com/mithril-security/blindai/tree/main/devenvironment/sgx-install.sh) install script.
+Then you can install the Intel SGX related dependencies with the following code block, using the [sgx-install.sh](https://github.com/mithril-security/blindai/tree/main/devenvironment/sgx-install.sh) install script.
 === "From BlindAI's directory"
 
     ```bash
@@ -376,9 +390,12 @@ You can install the Intel SGX related dependencies with the [sgx-install.sh](htt
     curl -sSL https://raw.githubusercontent.com/mithril-security/blindai/main/devenvironment/sgx-install.sh | bash
     ```
 
-Or you can find the [installation guides](https://download.01.org/intel-sgx/sgx-linux/2.15.1/docs/) for Intel SGX software on the 01.org website for more specific needs.
 
-You can find the [installation guides](https://edp.fortanix.com/docs/installation/guide/) for fortanix EDP on their official website.
+Or you can find: 
+
+* The [installation guides](https://download.01.org/intel-sgx/sgx-linux/2.15.1/docs/) for Intel SGX software on the 01.org website for more specific needs.
+
+* The [installation guides](https://edp.fortanix.com/docs/installation/guide/) for fortanix EDP on their official website.
 
 !!! info "Running without SGX support"
     If you are running on a machine without SGX support, you will need the simulation versions of the Intel PSW and SDK.

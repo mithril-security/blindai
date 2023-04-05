@@ -5,7 +5,7 @@ _________________________________________________
 
 !!! info
 
-	If you're building the client because you want to change it, you should rather got to [the setting up your dev environment page](../contributing/setting-up-your-dev-environment.md)
+	If you're building the client because you **want to change it**, this is the wrong page for you to start with. Go to [the setting up your dev environment page](../contributing/setting-up-your-dev-environment.md) first.
 
 ## Requirements
 
