@@ -201,3 +201,5 @@ manifest_cloud.toml
 ## Specific to AWS Nitro Enclave
 
 gvisor-tap-vsock/
+*.eif
+nitriding

@@ -34,6 +34,9 @@ sudo chown vscode /run/nitro_enclaves
 
 popd
 
+# Add just tool
+curl --proto '=https' --tlsv1.2 -sSf https://just.systems/install.sh | sudo bash -s -- --to /usr/bin
+
 # Generate an ECDSA SSH key (with no password)
 ssh-keygen -t ecdsa -q -f $HOME/.ssh/id_ecdsa -N ''
 

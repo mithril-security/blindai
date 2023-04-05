@@ -23,7 +23,7 @@
 		"ghcr.io/stuartleeks/dev-container-features/shell-history:0": {}
 	},
 	"runArgs": ["--device=/dev/nitro_enclaves", "-v","/run/nitro_enclaves:/run/nitro_enclaves"],
-	"postCreateCommand": "bash .devcontainer/post_create_command.sh",
+	"postCreateCommand": "bash .devcontainer/nitro/post_create_command.sh",
 
 	"customizations": {
 		"vscode": {

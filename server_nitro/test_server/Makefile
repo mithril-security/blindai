@@ -2,13 +2,13 @@
 
 docker_image = test-ssh-nitro
 enclave_image = $(docker_image).eif
-godeps = ../cmd/*.go ../*.go ../go.mod ../go.sum
+godeps = ../nitriding/cmd/*.go ../nitriding/*.go ../nitriding/go.mod ../nitriding/go.sum
 binary = nitriding
 
 all: $(binary) docker enclave kill run
 
 $(binary): $(godeps)
-	make -C ../cmd/
+	make -C ../nitriding/cmd/
 	cp ../nitriding/cmd/nitriding .
 
 docker: Dockerfile
