@@ -60,4 +60,4 @@ That brings us to the end of this introduction to confidential computing. Let’
 - We also **verify that the enclave is genuine** with the hardware vendor.
 - If attestation is successful, **communication** between the client and enclave is **established using TLS**.
 
-If you haven’t already, you can check out our [Quick Tour](https://github.com/mithril-security/blindai/blob/main/docs/docs/getting-started/quick-tour.md) to see a hands-on example of how BlindAI can be used to protect user data whilst querying AI models.
+If you haven’t already, you can check out our [Quick Tour](https://github.com/mithril-security/blindai/blob/main/docs/docs/getting-started/quick-tour.md) to see a hands-on example of how BlindAI can be used to protect user data while querying AI models.

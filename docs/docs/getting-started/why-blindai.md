@@ -18,20 +18,8 @@ Users with sensitive data may instead turn to on-premise or on-device deployment
 
 **BlindAI** offers the best of both worlds: the **ease-of-use** and **wide offer** of Cloud deployment with the **increased privacy** of on-premise and on-device solutions. We take advantage of the power of confidential computing, and more specifically Intel Software Guard Extension (**Intel SGX**), to enable user data to be processed remotely without the risk of unauthorized access or tampering.
 
-## Use case: AI integration for hospitals
-
-Imagine you have a hospital wanting to use AI to help doctors be more efficient. Doctors often take voice notes in a rush, then need to transcribe them into writing for later reporting. This takes a lot of time and it could be automated with AI speech-to-text.
-
-The hospital doesn’t have the expertise, the infrastructure or the time to do so. If they want to implement it, they would turn to external help - for example an AI provided through the SaaS of a startup. This would be beneficial because there would be no cost for onboarding or for maintenance.
-
-The issue is that, when sending data to that startup, no technical guarantee can be provided that the confidential medical information contained in those audios will not be compromised. Data can be encrypted in transit, and even if the startup uses a secure Cloud, it can still be put at risk because it will be in clear in memory before being analyzed for transcription by the AI model. Therefore the hospital has to entrust their data to this startup which might not have put in place the proper security measures to ensure data confidentiality.
-
-This key security flaw often cuts off this type of collaboration from the get go. The hospital would likely refuse to send their medical data to the AI startup. Being able to use speech-to-text could have saved many hours for the hospital’s personnel and benefit the startup, but healthcare data security is just too sensitive to take any risk.
-
-This is where BlindAI comes in. Using BlindAI Core, the AI company could serve their AI model in a highly isolated computing environment, a [Trusted Execution Environment](confidential_computing.md), which ensures no-one, including their employees, can access the hospital's data. This allows this kind of collaboration to go ahead to the great benefit of both parties.
-
 ## Next steps 
 
-To find out more about the Confidential technologies behind BlindAI, check out our [guide to Confidential Computing](confidential_computing.md).
-
 To get see a hands-on demo of how you can use the BlindAI API, check out our [Quick Tour](./quick-tour.ipynb)!
+
+To find out more about the Confidential technologies behind BlindAI, check out our [guide to Confidential Computing](confidential_computing.md).
