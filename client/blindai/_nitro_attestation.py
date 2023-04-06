@@ -1,3 +1,4 @@
+import hashlib
 from typing import Optional, List, Dict
 import cbor2
 import cryptography
@@ -12,8 +13,8 @@ from pycose.keys.keytype import KtyEC2
 from OpenSSL import crypto
 from pydantic import BaseModel, StrictBytes, StrictInt, StrictStr
 import importlib
-
 import cryptography.hazmat.primitives.asymmetric.ec
+from pycose.messages.signcommon import SignCommon
 
 
 class NitroAttestationError(Exception):
@@ -44,8 +45,9 @@ class NitroAttestationDocument(BaseModel):
     # attestation consumer as a proof of authenticity
 
 
-
-def verify_attestation_doc(attestation_doc, root_cert_pem, time=None):
+def verify_attestation_doc(
+    attestation_doc: bytes, root_cert_pem: str, time: Optional[datetime] = None
+) -> NitroAttestationDocument:
     """
     Verify that the attestation document is genuine
     If invalid, raise an exception
@@ -72,7 +74,7 @@ def verify_attestation_doc(attestation_doc, root_cert_pem, time=None):
         store.set_time(time)
 
     # Create the CA cert object from PEM string, and store into X509Store
-    _rootca_cert = crypto.load_certificate(crypto.FILETYPE_PEM, root_cert_pem)
+    _rootca_cert = crypto.load_certificate(crypto.FILETYPE_PEM, root_cert_pem)  # type: ignore
     store.add_cert(_rootca_cert)
 
     # Use CA bundle from attestation document to build certificate chain
@@ -110,6 +112,11 @@ def verify_attestation_doc(attestation_doc, root_cert_pem, time=None):
 
     cert_public_numbers = cert_pubkey.public_numbers()
 
+    assert isinstance(
+        cert_public_numbers,
+        cryptography.hazmat.primitives.asymmetric.ec.EllipticCurvePublicNumbers,
+    )
+
     x = cert_public_numbers.x.to_bytes(cert_pubkey.curve.key_size // 8, "big")
     y = cert_public_numbers.y.to_bytes(cert_pubkey.curve.key_size // 8, "big")
 
@@ -118,7 +125,7 @@ def verify_attestation_doc(attestation_doc, root_cert_pem, time=None):
         EC2KpCurve: P384,
         KpAlg: Es384,
         EC2KpX: x,
-        EC2KpY: y
+        EC2KpY: y,
     }
 
     key = keys.CoseKey.from_dict(key_attribute_dict)
@@ -129,24 +136,27 @@ def verify_attestation_doc(attestation_doc, root_cert_pem, time=None):
     # Construct the Sign1 message
     msg = Sign1Message(phdr=phdr, uhdr=data[1], payload=payload)
 
-
     # We should not use "_signature" because it is a private attribute...
-    # There is an issue on pycose github to make the signature attribute settable 
+    # There is an issue on pycose github to make the signature attribute settable
     # <https://github.com/TimothyClaeys/pycose/issues/105>
-    # When resolved we can switch to a much nicer "msg.signature"  
-    msg._signature = data[3]
-    
+    # When resolved we can switch to a much nicer "msg.signature"
+    msg._signature = data[3]  # type: ignore
+
     msg.key = key
 
     # Verify the signature using the EC2 key
-    if not msg.verify_signature():
+    if not msg.verify_signature():  # type: ignore
         raise NitroAttestationError("Wrong signature on attestation document")
 
     return att_doc
 
 
 def validate_attestation(
-    attestation_doc, enclave_cert, expected_pcr0: bytes, _root_cert_pem=None, _time=None
+    raw_attestation_doc: bytes,
+    enclave_cert: bytes,
+    expected_pcr0: bytes,
+    _root_cert_pem: Optional[str] = None,
+    _time: Optional[datetime] = None,
 ):
     """
     Validate the attestation
@@ -164,13 +174,18 @@ def validate_attestation(
         # AWS Nitro root CA is embedded in the python package
         # It was obtained from AWS at
         # <https://aws-nitro-enclaves.amazonaws.com/AWS_NitroEnclaves_Root-G1.zip>
-        _root_cert_pem = importlib.resources.read_text(  # type: ignore
+        root_cert_pem = importlib.resources.read_text(  # type: ignore
             __package__, "aws_nitro_enclaves_rootca.pem"
         )
-    attestation_doc = verify_attestation_doc(
-        attestation_doc, root_cert_pem=_root_cert_pem, time=_time
-    )
+    else:
+        root_cert_pem = _root_cert_pem
 
+    attestation_doc = verify_attestation_doc(
+        raw_attestation_doc, root_cert_pem=root_cert_pem, time=_time
+    )
     assert attestation_doc.digest == "SHA384"
     assert attestation_doc.pcrs[0] == expected_pcr0
-    assert attestation_doc.user_data == enclave_cert
+    cert_hash = hashlib.sha256(enclave_cert).digest()
+    app_hash = 32 * b"\x00"
+    expected_user_data = b"sha256:%b;sha256:%b" % (cert_hash, app_hash)
+    assert attestation_doc.user_data == expected_user_data
