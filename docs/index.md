@@ -2,21 +2,21 @@
 ________________________________________________________
 
 <font size="5"><span style="font-weight: 200">
-An AI privacy solution to query AI models while ensuring your data remains confidential every step of the way.
+An AI privacy solution to query models, while ensuring your data remains confidential every step of the way!
 </font></span>
 
 ## What is BlindAI?
 ________________________________________________________
 
-BlindAI is an **open-source solution** to query AI models while **guaranteeing data privacy**. The querying of models is done via our **easy-to-use BlindAI Python library**.
+**BlindAI** is an **open-source solution** to query and deploy AI models while **guaranteeing data privacy**. The querying of models is done via our **easy-to-use Python library**.
 
 Data sent by users to the AI model is kept **confidential at all times** by hardware-enforced **Trusted Execution Environments**. We explain how they keep data and models safe in detail [here](docs/getting-started/confidential_computing.md).
 
 **BlindAi** consists of:
 
-- **BlindAI API**: for querying popular AI models hosted by Mithril Security (with BlindAI.Core running under the hood).
+- **BlindAI API**: for querying popular AI models hosted by Mithril Security (with BlindAI Core running under the hood). Its a Python library 🐍.
 
-- **BlindAI.Core**: for hosting your own BlindAI server instance in order to securely deploy your own models. It comes in two parts: a privacy-friendly **server** coded in **Rust** 🦀 using **Intel SGX** (Intel Software Guard Extensions) 🔒 to ensure your data stays safe and an easy-to-use **Python client SDK** 🐍.
+- **BlindAI Core**: for hosting your own BlindAI server instance in order to securely deploy your own models. It comes in two parts: a privacy-friendly **server** coded in **Rust** 🦀 using **Intel SGX** (Intel Software Guard Extensions) 🔒 and **AWS Nitro Enclaves** 🌪️ to ensure your data stays safe and an easy-to-use **Python client SDK** 🐍.
 
 You can find our more about BlindAI and BlindAI.Core [here](docs/getting-started/blindai_structure.md).
 
