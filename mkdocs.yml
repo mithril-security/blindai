@@ -106,7 +106,8 @@ nav:
 
 - Tutorials:
   - "BlindAI API: popular models":
-    - Coming soon: 'docs/tutorials/api/coming_soon.md'
+    - API Overview: 'docs/tutorials/api/coming_soon.md'
+    - Whisper: 'docs/tutorials/api/whisper_tutorial.ipynb'
   - "BlindAI Core: custom models":
     - Core Overview: 'docs/concepts/BlindAI_Core.md'
     - Installation: 'docs/tutorials/core/installation.md'
