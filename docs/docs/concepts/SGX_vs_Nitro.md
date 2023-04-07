@@ -18,7 +18,7 @@ Programs running in an Intel SGX enclave are **fully isolated from the rest of t
 
 Intel SGX has pursued a **very minimal TCB**. The TCB of our enclave application only contains the "trusted" parts of the application and a small section of the hardware, the CPU.
 
-![Intel SGX TCB](../../assets/SGX_TCB.png)
+![Intel SGX TCB](../../assets/SGX_TCB.jpg)
 
 This means that our enclave will not be impacted by any bugs or vulnerabilities occurring in the host machine’s OS, hypervisor, firmware or hardware outside of the CPU!
 
@@ -82,7 +82,7 @@ The **attestation process** allows users to **verify that the enclave, the code 
 
 The attestation certification contains the following information about the enclave.
 
-![Nitro attest](../../assets/nitro_attest.jpg)
+![Nitro attest](../../assets/nitro_attest.png)
 
 A client wishing to connect with the enclave is able to verify this information matches with the expected values for this application, for example, the official values relating to a BlindAI server instance. You can think of this a bit like when you verify the checksum of a software or OS instance you download online to confirm its authenticity.
 
@@ -96,7 +96,7 @@ A client wishing to connect with the enclave is able to verify this information 
 
 ### Intel SGX & Nitro Enclaves: differences
 
-![Nitro attest](../../assets/differenecs_nitro_sgx.jpg)
+![Nitro attest](../../assets/differences_nitro_sgx.png)
 
 ### Current view of Intel SGX & Nitro Enclaves within BlindAI
 
