@@ -18,7 +18,8 @@ Users with sensitive data may instead turn to on-premise or on-device deployment
 
 **BlindAI** offers the best of both worlds: the **ease-of-use** and **wide offer** of Cloud deployment with the **increased privacy** of on-premise and on-device solutions. We take advantage of the power of confidential computing, and more specifically Intel Software Guard Extension (**Intel SGX**), to enable user data to be processed remotely without the risk of unauthorized access or tampering.
 
-## Use case: AI integration for hospitals
+## Example: AI integration for hospitals
+____________________________________________
 
 Imagine you have a hospital wanting to use AI to help doctors be more efficient. Doctors often take voice notes in a rush, then need to transcribe them into writing for later reporting. This takes a lot of time and it could be automated with AI speech-to-text.
 
@@ -31,7 +32,8 @@ This key security flaw often cuts off this type of collaboration from the get go
 This is where BlindAI comes in. Using BlindAI Core, the AI company could serve their AI model in a highly isolated computing environment, a [Trusted Execution Environment](confidential_computing.md), which ensures no-one, including their employees, can access the hospital's data. This allows this kind of collaboration to go ahead to the great benefit of both parties.
 
 ## Next steps 
-
-To find out more about the Confidential technologies behind BlindAI, check out our [guide to Confidential Computing](confidential_computing.md).
+____________________________
 
 To get see a hands-on demo of how you can use the BlindAI API, check out our [Quick Tour](./quick-tour.ipynb)!
+
+To find out more about the Confidential technologies behind BlindAI, check out our [guide to Confidential Computing](confidential_computing.md).

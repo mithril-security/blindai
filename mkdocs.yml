@@ -100,21 +100,22 @@ nav:
 - 🏠 Home: 'index.md' 
 
 - 🚀 Getting Started: 
-  - Why BlindAI: 'docs/getting-started/why-blindai.md'
-  - How we protect your data: 'docs/getting-started/confidential_computing.md'
   - Quick tour: 'docs/getting-started/quick-tour.ipynb'
+  - How we protect your data: 'docs/getting-started/confidential_computing.md'
   - "Project structure: API & Core" : 'docs/getting-started/blindai_structure.md'
 
 - Tutorials:
   - "BlindAI API: popular models":
-    - Coming soon: 'docs/tutorials/api/coming_soon.md'
+    - API Overview: 'docs/tutorials/api/coming_soon.md'
+    - Whisper: 'docs/tutorials/api/whisper_tutorial.ipynb'
   - "BlindAI Core: custom models":
+    - Core Overview: 'docs/concepts/BlindAI_Core.md'
     - Installation: 'docs/tutorials/core/installation.md'
     - Uploading models: 'docs/tutorials/core/uploading_models.ipynb'
 
 - 💡 Concepts:
-  - "BlindAi Core: Overview": 'docs/concepts/BlindAI_Core.md'
-
+  - Why BlindAI?: 'docs/getting-started/why-blindai.md'
+  - SGX vs Nitro Enclaves: 'docs/concepts/SGX_vs_Nitro.md'
 - 🌍 How-to-Guides:
   -  Confidential diagnosis with Covid-NET: 'docs/how-to-guides/covid_net_confidential.ipynb'
 

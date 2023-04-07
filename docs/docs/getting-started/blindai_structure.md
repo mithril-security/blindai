@@ -14,7 +14,7 @@ __________________________
 
 BlindAI API includes an open-source Python library, allowing developers to query popular AI models without needing to trust us with access to your data, thanks to [Confidential Computing](confidential_computing.md). 
 
-So far, we have released [Whisper on BlindAI](quick-tour.ipynb), a pre-trained model for automatic speech recognition (ASR) and speech translation. More models are set to join Whisper on the platform in the future.
+So far, we have released [Whisper on BlindAI](quick-tour.ipynb), a pre-trained model for automatic speech recognition (ASR) and speech translation. [More](../tutorials/api/coming_soon.md) models are set to join Whisper on the platform in the future.
 
 ## BlindAI Core
 ________________________________
