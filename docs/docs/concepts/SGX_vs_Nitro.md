@@ -89,7 +89,7 @@ This is why Nitro enclaves include the same elements in their TCB as most standa
 
 <img src="https://raw.githubusercontent.com/mithril-security/blindai/main/docs/assets/Nitro_TCB.jpg"  width=50%>
 
-While pursuing a smaller TCB can be one way to reduce the attack surface, it is important to note that isn't the only way to do so and often involves tradeoffs between different measures. In this instance, our application would not be impacted by any bugs or vulnerabilities occurring in the untrusted elements (such as a bug in the AWS hypervisor), despite not reducing its TCB.
+Whilst pursuing a smaller TCB can be one way to reduce the attack surface (since our application would not be impacted by any bugs or vulnerabilities occurring in the untrusted elements, such as a bug in the AWS hypervisor), it is important to note that reducing your TCB size is not the only way to reduce the attack surface and often involves tradeoffs between different measures!
 
 ### Attestation
 
