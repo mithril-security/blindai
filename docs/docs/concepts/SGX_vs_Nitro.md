@@ -48,7 +48,7 @@ Let’s walk through how this process works in BlindAI, step-by-step.
 
 1. The user first contacts the application on the unattested port outside of the enclave, triggering an **attestation request**.
 
-2. **An attestation report or quote is created** containing information about the **enclave’s identity/ application code**. It is bound to the enclave’s **TLS certificate** so that the client can set up a communication channel if the attestation concludes successfully. It is **signed** in the enclave by an **attestation key** derived from hardware.
+2. **An attestation report is created** containing information about the **enclave’s identity/ application code**. It is bound to the enclave’s **TLS certificate** so that the client can set up a communication channel if the attestation concludes successfully. It is **signed** in the enclave by an **attestation key** derived from hardware.
 
 3. The attestation report or quote is then signed with the **PCK key** retrieved from the PCK certificate caching service.
 
@@ -89,7 +89,7 @@ This is why Nitro enclaves include the same elements in their TCB as most standa
 
 <img src="https://raw.githubusercontent.com/mithril-security/blindai/main/docs/assets/Nitro_TCB.jpg"  width=50%>
 
-While pursuing a smaller TCB can be one way to reduce the attack surface, it is important to note that isn't the only way to do so and often involves tradoffs between different measures. In this instance, our application would not be impacted by any bugs or vulnerabilities occurring in the untrusted elements (such as a bug in the AWS hypervisor), despite not reducing its TCB.
+While pursuing a smaller TCB can be one way to reduce the attack surface, it is important to note that isn't the only way to do so and often involves tradeoffs between different measures. In this instance, our application would not be impacted by any bugs or vulnerabilities occurring in the untrusted elements (such as a bug in the AWS hypervisor), despite not reducing its TCB.
 
 ### Attestation
 
