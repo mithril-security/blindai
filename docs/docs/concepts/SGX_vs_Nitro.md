@@ -116,7 +116,7 @@ ______________
 
 ### Current view of Intel SGX & Nitro Enclaves within BlindAI
 
-| Model                 |               TEE options supported        |
+| AI Model              |               TEE options supported        |
 | --------------------- | ------------------------------------------ |
 | Whisper on BlindAI API | `Intel SGX` (default) <br> `Nitro Enclave`|
 | OpenChatKit on BlindAI API |      `Nitro Enclave`                  |
