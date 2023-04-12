@@ -97,9 +97,8 @@ The attestation certification contains the following information about the encla
 
 ![Nitro attest](../../assets/nitro_attest.png)
 
-***# Rephrase following paragraph***
-
-A client wishing to connect with the enclave is able to verify that this information matches with the expected values for this application - for example, the official values relating to a BlindAI server instance. You can think of this a bit like when you verify the checksum of a software or OS instance you download online to confirm its authenticity.
+A client wishing to connect with the enclave will verify that this information matches with the enclave application they are expecting to connect to. For example, by default, the BlindAI client expects this information to match with the latest official version of the BlindAI server application.
+You can think of this as being like using a checksum to verify the authenticity of a software downloaded online.
 
 ## Comparison
 ______________
