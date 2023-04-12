@@ -62,7 +62,7 @@ Unlike Intel SGX which is isolated by the CPU, the AWS TEE implementation is bas
 
 > Note that one benefit of pursuing this virtualization approach compared to a memory encryption approach is that **the host instance has absolutely no visibility over the enclave’s memory whatsoever**- this memory simply doesn’t exist from the host's perspective. Therefore the host cannot try to gain any information from monitoring what memory is in use or any access patterns, etc.
 
-<img src="/../assets/nitro_arch.png" width=400 height=400/>
+<img src="https://raw.githubusercontent.com/mithril-security/blindai/main/docs/assets/nitro_arch.png" width=70%>
 
 Nitro enclaves are also designed to support **limited operations to reduce their attack surface**. They have **no durable storage, no network/interactive access, no metadata services, DNS, NTP**, etc… 
 
@@ -72,7 +72,7 @@ It is important to note that while some Confidential Computing solutions have pu
 
 Nitro enclaves therefore include the same elements in their TCB as most standard applications today. They do, however, support **cryptographic attestation** which will verify the application code and the enclave's OS as we will go on to discuss.
 
-<img src="/../assets/Nitro_TCB.jpg" width=400 height=400/>
+<img src="https://raw.githubusercontent.com/mithril-security/blindai/main/docs/assets/Nitro_TCB.jpg"  width=50%>
 
 Whilst pursuing a smaller TCB can be one way to reduce the attack surface, since our application would not be impacted by any bugs or vulnerabilities occurring in the untrusted elements (such as a bug in the AWS hypervisor), it is important to note that reducing your TCB size is not the only way to reduce the attack surface and often involves tradeoffs between different measures!
 
@@ -96,11 +96,8 @@ A client wishing to connect with the enclave is able to verify this information 
 
 ### Intel SGX & Nitro Enclaves: differences
 
-![Nitro attest](../../assets/differences_nitro_sgx.png)
+![nitro SGX differences](../../assets/differences_nitro_sgx.png)
 
 ### Current view of Intel SGX & Nitro Enclaves within BlindAI
 
-| **Model**                       | **TEE options supported**            |
-| Whisper on BlindAI API          | Intel SGX (default) or Nitro Enclave |
-| OpenChatKit on BlindAI API      | Nitro Enclave only                   |
-| custom models with BlindAI Core | Intel SGX only                       |
+![current view of nitro and SGX](../../assets/current_view_nitro_sgx.png)
