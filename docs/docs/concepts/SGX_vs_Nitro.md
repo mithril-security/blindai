@@ -116,4 +116,8 @@ ______________
 
 ### Current view of Intel SGX & Nitro Enclaves within BlindAI
 
-![current view of nitro and SGX](../../assets/current_view_nitro_sgx.png)
+| Model                 |               TEE options supported    |
+| --------------------- | ------------------------------------ |
+| Whisper on BlindAI API |  `Intel SGX` (default) <br> `Nitro Enclave`  |
+| OpenChatKit on BlindAI API       | `Nitro Enclave` |
+| Custom models on BlindAI Core  |  `Intel SGX`    |
