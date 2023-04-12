@@ -46,7 +46,7 @@ That brings us to the end of this introduction to confidential computing. Let’
 - Trusted Execution Environments are **highly isolated compute environments**.
 - Confidential computing technologies often pursue a minimal Trusted Computing Base (TCB) to **reduce the attack surface**.
 - During the attestation process, we **verify that the application code** in the enclave has not been modified or tampered with.
-- We also **verify that the enclave is genuine** with the hardware vendor or the **trusted OS**.
+- We also **verify the authenticity of the enclave (and OS in the case of Nitro enclaves)**.
 - If attestation is successful, **communication** between the client and enclave is **established using TLS**.
 
 If you haven’t already, you can check out our [Quick Tour](quick-tour.ipynb) to see a hands-on example of how BlindAI can be used to protect user data while querying AI models.
