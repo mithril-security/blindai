@@ -44,6 +44,8 @@ Let’s walk through how this process works in BlindAI, step-by-step.
 
 **The attestation process:**
 
+![Intel SGX attestation flowchart](../../assets/flowchart_attestation_SGX.jpeg)
+
 1. The user first contacts the application on the unattested port outside of the enclave, triggering an **attestation request**.
 
 2. **An attestation report or quote is created** containing information about the **enclave’s identity/ application code**. It is bound to the enclave’s **TLS certificate** so that the client can set up a communication channel if the attestation concludes successfully. It is **signed** in the enclave by an **attestation key** derived from hardware.
