@@ -102,6 +102,7 @@ nav:
 - 🚀 Getting Started: 
   - Quick tour: 'docs/getting-started/quick-tour.ipynb'
   - How we protect your data: 'docs/getting-started/confidential_computing.md'
+  - Limitations: 'docs/getting-started/limitations.md'
   - "Project structure: API & Core" : 'docs/getting-started/blindai_structure.md'
 
 - Tutorials:
