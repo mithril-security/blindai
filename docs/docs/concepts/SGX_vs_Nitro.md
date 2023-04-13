@@ -48,17 +48,24 @@ Let’s walk through how this process works in BlindAI, step-by-step.
 
 1. The user first contacts the application on the unattested port outside of the enclave, triggering an **attestation request**.
 
-2. **An attestation report is created** containing information about the **enclave’s identity/ application code**. It is bound to the enclave’s **TLS certificate** so that the client can set up a communication channel if the attestation concludes successfully. It is **signed** in the enclave by an **attestation key** derived from hardware.
+2. **An attestation report is created** containing information about the **enclave’s identity/ application code**.
 
-3. The attestation report or quote is then signed with the **PCK key** retrieved from the PCK certificate caching service.
+3. An **attestation key** is signed (or certified) by the **PCK private signing key** which is derived from hardware.
 
-4. The client verifies the report:
+4. The **attestation key** signs the **attestation report** to prove that the enclave is running with Intel SGX protections and denoting its configuration. This **signed report** is placed within a structure called a **quote**.
 
-    a. The **PCK key is verified** via the host machine which enables us to check that the enclave is an authentic SGX platform and that it is up to date with all security patches.
+5. The client is sent the **quote** along with the **collateral**. This **collateral** includes data such as the **PCK certificate** (which includes the **public key** corresponding to the PCK's private signing key) and a **TLS certificate** so that the client can establish communication with the enclave if the attestation process is successful.
+
+6. The client receives the **quote** and **collateral**: 
+
+    a. The **PCK certificate** is used to verify the **attestation key**. This ensures that the enclave is genuine and properly configured.
 
     b. The **application code and enclave settings are verified**. With BlindAI Core and BlindAI, the client contains built-in copies of the manifest.toml file for the latest official version of BlindAI. These are checked against the attestation report. If the application code has been tampered with before being launched, this verification will fail and the client will not be able to connect with the enclave.
 
-5. If the attestation process has been successful, the client can now **establish direct communication with the enclave** via **TLS**. If it is not successful, an **attestation error** will be returned. 
+7. If the attestation process has been successful, the client can now **establish direct communication with the enclave** via **TLS**. If it is not successful, an **attestation error** will be returned.
+a detailed or exhaustive explanation is outside the scope of this article. 
+
+>Note that this is meant to serve as a quick summary of attestation and the details of the process are complex. Please see [Intel's DCAP documentation](https://download.01.org/intel-sgx/sgx-dcap/1.3/linux/docs/Intel_SGX_ECDSA_QuoteLibReference_DCAP_API.pdf) for full details.
 
 ## Nitro Enclaves
 ________________________
