@@ -44,7 +44,7 @@ Let’s walk through how this process works in BlindAI, step-by-step.
 
 **The attestation process:**
 
-![Intel SGX attestation flowchart](../../assets/flowchart_attestation_SGX.jpeg)
+![Intel SGX attestation flowchart](../../assets/flowchart_attestation_SGX.png)
 
 1. The user first contacts the application on the unattested port outside of the enclave, triggering an **attestation request**.
 
