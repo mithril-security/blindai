@@ -24,6 +24,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 import os
 import contextlib
 import socket
+import sys
 
 import numpy as np
 import cbor2 as cbor
@@ -556,7 +557,7 @@ class BlindAiConnection(contextlib.AbstractContextManager):
             platform_release=uname.release,
             user_agent="blindai_python",
             user_agent_version=app_version,
-            is_colab=False,
+            is_colab="google.colab" in sys.modules,
         )
 
         if hazmat_http_on_unattested_port:
