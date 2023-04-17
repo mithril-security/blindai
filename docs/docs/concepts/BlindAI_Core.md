@@ -26,6 +26,7 @@ _____________
 
 ### What you cannot do with BlindAI.Core
 
+* Users can **only** currently **upload models in ONNX format** and perform inference using these models or delete them. In the future, we will look to expand the features and compatibility of BlindAI.
 * Our solution aims to be modular but we have yet to incorporate tools for generic pre/post-processing. Specific pipelines can be covered but will require additional handwork for now.
 * BlindAI does not cover training or federated learning, however you can check our [roadmap](https://github.com/mithril-security/blindai/projects/1) or [Discord](https://discord.gg/TxEHagpWd4) channel to know more about what we are working on and solutions.
 * The **examples** we provide in our documentation are simple and do not take into account complex mechanisms such as secure storage of confidential data with sealing keys, an advanced scheduler for inference requests, or complex key management scenarios. If your use case involves more than what we show, do not hesitate to **contact us** for more information.
