@@ -115,7 +115,7 @@ nav:
 
 - 💡 Concepts:
   - Why BlindAI?: 'docs/getting-started/why-blindai.md'
-  - SGX vs Nitro Enclaves: 'docs/concepts/SGX_vs_Nitro.md'
+  - Secure Enclaves: 'docs/concepts/SGX_vs_Nitro.md'
 - 🌍 How-to-Guides:
   -  Confidential diagnosis with Covid-NET: 'docs/how-to-guides/covid_net_confidential.ipynb'
 
