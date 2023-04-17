@@ -25,7 +25,7 @@ git clone https://github.com/mithril-security/blindai --recursive
 cd blindai
 ```
 
-2. Make sure you have docker installed on your machine.
+2. Make sure you have Docker installed on your machine.
 
     If it is not the case, you can follow [the official Docker installation guide](https://docs.docker.com/engine/install).
 
@@ -83,7 +83,7 @@ ____________________________________
 ## Bare-bones dev environment [ 🖥️  ] <a name="Bare-bones-dev-environment"></a>
 ____________________________________
 
-To setup the dev environment without docker, you will need to install the following:
+To setup the dev environment without Docker, you will need to install the following:
 
 === "General"
 
@@ -463,7 +463,7 @@ git clone https://github.com/mithril-security/blindai --recursive
 cd blindai
 ```
 
-2. Make sure you have docker installed on your machine.
+2. Make sure you have Docker installed on your machine.
 
     If it is not the case, you can follow [the official Docker installation guide](https://docs.docker.com/engine/install).
 
