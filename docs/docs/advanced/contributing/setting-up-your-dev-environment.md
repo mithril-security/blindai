@@ -39,7 +39,7 @@ cd blindai
 
 4. Make sure you have the `remote container VSCode extension` installed. If you don't, install this from the VSCode extensions marketplace.
 
-5. Open the green menu at the bottom-left of Visual Studio Code.
+5. Open the green menu at the bottom-left by clicking on &ensp;![](../../../assets/vscode-menu.svg){ width=20 align=top }&ensp; in Visual Studio Code.
 
     ![menu](../../../assets/Screenshot-vscode.png)
 
@@ -83,7 +83,7 @@ ____________________________________
 ## Bare-bones dev environment [ 🖥️  ] <a name="Bare-bones-dev-environment"></a>
 ____________________________________
 
-To setup the dev environment without Docker, you will need to install the following:
+To setup the dev environment by hand, you will need to install the following:
 
 === "General"
 
@@ -477,7 +477,7 @@ cd blindai
 
 4. Make sure you have the `remote container VSCode extension` installed. If you don't, install this from the VSCode extensions marketplace.
 
-5. Make sure you are connected to your VM as host. To do this, open the green menu at the bottom-left of Visual Studio Code.
+5. Make sure you are connected to your VM as host. To do this, open the green menu at the bottom-left by clicking on &ensp;![](../../../assets/vscode-menu.svg){ width=20 align=top }&ensp; in Visual Studio Code.
 
     ![menu](../../../assets/Screenshot-vscode.png)
 
@@ -485,7 +485,7 @@ cd blindai
 
     ![connect to host](../../../assets/host.png)
 
-7. Next, open the green menu at the bottom-left of Visual Studio Code again and choose:
+7. Next, open the green menu at the bottom-left by clicking on &ensp;![](../../../assets/vscode-menu.svg){ width=20 align=top }&ensp; in Visual Studio Code again and choose:
 `Dev Containers: Reopen in Container`.
 
     ![reopen in container](../../../assets/container.png)
