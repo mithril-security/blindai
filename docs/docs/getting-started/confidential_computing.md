@@ -38,6 +38,35 @@ With Intel SGX, this process also verifies that the **enclave is running on genu
 
 If any of these **checks fail**, an error is produced and the **user will not be able to communicate with an enclave**. For BlindAI, this means that if a user tries to connect to a BlindAI server that has been tampered with or is not running the official latest version of the BlindAI server, they will fail. If these checks are **successful**, the user is able to **communicate** with the enclave **securely using TLS**. The enclave's private key never leaves the enclave, so it is never accessible to anyone, not even the cloud or service provider.
 
+## Limitations
+__________________________
+
+With great security features come great responsabilities! TEEs also have limitations which are very important to know.
+
++ The **official BlindAI application code must be trusted**! We verify that the enclave is running the official server application during attestation, but enclaves don’t audit the application code itself. This is why BlindAI is open-source, so you can audit our code yourself or refer to [the report from Quarkslab]() (*coming soon*), the independant company who audited our solution.
+
++ **Zero-day attacks** are **always a risk**, even with enclaves. They happen when hackers exploit previously unknown flaws before developers have an opportunity to fix the issue. We mitigate that risk by keeping BlindAI up-to-date with the security updates of our dependencies.
+
+### Intel SGX specific
+
++ The verification of the enclave during the attestation process relies on the `manifest.toml` in the client package **being authentic**. If a malicious party were to succeed in tampering with this `manifest.toml`, this verification process could be circumvented.
+
++ Intel SGX shields the enclave from the host machine, but it **does not shield the host machine from the enclave**. This is also why we must trust the official BlindAI enclave application code because it can interfere with the host machine.
+
++ **Side-channel attacks**. Previous attacks on Intel SGX structures have largely consisted of them. They look to gather information from an enclave application, by measuring or exploiting indirect effects of the system or its hardware rather than targeting the program or its code directly. They are detailed in the [Quarkslab’s audit report]() (*coming soon*). Note that we keep up-to-date with Intel SGX security patches and no similar vulnerabilities were identified in BlindAI's audit.
+
+!!! warning
+
+	We are currently aware of a bug that enables denial of service attacks by uploading large numbers of models to the server instance.
+
+### Nitro Enclaves specific
+
++ We **must trust AWS, as the cloud provider, their hardware and the enclave’s OS**. Nitro enclaves are designed to separate and isolate the host from the enclave and vice versa, but they do not protect against the cloud operator (AWS) or infrastructure. (See our [Nitro guide](https://blindai.mithrilsecurity.io/en/latest/docs/concepts/SGX_vs_Nitro/#nitro-enclaves) for more information).
+
+!!! danger "Warning"
+
+	BlindAI does not yet support attestation for Nitro Enclaves. This is only relevant to API models using Nitro Enclaves and a warning to this effect will appear when using the client API to connect to the enclave. The attestation feature will be added to the project in the near future!
+
 ## Conclusions
 ___________________________________________
 
@@ -48,5 +77,6 @@ That brings us to the end of this introduction to confidential computing. Let’
 - During the attestation process, we **verify that the application code** in the enclave has not been modified or tampered with.
 - We also **verify the authenticity of the enclave (and OS in the case of Nitro enclaves)**.
 - If attestation is successful, **communication** between the client and enclave is **established using TLS**.
+- TEEs, like any other technology, don't solve every problems. They **have limitations** and it is important to keep them in mind. 
 
 If you haven’t already, you can check out our [Quick Tour](quick-tour.ipynb) to see a hands-on example of how BlindAI can be used to protect user data while querying AI models.
