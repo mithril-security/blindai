@@ -3,7 +3,7 @@ site_name: BlindAI
 site_url: https://www.mithrilsecurity.io/
 site_author: Mithril Security
 site_description: >-
-  Create a simple privacy framework for data science collaboration, 
+  Create a simple privacy framework for data science collaboration,
   covering data exploration and machine learning.
 
 # Repository
@@ -21,7 +21,7 @@ theme:
     - navigation.sections
     - navigation.indexes
     - navigation.expand
-    
+
   logo: assets/logo.png
   favicon: assets/logo.png
   palette:
@@ -97,24 +97,25 @@ markdown_extensions:
 
 # Documentation tree
 nav:
-- 🏠 Home: 'index.md' 
+- 🏠 Home: 'index.md'
 
-- 🚀 Getting Started: 
-  - Why BlindAI: 'docs/getting-started/why-blindai.md'
-  - How we protect your data: 'docs/getting-started/confidential_computing.md'
+- 🚀 Getting Started:
   - Quick tour: 'docs/getting-started/quick-tour.ipynb'
+  - How we protect your data: 'docs/getting-started/confidential_computing.md'
   - "Project structure: API & Core" : 'docs/getting-started/blindai_structure.md'
 
 - Tutorials:
   - "BlindAI API: popular models":
-    - Coming soon: 'docs/tutorials/api/coming_soon.md'
+    - API Overview: 'docs/tutorials/api/coming_soon.md'
+    - Whisper: 'docs/tutorials/api/whisper_tutorial.ipynb'
   - "BlindAI Core: custom models":
+    - Core Overview: 'docs/concepts/BlindAI_Core.md'
     - Installation: 'docs/tutorials/core/installation.md'
     - Uploading models: 'docs/tutorials/core/uploading_models.ipynb'
 
 - 💡 Concepts:
-  - "BlindAi Core: Overview": 'docs/concepts/BlindAI_Core.md'
-
+  - Why BlindAI?: 'docs/getting-started/why-blindai.md'
+  - SGX vs Nitro Enclaves: 'docs/concepts/SGX_vs_Nitro.md'
 - 🌍 How-to-Guides:
   -  Confidential diagnosis with Covid-NET: 'docs/how-to-guides/covid_net_confidential.ipynb'
 
@@ -128,9 +129,8 @@ nav:
   - Build from sources:
     - Client SDK: 'docs/advanced/build-from-sources/client.md'
     - Server: 'docs/advanced/build-from-sources/server.md'
-  # - Telemetry: 'docs/telemetry.md'
   - Open source:
-  #   - Project structure: 'docs/advanced/contributing/blindai-project-structure.md'
-    - Setting-up your dev environment: 'docs/advanced/contributing/setting-up-your-dev-environment.md'
-  #   - Contributing: "docs/advanced/contributing/contributing.md"
-  #   - Code of Conduct: "docs/advanced/contributing/code_of_conduct.md"
+     - Project structure: 'docs/advanced/contributing/blindai-project-structure.md'
+     - Setting-up your dev environment: 'docs/advanced/contributing/setting-up-your-dev-environment.md'
+     - Contributing: "docs/advanced/contributing/contributing.md"
+     - Code of Conduct: "docs/advanced/contributing/code_of_conduct.md"

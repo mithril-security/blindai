@@ -63,18 +63,16 @@
 <!-- ABOUT THE PROJECT -->
 ## 🔒 About The Project
 
-BlindAI is an **open-source solution** allowing users to query popular AI models or serve their own models with **assurances that users' private data will remain private**. The querying of models is done via our **easy-to-use BlindAI Python library**.
+**BlindAI** is an **open-source solution** to query and deploy AI models while **guaranteeing data privacy**. The querying of models is done via our **easy-to-use Python library**.
 
-Data sent by users to the AI model is kept **confidential at all times**. Neither the AI service provider nor the Cloud provider (if applicable), can see the data.
-
-Confidentiality is assured by hardware-enforced **Trusted Execution Environments**. We explain how they keep data and models safe in detail [here](https://blindai.mithrilsecurity.io/en/latest/docs/getting-started/confidential_computing/).
+Data sent by users to the AI model is kept **confidential at all times** by hardware-enforced **Trusted Execution Environments**. We explain how they keep data and models safe in detail [here](https://blindai.mithrilsecurity.io/en/latest/docs/getting-started/confidential_computing/).
 
 There are two main scenarios for BlindAI:
 
 - **BlindAI API**: Using BlindAI to query popular AI models hosted by Mithril Security.
 - **BlindAI Core**: Using BlindAI's underlying technology to host your own BlindAI server instance to securely deploy your own models.
 
-You can find our more about BlindAI and BlindAI.Core [here](https://blindai.mithrilsecurity.io/en/latest/docs/getting-started/blindai_structure/).
+You can find our more about BlindAI API and BlindAI Core [here](https://blindai.mithrilsecurity.io/en/latest/docs/getting-started/blindai_structure/).
 
 ### Built With 
 
@@ -136,46 +134,9 @@ Probability of Covid for positive image is 0.890598714351654
 
 _For more examples, please refer to the [Documentation](https://blindai.mithrilsecurity.io/en/latest/)_
 
-### BlindAI.Core Installation
-
-**🥇 Recommended 🥇**
-
-#### Deploying BlindAI on Azure DCsv3 VM
-
-+ ✅ No requirement to have your own Intel SGX-ready device or a particular distribution. 
-+ ✅ Secure. Hardware security guarantees protect your data and model from any third-party access.
-+ ❌ Can be more expensive than local deployment.
-
-You can deploy the server in your Azure DCsv3 VM using our docker image with the following command:
-
-```bash
-docker run -it -e BLINDAI_AZURE_DCS3_PATCH=1 -p 9923:9923 -p 9924:9924 \
---device /dev/sgx/enclave --device /dev/sgx/provision \
--v /var/run/aesmd/aesm.socket:/var/run/aesmd/aesm.socket \
-mithrilsecuritysas/blindai-server:latest /root/start.sh
-```
-
-For alternative deployment methods (*on-premise, testing only...*) or more information, visit [our installation guide](https://blindai.mithrilsecurity.io/en/latest/docs/tutorials/core/installation/).
-
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
-<!-- ROADMAP -->
-<!--
-## 🎯 Roadmap
-
-WRITE DOWN THE FEATURES WE **ALREADY** IMPLEMENTED. NOTHING SATISFYING LIKE A LIST WITH CHECKED BOXES.
-
-WE CAN ALSO RENAME THAT PART **KEY FEATURES**
-
-- [ ] Feature 1
-- [ ] Feature 2
-- [ ] Feature 3
-    - [ ] Nested Feature
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>-->
-
 <!-- GETTING HELP -->
-
 ## 🙋 Getting help
 
 * Go to our [Discord](https://discord.com/invite/TxEHagpWd4) #support channel

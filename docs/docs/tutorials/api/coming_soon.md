@@ -8,7 +8,7 @@ _______________________
 
 Whisper is an open-source automatic speech recognition (ASR) system trained on 680,000 hours of multilingual and multitask supervised data collected from the web.
 
-You can go check out our [Quick tour](../../getting-started/quick-tour.ipynb) tutorial to see how to already use Whisper with BlindAI API. 
+You can go check out our [Whisper](./whisper_tutorial.ipynb) tutorial to see how to already use the speech-to-text model with BlindAI API. 
 
 ## ⌛ OpenChatKit
 ______________________

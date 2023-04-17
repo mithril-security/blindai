@@ -19,7 +19,7 @@ There are different possible deployment methods. You can view the pros and cons 
 
 	🚀 If this is the right option for you, you can:
 
-	- **Check out our [Quick tour notebook](#Quick tour)**. This will show you how you can install and use BlindAI's client and server testing packages.
+	- **Check out our [Quick tour notebook](../../getting-started/quick-tour.ipynb)**. This will show you how you can install and use BlindAI's client and server testing packages.
 	- **Test your own Python scripts or notebooks** using the `blindai` PyPi packages with the `blindai.testing` server.
 
 ??? success "Deploying BlindAI on Azure DCsv3 VM (*recommended*)"
