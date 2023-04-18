@@ -5,14 +5,7 @@ ________________________________________
 
     If you're building the client because you **want to change it**, you should first go [set up your dev environment](../contributing/setting-up-your-dev-environment.md) and follow the instructions from the section "Without Docker" there.
 
-***# I'm confused. You put Using docker in comments here, and we have a section without docker here, and in the set up your dev environment. Do you mean the section without docker in the set up your dev environment page or here?***
-
-***# Also, is the Docker part meant to be removed? (Don't forget to write Docker everywhere, not "docker" ^^)***
-
-<!-- ## Using Docker 🐳
-___________________________________
-
-### Build process
+## Build process with Docker
 
 You can build the whole project by using our Docker image. We have set up the Docker image to have a reproducible build no matter the environment. You can start the process with those commands:
 
@@ -46,47 +39,52 @@ You can build the whole project by using our Docker image. We have set up the Do
     ```bash
     docker run --rm <image_name> cat /root/manifest.toml > manifest.toml
     ``` -->
-<!--
-### Running
-You can use these images by following the instructions of either the [deploy on premise guide](../../deploy-on-premise.md) or the [cloud deployment guide](../../cloud-deployment.md).
 
-
-## Without Docker 
-________________________
--->
-
-## Build process
+## Build without Docker
 ____________________
 
-Once you've [set up your dev environment](../contributing/setting-up-your-dev-environment.md "mention"), you can start building the dependencies.
+Once you've [set up your dev environment](../contributing/setting-up-your-dev-environment.md "mention"), be sure to fulfill the [hardware requirements](../../tutorials/core/installation.md) and to have the necessary dependencies and services up and running.
 
-Before building the project, some dependencies and service must be up and running, and the hardware requirements must be installed ([hardware-requirements](../../tutorials/core/installation.md)).
+You can find how to install the Intel SDK and Fortanix EDP in the [dev environment setup guide](../contributing/setting-up-your-dev-environment.md#bare-bones-dev-environment "mention").
 
-***# wow there's a lot of sending people all over the place ^^ Can we just take the content from other guides and put it here? the hardware requirement link for example is unclear. Doesn't hurt to have the same copy-pasted code over our documentation. The idea is to make it easy for people so I'd send them other places as little as possible. We can call maybe so you can explain the logic of this to me and we can figure out the best way to do this ^^***
-
-The installation of the Intel SDK can be found by following this [link](https://github.com/intel/linux-sgx).
-
-The Fortanix EDP dependencies must also be installed. You can check the official Fortanix [documentation here](https://edp.fortanix.com/docs/installation/guide/).
-
-***# Same. Is it a lot of instructions? We can copy paste and say that it's directly taken from their instructions and put a link so people can go check. But ideally, let's keep people here. Might just be wishful thinking on my part though haha***
-
-
-The SGX configuration and services can be viewed using the command :
+Afterwards, you can view the SGX configuration and services using the command :
 
 ```bash
 sgx-detect
 ```
+You will see something like this :
+```
+Detecting SGX, this may take a minute...
+✔  SGX instruction set
+  ✔  CPU support
+  ✔  CPU configuration
+  ✔  Enclave attributes
+  ✔  Enclave Page Cache
+  SGX features
+    ✔  SGX2  ✔  EXINFO  ✘  ENCLV  ✘  OVERSUB  ✔  KSS
+    Total EPC size: 2.0GiB (no integrity protection)
+✔  Flexible launch control
+  ✔  CPU support
+  ？ CPU configuration
+  ✔  Able to launch production mode enclave
+✔  SGX system software
+  ✔  SGX kernel device (/dev/sgx_enclave)
+  ✔  libsgx_enclave_common
+  ✔  AESM service
+  ✔  Able to launch enclaves
+    ✔  Debug mode
+    ✔  Production mode
+    ✔  Production mode (Intel whitelisted)
 
-Before running the BlindAi project, some other packages must be installed:
+You're all set to start running SGX programs!
+```
+
+Before running the BlindAi project, the packages [jq](https://stedolan.github.io/jq/) and [just](https://just.systems/man/en/) must be installed:
 ```bash
 sudo apt-get install jq
 
 cargo install just
 ```
-
-***# I think it's important we say which packages they are? We're just telling people to install stuff but it's like... cybersecurity content so we should probabaly be a bit more transparent on what if we can't go too much into why***
-
-
 
 === "Hardware mode"
 
