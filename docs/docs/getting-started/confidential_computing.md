@@ -41,17 +41,19 @@ If any of these **checks fail**, an error is produced and the **user will not be
 ## Limitations
 __________________________
 
-With great security features come great responsabilities! TEEs also have limitations which are very important to know:
+With great security features come great responsibilities! TEEs also have limitations which are very important to know:
 
-+ The **official BlindAI application code must be trusted**! The attestation process verifies that the enclave is running the official server application, but not the application code itself. This is why BlindAI is open-source, so you can audit our code yourself. You can also refer to [the report from Quarkslab]() (*coming soon*), the independant company who audited our solution.
++ The **official BlindAI application code must be trusted**! The attestation process verifies that the enclave is running the official server application, but it does not run any checks on what the verified application code does. This is why BlindAI is open-source, so you can audit our code yourself. You can also refer to [the report from Quarkslab]() (*coming soon*), the independent company who audited our BlindAI Core solution.
+
+> Note that this audit was performed on the latest version of BlindAI at the time and does not cover **the client-side SDK**, **BlindAI API** or **Nitro enclaves**.
 
 + **Zero-day attacks** are **always a risk**, even with enclaves. They happen when hackers exploit previously unknown flaws *before* developers have an opportunity to fix the issue. We mitigate that risk by keeping BlindAI up-to-date with the security updates of our dependencies.
 
 ### Intel SGX specific
 
-+ The **`manifest.toml`** in the client package must **be authentic**. The verification of the enclave during the attestation process relies on it and could be circumvented if the file has been tampered with!
++ The **`manifest.toml`** in the client package must **be authentic**. The verification of the enclave during the attestation process relies on it and this check could be circumvented if the file has been tampered with!
 
-+ **Intel SGX** shields the enclave from the host machine, but it **does not shield the host machine from the enclave**. This is another reason why we must trust the official BlindAI enclave application code, as it can interfere with the host machine.
++ **Intel SGX** shields the enclave from the host machine, but it **does not shield the host machine from the enclave**. This is another reason why we must trust the official BlindAI enclave application code, as it could interfere with the host machine.
 
 + **Side-channel attacks**. Most previous attacks on Intel SGX structures have looked to gather information from an enclave application, by measuring or exploiting indirect effects of the system or its hardware rather than targeting the program or its code directly. We keep up-to-date with Intel SGX security patches and no similar vulnerabilities were identified in BlindAI's audit.
 
