@@ -23,7 +23,7 @@ ENV CARGO_HOME=/usr/local/cargo \
     RUSTUP_HOME=/usr/local/rustup \
     POETRY_HOME=/home/vscode/.local/bin
 ENV PATH=${CARGO_HOME}/bin:${POETRY_HOME}:${PATH}
-COPY .devcontainer/library-scripts/rust-debian.sh /tmp/library-scripts/
+COPY .devcontainer/bare_sgx/library-scripts/rust-debian.sh /tmp/library-scripts/
 
 # Enable default rustup profile instead of the minimal profile (default of the rust-debian.sh)
 # The default profile includes all of components in the minimal profile, and adds rust-docs, rustfmt, and clippy. 
@@ -106,9 +106,9 @@ RUN git clone https://github.com/intel/SGXDataCenterAttestationPrimitives.git \
     && cp -R SGXDataCenterAttestationPrimitives/QuoteGeneration/pccs/ /opt/intel/sgx-dcap-pccs \
     && sed -i 's/"use_secure_cert": true/"use_secure_cert": false/g' /etc/sgx_default_qcnl.conf   
 
-COPY .devcontainer/setup-pccs.sh /opt/intel/sgx-dcap-pccs/setup-pccs.sh
-COPY .devcontainer/hw-start.sh /opt/intel/sgx-dcap-pccs/hw-start.sh
-COPY .devcontainer/default.json /opt/intel/sgx-dcap-pccs/default.json
+COPY .devcontainer/bare_sgx/setup-pccs.sh /opt/intel/sgx-dcap-pccs/setup-pccs.sh
+COPY .devcontainer/bare_sgx/hw-start.sh /opt/intel/sgx-dcap-pccs/hw-start.sh
+COPY .devcontainer/bare_sgx/default.json /opt/intel/sgx-dcap-pccs/default.json
 
 RUN /opt/intel/sgx-dcap-pccs/setup-pccs.sh
 
