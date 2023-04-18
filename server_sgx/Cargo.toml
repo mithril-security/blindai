@@ -1,6 +1,6 @@
 [package]
 name = "blindai_server"
-version = "0.6.0"
+version = "0.6.1"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -59,7 +59,7 @@ heap-size=0x4FBA00000
 # the current system.
 # Gotcha: Don't forget to count the main thread when counting number of
 # threads.
-threads=20
+threads=32
 # SSA frame size (in pages) for each thread, the default SSA frame size is 1.
 # You normally don't need to change the SSA frame size.
 ssaframesize=1

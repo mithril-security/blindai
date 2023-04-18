@@ -1,6 +1,6 @@
 # Website Info
 site_name: BlindAI
-site_url: https://www.mithrilsecurity.io/
+site_url: https://www.mithrilsecurity.io/en/latest/
 site_author: Mithril Security
 site_description: >-
   Create a simple privacy framework for data science collaboration, 
@@ -100,27 +100,24 @@ nav:
 - 🏠 Home: 'index.md' 
 
 - 🚀 Getting Started: 
-  - Why BlindAI: 'docs/getting-started/why-blindai.md'
-  - BlindAI vs BlindAI Core: 'docs/getting-started/blindai_vs_core.md'
   - Quick tour: 'docs/getting-started/quick-tour.ipynb'
+  - How we protect your data: 'docs/getting-started/confidential_computing.md'
+  - "Project structure: API & Core" : 'docs/getting-started/blindai_structure.md'
 
 - Tutorials:
-#  - BlindAI:
-#    - Whisper integration: 'docs/tutorials/api/whisper-audio.ipynb'
-  - BlindAI Core:
-    - Quick tour: 'docs/tutorials/core/quick-tour.ipynb'
+  - "BlindAI API: popular models":
+    - API Overview: 'docs/tutorials/api/coming_soon.md'
+    - Whisper: 'docs/tutorials/api/whisper_tutorial.ipynb'
+  - "BlindAI Core: custom models":
+    - Core Overview: 'docs/concepts/BlindAI_Core.md'
     - Installation: 'docs/tutorials/core/installation.md'
     - Uploading models: 'docs/tutorials/core/uploading_models.ipynb'
 
 - 💡 Concepts:
-  - Confidential computing: 'docs/concepts/confidential_computing.md'
-  - Overview: 'docs/concepts/overview.md'
-  - Privacy: 'docs/concepts/privacy.md'
-  - Attestation: 'docs/concepts/attestation.md'
-  - TLS: 'docs/concepts/tls.md'
-
-#- 🌍 How-to-Guides:
-  # - Using BlindAI Core in a real life scenario / to solve a problem
+  - Why BlindAI?: 'docs/getting-started/why-blindai.md'
+  - SGX vs Nitro Enclaves: 'docs/concepts/SGX_vs_Nitro.md'
+- 🌍 How-to-Guides:
+  -  Confidential diagnosis with Covid-NET: 'docs/how-to-guides/covid_net_confidential.ipynb'
 
 - 🛠️ Client API reference: 'blindai/client.html'
 
@@ -132,9 +129,8 @@ nav:
   - Build from sources:
     - Client SDK: 'docs/advanced/build-from-sources/client.md'
     - Server: 'docs/advanced/build-from-sources/server.md'
-  # - Telemetry: 'docs/telemetry.md'
-  # - Open source:
-  #   - Project structure: 'docs/advanced/contributing/blindai-project-structure.md'
-  #   - Setting-up your dev environment: 'docs/advanced/contributing/setting-up-your-dev-environment.md'
-  #   - Contributing: "docs/advanced/contributing/contributing.md"
-  #   - Code of Conduct: "docs/advanced/contributing/code_of_conduct.md"
+  - Open source:
+     - Project structure: 'docs/advanced/contributing/blindai-project-structure.md'
+     - Setting-up your dev environment: 'docs/advanced/contributing/setting-up-your-dev-environment.md'
+     - Contributing: "docs/advanced/contributing/contributing.md"
+     - Code of Conduct: "docs/advanced/contributing/code_of_conduct.md"

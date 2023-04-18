@@ -95,7 +95,7 @@ fn get_collateral(quote: &[u8]) -> Result<SgxCollateral> {
 }
 
 fn main() -> Result<()> {
-    println!("BlindAI server is running on the ports 9923 and 9924");
+    println!("Starting BlindAI server...");
 
     // Setup TELEMETRY
     let telemetry_disabled = TELEMETRY_CHANNEL.is_disabled();
@@ -292,6 +292,8 @@ fn main() -> Result<()> {
             _trusted_handle.join().unwrap();
         }
     });
+
+    println!("BlindAI server is running on the ports 9923 and 9924");
 
     // Emit the telemetry `Started` event
     telemetry::add_event(telemetry::TelemetryEventProps::Started {}, None, None);

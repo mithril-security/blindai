@@ -1,13 +1,15 @@
 # Build the BlindAI Client SDK from source
+_________________________________________________
 
-**BlindAI Client SDK** can currently be built from source on **Linux** and **Windows** platforms.&#x20;
+**BlindAI Client SDK** can currently be built from source on **Linux** and **Windows** platforms.
 
 !!! info
-    If you're building the client because you want to change it, you should rather got to [the setting up your dev environment page](../contributing/setting-up-your-dev-environment.md)
+
+	If you're building the client because you want to change it, you should rather got to [the setting up your dev environment page](../contributing/setting-up-your-dev-environment.md)
 
 ## Requirements
 
-Before proceeding to build the client, make sure the following requirements are installed in your environment.&#x20;
+Before proceeding to build the client, make sure the following requirements are installed in your environment.
 
 * python >= 3.7
 * python3-dev package (or python-devel in CentOs based distros) - The version of python3-dev depends on the version of python you are using.

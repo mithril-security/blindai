@@ -2,27 +2,23 @@
 ________________________________________________________
 
 <font size="5"><span style="font-weight: 200">
-An AI data privacy solution, allowing users to query popular AI models or serve their own models whilst ensuring that users' data remains private every step of the way.
+An AI privacy solution to query models, while ensuring your data remains confidential every step of the way!
 </font></span>
 
 ## What is BlindAI?
 ________________________________________________________
 
-BlindAI is an **open-source and easy-to-use Python library** allowing you to query AI models with **assurances that your private data will remain private**.
+**BlindAI** is an **open-source solution** to query and deploy AI models while **guaranteeing data privacy**. The querying of models is done via our **easy-to-use Python library**.
 
-Data sent by users to the AI model is kept **confidential at all times**. Neither the AI service provider nor the Cloud provider (if applicable), can see the data. 
-Confidentiality is assured by hardware-enforced **Trusted Execution Environments**. We explain how they keep data and models safe in detail [here](docs/concepts/confidential_computing.md).
+Data sent by users to the AI model is kept **confidential at all times** by hardware-enforced **Trusted Execution Environments**. We explain how they keep data and models safe in detail [here](docs/getting-started/confidential_computing.md).
 
-There are two main scenarios for BlindAI:
-- **BlindAI**: Using BlindAI to query popular AI models hosted by Mithril Security.
-- **BlindAI.Core**: Using BlindAI's underlying technology to host your own BlindAI server instance to securely deploy your own models.
+**BlindAi** consists of:
 
-You can find our more about BlindAI and BlindAI.Core [here](docs/getting-started/blindai_vs_core.md).
+- **BlindAI API**: for querying popular AI models hosted by Mithril Security (with BlindAI Core running under the hood). Its a Python library 🐍.
 
-**BlindAi is an open-source project** consisting of:
+- **BlindAI Core**: for hosting your own BlindAI server instance in order to securely deploy your own models. It comes in two parts: a privacy-friendly **server** coded in **Rust** 🦀 using **Intel SGX** (Intel Software Guard Extensions) 🔒 and **AWS Nitro Enclaves** 🌪️ to ensure your data stays safe and an easy-to-use **Python client SDK** 🐍.
 
-- A privacy-friendly **server** coded in **Rust** 🦀 using **Intel SGX** (Intel Software Guard Extensions) 🔒 to ensure your data stays safe.
-- An easy-to-use **Python client SDK** 🐍.
+You can find our more about BlindAI and BlindAI.Core [here](docs/getting-started/blindai_structure.md).
 
 > You can check out [the code on our GitHub](https://github.com/mithril-security/blindai/). 
 
@@ -32,9 +28,8 @@ We’ll update the documentation as new features come in, so dive in!
 ________________________________________________________
 
 - Follow our [“Quick tour”](./docs/getting-started/quick-tour.ipynb) tutorial
-- Read about [why you should use](./docs/getting-started/why-blindai.md) BlindAI
-- Discover the differences between [BlindAI vs BlindAI Core](./docs/getting-started/blindai_vs_core.md)
-- [Tackle](./docs/concepts/confidential_computing.md) the technologies we use to ensure privacy
+- [Tackle](./docs/getting-started/confidential_computing.md) the technologies we use to ensure privacy
+- Discover the differences between [BlindAI and BlindAI Core](./docs/getting-started/blindai_structure.md)
 
 ## Getting help
 ________________________________________________________
@@ -45,14 +40,12 @@ ________________________________________________________
 
 ## How is the documentation structured?
 ____________________________________________
-<!-- 
-- [Tutorials](link) take you by the hand to install and run BlindAI. We recommend you start with the **[Quick tour](./docs/docs/getting-started/quick-tour.ipynb)** and then move on to the other tutorials!  
 
-- [How-to guides](link) are recipes. They guide you through the steps involved in addressing key problems and use cases. They are more advanced than tutorials and assume some knowledge of how BlindAI works.
+- [Tutorials](./docs/tutorials/core/installation.md) take you by the hand to install and run BlindAI. We recommend you start with the **[Quick tour](./docs/getting-started/quick-tour.ipynb)** and then move on to the other tutorials!  
 
-- [Concepts](link) guides discuss key topics and concepts at a high level. They provide useful background information and explanations, especially on cybersecurity.
--->
-- [Getting Started](./docs/getting-started/why-blindai.md) take you by the hand to install and run BlindAI. We recommend you start with the **[Quick tour](./docs/getting-started/quick-tour.ipynb)** and then move on to [installation](./docs/tutorials/core/installation.md)! 
+- [Concepts](./docs/concepts/BlindAI_Core.md) guides discuss key topics and concepts at a high level. They provide useful background information and explanations, especially on cybersecurity.
+
+- [How-to guides](./docs/how-to-guides/covid_net_confidential.ipynb) are recipes. They guide you through the steps involved in addressing key problems and use cases. They are more advanced than tutorials and assume some knowledge of how BlindAI works.
 
 - [API Reference](https://blindai.mithrilsecurity.io/en/latest/blindai/client.html) contains technical references for BlindAI’s API machinery. They describe how it works and how to use it but assume you have a good understanding of key concepts.
 
@@ -62,4 +55,4 @@ ____________________________________________
 
 ## Who made BlindAI?
 
-BlindAI was developed by **Mithril Security**. **Mithril Security** is a startup focused on confidential machine learning based on **Intel SGX** technology. We provide an **open-source AI inference solution**, **allowing easy and fast deployment of neural networks**. Confidential computing provides its **strong security properties** by performing the computation in a hardware-based **Trusted Execution Environment** (_TEE_), also called **enclaves**.
+BlindAI was developed by **Mithril Security**. **Mithril Security** is a startup focused on confidential machine learning based on **Confidential Computing** technology. We provide **open-source privacy solutions** to **query** and **deploy AI models** while **guaranteeing data privacy**. 
