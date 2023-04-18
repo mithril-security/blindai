@@ -196,11 +196,22 @@ Please make sure to have the `SGX+FLC` drivers (preferably with version **1.41**
 
 ❌ If you have an Intel SGX-ready device with SGX2 but are missing the required drivers, you can install them by doing the following:
 
-```bash
-wget https://download.01.org/intel-sgx/sgx-linux/2.15.1/distro/ubuntu18.04-server/sgx_linux_x64_driver_1.41.bin
-chmod +x sgx_linux_x64_driver_1.41.bin
-./sgx_linux_x64_driver_1.41.bin
-```
+=== "ubuntu 18.04"
+
+    ```bash
+    wget https://download.01.org/intel-sgx/sgx-linux/2.15.1/distro/ubuntu18.04-server/sgx_linux_x64_driver_1.41.bin
+    chmod +x sgx_linux_x64_driver_1.41.bin
+    ./sgx_linux_x64_driver_1.41.bin
+    ```
+
+=== "ubuntu 20.04"
+
+    ```bash
+    wget https://download.01.org/intel-sgx/sgx-linux/2.15.1/distro/ubuntu20.04-server/sgx_linux_x64_driver_1.41.bin
+    chmod +x sgx_linux_x64_driver_1.41.bin
+    ./sgx_linux_x64_driver_1.41.bin
+    ```
+
 The binary file contains the drivers signed by Intel and will proceed to the installation transparently.
 
 ### Server deployment in three steps
