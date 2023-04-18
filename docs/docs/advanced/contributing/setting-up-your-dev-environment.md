@@ -9,12 +9,12 @@ Now you're ready to set up your development environment!
 
 Click the option on which you will be working on:
 
--  <a href="#Azure-dev-environment">![](../../../assets/azure.png){ width=18 } - Azure DCsv3 VM</a>**
 -  <a href="#Standard-dev-environment">![](../../../assets/vscode.png){ width=18 } - VSCode and Docker on your local machine</a>**
 -  <a href="#Bare-bones-dev-environment"> 🖥️  - Directly on your local machine</a>**
+-  <a href="#Azure-dev-environment">![](../../../assets/azure.png){ width=18 } - Azure DCsv3 VM</a>**
 ____________________________________
 
-## Standard dev environment [ 🐳 ![](../../../assets/vscode.png){ width=22 } ] <a name="Standard-dev-environment"></a>
+### Standard setup [ 🐳 ![](../../../assets/vscode.png){ width=22 } ] <a name="Standard-dev-environment"></a>
 ____________________________________
 
 To set up our pre-configured development container, you can follow these instructions:
@@ -51,36 +51,9 @@ cd blindai
 
 >If you have any issues with this process, make sure you have the BlindAI folder open in your VSCode window.
 
-### Building client from source
-
-To compile the client code locally:
-```bash
-cd client
-poetry install
-```
-
-### Building server from source
-
-You can build and run the server from source using the `justfile`:
-```bash
-just run
-```
-
->Make sure you are in the root of the blindai directory to make use of the justfile commands.
-
->Note that by default the port opened in 9923 is running on http only. For production, we strongly recommend setting up a ***reverse-proxy*** that will manage and encrypt the traffic from the client to the blindAI server. Many free reverse-proxy implementations exist, such as **caddy**, **Nginx** and **Apache**:
-
-- [https://caddyserver.com/docs/quick-starts/reverse-proxy](https://caddyserver.com/docs/quick-starts/reverse-proxy)
-- [Nginx reverse proxy set-up guide](https://docs.nginx.com/nginx/admin-guide/web-server/reverse-proxy/)
-- [Apache reverse proxy set-up guide](https://httpd.apache.org/docs/2.4/howto/reverse_proxy.html)
-
-If you do not set up a reverse proxy, users will need to set the `hazmat_http_on_untrusted_port` option to `True` when using blindai's `connect()` function. Again, this is **not recommended** for production.
-
->Note that if you make any changes to the server code, a new `manifest.toml` file will be created when you build the server. In order to be able to connect with the server instance using the BlindAI Core `connect()` method, you will need to supply a path to a copy of this file in the `hazmat_manifest_path` option. The manifest.toml files are used during the verification step of the connection progress to check that the server is not running any unexpected and potentially malicious code. You can learn more about this verification process [here](../../getting-started/confidential_computing.md).
-
 ____________________________________
 
-## Bare-bones dev environment [ 🖥️  ] <a name="Bare-bones-dev-environment"></a>
+### Bare-bones setup [ 🖥️  ] <a name="Bare-bones-dev-environment"></a>
 ____________________________________
 
 To setup the dev environment by hand, you will need to install the following:
@@ -452,7 +425,7 @@ Or you can find:
 
 ____________________________________
 
-## Azure dev environment [ ☁️  ![](../../../assets/azure.png){ width=22 } ] <a name="Azure-dev-environment"></a>
+### Azure cloud setup [ ☁️  ![](../../../assets/azure.png){ width=22 } ] <a name="Azure-dev-environment"></a>
 ____________________________________
 
 To set up our pre-configured development container for your Azure VM, you can follow these instructions:
@@ -495,7 +468,7 @@ cd blindai
 
 >If you have any issues with this process, make sure you have the BlindAI folder open in your VSCode window.
 
-### Building client from source
+## Building client from source
 
 To compile the client code locally:
 ```bash
@@ -503,7 +476,7 @@ cd client
 poetry install
 ```
 
-### Building server from source
+## Building server from source
 
 You can build and run the server from source using the `justfile`:
 ```bash
@@ -520,4 +493,4 @@ just run
 
 If you do not set up a reverse proxy, users will need to set the `hazmat_http_on_untrusted_port` option to `True` when using blindai's `connect()` function. Again, this is **not recommended** for production.
 
->Note that if you make any changes to the server code, a new `manifest.toml` file will be created when you build the server. In order to be able to connect with this server instance using the BlindAI Core `connect()` method, you will need to supply a path to a copy of this file in the `hazmat_manifest_path` option. The manifest.toml files are used during the verification step of the connection progress to check that the server is not running any unexpected and potentially malicious code. You can learn more about this verification process [here](../../getting-started/confidential_computing.md).
+>Note that if you make any changes to the server code, a new `manifest.toml` file will be created when you build the server. In order to be able to connect with the server instance using the BlindAI Core `connect()` method, you will need to supply a path to a copy of this file in the `hazmat_manifest_path` option. The manifest.toml files are used during the verification step of the connection progress to check that the server is not running any unexpected and potentially malicious code. You can learn more about this verification process [here](../../getting-started/confidential_computing.md).
