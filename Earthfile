@@ -574,7 +574,7 @@ build-docker-image:
         && apt-get remove -y $TEMP_DEPENDENCIES && apt-get autoremove -y \
         && rm -rf /var/lib/apt/lists/* && rm -rf /var/cache/apt/archives/*
 
-    COPY .devcontainer/hw-start.sh /root/start.sh
+    COPY .devcontainer/bare_sgx/hw-start.sh /root/start.sh
 
     COPY +build-release-enclave/blindai_server.sgxs \
          +build-release-enclave/blindai_server.sig \
@@ -634,7 +634,7 @@ build-docker-image-local-management:
         && apt-get remove -y $TEMP_DEPENDENCIES && apt-get autoremove -y \
         && rm -rf /var/lib/apt/lists/* && rm -rf /var/cache/apt/archives/*
 
-    COPY .devcontainer/hw-start.sh /root/start.sh
+    COPY .devcontainer/bare_sgx/hw-start.sh /root/start.sh
 
     COPY +build-release-enclave-local-management/blindai_server.sgxs \
          +build-release-enclave-local-management/blindai_server.sig \
