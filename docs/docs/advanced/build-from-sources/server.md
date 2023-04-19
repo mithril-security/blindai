@@ -1,10 +1,10 @@
 # Build BlindAI server from source
-________________________________________
 
 !!! info
 
-    If you're building the client because you **want to change it**, you should first go [set up your dev environment](../contributing/setting-up-your-dev-environment.md) and follow the instructions from the section "Without Docker" there.
+    If you're building the client because you **want to change it**, you should first go [set up your dev environment](../contributing/setting-up-your-dev-environment.md) and follow the instructions from the section [Bare-bones setup](../contributing/setting-up-your-dev-environment.md#bare-bones-setup) there.
 
+<!--
 ## Build process with Docker
 
 You can build the whole project by using our Docker image. We have set up the Docker image to have a reproducible build no matter the environment. You can start the process with those commands:
@@ -40,12 +40,11 @@ You can build the whole project by using our Docker image. We have set up the Do
     docker run --rm <image_name> cat /root/manifest.toml > manifest.toml
     ``` -->
 
-## Build without Docker
-____________________
+## Build process
 
 Once you've [set up your dev environment](../contributing/setting-up-your-dev-environment.md "mention"), be sure to fulfill the [hardware requirements](../../tutorials/core/installation.md) and to have the necessary dependencies and services up and running.
 
-You can find how to install the Intel SDK and Fortanix EDP in the [dev environment setup guide](../contributing/setting-up-your-dev-environment.md#bare-bones-dev-environment "mention").
+To install the Intel SDK and Fortanix EDP, you can find it in the [dev environment setup guide](../contributing/setting-up-your-dev-environment.md#bare-bones-setup "mention").
 
 Afterwards, you can view the SGX configuration and services using the command :
 

@@ -9,12 +9,12 @@ Now you're ready to set up your development environment!
 
 Click the option on which you will be working on:
 
--  <a href="#Standard-dev-environment">![](../../../assets/vscode.png){ width=18 } - VSCode and Docker on your local machine</a>**
--  <a href="#Bare-bones-dev-environment"> 🖥️  - Directly on your local machine</a>**
--  <a href="#Azure-dev-environment">![](../../../assets/azure.png){ width=18 } - Azure DCsv3 VM</a>**
+-  <a href="#standard-setup">![](../../../assets/vscode.png){ width=18 } - VSCode and Docker on your local machine</a>**
+-  <a href="#azure-cloud-setup">![](../../../assets/azure.png){ width=18 } - Azure DCsv3 VM</a>**
+-  <a href="#bare-bones-setup"> 🖥️  - Directly on your machine</a>**
 ____________________________________
 
-### Standard setup [ 🐳 ![](../../../assets/vscode.png){ width=22 } ] <a name="Standard-dev-environment"></a>
+### Standard setup [ 🐳 ![](../../../assets/vscode.png){ width=22 } ]
 ____________________________________
 
 To set up our pre-configured development container, you can follow these instructions:
@@ -50,10 +50,54 @@ cd blindai
     This may take some time since there are several dependencies that must be installed.
 
 >If you have any issues with this process, make sure you have the BlindAI folder open in your VSCode window.
+____________________________________
+
+### Azure cloud setup [ ☁️  ![](../../../assets/azure.png){ width=22 } ]
+____________________________________
+
+To set up our pre-configured development container for your Azure VM, you can follow these instructions:
+
+1. Clone blindai github repo and submodules.
+```bash
+git clone https://github.com/mithril-security/blindai --recursive
+cd blindai
+```
+
+2. Make sure you have Docker installed on your machine.
+
+    If it is not the case, you can follow [the official Docker installation guide](https://docs.docker.com/engine/install).
+
+    You also need to make sure you haver the correct permissions to run docker commands without `sudo`.
+    To check this, try running `docker run hello-world`. If this works, you can skip straight to the next step. If it doesn't, you need to add yourself to docker group:
+    ```bash
+    sudo usermod -aG docker $USER && newgrp docker
+    ```
+
+3. Open the `blindai` folder in VSCode.
+
+4. Make sure you have the `remote container VSCode extension` installed. If you don't, install this from the VSCode extensions marketplace.
+
+5. Make sure you are connected to your VM as host. To do this, open the green menu at the bottom-left by clicking on &ensp;![](../../../assets/vscode-menu.svg){ width=20 align=top }&ensp; in Visual Studio Code.
+
+    ![menu](../../../assets/Screenshot-vscode.png)
+
+6. Select `Connect to host` and select your host.
+
+    ![connect to host](../../../assets/host.png)
+
+7. Next, open the green menu at the bottom-left by clicking on &ensp;![](../../../assets/vscode-menu.svg){ width=20 align=top }&ensp; in Visual Studio Code again and choose:
+`Dev Containers: Reopen in Container`.
+
+    ![reopen in container](../../../assets/container.png)
+
+
+    This may take some time since there are several dependencies that must be installed.
+
+>If you have any issues with this process, make sure you have the BlindAI folder open in your VSCode window.
 
 ____________________________________
 
-### Bare-bones setup [ 🖥️  ] <a name="Bare-bones-dev-environment"></a>
+### Bare-bones setup [ 🖥️  ]
 ____________________________________
 
 To setup the dev environment by hand, you will need to install the following:
@@ -413,7 +457,6 @@ Then you can install the Intel SGX related dependencies with the following code 
     curl -sSL https://raw.githubusercontent.com/mithril-security/blindai/main/devenvironment/sgx-install.sh | bash
     ```
 
-
 Or you can find:
 
 * The [installation guides](https://download.01.org/intel-sgx/sgx-linux/2.15.1/docs/) for Intel SGX software on the 01.org website for more specific needs.
@@ -422,51 +465,6 @@ Or you can find:
 
 !!! info "Running without SGX support"
     If you are running on a machine without SGX support, you will need the simulation versions of the Intel PSW and SDK.
-
-____________________________________
-
-### Azure cloud setup [ ☁️  ![](../../../assets/azure.png){ width=22 } ] <a name="Azure-dev-environment"></a>
-____________________________________
-
-To set up our pre-configured development container for your Azure VM, you can follow these instructions:
-
-1. Clone blindai github repo and submodules.
-```bash
-git clone https://github.com/mithril-security/blindai --recursive
-cd blindai
-```
-
-2. Make sure you have Docker installed on your machine.
-
-    If it is not the case, you can follow [the official Docker installation guide](https://docs.docker.com/engine/install).
-
-    You also need to make sure you haver the correct permissions to run docker commands without `sudo`.
-    To check this, try running `docker run hello-world`. If this works, you can skip straight to the next step. If it doesn't, you need to add yourself to docker group:
-    ```bash
-    sudo usermod -aG docker $USER && newgrp docker
-    ```
-
-3. Open the `blindai` folder in VSCode.
-
-4. Make sure you have the `remote container VSCode extension` installed. If you don't, install this from the VSCode extensions marketplace.
-
-5. Make sure you are connected to your VM as host. To do this, open the green menu at the bottom-left by clicking on &ensp;![](../../../assets/vscode-menu.svg){ width=20 align=top }&ensp; in Visual Studio Code.
-
-    ![menu](../../../assets/Screenshot-vscode.png)
-
-6. Select `Connect to host` and select your host.
-
-    ![connect to host](../../../assets/host.png)
-
-7. Next, open the green menu at the bottom-left by clicking on &ensp;![](../../../assets/vscode-menu.svg){ width=20 align=top }&ensp; in Visual Studio Code again and choose:
-`Dev Containers: Reopen in Container`.
-
-    ![reopen in container](../../../assets/container.png)
-
-
-    This may take some time since there are several dependencies that must be installed.
-
->If you have any issues with this process, make sure you have the BlindAI folder open in your VSCode window.
 
 ## Building client from source
 
