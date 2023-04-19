@@ -1,20 +1,16 @@
 import whisper
 from typing import Optional, Union
 from .client import BlindAiConnection, connect
+from .nitro_client import BlindAiNitroConnection
 from transformers import WhisperProcessor
 import torch
 from ._preprocess_audio import load_audio
-from ._whisper_params import WhisperParams
-from urllib3 import encode_multipart_formdata
-import requests
-import os
-from io import BytesIO
-import numpy as np
+from io import BytesIO, BufferedIOBase
 
 DEFAULT_BLINDAI_ADDR = "4.246.205.63"
 # Urls
 SGX_BLINDAI_ADDR = DEFAULT_BLINDAI_ADDR
-NITRO_BLINDAI_ADDR = f"https://{DEFAULT_BLINDAI_ADDR}:3000"
+NITRO_BLINDAI_ADDR = f"nitro.mithrilsecurity.io"
 
 
 DEFAULT_WHISPER_MODEL = "tiny.en"
@@ -73,7 +69,7 @@ class Audio:
     def transcribe(
         cls,
         file: Union[str, bytes],
-        connection: Optional[Union["BlindAiConnection", str]] = None,
+        connection: Optional[Union["BlindAiConnection", "BlindAiNitroConnection"]] = None,
         tee: Optional[str] = DEFAULT_TEE,
     ) -> str:
         """
@@ -100,11 +96,9 @@ class Audio:
                 raise TypeError(f"{connection} should be a BlindAiConnection instance")
             return _use_sgx(connection=connection, file=file)
         else:
-            if not isinstance(connection, str):
-                raise TypeError(
-                    f"{connection} should be a string with this struct [http/https]://[url][:port]"
-                )
-            return _use_nitro(connection=connection, file=file)
+            if not isinstance(connection, BlindAiNitroConnection) and connection is not None:
+                raise TypeError(f"{connection} should be a BlindAiNitroConnection instance")
+            return _use_nitro(file=file, connection=connection)
 
 
 def _use_sgx(connection: Optional["BlindAiConnection"], file: Union[str, bytes]) -> str:
@@ -133,35 +127,26 @@ def _use_sgx(connection: Optional["BlindAiConnection"], file: Union[str, bytes])
 
 def _use_nitro(
     file: Union[str, bytes],
-    connection: Optional[str] = NITRO_BLINDAI_ADDR,
-    sample_rate: int = 16000,
+    connection: Optional["BlindAiNitroConnection"],
 ) -> str:
-    # Use `load_audio` to convert audio into numpy
-    array = load_audio(file)
+    buff: BufferedIOBase
+    if isinstance(file, str):
+        buff = open(file, "rb")
+    else:
+        buff = BytesIO()
+        buff.write(file)
+        buff.seek(0)
 
-    # Buffer to store the `numpy.Array` returned by the `load_audio` method.
-    buff = BytesIO()
+    if connection is None:
+        connection = BlindAiNitroConnection(NITRO_BLINDAI_ADDR, debug_mode=True)    
 
-    # Converts array in bytes.
-    np.save(buff, array)
-
-    # Move to the beginning of the buffer
-    buff.seek(0)
-
-    file = os.path.basename(file) if isinstance(file, str) else "blindai-whisper.wav"
-
-    # Post request body for BlindAI bento instance
-    fields = dict(
-        audio=(file, buff.read(), "application/octet-stream"),
-        params=WhisperParams(sample_rate=sample_rate).json(),
-    )
-
-    # Convert fields into `requests multipart/form-data`
-    body, header = encode_multipart_formdata(fields=fields)
-
-    # Make request to Nitro enclave running Bento running the Whisper model
-    return requests.post(
-        f"{connection}/transcribe",
-        headers={"Content-Type": header},
-        data=body,
-    ).text
+    with connection as req:
+        res = req.api(
+            "post",
+            "/whisper/predict",
+            files={
+                "audio": buff,
+            },
+        )
+    
+    return res

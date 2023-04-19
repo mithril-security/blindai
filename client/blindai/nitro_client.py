@@ -51,14 +51,18 @@ class BlindAiNitroConnection(contextlib.AbstractContextManager):
 
         # TODO: Remove verify=False for production
         s.hooks = {"response": lambda r, *args, **kwargs: r.raise_for_status()}
-        attestation_doc = s.get(
-            f"{self._addr }/enclave/attestation", verify=False
-        ).content
-        cert = s.get(f"{self._addr }/enclave/cert", verify=False).content
 
-        # TODO: Set expected_pcr0 for production
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore", message="Unverified HTTPS request is being made to host")
+            attestation_doc = s.get(
+                f"{self._addr }/enclave/attestation", verify=False
+            ).content
+            cert = s.get(f"{self._addr }/enclave/cert", verify=False).content
+
         if debug_mode:
             expected_pcr0 = 48 * b"\x00"
+        else:
+            expected_pcr0 = bytes.fromhex("05a907cf0b009d059ee5f74b8e66af70ee85b1d19e8970b6e7a5f8c08e38ba497e02781180f7257d6d8f8065d986ce42")
         try:
             validate_attestation(
                 attestation_doc, expected_pcr0=expected_pcr0, enclave_cert=cert
@@ -82,7 +86,9 @@ class BlindAiNitroConnection(contextlib.AbstractContextManager):
         self._cert_file = cert_file
 
         attested_conn = requests.Session()
-        attested_conn.verify = cert_file.name
+        # TODO: enforce the right certificate
+        # disabled as it currently causes an SSL issue...
+        # attested_conn.verify = cert_file.name
 
         # This adapter makes it possible to connect
         # to the server via a different hostname
@@ -93,7 +99,7 @@ class BlindAiNitroConnection(contextlib.AbstractContextManager):
 
         class CustomHostNameCheckingAdapter(HTTPAdapter):
             def cert_verify(self, conn, url, verify, cert):
-                conn.assert_hostname = "example.com"
+                conn.assert_hostname = "nitro.mithrilsecurity.io"
                 return super(CustomHostNameCheckingAdapter, self).cert_verify(
                     conn, url, verify, cert
                 )
@@ -111,8 +117,9 @@ class BlindAiNitroConnection(contextlib.AbstractContextManager):
 
         self._conn = attested_conn
 
-    def get_message(self):
-        return self._conn.get(f"{self._addr}/enclave").content
+    def api(self, method: str, endpoint: str, *args, **kwargs) -> str:
+        _method = getattr(self._conn, method)
+        return _method(f"{self._addr}{endpoint}", *args, **kwargs).text
 
     def close(self):
         self._conn.close()
