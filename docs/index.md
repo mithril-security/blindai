@@ -2,23 +2,21 @@
 ________________________________________________________
 
 <font size="5"><span style="font-weight: 200">
-An AI privacy solution to query models, while ensuring your data remains confidential every step of the way!
+A data privacy solution for Large Language Model deployment, ensuring user data remains confidential at all times!
 </font></span>
 
 ## What is BlindAI?
 ________________________________________________________
 
-**BlindAI** is an **open-source solution** to query and deploy AI models while **guaranteeing data privacy**. The querying of models is done via our **easy-to-use Python library**.
+**BlindAI** is a **privacy solution** allowing developers to deploy their **Large Language Models** (LLM) applications while **keeping** their **data confidential**.
 
-Data sent by users to the AI model is kept **confidential at all times** by hardware-enforced **Trusted Execution Environments**. We explain how they keep data and models safe in detail [here](docs/getting-started/confidential_computing.md).
+Data sent by users to these models are kept **confidential at all times** by hardware-enforced **Trusted Execution Environments**. We explain how they keep data and models safe in detail [here](docs/getting-started/confidential_computing.md).
 
 **BlindAi** consists of:
 
-- **BlindAI API**: for querying popular AI models hosted by Mithril Security (with BlindAI Core running under the hood). Its a Python library 🐍.
+- **BlindAI API**: A Python library 🐍 for querying popular LLM models hosted by Mithril Security.
 
-- **BlindAI Core**: for hosting your own BlindAI server instance in order to securely deploy your own models. It comes in two parts: a privacy-friendly **server** coded in **Rust** 🦀 using **Intel SGX** (Intel Software Guard Extensions) 🔒 and **AWS Nitro Enclaves** 🌪️ to ensure your data stays safe and an easy-to-use **Python client SDK** 🐍.
-
-You can find our more about BlindAI and BlindAI.Core [here](docs/getting-started/blindai_structure.md).
+- **BlindAI CLI (coming soon)**: An easy-to-use CLI tool for application deployment in highly isolated environments called secure enclaves.
 
 > You can check out [the code on our GitHub](https://github.com/mithril-security/blindai/). 
 
@@ -29,7 +27,7 @@ ________________________________________________________
 
 - Follow our [“Quick tour”](./docs/getting-started/quick-tour.ipynb) tutorial
 - [Tackle](./docs/getting-started/confidential_computing.md) the technologies we use to ensure privacy
-- Discover the differences between [BlindAI and BlindAI Core](./docs/getting-started/blindai_structure.md)
+- Check out how our BlindAI API works [under the hood!](./docs/getting-started/under-the-hood.ipynb)
 
 ## Getting help
 ________________________________________________________
@@ -40,4 +38,11 @@ ________________________________________________________
 
 ## Who made BlindAI?
 
-BlindAI was developed by **Mithril Security**. **Mithril Security** is a startup focused on confidential machine learning based on **Confidential Computing** technology. We provide **open-source privacy solutions** to **query** and **deploy AI models** while **guaranteeing data privacy**. 
+BlindAI was developed by **Mithril Security**. **Mithril Security** is a startup focused on confidential machine learning based on **Confidential Computing** technology. We provide **open-source privacy solutions** to **query** and **deploy AI models** while **guaranteeing data privacy**.
+
+So far, we have developed the following solutions:
+- BlindAI Legacy: Allowing AI engineers to deploy AI models in secure confidential environments
+- BlindAI API: Allowing developers to query Large Language Models (LLMs) in secure confidential environments
+- BlindAI new release (**coming soon**): Allowing developers to deploy their applications in secure confidential environments
+
+![Mithril Timeline](./assets/timeline.png)
