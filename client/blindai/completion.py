@@ -26,14 +26,14 @@ class Completion:
         if tee == "nitro":
             if connection is None:
                 connection = BlindAiNitroConnection(NITRO_BLINDAI_ADDR, debug_mode=True)
-            
+
             with connection as req:
                 res = req.api(
                     "post",
                     "/open-chat-kit/predict",
                     data=PredictionMsg(input_text=prompt).json(),
                 )
-            
+
             return res
         else:
             raise ValueError(f"tee must be one of {DEFAULT_TEE_OPTIONS}")

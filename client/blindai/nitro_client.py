@@ -53,7 +53,9 @@ class BlindAiNitroConnection(contextlib.AbstractContextManager):
         s.hooks = {"response": lambda r, *args, **kwargs: r.raise_for_status()}
 
         with warnings.catch_warnings():
-            warnings.filterwarnings("ignore", message="Unverified HTTPS request is being made to host")
+            warnings.filterwarnings(
+                "ignore", message="Unverified HTTPS request is being made to host"
+            )
             attestation_doc = s.get(
                 f"{self._addr }/enclave/attestation", verify=False
             ).content
@@ -62,7 +64,9 @@ class BlindAiNitroConnection(contextlib.AbstractContextManager):
         if debug_mode:
             expected_pcr0 = 48 * b"\x00"
         else:
-            expected_pcr0 = bytes.fromhex("05a907cf0b009d059ee5f74b8e66af70ee85b1d19e8970b6e7a5f8c08e38ba497e02781180f7257d6d8f8065d986ce42")
+            expected_pcr0 = bytes.fromhex(
+                "05a907cf0b009d059ee5f74b8e66af70ee85b1d19e8970b6e7a5f8c08e38ba497e02781180f7257d6d8f8065d986ce42"
+            )
         try:
             validate_attestation(
                 attestation_doc, expected_pcr0=expected_pcr0, enclave_cert=cert

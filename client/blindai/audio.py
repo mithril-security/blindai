@@ -69,7 +69,9 @@ class Audio:
     def transcribe(
         cls,
         file: Union[str, bytes],
-        connection: Optional[Union["BlindAiConnection", "BlindAiNitroConnection"]] = None,
+        connection: Optional[
+            Union["BlindAiConnection", "BlindAiNitroConnection"]
+        ] = None,
         tee: Optional[str] = DEFAULT_TEE,
     ) -> str:
         """
@@ -96,8 +98,13 @@ class Audio:
                 raise TypeError(f"{connection} should be a BlindAiConnection instance")
             return _use_sgx(connection=connection, file=file)
         else:
-            if not isinstance(connection, BlindAiNitroConnection) and connection is not None:
-                raise TypeError(f"{connection} should be a BlindAiNitroConnection instance")
+            if (
+                not isinstance(connection, BlindAiNitroConnection)
+                and connection is not None
+            ):
+                raise TypeError(
+                    f"{connection} should be a BlindAiNitroConnection instance"
+                )
             return _use_nitro(file=file, connection=connection)
 
 
@@ -138,7 +145,7 @@ def _use_nitro(
         buff.seek(0)
 
     if connection is None:
-        connection = BlindAiNitroConnection(NITRO_BLINDAI_ADDR, debug_mode=True)    
+        connection = BlindAiNitroConnection(NITRO_BLINDAI_ADDR, debug_mode=True)
 
     with connection as req:
         res = req.api(
@@ -148,5 +155,5 @@ def _use_nitro(
                 "audio": buff,
             },
         )
-    
+
     return res
