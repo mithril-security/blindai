@@ -21,7 +21,8 @@
 [![LinkedIn][linkedin-shield]][linkedin-url]
 
   <p align="center">
-    <b>BlindAI</b> is an <b>AI privacy solution</b>, allowing users to query popular AI models or serve their own models whilst ensuring that users' data remains private every step of the way.
+    <b>BlindAI</b> is an a <b>data privacy solution for Large Language Model SaaS deployment</b>, ensuring user data remains confidential at all times!
+
 	<br /><br />
     <a href="https://blindai.mithrilsecurity.io/en/latest"><strong>Explore the docs »</strong></a>
     <br />
@@ -63,78 +64,26 @@
 <!-- ABOUT THE PROJECT -->
 ## 🔒 About The Project
 
-**BlindAI** is an **open-source solution** to query and deploy AI models while **guaranteeing data privacy**. The querying of models is done via our **easy-to-use Python library**.
+**BlindAI** is a **privacy solution** allowing developers to deploy their **Large Language Models** (LLM) SaaS solutions while **ensuring** user **data remains confidential** at all times.
 
-Data sent by users to the AI model is kept **confidential at all times** by hardware-enforced **Trusted Execution Environments**. We explain how they keep data and models safe in detail [here](https://blindai.mithrilsecurity.io/en/latest/docs/getting-started/confidential_computing/).
+Data sent by users to these models are kept **confidential at all times** by hardware-enforced **Trusted Execution Environments**. We explain how they keep data and models safe in detail [here](docs/getting-started/confidential_computing.md).
 
-There are two main scenarios for BlindAI:
+**BlindAi** consists of:
 
-- **BlindAI API**: Using BlindAI to query popular AI models hosted by Mithril Security.
-- **BlindAI Core**: Using BlindAI's underlying technology to host your own BlindAI server instance to securely deploy your own models.
+- **BlindAI API**: A Python library 🐍 for querying popular LLM models hosted by Mithril Security.
 
-You can find our more about BlindAI API and BlindAI Core [here](https://blindai.mithrilsecurity.io/en/latest/docs/getting-started/blindai_structure/).
+- **BlindAI CLI (coming soon)**: An easy-to-use CLI tool for application deployment in highly isolated environments called secure enclaves.
 
-### Built With 
+> You can check out [the code on our GitHub](https://github.com/mithril-security/blindai/). 
 
-[![Rust][Rust]][Rust-url] [![Python][Python]][Python-url] [![Intel-SGX][Intel-SGX]][Intel-sgx-url] [![Tract][Tract]][tract-url]
+We’ll update the documentation as new features come in, so dive in!
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 <!-- GETTING STARTED -->
 ## 🚀 Getting Started
 
-We strongly recommend for you to get started with our [Quick tour](https://blindai.mithrilsecurity.io/en/latest/docs/getting-started/quick-tour/) to discover BlindAI with the open-source model Whisper.
-
-But here’s a taste of what using BlindAI could look like 🍒
-
-### BlindAI API
-
-```py
-transcript = blindai.api.Audio.transcribe(
-    file="patient_104678.wav"
-)
-print(transcript)
-
-The patient is a 55-year old male with known coronary artery disease.
-```
-
-### BlindAI.Core
-
-#### AI company's side: uploading and deleting models
-
-An AI company AI company want to provide their model as an an easy-to-use service. They upload it to the server, which is assigned a model ID.
-
-```py
-response = client_1.upload_model(model="./COVID-Net-CXR-2.onnx")
-MODEL_ID = response.model_id
-print(MODEL_ID)
-
-8afcdab8-209e-4b93-9403-f3ea2dc0c3ae
-```
-
-When collaborating with clients is done, the AI company can delete their model from the server.
-
-```py
-# AI company deletes model after use
-client_1.delete_model(MODEL_ID)
-```
-
-#### Client's side: running a model on confidential data
-
-The client wants to feed their confidential data to the model while protecting it from third-party access. They connect and run the model on the following confidential image.
-
-![](https://github.com/mithril-security/blindai/blob/main/docs/assets/positive_image.png)
-
-```py
-pos_ret = client_2.run_model(MODEL_ID, positive)
-print("Probability of Covid for positive image is", pos_ret.output[0].as_flat()[0][1])
-
-Probability of Covid for positive image is 0.890598714351654
-```
-
-_For more examples, please refer to the [Documentation](https://blindai.mithrilsecurity.io/en/latest/)_
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
+We recommend for you to get started with our [Quick tour](https://blindai.mithrilsecurity.io/en/latest/docs/getting-started/quick-tour/) to discover our BlindAI demo product: an open-source Whisper API running with a Nitro enclave!
 
 <!-- GETTING HELP -->
 ## 🙋 Getting help

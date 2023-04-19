@@ -2,13 +2,13 @@
 ________________________________________________________
 
 <font size="5"><span style="font-weight: 200">
-A data privacy solution for Large Language Model deployment, ensuring user data remains confidential at all times!
+A data privacy solution for Large Language Model SaaS deployment, ensuring user data remains confidential at all times!
 </font></span>
 
 ## What is BlindAI?
 ________________________________________________________
 
-**BlindAI** is a **privacy solution** allowing developers to deploy their **Large Language Models** (LLM) applications while **keeping** their **data confidential**.
+**BlindAI** is a **privacy solution** allowing developers to deploy their **Large Language Models** (LLM) SaaS solutions while **ensuring** user **data remains confidential** at all times.
 
 Data sent by users to these models are kept **confidential at all times** by hardware-enforced **Trusted Execution Environments**. We explain how they keep data and models safe in detail [here](docs/getting-started/confidential_computing.md).
 
