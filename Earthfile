@@ -32,7 +32,7 @@ publish:
     BUILD +publish-docker-image-local-management
 
 dev-image:
-    FROM DOCKERFILE -f .devcontainer/Dockerfile .
+    FROM DOCKERFILE -f .devcontainer/bare_sgx/Dockerfile .
     WORKDIR /blindai
 
 dev-image-poetry:
@@ -68,13 +68,13 @@ dev-cargo-audit:
         && rm -rf cargo-audit-x86_64-unknown-linux-musl-v0.17.4.tgz \
         && mv cargo-audit-x86_64-unknown-linux-musl-v0.17.4/cargo-audit /usr/local/bin
 
-    COPY .cargo .cargo
-    COPY tar-rs-sgx tar-rs-sgx
-    COPY tract tract
-    COPY ring-fortanix ring-fortanix
-    COPY rouille rouille
-    COPY tiny-http tiny-http
-    COPY Cargo.toml Cargo.lock ./
+    COPY server_sgx/.cargo .cargo
+    COPY server_sgx/tar-rs-sgx tar-rs-sgx
+    COPY server_sgx/tract tract
+    COPY server_sgx/ring-fortanix ring-fortanix
+    COPY server_sgx/rouille rouille
+    COPY server_sgx/tiny-http tiny-http
+    COPY server_sgx/Cargo.toml server_sgx/Cargo.lock ./
 
     CACHE /root/.cargo/
     RUN CARGO_NET_GIT_FETCH_WITH_CLI=true cargo-audit audit
@@ -94,23 +94,23 @@ dev-tests-base:
     # we cannot do much better...  
     # GH issue : <https://github.com/rust-lang/cargo/issues/9598>
 
-    COPY tract tract
+    COPY server_sgx/tract tract
     RUN find tract -exec touch {} \;
-    COPY ring-fortanix ring-fortanix
+    COPY server_sgx/ring-fortanix ring-fortanix
     RUN find ring-fortanix -exec touch {} \;
-    COPY rouille rouille
+    COPY server_sgx/rouille rouille
     RUN find rouille -exec touch {} \;
-    COPY tiny-http tiny-http
+    COPY server_sgx/tiny-http tiny-http
     RUN find tiny-http -exec touch {} \;
-    COPY tar-rs-sgx tar-rs-sgx
+    COPY server_sgx/tar-rs-sgx tar-rs-sgx
     RUN find tar-rs-sgx -exec touch {} \;
-    COPY Cargo.toml Cargo.lock ./
-    COPY .cargo .cargo
+    COPY server_sgx/Cargo.toml server_sgx/Cargo.lock ./
+    COPY server_sgx/.cargo .cargo
     RUN touch Cargo.toml Cargo.lock
-    COPY justfile ./
+    COPY server_sgx/justfile ./
 
     # compile Rust sources for the enclave
-    COPY src src
+    COPY server_sgx/src src
     RUN find src -exec touch {} \;
     RUN cargo build --target x86_64-fortanix-unknown-sgx \
         && cargo build --target x86_64-fortanix-unknown-sgx --release
@@ -119,7 +119,7 @@ dev-tests-base:
     RUN cargo build --release
 
     # compile Rust sources for the runner
-    COPY runner runner
+    COPY server_sgx/runner runner
     RUN find runner -exec touch {} \;
     CACHE /blindai/runner/target
     RUN cd runner \
@@ -158,7 +158,7 @@ dev-tests-sgx:
     FROM +dev-tests-base
     # end-to-end tests
 
-    COPY manifest.dev.template.toml manifest.prod.template.toml ./
+    COPY server_sgx/manifest.dev.template.toml server_sgx/manifest.prod.template.toml ./
     RUN just build --release
 
     RUN --privileged \
@@ -170,6 +170,7 @@ dev-tests-sgx:
         do \
             sleep 5; \
         done \
+        && echo "server is up" \
         && cd tests \
         && bash run_all_end_to_end_tests.sh
 
@@ -184,22 +185,22 @@ dev-unit-tests:
     RUN cd tests/mobilenet && bash ./setup.sh
     
 
-    COPY tar-rs-sgx tar-rs-sgx
+    COPY server_sgx/tar-rs-sgx tar-rs-sgx
     RUN find tar-rs-sgx -exec touch {} \;
-    COPY tract tract
+    COPY server_sgx/tract tract
     RUN find tract -exec touch {} \;
-    COPY ring-fortanix ring-fortanix
+    COPY server_sgx/ring-fortanix ring-fortanix
     RUN find ring-fortanix -exec touch {} \;
-    COPY rouille rouille
+    COPY server_sgx/rouille rouille
     RUN find rouille -exec touch {} \;
-    COPY tiny-http tiny-http
+    COPY server_sgx/tiny-http tiny-http
     RUN find tiny-http -exec touch {} \;
 
-    COPY src src
+    COPY server_sgx/src src
     RUN find src -exec touch {} \;
-    COPY justfile Cargo.toml Cargo.lock ./
+    COPY server_sgx/justfile server_sgx/Cargo.toml server_sgx/Cargo.lock ./
 
-    COPY .cargo .cargo
+    COPY server_sgx/.cargo .cargo
     RUN find .cargo -exec touch {} \;
 
     # unit tests
@@ -234,14 +235,14 @@ build-release-enclave:
 
     RUN cargo install --locked --git https://github.com/mithril-security/rust-sgx.git --tag fortanix-sgx-tools_v0.5.1-mithril fortanix-sgx-tools sgxs-tools
 
-    COPY rust-toolchain.toml Cargo.toml Cargo.lock manifest.prod.template.toml ./
-    COPY .cargo .cargo
-    COPY src src
-    COPY tar-rs-sgx tar-rs-sgx
-    COPY tract tract
-    COPY ring-fortanix ring-fortanix
-    COPY tiny-http tiny-http
-    COPY rouille rouille
+    COPY server_sgx/rust-toolchain.toml server_sgx/Cargo.toml server_sgx/Cargo.lock server_sgx/manifest.prod.template.toml ./
+    COPY server_sgx/.cargo .cargo
+    COPY server_sgx/src src
+    COPY server_sgx/tar-rs-sgx tar-rs-sgx
+    COPY server_sgx/tract tract
+    COPY server_sgx/ring-fortanix ring-fortanix
+    COPY server_sgx/tiny-http tiny-http
+    COPY server_sgx/rouille rouille
 
     RUN cargo build --locked --release --target "x86_64-fortanix-unknown-sgx"
 
@@ -283,14 +284,14 @@ build-release-enclave2:
 
     RUN cargo install --locked --git https://github.com/mithril-security/rust-sgx.git --tag fortanix-sgx-tools_v0.5.1-mithril fortanix-sgx-tools sgxs-tools
 
-    COPY rust-toolchain.toml Cargo.toml Cargo.lock manifest.prod.template.toml ./
-    COPY .cargo .cargo
-    COPY src src
-    COPY tar-rs-sgx tar-rs-sgx
-    COPY tract tract
-    COPY ring-fortanix ring-fortanix
-    COPY tiny-http tiny-http
-    COPY rouille rouille
+    COPY server_sgx/rust-toolchain.toml server_sgx/Cargo.toml server_sgx/Cargo.lock server_sgx/manifest.prod.template.toml ./
+    COPY server_sgx/.cargo .cargo
+    COPY server_sgx/src src
+    COPY server_sgx/tar-rs-sgx tar-rs-sgx
+    COPY server_sgx/tract tract
+    COPY server_sgx/ring-fortanix ring-fortanix
+    COPY server_sgx/tiny-http tiny-http
+    COPY server_sgx/rouille rouille
 
     RUN cargo build --locked --release --target "x86_64-fortanix-unknown-sgx"
 
@@ -328,15 +329,15 @@ build-release-enclave-local-management:
 
     RUN cargo install --locked --git https://github.com/mithril-security/rust-sgx.git --tag fortanix-sgx-tools_v0.5.1-mithril fortanix-sgx-tools sgxs-tools
 
-    COPY rust-toolchain.toml Cargo.toml Cargo.lock manifest.prod.template.toml ./
-    COPY .cargo .cargo
-    COPY src src
-    COPY build.rs build.rs
-    COPY tar-rs-sgx tar-rs-sgx
-    COPY tract tract
-    COPY ring-fortanix ring-fortanix
-    COPY tiny-http tiny-http
-    COPY rouille rouille
+    COPY server_sgx/rust-toolchain.toml server_sgx/Cargo.toml server_sgx/Cargo.lock server_sgx/manifest.prod.template.toml ./
+    COPY server_sgx/.cargo .cargo
+    COPY server_sgx/src src
+    COPY server_sgx/build.rs build.rs
+    COPY server_sgx/tar-rs-sgx tar-rs-sgx
+    COPY server_sgx/tract tract
+    COPY server_sgx/ring-fortanix ring-fortanix
+    COPY server_sgx/tiny-http tiny-http
+    COPY server_sgx/rouille rouille
 
     RUN DISALLOW_REMOTE_UPLOAD=1 cargo build --locked --release --target "x86_64-fortanix-unknown-sgx"
 
@@ -379,15 +380,15 @@ build-release-enclave-local-management2:
 
     RUN cargo install --locked --git https://github.com/mithril-security/rust-sgx.git --tag fortanix-sgx-tools_v0.5.1-mithril fortanix-sgx-tools sgxs-tools
 
-    COPY rust-toolchain.toml Cargo.toml Cargo.lock manifest.prod.template.toml ./
-    COPY .cargo .cargo
-    COPY src src
-    COPY build.rs build.rs
-    COPY tar-rs-sgx tar-rs-sgx
-    COPY tract tract
-    COPY ring-fortanix ring-fortanix
-    COPY tiny-http tiny-http
-    COPY rouille rouille
+    COPY server_sgx/rust-toolchain.toml server_sgx/Cargo.toml server_sgx/Cargo.lock server_sgx/manifest.prod.template.toml ./
+    COPY server_sgx/.cargo .cargo
+    COPY server_sgx/src src
+    COPY server_sgx/build.rs build.rs
+    COPY server_sgx/tar-rs-sgx tar-rs-sgx
+    COPY server_sgx/tract tract
+    COPY server_sgx/ring-fortanix ring-fortanix
+    COPY server_sgx/tiny-http tiny-http
+    COPY server_sgx/rouille rouille
 
     RUN DISALLOW_REMOTE_UPLOAD=1 cargo build --locked --release --target "x86_64-fortanix-unknown-sgx"
 
@@ -435,14 +436,14 @@ build-mock-server:
     CACHE /root/.cargo/git
     CACHE /root/.cargo/registry
 
-    COPY rust-toolchain.toml Cargo.toml Cargo.lock ./
-    COPY .cargo .cargo
-    COPY src src
-    COPY tar-rs-sgx tar-rs-sgx
-    COPY tract tract
-    COPY ring-fortanix ring-fortanix
-    COPY tiny-http tiny-http
-    COPY rouille rouille
+    COPY server_sgx/rust-toolchain.toml server_sgx/Cargo.toml server_sgx/Cargo.lock ./
+    COPY server_sgx/.cargo .cargo
+    COPY server_sgx/src src
+    COPY server_sgx/tar-rs-sgx tar-rs-sgx
+    COPY server_sgx/tract tract
+    COPY server_sgx/ring-fortanix ring-fortanix
+    COPY server_sgx/tiny-http tiny-http
+    COPY server_sgx/rouille rouille
 
     RUN sed -i 's/x86_64-fortanix-unknown-sgx/x86_64-unknown-linux-gnu/g' rust-toolchain.toml
 
@@ -473,7 +474,7 @@ build-release-runner:
         && ln -s /usr/lib/x86_64-linux-gnu/libdcap_quoteprov.so.1 /usr/lib/x86_64-linux-gnu/libdcap_quoteprov.so 
 
     WORKDIR blindai
-    COPY runner runner
+    COPY server_sgx/runner runner
 
     CACHE /usr/local/cargo/git
     CACHE /usr/local/cargo/registry
@@ -521,6 +522,7 @@ test-release:
         do \
             sleep 5; \
         done \
+        && echo "server is up" \
         && cd tests \
         && bash run_all_end_to_end_tests.sh
 

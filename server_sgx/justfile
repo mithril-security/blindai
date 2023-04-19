@@ -29,7 +29,11 @@ run *args:
     --threads 32
 
   just generate-manifest-dev "$binpath.sgxs" 
-  cp manifest.dev.toml ../client/blindai/manifest.toml
+  if [ -d "client/" ]; then
+    cp manifest.dev.toml client/blindai/manifest.toml
+  else
+    cp manifest.dev.toml ../client/blindai/manifest.toml
+  fi
 
   just generate-manifest-prod "$binpath.sgxs" 
 
@@ -57,7 +61,11 @@ run-local-management *args:
     --threads 32
 
   just generate-manifest-dev "$binpath.sgxs" 
-  cp manifest.dev.toml ../client/blindai/manifest_cloud.toml
+  if [ -d "client/" ]; then
+    cp manifest.dev.toml client/blindai/manifest_cloud.toml
+  else
+    cp manifest.dev.toml ../client/blindai/manifest_cloud.toml
+  fi
 
   just generate-manifest-prod "$binpath.sgxs" 
 
@@ -167,7 +175,11 @@ release:
   set -x
 
   just build --release
-  cp manifest.prod.toml ../client/blindai/manifest.toml
+  if [ -d "client/" ]; then
+    cp manifest.prod.toml client/blindai/manifest.toml
+  else
+    cp manifest.prod.toml ../client/blindai/manifest.toml
+  fi
 
   openssl genrsa -3 3072 > my_key.pem
   sgxs-sign --key my_key.pem  target/x86_64-fortanix-unknown-sgx/release/blindai_server.sgxs   target/x86_64-fortanix-unknown-sgx/release/blindai_server.sig   --xfrm 7/0 --isvprodid 0 --isvsvn 0
