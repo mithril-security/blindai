@@ -10,12 +10,6 @@ Whisper is an open-source automatic speech recognition (ASR) system trained on 6
 
 You can go check out our [Whisper](./whisper_tutorial.ipynb) tutorial to see how to already use the speech-to-text model with BlindAI API. 
 
-## ⌛ OpenChatKit
-______________________
-
-OpenChatKit provides a powerful, open-source base to create both specialized and general purpose chatbots for various applications.
-
-*Coming soon*
 
 ## ❓ Any request?
 ________________________
