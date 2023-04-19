@@ -155,36 +155,36 @@ ___________________________________________
 
 In order to deploy BlindAI on-premise, you will need an Intel SGX-ready device with `SGX+FLC` support.
 
-You can check this with the following code:
+??? abstract "Check Intel SGX-ready device with `SGX+FLC` support"
 
-  ```bash
-  curl -sSL https://raw.githubusercontent.com/ayeks/SGX-hardware/master/test-sgx.c | gcc -o test-sgx -xc -
-  ./test-sgx | grep "sgx launch control"
-  ```
+    ```bash
+    curl -sSL https://raw.githubusercontent.com/ayeks/SGX-hardware/master/test-sgx.c | gcc -o test-sgx -xc -
+    ./test-sgx | grep "sgx launch control"
+    ```
 
-- If your output is `sgx launch control: 1`, you **have** an Intel SGX-ready device with `SGX+FLC` support.
-- If your output is `sgx launch control: 0`, you **do not have** an Intel SGX-ready device with `SGX+FLC` support.
+    - If your output is `sgx launch control: 1`, then you **have** a device with support.
+    - If your output is `sgx launch control: 0`, then you **do not have** a device with support.
 
-BlindAI was created for SGX2, which has a better performance and much more memory available than SGX1. The physical protected memory for SGX1 is limited to 128mb.
+BlindAI was created for **SGX2**, which has a better performance and much more memory available than **SGX1** (whose physical protected memory is limited to *128mb*).
 
-You could still deploy the server with SGX1 and benefit from the isolation offered by SGX enclaves, but the client will only be able to connect in `simulation` mode since not all attestation checks are possible with SGX1.
+> You could still deploy the server with SGX1 and benefit from the isolation offered by SGX enclaves, but the client will only be able to connect in `simulation` mode since not all attestation checks are possible with SGX1.
 
-You can check if you have SGX1 or SGX2, by running the following:
+??? abstract "Check if you have SGX1 or SGX2"
 
-```bash
-curl -sSL https://raw.githubusercontent.com/ayeks/SGX-hardware/master/test-sgx.c | gcc -o test-sgx -xc -
-./test-sgx | grep "sgx 1 supported"
-```
+    ```bash
+    curl -sSL https://raw.githubusercontent.com/ayeks/SGX-hardware/master/test-sgx.c | gcc -o test-sgx -xc -
+    ./test-sgx | grep "sgx 1 supported"
+    ```
 
-- If your output is `sgx 1 supported: 1`, you **have** SGX1.
-- If your output is `sgx 1 supported: 0`, you **do not have** SGX1.
+    - If your output is `sgx 1 supported: 1`, you **have** SGX1.
+    - If your output is `sgx 1 supported: 0`, you **do not have** SGX1.
 
-```bash
-./test-sgx | grep "sgx 2 supported"
-```
+    ```bash
+    ./test-sgx | grep "sgx 2 supported"
+    ```
 
-- If your output is `sgx 2 supported: 1`, you **have** SGX2.
-- If your output is `sgx 2 supported: 0`, you **do not have** SGX2.
+    - If your output is `sgx 2 supported: 1`, you **have** SGX2.
+    - If your output is `sgx 2 supported: 0`, you **do not have** SGX2.
 
 ### Intel SGX drivers
 
