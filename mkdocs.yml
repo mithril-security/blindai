@@ -101,35 +101,10 @@ nav:
 - 🚀 Getting Started: 
   - Quick tour: 'docs/getting-started/quick-tour.ipynb'
   - How we protect your data: 'docs/getting-started/confidential_computing.md'
-  - "Project structure: API & Core" : 'docs/getting-started/blindai_structure.md'
-
-- Tutorials:
-  - "BlindAI API: popular models":
-    - API Overview: 'docs/tutorials/api/coming_soon.md'
-    - Whisper: 'docs/tutorials/api/whisper_tutorial.ipynb'
-  - "BlindAI Core: custom models":
-    - Core Overview: 'docs/concepts/BlindAI_Core.md'
-    - Installation: 'docs/tutorials/core/installation.md'
-    - Uploading models: 'docs/tutorials/core/uploading_models.ipynb'
+  - Under the hood : 'docs/getting-started/under-the-hood.ipynb'
 
 - 💡 Concepts:
   - Why BlindAI?: 'docs/getting-started/why-blindai.md'
   - Secure Enclaves: 'docs/concepts/SGX_vs_Nitro.md'
-- 🌍 How-to-Guides:
-  -  Confidential diagnosis with Covid-NET: 'docs/how-to-guides/covid_net_confidential.ipynb'
 
 - 🛠️ Client API reference: 'blindai/client.html'
-
-- 🔒 Security:
-  - Remote attestation: 'docs/security/remote_attestation.md'
-  - Threat model: 'docs/security/threat_model.md'
-
-- ⚙️ Advanced:
-  - Build from sources:
-    - Client SDK: 'docs/advanced/build-from-sources/client.md'
-    - Server: 'docs/advanced/build-from-sources/server.md'
-  - Open source:
-     - Project structure: 'docs/advanced/contributing/blindai-project-structure.md'
-     - Setting-up your dev environment: 'docs/advanced/contributing/setting-up-your-dev-environment.md'
-     - Contributing: "docs/advanced/contributing/contributing.md"
-     - Code of Conduct: "docs/advanced/contributing/code_of_conduct.md"
