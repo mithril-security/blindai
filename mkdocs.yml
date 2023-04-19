@@ -107,4 +107,7 @@ nav:
   - Why BlindAI?: 'docs/getting-started/why-blindai.md'
   - Secure Enclaves: 'docs/concepts/SGX_vs_Nitro.md'
 
+  - 🌍 How-to-Guides:
+    -  Deploying your own Nitro server: 'docs/how-to-guides/deploy-API-server.ipynb'
+
 - 🛠️ Client API reference: 'blindai/client.html'
