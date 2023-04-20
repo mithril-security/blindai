@@ -16,7 +16,7 @@ BlindBox is *COMING SOON.*
 
 While we work on it, we prepared a **BlindBox API demo** of a **Large Language Model (LLM)** to introduce what will go on under the hood of BlindBox.  
 
-> You can check out [the code on our GitHub](https://github.com/mithril-security/blindbox/). 
+> You can check out [the code on our GitHub](https://github.com/mithril-security/blindai/). 
 
 We’ll update the documentation as new features come in, so dive in!
 
@@ -31,7 +31,7 @@ ________________________________________________________
 ________________________________________________________
 
 - Go to our [Discord](https://discord.com/invite/TxEHagpWd4) *#support* channel
-- Report bugs by [opening an issue on our BlindBox Github](https://github.com/mithril-security/blindbox/issues)
+- Report bugs by [opening an issue on our BlindBox Github](https://github.com/mithril-security/blindai/issues)
 - [Book a meeting](https://calendly.com/contact-mithril-security/15mins?month=2022-11) with us
 
 ## Who made BlindBox?

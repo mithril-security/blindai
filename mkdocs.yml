@@ -7,8 +7,8 @@ site_description: >-
   covering data exploration and machine learning.
 
 # Repository
-repo_name: mithril-security/blindbox
-repo_url: https://github.com/mithril-security/blindbox
+repo_name: mithril-security/blindai
+repo_url: https://github.com/mithril-security/blindai
 
 # Configuration
 theme:
