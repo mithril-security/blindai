@@ -1,5 +1,5 @@
 # Website Info
-site_name: BlindAI
+site_name: BlindBox
 site_url: https://www.mithrilsecurity.io/en/latest/
 site_author: Mithril Security
 site_description: >-
@@ -7,8 +7,8 @@ site_description: >-
   covering data exploration and machine learning.
 
 # Repository
-repo_name: mithril-security/blindai
-repo_url: https://github.com/mithril-security/blindai
+repo_name: mithril-security/blindbox
+repo_url: https://github.com/mithril-security/blindbox
 
 # Configuration
 theme:
@@ -104,10 +104,10 @@ nav:
   - Under the hood : 'docs/getting-started/under-the-hood.ipynb'
 
 - 💡 Concepts:
-  - Why BlindAI?: 'docs/getting-started/why-blindai.md'
-  - Secure Enclaves: 'docs/concepts/SGX_vs_Nitro.md'
+  - Why BlindBox?: 'docs/getting-started/why-blindbox.md'
+  - Secure Enclaves: 'docs/concepts/Trusted_Execution_Environements.md'
 
-  - 🌍 How-to-Guides:
-    -  Deploying your own Nitro server: 'docs/how-to-guides/deploy-API-server.ipynb'
+- 🌍 How-to-Guides:
+  -  Deploying your own Nitro server: 'docs/how-to-guides/deploy-API-server.ipynb'
 
-- 🛠️ Client API reference: 'blindai/client.html'
+- 🛠️ Client API reference: 'blindbox/client.html'

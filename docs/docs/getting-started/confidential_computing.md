@@ -1,7 +1,7 @@
-# How does BlindAI protect your data?
+# How does BlindBox protect your data?
 _________________________________
 
-BlindAI is able to protect user data and models by leveraging the power of confidential computing, a fast-growing new technology in cybersecurity. Let’s take a look at what Confidential Computing is and how it protects your data.
+BlindBox is able to protect user data and models by leveraging the power of confidential computing, a fast-growing new technology in cybersecurity. Let’s take a look at what Confidential Computing is and how it protects your data.
 
 The [Confidential Computing Consortium](https://confidentialcomputing.io/) (CCC) describes confidential computing as “the protection of data in use by performing computations in a hardware-based Trusted Execution Environment (TEE)”.
 
@@ -21,7 +21,7 @@ One strategy to reduce the enclave's attack surface pursued by many CC solutions
 
 Normally, when you run an application on a computer, you need to trust multiple elements: the application itself, the operating system, the hypervisor and the hardware. This doesn't mean we "trust" them in the everyday sense of the word- this means that our application could be affected by a bug or vulnerability in these elements! These trusted elements makes up what we call the **Trusted Computing Base** or **TCB** of our application.
 
-A key difference between our two currently supported TEE environments, SGX enclaves and Nitro enclaves, is that Intel SGX has a very minimal TCB while Nitro enclaves have not pursued this strategy to reduce their attack surface area. Check out our more detailed [Intel SGX vs Nitro Enclaves page](../concepts/SGX_vs_Nitro.md) for more details.
+A key difference between our two currently supported TEE environments, SGX enclaves and Nitro enclaves, is that Intel SGX has a very minimal TCB while Nitro enclaves have not pursued this strategy to reduce their attack surface area. Check out our more detailed [Intel SGX vs Nitro Enclaves page](../concepts/Trusted_Execution_Environements.md) for more details.
 
 ## Attestation
 ___________________
@@ -36,26 +36,26 @@ These checks will **verify the enclave identity and the application** running in
 
 With Intel SGX, this process also verifies that the **enclave is running on genuine Intel SGX hardware**, whereas for Nitro enclaves, the **trusted OS is verified**.
 
-If any of these **checks fail**, an error is produced and the **user will not be able to communicate with an enclave**. For BlindAI, this means that if a user tries to connect to a BlindAI server that has been tampered with or is not running the official latest version of the BlindAI server, they will fail. If these checks are **successful**, the user is able to **communicate** with the enclave **securely using TLS**. The enclave's private key never leaves the enclave, so it is never accessible to anyone, not even the cloud or service provider.
+If any of these **checks fail**, an error is produced and the **user will not be able to communicate with an enclave**. For BlindBox, this means that if a user tries to connect to a BlindBox server that has been tampered with or is not running the official latest version of the BlindBox server, they will fail. If these checks are **successful**, the user is able to **communicate** with the enclave **securely using TLS**. The enclave's private key never leaves the enclave, so it is never accessible to anyone, not even the cloud or service provider.
 
 ## Limitations
 __________________________
 
 With great security features come great responsibilities! TEEs also have limitations which are very important to know:
 
-+ The **official BlindAI application code must be trusted**! The attestation process verifies that the enclave is running the official server application, but it does not run any checks on what the verified application code does. This is why BlindAI is open-source, so you can audit our code yourself. You can also refer to [the report from Quarkslab]() (*coming soon*), the independent company who audited our BlindAI Core solution.
++ The **official BlindBox application code must be trusted**! The attestation process verifies that the enclave is running the official server application, but it does not run any checks on what the verified application code does. This is why BlindBox is open-source, so you can audit our code yourself. You can also refer to [the report from Quarkslab]() (*coming soon*), the independent company who audited our BlindBox Core solution.
 
-> Note that this audit was performed on the latest version of BlindAI at the time and does not cover **the client-side SDK**, **BlindAI API** or **Nitro enclaves**.
+> Note that this audit was performed on the latest version of BlindBox at the time and does not cover **the client-side SDK**, **BlindBox API** or **Nitro enclaves**.
 
-+ **Zero-day attacks** are **always a risk**, even with enclaves. They happen when hackers exploit previously unknown flaws *before* developers have an opportunity to fix the issue. We mitigate that risk by keeping BlindAI up-to-date with the security updates of our dependencies.
++ **Zero-day attacks** are **always a risk**, even with enclaves. They happen when hackers exploit previously unknown flaws *before* developers have an opportunity to fix the issue. We mitigate that risk by keeping BlindBox up-to-date with the security updates of our dependencies.
 
 ### Intel SGX specific
 
 + The **`manifest.toml`** in the client package must **be authentic**. The verification of the enclave during the attestation process relies on it and this check could be circumvented if the file has been tampered with!
 
-+ **Intel SGX** shields the enclave from the host machine, but it **does not shield the host machine from the enclave**. This is another reason why we must trust the official BlindAI enclave application code, as it could interfere with the host machine.
++ **Intel SGX** shields the enclave from the host machine, but it **does not shield the host machine from the enclave**. This is another reason why we must trust the official BlindBox enclave application code, as it could interfere with the host machine.
 
-+ **Side-channel attacks**. Most previous attacks on Intel SGX structures have looked to gather information from an enclave application, by measuring or exploiting indirect effects of the system or its hardware rather than targeting the program or its code directly. We keep up-to-date with Intel SGX security patches and no similar vulnerabilities were identified in BlindAI's audit.
++ **Side-channel attacks**. Most previous attacks on Intel SGX structures have looked to gather information from an enclave application, by measuring or exploiting indirect effects of the system or its hardware rather than targeting the program or its code directly. We keep up-to-date with Intel SGX security patches and no similar vulnerabilities were identified in BlindBox's audit.
 
 !!! warning "Denial of service attacks"
 
@@ -63,9 +63,9 @@ With great security features come great responsibilities! TEEs also have limitat
 
 ### Nitro Enclaves specific
 
-+ **AWS, as the cloud provider, their hardware and the enclave’s OS** must be **trusted**. That is because Nitro enclaves are designed to separate and isolate the host from the enclave and vice versa, but they do not protect against the cloud operator (AWS) or infrastructure. (*See our [Nitro guide](https://blindai.mithrilsecurity.io/en/latest/docs/concepts/SGX_vs_Nitro/#nitro-enclaves) for more information.*)
++ **AWS, as the cloud provider, their hardware and the enclave’s OS** must be **trusted**. That is because Nitro enclaves are designed to separate and isolate the host from the enclave and vice versa, but they do not protect against the cloud operator (AWS) or infrastructure. (*See our [Nitro guide](https://blindbox.mithrilsecurity.io/en/latest/docs/concepts/Trusted_Execution_Environements/#nitro-enclaves) for more information.*)
 
-+ Whilst **Nitro enclaves** limit operations within enclaves by default (such as no durable storage, no network/interactive access), any of these features can be added back into an enclave application by the application provider, so we cannot assume a Nitro enclave will not have these features. In the case of BlindAI, we do not have durable storage or interactive access but we do add a Traffic Access Point (TAP) device which is used to facilitate network access for applications. And this, again, means we must trust the verified BlindAI application code!
++ Whilst **Nitro enclaves** limit operations within enclaves by default (such as no durable storage, no network/interactive access), any of these features can be added back into an enclave application by the application provider, so we cannot assume a Nitro enclave will not have these features. In the case of BlindBox, we do not have durable storage or interactive access but we do add a Traffic Access Point (TAP) device which is used to facilitate network access for applications. And this, again, means we must trust the verified BlindBox application code!
 
 ## Conclusions
 ___________________________________________
@@ -79,4 +79,4 @@ That brings us to the end of this introduction to confidential computing. Let’
 - If attestation is successful, **communication** between the client and enclave is **established using TLS**.
 - TEEs, like any other technology, don't solve every problems. They **have limitations** and it is important to keep them in mind. 
 
-If you haven’t already, you can check out our [Quick Tour](quick-tour.ipynb) to see a hands-on example of how BlindAI can be used to protect user data while querying AI models.
+If you haven’t already, you can check out our [Quick Tour](quick-tour.ipynb) to see a hands-on example of how BlindBox can be used to protect user data while querying AI models.
