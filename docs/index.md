@@ -8,11 +8,13 @@ Quickly deploy your SaaS solutions while preserving data privacy!
 ## What is BlindBox?
 ________________________________________________________
 
-**BlindBox** is a **privacy CLI tool** for **Docker images**. It will allow developers **to deploy** Software-as-a-Service (**SaaS**) **applications** with **guarantees** that their data and their users' will be **kept confidential during computation**. We use **secure enclaves** to encrypt the data end-to-end, **hardware based** and highly **isolated** environments. 
+**BlindBox** is a **privacy solution** that will allow developers **to deploy** Software-as-a-Service (**SaaS**) **applications** with **guarantees** that their data and their users' will be **kept confidential during computation**. We use **secure enclaves** to encrypt the data end-to-end, **hardware based** and highly **isolated** environments. 
 
 BlindBox is *COMING SOON.*
 
-While we work on it, we prepared an **API demo** of a **Large Language Model (LLM)** to introduce what will go on under the hood of BlindBox.  
++ Our first feature will be a **CLI tool** to deploy **Docker images** with privacy guarantees.
+
+While we work on it, we prepared a **BlindBox API demo** of a **Large Language Model (LLM)** to introduce what will go on under the hood of BlindBox.  
 
 > You can check out [the code on our GitHub](https://github.com/mithril-security/blindbox/). 
 

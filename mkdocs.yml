@@ -107,7 +107,7 @@ nav:
   - Why BlindBox?: 'docs/concepts/why-blindbox.md'
   - Secure Enclaves: 'docs/concepts/Trusted_Execution_Environements.md'
 
-- 🌍 How-to-Guides:
-  -  Deploying your own Nitro server: 'docs/how-to-guides/deploy-API-server.ipynb'
-
 - 🛠️ Client API reference: 'blindbox/client.html'
+
+- ⚙️ Advanced:
+  -  Deploying your own Nitro server: 'docs/how-to-guides/deploy-API-server.ipynb'

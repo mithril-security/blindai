@@ -12,7 +12,7 @@ _________________________________________
 
 Companies and institutions have been dying to use **Large Language Models (LLMs)** like ChatGPT or GitHub Copilot **without restrictions**. You could theoretically feed them sensitive data like the codebase of a software under developpement, a classified government report, a client database full of personal data... But those scenarios are impossible right now, because **no LLM provider provides strong privacy guarantees**. For many industry players, this is a cybersecurity nightmare: for example, thousands of employees are using ChatGPT to help them in their tasks, feeding it company data that could then be accessed by any OpenAI employee.
 
-Deploying a model in BlindBox could facilitate and increase its adoption,because clients wouldn't have to worry about their privacy being maintained. 
+Deploying a model in BlindBox could facilitate and increase its adoption, because clients wouldn't have to worry about their privacy being maintained. 
 
 ## Next steps 
 ____________________________
