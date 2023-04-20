@@ -157,7 +157,7 @@ def validate_attestation(
     expected_pcr0: bytes,
     _root_cert_pem: Optional[str] = None,
     _time: Optional[datetime] = None,
-):
+) -> bytes:
     """
     Validate the attestation
 
@@ -189,3 +189,5 @@ def validate_attestation(
     app_hash = 32 * b"\x00"
     expected_user_data = b"sha256:%b;sha256:%b" % (cert_hash, app_hash)
     assert attestation_doc.user_data == expected_user_data
+
+    return cert_hash

@@ -1,13 +1,12 @@
 import contextlib
-import tempfile
-from .utils import cert_der_to_pem
 import requests
 from ._nitro_attestation import (
     validate_attestation,
     NitroAttestationError,
-    NitroAttestationDocument,
 )
+from ._certificate_pinning import FingerprintAdapter
 import warnings
+from typing import Optional
 
 
 class NitroDebugModeWarning(Warning):
@@ -22,7 +21,8 @@ class BlindAiNitroConnection(contextlib.AbstractContextManager):
     def __init__(
         self,
         addr: str,
-        debug_mode: bool,
+        expected_pcr0: Optional[bytes] = None,
+        is_local: bool = False,
     ):
         """Connect to a BlindAi service hosted on a Nitro enclave.
 
@@ -34,12 +34,13 @@ class BlindAiNitroConnection(contextlib.AbstractContextManager):
         Returns:
         """
 
-        if debug_mode:
+        if expected_pcr0 is None:
             warnings.warn(
                 (
                     "BlindAI is running in debug mode. "
                     "This mode is provided solely for testing purposes. "
                     "It MUST NOT be used in production."
+                    "To deactivate debug mode pass the expected pcr0 of the enclave."
                 ),
                 NitroDebugModeWarning,
             )
@@ -61,14 +62,10 @@ class BlindAiNitroConnection(contextlib.AbstractContextManager):
             ).content
             cert = s.get(f"{self._addr }/enclave/cert", verify=False).content
 
-        if debug_mode:
+        if expected_pcr0 is None:
             expected_pcr0 = 48 * b"\x00"
-        else:
-            expected_pcr0 = bytes.fromhex(
-                "05a907cf0b009d059ee5f74b8e66af70ee85b1d19e8970b6e7a5f8c08e38ba497e02781180f7257d6d8f8065d986ce42"
-            )
         try:
-            validate_attestation(
+            cert_hash = validate_attestation(
                 attestation_doc, expected_pcr0=expected_pcr0, enclave_cert=cert
             )
         except NitroAttestationError:
@@ -76,39 +73,26 @@ class BlindAiNitroConnection(contextlib.AbstractContextManager):
         except Exception:
             raise NitroAttestationError("Attestation verification failed")
 
-        # requests (http library) takes a path to a file containing the CA
-        # there is no easy way to give the CA as a string/bytes directly
-        # therefore a temporary file with the certificate content
-        # has to be created.
-
-        cert_file = tempfile.NamedTemporaryFile(mode="wb")
-        cert_file.write(cert_der_to_pem(cert))
-        cert_file.flush()
-
-        # the file should not be close until the end of BlindAiConnection
-        # so we store it in the object (else it might get garbage collected)
-        self._cert_file = cert_file
-
         attested_conn = requests.Session()
-        # TODO: enforce the right certificate
-        # disabled as it currently causes an SSL issue...
-        # attested_conn.verify = cert_file.name
+        attested_conn.mount(self._addr, FingerprintAdapter(cert_hash.hex()))
 
-        # This adapter makes it possible to connect
-        # to the server via a different hostname
-        # that the one included in the certificate i.e. blindai-srv
-        # For instance we can use it to connect to the server via the
-        # domain / IP provided to connect(). See below
-        from requests.adapters import HTTPAdapter
+        if is_local:
+            # This adapter makes it possible to connect
+            # to the server via a different hostname
+            # that the one included in the certificate i.e. blindai-srv
+            # For instance we can use it to connect to the server via the
+            # domain / IP provided to connect(). See below
+            from requests.adapters import HTTPAdapter
 
-        class CustomHostNameCheckingAdapter(HTTPAdapter):
-            def cert_verify(self, conn, url, verify, cert):
-                conn.assert_hostname = "nitro.mithrilsecurity.io"
-                return super(CustomHostNameCheckingAdapter, self).cert_verify(
-                    conn, url, verify, cert
-                )
+            class CustomHostNameCheckingAdapter(HTTPAdapter):
+                def cert_verify(self, conn, url, verify, cert):
+                    conn.assert_hostname = "example.com"
+                    return super(CustomHostNameCheckingAdapter, self).cert_verify(
+                        conn, url, verify, cert
+                    )
 
-        attested_conn.mount(self._addr, CustomHostNameCheckingAdapter())
+            attested_conn.mount(self._addr, CustomHostNameCheckingAdapter())
+
         attested_conn.hooks = {
             "response": lambda r, *args, **kwargs: r.raise_for_status()
         }
@@ -127,7 +111,6 @@ class BlindAiNitroConnection(contextlib.AbstractContextManager):
 
     def close(self):
         self._conn.close()
-        self._cert_file.close()
 
     def __enter__(self):
         """Return the BlindAiConnection upon entering the runtime context."""
@@ -138,7 +121,7 @@ class BlindAiNitroConnection(contextlib.AbstractContextManager):
         self.close()
 
 
-def connect(addr: str, debug_mode: bool = False) -> BlindAiNitroConnection:
+def connect(addr: str, expected_pcr0: Optional[bytes] = None, is_local: bool = False) -> BlindAiNitroConnection:
     """Connect to a BlindAi service hosted on a Nitro enclave.
 
     Args:
@@ -152,4 +135,4 @@ def connect(addr: str, debug_mode: bool = False) -> BlindAiNitroConnection:
     Raises:
         NitroAttestationError: If the attestation fails.
     """
-    return BlindAiNitroConnection(addr, debug_mode)
+    return BlindAiNitroConnection(addr, expected_pcr0=expected_pcr0, is_local=is_local)

@@ -145,7 +145,7 @@ def _use_nitro(
         buff.seek(0)
 
     if connection is None:
-        connection = BlindAiNitroConnection(NITRO_BLINDAI_ADDR, debug_mode=True)
+        connection = BlindAiNitroConnection(NITRO_BLINDAI_ADDR, expected_pcr0=None, is_local=False)
 
     with connection as req:
         res = req.api(
