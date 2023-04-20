@@ -8,9 +8,7 @@ Quickly deploy your SaaS solutions while preserving data privacy!
 ## What is BlindBox?
 ________________________________________________________
 
-**BlindBox** is a **privacy CLI tool** for **Docker images**. It will allow developers **to deploy SaaS applications** with **guarantees** that their data and their users' will be **kept confidential during computation**. 
-
-We use **secure enclaves** to encrypt the data end-to-end. Enclaves are **hardware based** highly **isolated** environments, also called **Trusted Execution Environement**. 
+**BlindBox** is a **privacy CLI tool** for **Docker images**. It will allow developers **to deploy** Software-as-a-Service (**SaaS**) **applications** with **guarantees** that their data and their users' will be **kept confidential during computation**. We use **secure enclaves** to encrypt the data end-to-end, **hardware based** and highly **isolated** environments. 
 
 BlindBox is *COMING SOON.*
 

@@ -49,23 +49,11 @@ With great security features come great responsibilities! TEEs also have limitat
 
 + **Zero-day attacks** are **always a risk**, even with enclaves. They happen when hackers exploit previously unknown flaws *before* developers have an opportunity to fix the issue. We mitigate that risk by keeping BlindBox up-to-date with the security updates of our dependencies.
 
-### Intel SGX specific
-
-+ The **`manifest.toml`** in the client package must **be authentic**. The verification of the enclave during the attestation process relies on it and this check could be circumvented if the file has been tampered with!
-
-+ **Intel SGX** shields the enclave from the host machine, but it **does not shield the host machine from the enclave**. This is another reason why we must trust the official BlindBox enclave application code, as it could interfere with the host machine.
-
-+ **Side-channel attacks**. Most previous attacks on Intel SGX structures have looked to gather information from an enclave application, by measuring or exploiting indirect effects of the system or its hardware rather than targeting the program or its code directly. We keep up-to-date with Intel SGX security patches and no similar vulnerabilities were identified in BlindBox's audit.
-
-!!! warning "Denial of service attacks"
-
-	We are currently aware of a **bug** that enables denial of service attacks **by uploading large numbers of models to the server instance**.
-
 ### Nitro Enclaves specific
 
 + **AWS, as the cloud provider, their hardware and the enclave’s OS** must be **trusted**. That is because Nitro enclaves are designed to separate and isolate the host from the enclave and vice versa, but they do not protect against the cloud operator (AWS) or infrastructure. (*See our [Nitro guide](https://blindbox.mithrilsecurity.io/en/latest/docs/concepts/Trusted_Execution_Environements/#nitro-enclaves) for more information.*)
 
-+ Whilst **Nitro enclaves** limit operations within enclaves by default (such as no durable storage, no network/interactive access), any of these features can be added back into an enclave application by the application provider, so we cannot assume a Nitro enclave will not have these features. In the case of BlindBox, we do not have durable storage or interactive access but we do add a Traffic Access Point (TAP) device which is used to facilitate network access for applications. And this, again, means we must trust the verified BlindBox application code!
++ While **Nitro enclaves** limit operations within enclaves by default (such as no durable storage, no network/interactive access), any of these features can be added back into an enclave application by the application provider, so we cannot assume a Nitro enclave will not have these features. In the case of BlindBox, we do not have durable storage or interactive access but we do add a Traffic Access Point (TAP) device which is used to facilitate network access for applications. And this, again, means we must trust the verified BlindBox application code!
 
 ## Conclusions
 ___________________________________________
@@ -75,7 +63,7 @@ That brings us to the end of this introduction to confidential computing. Let’
 - Trusted Execution Environments are **highly isolated compute environments**.
 - Confidential computing technologies often pursue a minimal Trusted Computing Base (TCB) to **reduce the attack surface**.
 - During the attestation process, we **verify that the application code** in the enclave has not been modified or tampered with.
-- We also **verify the authenticity of the enclave (and OS in the case of Nitro enclaves)**.
+- We also **verify the authenticity of the enclave and OS**.
 - If attestation is successful, **communication** between the client and enclave is **established using TLS**.
 - TEEs, like any other technology, don't solve every problems. They **have limitations** and it is important to keep them in mind. 
 

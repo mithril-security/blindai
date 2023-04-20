@@ -104,7 +104,7 @@ nav:
   - Under the hood : 'docs/getting-started/under-the-hood.ipynb'
 
 - 💡 Concepts:
-  - Why BlindBox?: 'docs/getting-started/why-blindbox.md'
+  - Why BlindBox?: 'docs/concepts/why-blindbox.md'
   - Secure Enclaves: 'docs/concepts/Trusted_Execution_Environements.md'
 
 - 🌍 How-to-Guides:
