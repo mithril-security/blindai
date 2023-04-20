@@ -10,8 +10,8 @@
 <!-- PROJECT LOGO -->
 <br />
 <div align="center">
-  <a href="https://github.com/mithril-security/blindai">
-    <img src="https://github.com/mithril-security/blindai/raw/main/docs/assets/logo.png" alt="Logo" width="80" height="80">
+  <a href="https://github.com/mithril-security/blindbox">
+    <img src="https://github.com/mithril-security/blindbox/raw/main/docs/assets/logo.png" alt="Logo" width="80" height="80">
   </a>
 
 <h1 align="center">Blindbox</h1>
@@ -29,9 +29,9 @@
     <br />
     <a href="https://blindbox.mithrilsecurity.io/en/latest/docs/getting-started/quick-tour/">Try Demo</a>
     ·
-    <a href="https://github.com/mithril-security/blindai/issues">Report Bug</a>
+    <a href="https://github.com/mithril-security/blindbox/issues">Report Bug</a>
     ·
-    <a href="https://github.com/mithril-security/blindai/issues">Request Feature</a>
+    <a href="https://github.com/mithril-security/blindbox/issues">Request Feature</a>
   </p>
 </div>
 
@@ -64,30 +64,36 @@
 <!-- ABOUT THE PROJECT -->
 ## 🔒 About The Project
 
-**BlindBox** is a **privacy solution** that will allow developers **to deploy** Software-as-a-Service (**SaaS**) **applications** with **guarantees** that their data and their users' will be **kept confidential during computation**. 
+**BlindBox** is a **privacy solution** that will allow developers **to deploy** Software-as-a-Service (**SaaS**) **applications** with **guarantees** that their users' data will be **kept confidential at all times**. 
 
-We use **secure enclaves** to encrypt the data end-to-end, **hardware based** and highly **isolated** environments. We explain how they keep data and models safe in detail [here](./docs/docs/getting-started/confidential_computing.md).
+We use **secure enclaves**, **hardware based** and highly **isolated** environments, to protect data during computation. We explain how they keep data and models safe in detail [here](./docs/docs/getting-started/confidential_computing.md).
 
-BlindBox is *COMING SOON.*
+BlindBox is **COMING SOON.**
 
-+ Our first feature will be a **CLI tool** to deploy **Docker images** with privacy guarantees.
+Key features:
 
-> You can check out [the code on our GitHub](https://github.com/mithril-security/blindai/).
++ [**COMING SOON**] A **CLI tool** for quick deployment of your **Docker images** within secure enclaves
 
-We’ll update the documentation as new features come in, so dive in!
++ [**COMING SOON**] Custom security features for additional layers of protection tailored to your client's needs
+
++ A **demo LLM API** using BlindBox which you can use to query Whisper and ChatGPT models within a secure enclave ✅
+
+> You can check out [the code on our GitHub](https://github.com/mithril-security/blindbox/).
+
+We’ll update the documentation as new features come in!
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 <!-- GETTING STARTED -->
 ## 🚀 Getting Started
 
-We recommend for you to get started with our [Quick tour](https://blindbox.mithrilsecurity.io/en/latest/docs/getting-started/quick-tour/) to discover our Blindbox demo product: an open-source Whisper API running with a Nitro enclave!
+We recommend for you to get started with our [Quick tour](https://blindbox.mithrilsecurity.io/en/latest/docs/getting-started/quick-tour/) to discover our BlindBox demo API: an open-source LLM API running with a Nitro enclave!
 
 <!-- GETTING HELP -->
 ## 🙋 Getting help
 
 * Go to our [Discord](https://discord.com/invite/TxEHagpWd4) #support channel
-* Report bugs by [opening an issue on our Blindbox GitHub](https://github.com/mithril-security/blindai/issues)
+* Report bugs by [opening an issue on our Blindbox GitHub](https://github.com/mithril-security/blindbox/issues)
 * [Book a meeting](https://calendly.com/contact-mithril-security/15mins?month=2023-03) with us
 
 
@@ -102,22 +108,22 @@ Distributed under the Apache License, version 2.0. See [`LICENSE.md`](https://ww
 
 Mithril Security - [@MithrilSecurity](https://twitter.com/MithrilSecurity) - contact@mithrilsecurity.io
 
-Project Link: [https://github.com/mithril-security/blindai](https://github.com/mithril-security/blindai)
+Project Link: [https://github.com/mithril-security/blindbox](https://github.com/mithril-security/blindbox)
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 <!-- MARKDOWN LINKS & IMAGES -->
 <!-- https://github.com/alexandresanlim/Badges4-README.md-Profile#-blog- -->
-[contributors-shield]: https://img.shields.io/github/contributors/mithril-security/blindai.svg?style=for-the-badge
-[contributors-url]: https://github.com/mithril-security/blindai/graphs/contributors
-[forks-shield]: https://img.shields.io/github/forks/mithril-security/blindai.svg?style=for-the-badge
-[forks-url]: https://github.com/mithril-security/blindai/network/members
-[stars-shield]: https://img.shields.io/github/stars/mithril-security/blindai.svg?style=for-the-badge
-[stars-url]: https://github.com/mithril-security/blindai/stargazers
-[issues-shield]: https://img.shields.io/github/issues/mithril-security/blindai.svg?style=for-the-badge
-[issues-url]: https://github.com/mithril-security/blindai/issues
-[license-shield]: https://img.shields.io/github/license/mithril-security/blindai.svg?style=for-the-badge
-[license-url]: https://github.com/mithril-security/blindai/blob/master/LICENSE.txt
+[contributors-shield]: https://img.shields.io/github/contributors/mithril-security/blindbox.svg?style=for-the-badge
+[contributors-url]: https://github.com/mithril-security/blindbox/graphs/contributors
+[forks-shield]: https://img.shields.io/github/forks/mithril-security/blindbox.svg?style=for-the-badge
+[forks-url]: https://github.com/mithril-security/blindbox/network/members
+[stars-shield]: https://img.shields.io/github/stars/mithril-security/blindbox.svg?style=for-the-badge
+[stars-url]: https://github.com/mithril-security/blindbox/stargazers
+[issues-shield]: https://img.shields.io/github/issues/mithril-security/blindbox.svg?style=for-the-badge
+[issues-url]: https://github.com/mithril-security/blindbox/issues
+[license-shield]: https://img.shields.io/github/license/mithril-security/blindbox.svg?style=for-the-badge
+[license-url]: https://github.com/mithril-security/blindbox/blob/master/LICENSE.txt
 [linkedin-shield]: https://img.shields.io/badge/-Jobs-black.svg?style=for-the-badge&logo=linkedin&colorB=555
 [linkedin-url]: https://www.linkedin.com/company/mithril-security-company/
 [website-url]: https://www.mithrilsecurity.io

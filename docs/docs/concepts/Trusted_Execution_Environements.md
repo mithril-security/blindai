@@ -18,7 +18,7 @@ The AWS TEE isolation is based on **virtualization**. Users can partition off a 
 
 	One benefit of pursuing this virtualization approach compared to a memory encryption approach is that **the host instance has absolutely no visibility over the enclave’s memory whatsoever**. This memory simply doesn’t exist from the host's perspective. Therefore the host cannot try to gain any information from monitoring what memory is in use or any access patterns, etc.
 
-<img src="https://raw.githubusercontent.com/mithril-security/blindai/main/docs/assets/nitro_arch.png" width=70%>
+<img src="https://raw.githubusercontent.com/mithril-security/blindbox/main/docs/assets/nitro_arch.png" width=70%>
 
 Nitro enclaves are also designed to support **limited operations to reduce their attack surface**. They have **no durable storage, no network/interactive access, no metadata services, DNS, NTP**, etc… 
 
@@ -32,7 +32,7 @@ It is important to note that while some Confidential Computing solutions have pu
 
 This is why Nitro enclaves include the same elements in their TCB as most standard applications today. They also support **cryptographic attestation**, which will verify the application code and the enclave's OS. 
 
-<img src="https://raw.githubusercontent.com/mithril-security/blindai/main/docs/assets/Nitro_TCB.jpg"  width=50%>
+<img src="https://raw.githubusercontent.com/mithril-security/blindbox/main/docs/assets/Nitro_TCB.jpg"  width=50%>
 
 While pursuing a smaller TCB can be one way to reduce the attack surface (since our application would not be impacted by any bugs or vulnerabilities occurring in the untrusted elements, such as a bug in the AWS hypervisor), it is important to note that reducing your TCB size is not the only way to reduce the attack surface and often involves tradeoffs between different measures!
 
