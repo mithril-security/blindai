@@ -10,7 +10,7 @@ ________________________________________________________
 
 **BlindBox** is a **privacy solution** that will allow developers **to deploy** Software-as-a-Service (**SaaS**) **applications** with **guarantees** that their data and their users' will be **kept confidential during computation**. We use **secure enclaves** to encrypt the data end-to-end, **hardware based** and highly **isolated** environments. 
 
-BlindBox is *COMING SOON.*
+BlindBox is **COMING SOON.**
 
 + Our first feature will be a **CLI tool** to deploy **Docker images** with privacy guarantees.
 
@@ -43,5 +43,3 @@ So far, we have developed the following solutions:
 - **BlindAI**: Allowing AI engineers to deploy AI models in secure confidential environments.
 - **BlindAI API**: Allowing developers to query Large Language Models (LLMs) in secure confidential environment.
 - **BlindBox** (***coming soon***): Allowing developers to deploy their applications in secure confidential environments.
-
-![Mithril Timeline](./assets/timeline.png)
