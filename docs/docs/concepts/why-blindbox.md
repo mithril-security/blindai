@@ -17,6 +17,6 @@ Deploying a model in BlindBox could facilitate and increase its adoption, becaus
 ## Next steps 
 ____________________________
 
-To see a hands-on demo of BlindBox via our Whisper API, check out our [Quick Tour](./quick-tour.ipynb)!
+To see a hands-on demo of BlindBox via our Whisper API, check out our [Quick Tour](../getting-started/quick-tour.ipynb)!
 
-To find out more about the Confidential technologies behind BlindBox, check out our [guide to Confidential Computing](confidential_computing.md).
+To find out more about the Confidential technologies behind BlindBox, check out our [guide to Confidential Computing](../getting-started/confidential_computing.md).
