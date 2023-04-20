@@ -12,7 +12,7 @@ ________________________________________________________
 
 BlindBox is *COMING SOON.*
 
-While we work on it, we prepared an **API demo** of a **Large Language Model (LLM)** to show you how easy it will be to use BlindBox and what will go on under the hood.  
+While we work on it, we prepared an **API demo** of a **Large Language Model (LLM)** to introduce what will go on under the hood of BlindBox.  
 
 > You can check out [the code on our GitHub](https://github.com/mithril-security/blindbox/). 
 

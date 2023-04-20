@@ -65,6 +65,6 @@ That brings us to the end of this introduction to confidential computing. Let’
 - During the attestation process, we **verify that the application code** in the enclave has not been modified or tampered with.
 - We also **verify the authenticity of the enclave and OS**.
 - If attestation is successful, **communication** between the client and enclave is **established using TLS**.
-- TEEs, like any other technology, don't solve every problems. They **have limitations** and it is important to keep them in mind. 
+- TEEs, like any other technology, don't solve every problems. They **have limitations** and it is important to keep them in mind.
 
 If you haven’t already, you can check out our [Quick Tour](quick-tour.ipynb) to see a hands-on example of how BlindBox can be used to protect user data while querying AI models.
