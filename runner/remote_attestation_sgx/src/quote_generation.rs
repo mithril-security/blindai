@@ -50,7 +50,7 @@ impl QuoteProvider {
         let ecdsa_key_id = self.ecdsa_key_id.clone();
 
         // Security : The nonce is set to 0
-        // 
+        //
         // While in some instances reusing nonces can lead to security vulnerability this is not the case here.
         //
         // Here is an extract from Intel code [1]
