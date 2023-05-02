@@ -48,24 +48,6 @@ impl QuoteProvider {
     }
     pub fn get_quote(&self, report: Report) -> Result<Vec<u8>> {
         let ecdsa_key_id = self.ecdsa_key_id.clone();
-
-        // Security : The nonce is set to 0
-        // 
-        // While in some instances reusing nonces can lead to security vulnerability this is not the case here.
-        //
-        // Here is an extract from Intel code [1]
-        // > The caller can request a REPORT from the QE using a supplied nonce. This will allow
-        // > the enclave requesting the quote to verify the QE used to generate the quote. This
-        // > makes it more difficult for something to spoof a QE and allows the app enclave to
-        // > catch it earlier. But since the authenticity of the QE lies in the knowledge of the
-        // > Quote signing key, such spoofing will ultimately be detected by the quote verifier.
-        // > QE REPORT.ReportData = SHA256(*p_{nonce}||*p_{quote})||0x00)
-        //
-        // Since setting a nonce would add no measurable security benefit in our threat model,
-        // we chose not to do so, because it would only add complexity.
-        //
-        // [1] <https://github.com/intel/linux-sgx/blob/26c458905b72e66db7ac1feae04b43461ce1b76f/common/inc/sgx_uae_quote_ex.h#L158>
-
         let quote_result = self
             .aesm_client
             .get_quote_ex(ecdsa_key_id, report.as_ref().to_owned(), None, vec![0; 16])
