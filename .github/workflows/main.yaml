@@ -67,21 +67,17 @@ jobs:
 
         ./earthly --artifact +build-release-enclave/* outdir/
         ./earthly --artifact +build-release-runner/runner outdir/
-        ./earthly --artifact +build-release-enclave-local-management/* outdir-local/
         pushd outdir
         tar czf blindai_server-$VERSION_TAG.tgz blindai_server.sgxs blindai_server.sig runner
-        tar czf blindai_server-local-management-$VERSION_TAG.tgz ../outdir-local/blindai_server.sgxs ../outdir-local/blindai_server.sig runner
         popd
 
         ./earthly --artifact +build-mock-server/* outdir/
         pushd outdir
         mv blindai_mock_server-x86_64-unknown-linux-gnu.tgz "blindai_mock_server-$VERSION_TAG-x86_64-unknown-linux-gnu.tgz"
         popd
-        mv outdir-local/manifest.toml outdir-local/manifest_cloud.toml
 
         GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }} gh release create --verify-tag v$VERSION_TAG \
           outdir/manifest.toml \
-          outdir-local/manifest_cloud.toml \
           "outdir/blindai_server-$VERSION_TAG.tgz" \
           "outdir/blindai_mock_server-$VERSION_TAG-x86_64-unknown-linux-gnu.tgz"
 
