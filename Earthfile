@@ -310,9 +310,6 @@ check-reproducibility:
     RUN diff manifest1.toml manifest2.toml
     RUN diff blindai_server1.sgxs blindai_server2.sgxs
 
-    RUN diff manifest_c1.toml manifest_c2.toml
-    RUN diff blindai_server_c1.sgxs blindai_server_c2.sgxs
-
 build-mock-server:
     # Manylinux2014 will be used to ensure the compatibility with Google Colab platforms and most of the linux distributions
     FROM quay.io/pypa/manylinux2014_x86_64
