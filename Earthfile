@@ -225,7 +225,7 @@ build-release-enclave:
             git \
         && rm -rf /var/lib/apt/lists/* \
         && rustup set profile minimal \
-        && rustup default nightly-2023-01-11 \
+        && rustup default nightly-2023-05-09 \
         && rustup target add x86_64-fortanix-unknown-sgx
 
     CACHE /usr/local/cargo/git
@@ -274,7 +274,7 @@ build-release-enclave2:
             git \
         && rm -rf /var/lib/apt/lists/* \
         && rustup set profile minimal \
-        && rustup default nightly-2023-01-11 \
+        && rustup default nightly-2023-05-09 \
         && rustup target add x86_64-fortanix-unknown-sgx
 
     CACHE /usr/local/cargo/git
@@ -319,7 +319,7 @@ build-release-enclave-local-management:
             git \
         && rm -rf /var/lib/apt/lists/* \
         && rustup set profile minimal \
-        && rustup default nightly-2023-01-11 \
+        && rustup default nightly-2023-05-09 \
         && rustup target add x86_64-fortanix-unknown-sgx
 
     CACHE /usr/local/cargo/git
@@ -370,7 +370,7 @@ build-release-enclave-local-management2:
             git \
         && rm -rf /var/lib/apt/lists/* \
         && rustup set profile minimal \
-        && rustup default nightly-2023-01-11 \
+        && rustup default nightly-2023-05-09 \
         && rustup target add x86_64-fortanix-unknown-sgx
 
     CACHE /usr/local/cargo/git
@@ -426,7 +426,7 @@ build-mock-server:
     # for better caching
     RUN curl -4 'https://static.rust-lang.org/rustup/dist/x86_64-unknown-linux-gnu/rustup-init' --output /root/rustup-init && \
         chmod +x /root/rustup-init && \
-        echo '1' | /root/rustup-init --default-toolchain nightly-2023-01-11-x86_64-unknown-linux-gnu && \
+        echo '1' | /root/rustup-init --default-toolchain nightly-2023-05-09-x86_64-unknown-linux-gnu && \
         echo 'source /root/.cargo/env' >> /root/.bashrc && \
         rm /root/rustup-init
     ENV PATH="/root/.cargo/bin:$PATH"
@@ -460,7 +460,7 @@ build-release-runner:
     FROM rust:1.66.1-slim-bullseye
 
     RUN rustup set profile minimal \
-        && rustup default nightly-2023-01-11
+        && rustup default nightly-2023-05-09
 
     RUN apt-get update \
         && apt-get install -y --no-install-recommends pkg-config protobuf-compiler libssl-dev curl gnupg software-properties-common  \
