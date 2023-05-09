@@ -204,76 +204,51 @@ fn main() -> Result<()> {
 
     let (_unattested_handle, _unattested_sender) = unattested_server.stoppable();
 
-    cfg_if::cfg_if! {
-        if #[cfg(DISALLOW_UPLOAD_REMOTELY = "true")] {
-            let router_management = |request: &rouille::Request| {
-                rouille::router!(request,
-                    (POST) (/upload) => {
-                        let reply = EXCHANGER.send_model(request);
-                        EXCHANGER.respond(request, reply)
-                    },
+    let router_management = |request: &rouille::Request| {
+        rouille::router!(request,
+            (POST) (/upload) => {
+                let reply = EXCHANGER.send_model(request);
+                EXCHANGER.respond(request, reply)
+            },
 
-                    (POST) (/delete) => {
-                        let reply = EXCHANGER.delete_model(request);
-                        EXCHANGER.respond(request, reply)
-                    },
-                    _ => rouille::Response::empty_404()
-                )
-            };
+            (POST) (/delete) => {
+                let reply = EXCHANGER.delete_model(request);
+                EXCHANGER.respond(request, reply)
+            },
+            _ => rouille::Response::empty_404()
+        )
+    };
 
-            thread::spawn({
-                let enclave_cert_der_s = enclave_cert_der.to_vec();
-                let priv_der = enclave_private_key_der.clone();
-                move || {
-                let management_server = rouille::Server::new_ssl(
-                    "127.0.0.1:9925",
-                    router_management,
-                    tiny_http::SslConfig::Der(tiny_http::SslConfigDer {
-                        certificates: vec![enclave_cert_der_s],
-                        private_key: priv_der.clone(),
-                    }),
-                ).expect("Failed to start management server");
+    thread::spawn({
+        let enclave_cert_der_s = enclave_cert_der.to_vec();
+        let priv_der = enclave_private_key_der.clone();
+        move || {
+            let management_server = rouille::Server::new_ssl(
+                "0.0.0.0:9925",
+                router_management,
+                tiny_http::SslConfig::Der(tiny_http::SslConfigDer {
+                    certificates: vec![enclave_cert_der_s],
+                    private_key: priv_der.clone(),
+                }),
+            )
+            .expect("Failed to start management server");
 
-                let (_management_handle, _management_sender) = management_server.stoppable();
-                _management_handle.join().unwrap();
-            }
-            });
-
-            println!("Models can be managed on the port 9925 (on localhost only)");
-
-            let router = move |request: &rouille::Request| {
-                rouille::router!(request,
-                    (POST) (/run) => {
-                        let reply = EXCHANGER.run_model(request);
-                        EXCHANGER.respond(request, reply)
-                    },
-                    _ => rouille::Response::empty_404()
-                )
-            };
+            let (_management_handle, _management_sender) = management_server.stoppable();
+            _management_handle.join().unwrap();
         }
-        else {
-            let router = move |request: &rouille::Request| {
-                rouille::router!(request,
-                    (POST) (/upload) => {
-                        let reply = EXCHANGER.send_model(request);
-                        EXCHANGER.respond(request, reply)
-                    },
+    });
 
-                    (POST) (/run) => {
-                        let reply = EXCHANGER.run_model(request);
-                        EXCHANGER.respond(request, reply)
-                    },
+    println!("Models can be managed on 0.0.0.0:9925");
 
-                    (POST) (/delete) => {
-                        let reply = EXCHANGER.delete_model(request);
-                        EXCHANGER.respond(request, reply)
-                    },
-
-                    _ => rouille::Response::empty_404()
-                )
-            };
-        }
-    }
+    let router = move |request: &rouille::Request| {
+        rouille::router!(request,
+            (POST) (/run) => {
+                let reply = EXCHANGER.run_model(request);
+                EXCHANGER.respond(request, reply)
+            },
+            _ => rouille::Response::empty_404()
+        )
+    };
 
     thread::spawn({
         let enclave_cert_der = Arc::clone(&enclave_cert_der);

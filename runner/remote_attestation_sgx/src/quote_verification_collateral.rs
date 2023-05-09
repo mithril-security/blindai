@@ -166,10 +166,7 @@ fn pcs_crl_to_pem(crl: &[u8]) -> String {
         Ok(decoded) => decoded,
     };
 
-    pem::encode(&pem::Pem {
-        tag: "X509 CRL".to_owned(),
-        contents: raw_bytes_crl,
-    })
+    pem::encode(&pem::Pem::new("X509 CRL".to_string(), raw_bytes_crl))
 }
 
 /// Parse an SGX extension
@@ -393,9 +390,9 @@ pub fn get_fmspc_ca_from_quote(quote: &[u8]) -> Result<([u8; 6], CString, String
     let pck_certificate = &cert_chain[0];
     let pck_signing_chain = cert_chain[1..].join("\n");
 
-    let pck_cert_der = pem::parse(pck_certificate)?.contents;
+    let pck_cert_der = pem::parse(pck_certificate)?;
 
-    let (_, pck_cert) = X509Certificate::from_der(&pck_cert_der)?;
+    let (_, pck_cert) = X509Certificate::from_der(pck_cert_der.contents())?;
 
     let sgx_extension_oid: Oid = Oid::from(sgx_pkix::oid::SGX_EXTENSION.components())
         .map_err(|e| Error::msg(format!("{e:?})")))?;

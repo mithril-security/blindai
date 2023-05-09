@@ -797,7 +797,7 @@ def connect(
     addr: str,
     unattested_server_port: int = 9923,
     attested_server_port: int = 9924,
-    model_management_port: int = 9924,
+    model_management_port: int = 9925,
     hazmat_manifest_path: Optional[pathlib.Path] = None,
     hazmat_http_on_unattested_port=False,
     simulation_mode: bool = False,
