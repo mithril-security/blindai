@@ -54,7 +54,6 @@ def _get_connection(
         connection = connect(
             DEFAULT_BLINDAI_ADDR,
             hazmat_http_on_unattested_port=True,
-            use_cloud_manifest=True,
         )
 
     return connection
