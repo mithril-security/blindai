@@ -517,7 +517,6 @@ class BlindAiConnection(contextlib.AbstractContextManager):
         hazmat_manifest_path: Optional[pathlib.Path],
         hazmat_http_on_unattested_port: bool,
         simulation_mode: bool,
-        use_cloud_manifest: bool,
     ):
         """Connect to a BlindAi service.
 
@@ -608,7 +607,6 @@ class BlindAiConnection(contextlib.AbstractContextManager):
                     collateral,
                     cert,
                     manifest_path=hazmat_manifest_path,
-                    use_cloud_manifest=use_cloud_manifest,
                 )
             except AttestationError as e:
                 raise
@@ -801,7 +799,6 @@ def connect(
     hazmat_manifest_path: Optional[pathlib.Path] = None,
     hazmat_http_on_unattested_port=False,
     simulation_mode: bool = False,
-    use_cloud_manifest: bool = False,
 ) -> BlindAiConnection:
     """Connect to a BlindAi server.
 
@@ -824,7 +821,6 @@ def connect(
             Caution: In simulation, BlindAI does not provide any security since there is no SGX enclave.
             This mode SHOULD NEVER be enabled in production.
             Defaults to False (production mode)
-        use_cloud_manifest (bool, optional): If set to True, the manifest for the local model management version (aka the cloud version) will be used.
 
      Raises:
         requests.exceptions.RequestException: If a network or server error occurs
@@ -846,5 +842,4 @@ def connect(
         hazmat_manifest_path,
         hazmat_http_on_unattested_port,
         simulation_mode,
-        use_cloud_manifest,
     )
