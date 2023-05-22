@@ -103,7 +103,7 @@ nav:
   - How we protect your data: 'docs/getting-started/confidential_computing.md'
   - "Project structure: API & Core" : 'docs/getting-started/blindai_structure.md'
 
-- Tutorials:
+- 📚 Tutorials:
   - "BlindAI API: popular models":
     - API Overview: 'docs/tutorials/api/coming_soon.md'
     - Whisper: 'docs/tutorials/api/whisper_tutorial.ipynb'
