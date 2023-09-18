@@ -1,4 +1,4 @@
-<link rel="icon" href="/assets/logo.png">
+<link rel="icon" href="https://blindai.mithrilsecurity.io/en/latest/assets/logo.png">
 
 <%!
     from pdoc.html_helpers import minify_css
