@@ -1,3 +1,5 @@
+<meta name="description" content="BlindAI installation guide: Test without hardware security, deploy on Azure DCsv3 VM, and set up on-premise with Intel SGX+FLC.">
+
 # Installation
 ________________________________
 

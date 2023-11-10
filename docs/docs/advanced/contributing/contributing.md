@@ -1,3 +1,5 @@
+<meta name="description" content="Contribute to BlindAI: Follow our guide for issue reporting, enhancements, and pull requests while upholding conduct standards.">
+
 # Contributing to BlindAI 
 _________________________________
 

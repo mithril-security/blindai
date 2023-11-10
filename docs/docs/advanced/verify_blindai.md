@@ -1,3 +1,5 @@
+<meta name="description" content="Learn BlindAI's code integrity and security through remote attestation, with SGX2 machine testing for unauthorized modification protection.">
+
 ### Verifying code integrity checks in BlindAI
 
 The code integrity checks are part of the remote attestation process in BlindAI. It is a key security check which checks that the BlindAI application running in our server instance has not been tampered with.

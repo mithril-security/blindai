@@ -1,3 +1,5 @@
+<meta name="description" content="Understand BlindAI's data protection through Confidential Computing, Trusted Execution Environments, and attestation.">
+
 # How does BlindAI protect your data?
 _________________________________
 

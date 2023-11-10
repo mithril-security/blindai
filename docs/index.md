@@ -1,3 +1,5 @@
+<meta name="description" content="Discover BlindAI: Open-source AI privacy via Trusted Execution Environments and Python for secure model querying.">
+
 # 👋 Welcome to BlindAI!
 ________________________________________________________
 

@@ -1,3 +1,5 @@
+<meta name="description" content="Set up BlindAI development: Clone the repository, install dependencies, and compile client/server for confident contribution.">
+
 ### Development environment
 If you want to make changes to the code, it is recommended you use our pre-configured development container, which contains all the dependencies you need to run and use blindai.
 
