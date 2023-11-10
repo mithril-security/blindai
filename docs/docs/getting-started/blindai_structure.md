@@ -1,4 +1,7 @@
-<meta name="description" content="Access AI models privately with BlindAI: Learn about API, Whisper integration, and secure model deployment with BlindAI Core.">
+---
+title:  "How is BlindAI structured?"
+description: "Access AI models privately with BlindAI: Learn about API, Whisper integration, and secure model deployment with BlindAI Core."
+---
 
 # How is BlindAI structured?
 ________________
