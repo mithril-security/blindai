@@ -3,8 +3,7 @@ site_name: BlindAI
 site_url: https://blindai.mithrilsecurity.io/en/latest/
 site_author: Mithril Security
 site_description: >-
-  Create a simple privacy framework for data science collaboration, 
-  covering data exploration and machine learning.
+  Discover BlindAI: Open-source AI privacy via Trusted Execution Environments and Python for secure model querying.
 
 # Repository
 repo_name: mithril-security/blindai
@@ -100,6 +99,7 @@ nav:
 
 - 🚀 Getting Started: 
   - Quick tour: 'docs/getting-started/quick-tour.ipynb'
+    site_description: "Quick Tour of BlindAI API: Open-source Python library for private AI model access and Whisper model audio transcription."
   - How we protect your data: 'docs/getting-started/confidential_computing.md'
   - "Project structure: API & Core" : 'docs/getting-started/blindai_structure.md'
 
