@@ -1,3 +1,5 @@
+<meta name="description" content="BlindAI server building guide: Ensure dependencies and hardware readiness, and follow steps for a secure setup.">
+
 # Build the server from source
 
 !!! info

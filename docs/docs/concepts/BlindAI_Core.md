@@ -1,3 +1,5 @@
+<meta name="description" content="Discover BlindAI Core: Secure AI model serving with remote attestation, Python API, and hardware security for data protection.">
+
 # BlindAI Core: Overview
 ________________________________________
 

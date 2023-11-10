@@ -1,3 +1,5 @@
+<meta name="description" content="Explore Intel SGX vs. Nitro Enclaves in BlindAI: Attestation, Trusted Computing Bases, and data privacy in secure environments.">
+
 # Secure Enclaves
 ________________________________________
 

@@ -1,3 +1,5 @@
+<meta name="description" content="BlindAI's open-source models with privacy: Explore Whisper ASR system and OpenChatKit for chatbots, with privacy tutorials.">
+
 # BlindAI API models
 _________________________________
 
