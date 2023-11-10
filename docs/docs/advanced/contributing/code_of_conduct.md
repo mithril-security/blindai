@@ -1,4 +1,6 @@
-<meta name="description" content="BlindAI's inclusive community: Learn our Code of Conduct for respectful interaction and healthy environment maintenance.">
+---
+description: "BlindAI's inclusive community: Learn our Code of Conduct for respectful interaction and healthy environment maintenance."
+---
 
 # Contributor Covenant Code of Conduct
 ________________________________________
