@@ -1,4 +1,6 @@
-<meta name="description" content="Why choose BlindAI: AI model deployment with privacy in cloud/on-premise, using confidential computing and Intel SGX.">
+---
+description: "Why choose BlindAI: AI model deployment with privacy in cloud/on-premise, using confidential computing and Intel SGX."
+---
 
 # Why BlindAI?
 ________________

@@ -1,4 +1,6 @@
-<meta name="description" content="Explore BlindAI's codebase structure: client, server, docs, and more for insightful organization of secure AI solutions.">
+---
+description: "Explore BlindAI's codebase structure: client, server, docs, and more for insightful organization of secure AI solutions."
+---
 
 # BlindAI Project Structure
 

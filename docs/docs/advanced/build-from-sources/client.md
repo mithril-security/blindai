@@ -1,4 +1,6 @@
-<meta name="description" content="Build BlindAI Client SDK on Linux/Windows: Follow our guide for dependencies, instructions, and development empowerment.">
+---
+description: "Build BlindAI Client SDK on Linux/Windows: Follow our guide for dependencies, instructions, and development empowerment."
+---
 
 # Build the BlindAI Client SDK from source
 _________________________________________________

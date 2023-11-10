@@ -1,4 +1,6 @@
-<meta name="description" content="Comprehend BlindAI's Threat Model for Intel SGX and Fortanix EDP: Threat agents, potential risks, and mitigation strategies.">
+---
+description: "Comprehend BlindAI's Threat Model for Intel SGX and Fortanix EDP: Threat agents, potential risks, and mitigation strategies."
+---
 
 # Threat model
 __________________________________________

@@ -1,4 +1,6 @@
-<meta name="description" content="Improve SEO with our Intel SGX Remote Attestation guide: Learn secure enclave verification through ECDSA attestation.">
+---
+description: "Improve SEO with our Intel SGX Remote Attestation guide: Learn secure enclave verification through ECDSA attestation."
+---
 
 # Remote attestation Implementation
 __________________________________________
