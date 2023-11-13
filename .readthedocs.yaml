@@ -12,6 +12,8 @@ build:
   jobs:
     post_install:
     - bash docs/generate_api_reference.sh
+    post_build:
+    - bash docs/notebook_seo.sh
 
 mkdocs:
   configuration: mkdocs.yml

@@ -2,8 +2,6 @@
 site_name: BlindAI
 site_url: https://blindai.mithrilsecurity.io/en/latest/
 site_author: Mithril Security
-site_description: >-
-  Discover BlindAI: Open-source AI privacy via Trusted Execution Environments and Python for secure model querying.
 
 # Repository
 repo_name: mithril-security/blindai
