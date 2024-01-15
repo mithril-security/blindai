@@ -18,6 +18,7 @@ Our implementation relies on the latter, where we have to possibility to build o
 
 ### Overall architecture 
 As explained in [1] & [2], ECDSA attestation sequence relies on three different platforms to achieve the verifications needed : 
+
 - The Intel SGX platform, 
 - The Data Center Caching Service
 - The target service, in our case the client. 
