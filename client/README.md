@@ -20,6 +20,9 @@
 [![Blog][blog-shield]][blog-url]
 [![LinkedIn][linkedin-shield]][linkedin-url]
 
+> :warning: **Warning**: Unfortunately, BlindAI is not actively maintained at the moment. Thus, **you should not use BlindAI for processing sensitive data**. If you have a use case that involves confidential data and are interested in using BlindAI, please **contact us** to discuss potential support and collaboration.
+> 
+
   <p align="center">
     <b>BlindAI</b> is an <b>AI privacy solution</b>, allowing users to query popular AI models or serve their own models whilst ensuring that users' data remains private every step of the way.
 	<br /><br />
